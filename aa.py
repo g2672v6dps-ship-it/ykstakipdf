@@ -43,14 +43,31 @@ except Exception as e:
 # 🔍 DEBUG: Eksik paketleri manuel yüklemeyi dene
 st.subheader("🔧 Manuel Paket Yükleme Denemesi")
 
-# Firebase-admin yüklemeyi dene
+# Pip güncellemesi
+with st.expander("📦 Pip Güncelleme"):
+    try:
+        st.info("Pip güncelleniyor...")
+        pip_update = subprocess.run([
+            sys.executable, "-m", "pip", "install", "--upgrade", "pip", "--no-cache-dir"
+        ], capture_output=True, text=True, timeout=30)
+        
+        if pip_update.returncode == 0:
+            st.success("✅ Pip güncellendi!")
+            st.code(pip_update.stdout)
+        else:
+            st.warning("⚠️ Pip güncellenemedi (normal olabilir)")
+            st.code(pip_update.stderr)
+    except Exception as e:
+        st.warning(f"⚠️ Pip güncelleme hatası: {e}")
+
+# Firebase-admin yüklemeyi dene (--user flag olmadan)
 with st.expander("🔥 Firebase-admin Yükleme Denemesi"):
     try:
         st.info("Firebase-admin yüklemeye çalışılıyor...")
         install_result = subprocess.run([
             sys.executable, "-m", "pip", "install", 
-            "firebase-admin==6.3.0", "--user", "--no-cache-dir"
-        ], capture_output=True, text=True, timeout=60)
+            "firebase-admin==6.3.0", "--no-cache-dir"
+        ], capture_output=True, text=True, timeout=90)
         
         if install_result.returncode == 0:
             st.success("✅ Firebase-admin manuel olarak yüklendi!")
@@ -61,6 +78,25 @@ with st.expander("🔥 Firebase-admin Yükleme Denemesi"):
             
     except Exception as e:
         st.error(f"❌ Manuel yükleme hatası: {e}")
+
+# Plotly yüklemeyi dene  
+with st.expander("📊 Plotly Yükleme Denemesi"):
+    try:
+        st.info("Plotly yüklemeye çalışılıyor...")
+        plotly_result = subprocess.run([
+            sys.executable, "-m", "pip", "install", 
+            "plotly==5.17.0", "--no-cache-dir"
+        ], capture_output=True, text=True, timeout=60)
+        
+        if plotly_result.returncode == 0:
+            st.success("✅ Plotly manuel olarak yüklendi!")
+            st.code(plotly_result.stdout)
+        else:
+            st.error("❌ Plotly yüklenemedi")
+            st.code(plotly_result.stderr)
+            
+    except Exception as e:
+        st.error(f"❌ Plotly yükleme hatası: {e}")
 
 # 🔍 DEBUG: Yüklü paketleri kontrol et
 st.subheader("📦 Paket Durumu")
