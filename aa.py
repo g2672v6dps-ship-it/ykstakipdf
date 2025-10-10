@@ -2,82 +2,15 @@ import streamlit as st
 import hashlib
 import time
 from datetime import datetime, timedelta
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 import csv
 import os
 import json
 import random
-import sys
-import subprocess
-
-# 🔍 DEBUG: Python Environment Bilgileri
-st.info(f"🐍 Python versiyonu: {sys.version}")
-st.info(f"📍 Python executable: {sys.executable}")
-
-# 🔍 DEBUG: Yüklü paketleri kontrol et
-try:
-    result = subprocess.run([sys.executable, "-m", "pip", "list"], 
-                          capture_output=True, text=True, timeout=10)
-    if result.returncode == 0:
-        installed_packages = result.stdout
-        
-        # Önemli paketleri kontrol et
-        important_packages = ['firebase-admin', 'plotly', 'pandas', 'streamlit']
-        package_status = {}
-        
-        for pkg in important_packages:
-            # Paketi kontrol et (case-insensitive)
-            lines = installed_packages.lower().split('\n')
-            found = any(line.startswith(pkg.lower()) for line in lines)
-            package_status[pkg] = found
-            
-            if found:
-                st.success(f"✅ {pkg} yüklü")
-            else:
-                st.error(f"❌ {pkg} YÜKLENMEMİŞ!")
-        
-        # Detaylı paket listesini göster (katlanabilir)
-        with st.expander("📦 Tüm Yüklü Paketleri Göster"):
-            st.text(installed_packages)
-            
-    else:
-        st.error(f"❌ Paket listesi alınamadı - return code: {result.returncode}")
-        st.code(result.stderr)
-        
-except Exception as e:
-    st.error(f"❌ Paket kontrolü sırasında hata: {e}")
-
-# Separator
-st.markdown("---")
-
-# Optional imports with fallbacks
-try:
-    import pandas as pd
-    PANDAS_AVAILABLE = True
-except ImportError:
-    st.warning("⚠️ Pandas yüklenemedi - basit veri yapıları kullanılacak")
-    PANDAS_AVAILABLE = False
-    pd = None
-
-try:
-    import firebase_admin
-    from firebase_admin import credentials, db
-    FIREBASE_AVAILABLE = True
-except ImportError:
-    st.warning("⚠️ Firebase yüklenemedi - yerel depolama kullanılacak")
-    FIREBASE_AVAILABLE = False
-    firebase_admin = None
-    db = None
-
-# Plotly optional import (fallback to basic charts)
-try:
-    import plotly.express as px
-    import plotly.graph_objects as go
-    PLOTLY_AVAILABLE = True
-except ImportError:
-    st.warning("⚠️ Plotly yüklenemedi - basit grafikler kullanılacak")
-    PLOTLY_AVAILABLE = False
-    px = None
-    go = None
+import firebase_admin
+from firebase_admin import credentials, db
 
 # Sayfa yapılandırması
 st.set_page_config(
@@ -89,51 +22,30 @@ st.set_page_config(
 
 # Firebase başlatma
 try:
-    if FIREBASE_AVAILABLE:
-        st.info("🔄 Firebase modülü yüklendi, bağlantı kuruluyor...")
+    # Firebase'in zaten başlatılıp başlatılmadığını kontrol et
+    if not firebase_admin._apps:
+        # Firebase Admin SDK'yı başlat
+        # GitHub/Streamlit Cloud deployment için environment variable kontrolü
+        if 'FIREBASE_KEY' in os.environ:
+            # Production: Environment variable'dan JSON key'i al
+            firebase_json = os.environ["FIREBASE_KEY"]
+            firebase_config = json.loads(firebase_json)
+            cred = credentials.Certificate(firebase_config)
+        else:
+            # Local development: JSON dosyasından al
+            cred = credentials.Certificate("firebase_key.json")
         
-        # Firebase'in zaten başlatılıp başlatılmadığını kontrol et
-        if not firebase_admin._apps:
-            # Firebase Admin SDK'yı başlat
-            # GitHub/Streamlit Cloud deployment için environment variable kontrolü
-            if 'FIREBASE_KEY' in os.environ:
-                st.info("🔧 Production: Environment variable'dan Firebase key'i alınıyor...")
-                try:
-                    firebase_json = os.environ["FIREBASE_KEY"]
-                    firebase_config = json.loads(firebase_json)
-                    cred = credentials.Certificate(firebase_config)
-                    st.info("✅ Firebase credentials başarıyla parse edildi")
-                except json.JSONDecodeError as je:
-                    raise Exception(f"Firebase key JSON parsing hatası: {je}")
-                except Exception as ce:
-                    raise Exception(f"Firebase credentials hatası: {ce}")
-            else:
-                st.info("🔧 Local: JSON dosyasından Firebase key'i alınıyor...")
-                cred = credentials.Certificate("firebase_key.json")
-            
-            try:
-                firebase_admin.initialize_app(cred, {
-                    'databaseURL':'https://yks-takip-c26d5-default-rtdb.firebaseio.com/'
-                })
-                st.info("✅ Firebase app başarıyla initialize edildi")
-            except Exception as ie:
-                raise Exception(f"Firebase initialization hatası: {ie}")
-        
-        try:
-            db_ref = db.reference('users')
-            st.info("✅ Database reference oluşturuldu")
-        except Exception as de:
-            raise Exception(f"Database reference hatası: {de}")
-            
-        if not hasattr(st.session_state, 'firebase_connected'):
-            st.success("🔥 Firebase bağlantısı başarılı!")
-            st.session_state.firebase_connected = True
-    else:
-        raise Exception("Firebase modülü import edilemedi")
+        firebase_admin.initialize_app(cred, {
+            'databaseURL':'https://yks-takip-c26d5-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
+        })
+    
+    db_ref = db.reference('users')
+    if not hasattr(st.session_state, 'firebase_connected'):
+        st.success("🔥 Firebase bağlantısı başarılı!")
+        st.session_state.firebase_connected = True
         
 except Exception as e:
-    st.error(f"🚫 Firebase bağlantısı kurulamadı:")
-    st.error(f"**Hata detayı:** {str(e)}")
+    st.warning(f"⚠️ Firebase bağlantısı kurulamadı: {e}")
     st.info("🔧 Geçici olarak yerel test sistemi kullanılıyor...")
     db_ref = None
     
