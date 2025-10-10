@@ -6,6 +6,48 @@ import csv
 import os
 import json
 import random
+import sys
+import subprocess
+
+# 🔍 DEBUG: Python Environment Bilgileri
+st.info(f"🐍 Python versiyonu: {sys.version}")
+st.info(f"📍 Python executable: {sys.executable}")
+
+# 🔍 DEBUG: Yüklü paketleri kontrol et
+try:
+    result = subprocess.run([sys.executable, "-m", "pip", "list"], 
+                          capture_output=True, text=True, timeout=10)
+    if result.returncode == 0:
+        installed_packages = result.stdout
+        
+        # Önemli paketleri kontrol et
+        important_packages = ['firebase-admin', 'plotly', 'pandas', 'streamlit']
+        package_status = {}
+        
+        for pkg in important_packages:
+            # Paketi kontrol et (case-insensitive)
+            lines = installed_packages.lower().split('\n')
+            found = any(line.startswith(pkg.lower()) for line in lines)
+            package_status[pkg] = found
+            
+            if found:
+                st.success(f"✅ {pkg} yüklü")
+            else:
+                st.error(f"❌ {pkg} YÜKLENMEMİŞ!")
+        
+        # Detaylı paket listesini göster (katlanabilir)
+        with st.expander("📦 Tüm Yüklü Paketleri Göster"):
+            st.text(installed_packages)
+            
+    else:
+        st.error(f"❌ Paket listesi alınamadı - return code: {result.returncode}")
+        st.code(result.stderr)
+        
+except Exception as e:
+    st.error(f"❌ Paket kontrolü sırasında hata: {e}")
+
+# Separator
+st.markdown("---")
 
 # Optional imports with fallbacks
 try:
