@@ -48,32 +48,50 @@ st.set_page_config(
 # Firebase başlatma
 try:
     if FIREBASE_AVAILABLE:
+        st.info("🔄 Firebase modülü yüklendi, bağlantı kuruluyor...")
+        
         # Firebase'in zaten başlatılıp başlatılmadığını kontrol et
         if not firebase_admin._apps:
             # Firebase Admin SDK'yı başlat
             # GitHub/Streamlit Cloud deployment için environment variable kontrolü
             if 'FIREBASE_KEY' in os.environ:
-                # Production: Environment variable'dan JSON key'i al
-                firebase_json = os.environ["FIREBASE_KEY"]
-                firebase_config = json.loads(firebase_json)
-                cred = credentials.Certificate(firebase_config)
+                st.info("🔧 Production: Environment variable'dan Firebase key'i alınıyor...")
+                try:
+                    firebase_json = os.environ["FIREBASE_KEY"]
+                    firebase_config = json.loads(firebase_json)
+                    cred = credentials.Certificate(firebase_config)
+                    st.info("✅ Firebase credentials başarıyla parse edildi")
+                except json.JSONDecodeError as je:
+                    raise Exception(f"Firebase key JSON parsing hatası: {je}")
+                except Exception as ce:
+                    raise Exception(f"Firebase credentials hatası: {ce}")
             else:
-                # Local development: JSON dosyasından al
+                st.info("🔧 Local: JSON dosyasından Firebase key'i alınıyor...")
                 cred = credentials.Certificate("firebase_key.json")
             
-            firebase_admin.initialize_app(cred, {
-                'databaseURL':'https://yks-takip-c26d5-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
-            })
+            try:
+                firebase_admin.initialize_app(cred, {
+                    'databaseURL':'https://yks-takip-c26d5-default-rtdb.firebaseio.com/'
+                })
+                st.info("✅ Firebase app başarıyla initialize edildi")
+            except Exception as ie:
+                raise Exception(f"Firebase initialization hatası: {ie}")
         
-        db_ref = db.reference('users')
+        try:
+            db_ref = db.reference('users')
+            st.info("✅ Database reference oluşturuldu")
+        except Exception as de:
+            raise Exception(f"Database reference hatası: {de}")
+            
         if not hasattr(st.session_state, 'firebase_connected'):
             st.success("🔥 Firebase bağlantısı başarılı!")
             st.session_state.firebase_connected = True
     else:
-        raise Exception("Firebase modülü yüklenemedi")
+        raise Exception("Firebase modülü import edilemedi")
         
 except Exception as e:
-    st.warning(f"⚠️ Firebase bağlantısı kurulamadı: {e}")
+    st.error(f"🚫 Firebase bağlantısı kurulamadı:")
+    st.error(f"**Hata detayı:** {str(e)}")
     st.info("🔧 Geçici olarak yerel test sistemi kullanılıyor...")
     db_ref = None
     
