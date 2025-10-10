@@ -3,14 +3,23 @@ import hashlib
 import time
 from datetime import datetime, timedelta
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 import csv
 import os
 import json
 import random
 import firebase_admin
 from firebase_admin import credentials, db
+
+# Plotly optional import (fallback to basic charts)
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    st.warning("⚠️ Plotly yüklenemedi - basit grafikler kullanılacak")
+    PLOTLY_AVAILABLE = False
+    px = None
+    go = None
 
 # Sayfa yapılandırması
 st.set_page_config(
