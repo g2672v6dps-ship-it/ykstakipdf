@@ -2,13 +2,29 @@ import streamlit as st
 import hashlib
 import time
 from datetime import datetime, timedelta
-import pandas as pd
 import csv
 import os
 import json
 import random
-import firebase_admin
-from firebase_admin import credentials, db
+
+# Optional imports with fallbacks
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    st.warning("⚠️ Pandas yüklenemedi - basit veri yapıları kullanılacak")
+    PANDAS_AVAILABLE = False
+    pd = None
+
+try:
+    import firebase_admin
+    from firebase_admin import credentials, db
+    FIREBASE_AVAILABLE = True
+except ImportError:
+    st.warning("⚠️ Firebase yüklenemedi - yerel depolama kullanılacak")
+    FIREBASE_AVAILABLE = False
+    firebase_admin = None
+    db = None
 
 # Plotly optional import (fallback to basic charts)
 try:
@@ -31,27 +47,30 @@ st.set_page_config(
 
 # Firebase başlatma
 try:
-    # Firebase'in zaten başlatılıp başlatılmadığını kontrol et
-    if not firebase_admin._apps:
-        # Firebase Admin SDK'yı başlat
-        # GitHub/Streamlit Cloud deployment için environment variable kontrolü
-        if 'FIREBASE_KEY' in os.environ:
-            # Production: Environment variable'dan JSON key'i al
-            firebase_json = os.environ["FIREBASE_KEY"]
-            firebase_config = json.loads(firebase_json)
-            cred = credentials.Certificate(firebase_config)
-        else:
-            # Local development: JSON dosyasından al
-            cred = credentials.Certificate("firebase_key.json")
+    if FIREBASE_AVAILABLE:
+        # Firebase'in zaten başlatılıp başlatılmadığını kontrol et
+        if not firebase_admin._apps:
+            # Firebase Admin SDK'yı başlat
+            # GitHub/Streamlit Cloud deployment için environment variable kontrolü
+            if 'FIREBASE_KEY' in os.environ:
+                # Production: Environment variable'dan JSON key'i al
+                firebase_json = os.environ["FIREBASE_KEY"]
+                firebase_config = json.loads(firebase_json)
+                cred = credentials.Certificate(firebase_config)
+            else:
+                # Local development: JSON dosyasından al
+                cred = credentials.Certificate("firebase_key.json")
+            
+            firebase_admin.initialize_app(cred, {
+                'databaseURL':'https://yks-takip-c26d5-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
+            })
         
-        firebase_admin.initialize_app(cred, {
-            'databaseURL':'https://yks-takip-c26d5-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
-        })
-    
-    db_ref = db.reference('users')
-    if not hasattr(st.session_state, 'firebase_connected'):
-        st.success("🔥 Firebase bağlantısı başarılı!")
-        st.session_state.firebase_connected = True
+        db_ref = db.reference('users')
+        if not hasattr(st.session_state, 'firebase_connected'):
+            st.success("🔥 Firebase bağlantısı başarılı!")
+            st.session_state.firebase_connected = True
+    else:
+        raise Exception("Firebase modülü yüklenemedi")
         
 except Exception as e:
     st.warning(f"⚠️ Firebase bağlantısı kurulamadı: {e}")
