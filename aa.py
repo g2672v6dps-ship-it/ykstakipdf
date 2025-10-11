@@ -4398,7 +4398,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 </div>
                 
                 <div style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; padding: 12px 20px; border-radius: 25px; text-align: center; font-weight: bold; margin: 15px 0;">
-                    {study_day_info['progress_text']}
+                    Gün {day_data['day_number']} / {len(timeline_days)} - Yolculuk devam ediyor! 🚀
                 </div>
             </div>
             """
