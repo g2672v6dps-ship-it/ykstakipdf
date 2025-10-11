@@ -6,164 +6,66 @@ import csv
 import os
 import json
 import random
-import sys
-import subprocess
 
-# 🔍 DEBUG: Python Environment Bilgileri
-st.info(f"🐍 Python versiyonu: {sys.version}")
-st.info(f"📍 Python executable: {sys.executable}")
-
-# 🔍 DEBUG: Requirements.txt dosyasını kontrol et
-st.subheader("🔍 Requirements.txt Debug")
-try:
-    # Current working directory
-    st.info(f"📁 Çalışma dizini: {os.getcwd()}")
-    
-    # Dosya var mı kontrol et
-    if os.path.exists("requirements.txt"):
-        with open("requirements.txt", "r") as f:
-            req_content = f.read()
-        st.success("✅ requirements.txt dosyası bulundu")
-        st.code(req_content, language="text")
-    else:
-        st.error("❌ requirements.txt dosyası bulunamadı!")
-        
-    # runtime.txt kontrol et
-    if os.path.exists("runtime.txt"):
-        with open("runtime.txt", "r") as f:
-            runtime_content = f.read()
-        st.success("✅ runtime.txt dosyası bulundu")
-        st.code(runtime_content, language="text")
-    else:
-        st.warning("⚠️ runtime.txt dosyası bulunamadı")
-        
-except Exception as e:
-    st.error(f"❌ Dosya kontrolü hatası: {e}")
-
-# 🔍 DEBUG: Eksik paketleri manuel yüklemeyi dene
-st.subheader("🔧 Manuel Paket Yükleme Denemesi")
-
-# Pip güncellemesi
-with st.expander("📦 Pip Güncelleme"):
-    try:
-        st.info("Pip güncelleniyor...")
-        pip_update = subprocess.run([
-            sys.executable, "-m", "pip", "install", "--upgrade", "pip", "--no-cache-dir"
-        ], capture_output=True, text=True, timeout=30)
-        
-        if pip_update.returncode == 0:
-            st.success("✅ Pip güncellendi!")
-            st.code(pip_update.stdout)
-        else:
-            st.warning("⚠️ Pip güncellenemedi (normal olabilir)")
-            st.code(pip_update.stderr)
-    except Exception as e:
-        st.warning(f"⚠️ Pip güncelleme hatası: {e}")
-
-# Firebase-admin yüklemeyi dene (--user flag olmadan)
-with st.expander("🔥 Firebase-admin Yükleme Denemesi"):
-    try:
-        st.info("Firebase-admin yüklemeye çalışılıyor...")
-        install_result = subprocess.run([
-            sys.executable, "-m", "pip", "install", 
-            "firebase-admin==6.3.0", "--no-cache-dir"
-        ], capture_output=True, text=True, timeout=90)
-        
-        if install_result.returncode == 0:
-            st.success("✅ Firebase-admin manuel olarak yüklendi!")
-            st.code(install_result.stdout)
-        else:
-            st.error("❌ Firebase-admin yüklenemedi")
-            st.code(install_result.stderr)
-            
-    except Exception as e:
-        st.error(f"❌ Manuel yükleme hatası: {e}")
-
-# Plotly yüklemeyi dene  
-with st.expander("📊 Plotly Yükleme Denemesi"):
-    try:
-        st.info("Plotly yüklemeye çalışılıyor...")
-        plotly_result = subprocess.run([
-            sys.executable, "-m", "pip", "install", 
-            "plotly==5.17.0", "--no-cache-dir"
-        ], capture_output=True, text=True, timeout=60)
-        
-        if plotly_result.returncode == 0:
-            st.success("✅ Plotly manuel olarak yüklendi!")
-            st.code(plotly_result.stdout)
-        else:
-            st.error("❌ Plotly yüklenemedi")
-            st.code(plotly_result.stderr)
-            
-    except Exception as e:
-        st.error(f"❌ Plotly yükleme hatası: {e}")
-
-# 🔍 DEBUG: Yüklü paketleri kontrol et
-st.subheader("📦 Paket Durumu")
-try:
-    result = subprocess.run([sys.executable, "-m", "pip", "list"], 
-                          capture_output=True, text=True, timeout=10)
-    if result.returncode == 0:
-        installed_packages = result.stdout
-        
-        # Önemli paketleri kontrol et
-        important_packages = ['firebase-admin', 'plotly', 'pandas', 'streamlit']
-        package_status = {}
-        
-        for pkg in important_packages:
-            # Paketi kontrol et (case-insensitive)
-            lines = installed_packages.lower().split('\n')
-            found = any(line.startswith(pkg.lower()) for line in lines)
-            package_status[pkg] = found
-            
-            if found:
-                st.success(f"✅ {pkg} yüklü")
-            else:
-                st.error(f"❌ {pkg} YÜKLENMEMİŞ!")
-        
-        # Detaylı paket listesini göster (katlanabilir)
-        with st.expander("📦 Tüm Yüklü Paketleri Göster"):
-            st.text(installed_packages)
-            
-    else:
-        st.error(f"❌ Paket listesi alınamadı - return code: {result.returncode}")
-        st.code(result.stderr)
-        
-except Exception as e:
-    st.error(f"❌ Paket kontrolü sırasında hata: {e}")
-
-# Separator
-st.markdown("---")
-
-# Optional imports with fallbacks
+# Paket yükleme durumları
 try:
     import pandas as pd
     PANDAS_AVAILABLE = True
 except ImportError:
-    st.warning("⚠️ Pandas yüklenemedi - basit veri yapıları kullanılacak")
     PANDAS_AVAILABLE = False
-    pd = None
+    # Pandas yoksa basit DataFrame mock
+    class MockDataFrame:
+        def __init__(self, data=None):
+            self.data = data or []
+        def to_dict(self):
+            return {'data': self.data}
+    pd = type('MockPandas', (), {'DataFrame': MockDataFrame})()
 
 try:
     import firebase_admin
     from firebase_admin import credentials, db
     FIREBASE_AVAILABLE = True
 except ImportError:
-    st.warning("⚠️ Firebase yüklenemedi - yerel depolama kullanılacak")
     FIREBASE_AVAILABLE = False
     firebase_admin = None
     db = None
 
-# Plotly optional import (fallback to basic charts)
 try:
     import plotly.express as px
     import plotly.graph_objects as go
     PLOTLY_AVAILABLE = True
 except ImportError:
-    st.warning("⚠️ Plotly yüklenemedi - basit grafikler kullanılacak")
     PLOTLY_AVAILABLE = False
-    px = None
-    go = None
+    # Plotly yoksa basit fallback objeler oluştur
+    class MockPlotly:
+        def __init__(self):
+            pass
+        def Figure(self):
+            return self
+        def Scatter(self, **kwargs):
+            return self
+        def add_trace(self, *args):
+            return self
+        def update_layout(self, **kwargs):
+            return self
+        def pie(self, *args, **kwargs):
+            return self
+        def bar(self, *args, **kwargs):
+            return self
+        def line(self, *args, **kwargs):
+            return self
+    
+    px = MockPlotly()
+    go = MockPlotly()
+    # st.plotly_chart yerine st.warning kullanılacak
+
+# Güvenli plotly_chart fonksiyonu
+def safe_plotly_chart(fig, **kwargs):
+    """Plotly yoksa uyarı gösterir, varsa grafiği çizer"""
+    if PLOTLY_AVAILABLE:
+        safe_plotly_chart(fig, **kwargs)
+    else:
+        st.warning("📊 Grafik görüntülenemedi - Plotly yüklü değil")
 
 # Sayfa yapılandırması
 st.set_page_config(
@@ -174,56 +76,42 @@ st.set_page_config(
 )
 
 # Firebase başlatma
-try:
-    if FIREBASE_AVAILABLE:
-        st.info("🔄 Firebase modülü yüklendi, bağlantı kuruluyor...")
-        
+firebase_connected = False
+db_ref = None
+
+if FIREBASE_AVAILABLE:
+    try:
         # Firebase'in zaten başlatılıp başlatılmadığını kontrol et
         if not firebase_admin._apps:
             # Firebase Admin SDK'yı başlat
             # GitHub/Streamlit Cloud deployment için environment variable kontrolü
             if 'FIREBASE_KEY' in os.environ:
-                st.info("🔧 Production: Environment variable'dan Firebase key'i alınıyor...")
-                try:
-                    firebase_json = os.environ["FIREBASE_KEY"]
-                    firebase_config = json.loads(firebase_json)
-                    cred = credentials.Certificate(firebase_config)
-                    st.info("✅ Firebase credentials başarıyla parse edildi")
-                except json.JSONDecodeError as je:
-                    raise Exception(f"Firebase key JSON parsing hatası: {je}")
-                except Exception as ce:
-                    raise Exception(f"Firebase credentials hatası: {ce}")
+                # Production: Environment variable'dan JSON key'i al
+                firebase_json = os.environ["FIREBASE_KEY"]
+                firebase_config = json.loads(firebase_json)
+                cred = credentials.Certificate(firebase_config)
             else:
-                st.info("🔧 Local: JSON dosyasından Firebase key'i alınıyor...")
+                # Local development: JSON dosyasından al
                 cred = credentials.Certificate("firebase_key.json")
             
-            try:
-                firebase_admin.initialize_app(cred, {
-                    'databaseURL':'https://yks-takip-c26d5-default-rtdb.firebaseio.com/'
-                })
-                st.info("✅ Firebase app başarıyla initialize edildi")
-            except Exception as ie:
-                raise Exception(f"Firebase initialization hatası: {ie}")
+            firebase_admin.initialize_app(cred, {
+                'databaseURL':'https://yks-takip-c26d5-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
+            })
         
-        try:
-            db_ref = db.reference('users')
-            st.info("✅ Database reference oluşturuldu")
-        except Exception as de:
-            raise Exception(f"Database reference hatası: {de}")
-            
-        if not hasattr(st.session_state, 'firebase_connected'):
-            st.success("🔥 Firebase bağlantısı başarılı!")
-            st.session_state.firebase_connected = True
-    else:
-        raise Exception("Firebase modülü import edilemedi")
+        db_ref = db.reference('users')
+        firebase_connected = True
+        st.success("🔥 Firebase bağlantısı başarılı!")
         
-except Exception as e:
-    st.error(f"🚫 Firebase bağlantısı kurulamadı:")
-    st.error(f"**Hata detayı:** {str(e)}")
-    st.info("🔧 Geçici olarak yerel test sistemi kullanılıyor...")
-    db_ref = None
-    
-    # FALLBACK: Geçici test kullanıcıları
+    except Exception as e:
+        st.warning(f"⚠️ Firebase bağlantısı kurulamadı: {e}")
+        firebase_connected = False
+        db_ref = None
+else:
+    st.info("📦 Firebase modülü yüklenmedi - yerel test modu aktif")
+
+# FALLBACK: Geçici test kullanıcıları
+if not firebase_connected:
+    st.info("🔧 Yerel test sistemi kullanılıyor...")
     if 'fallback_users' not in st.session_state:
         st.session_state.fallback_users = {
             'test_ogrenci': {
@@ -263,13 +151,13 @@ except Exception as e:
                 'last_login': None
             }
         }
-    st.success("✅ Geçici test kullanıcıları hazırlandı!")
+    st.success("✅ Test kullanıcıları hazırlandı!")
 
 # Firebase veritabanı fonksiyonları
 def load_users_from_firebase():
     """Firebase'den kullanıcı verilerini yükler (Fallback destekli)"""
     try:
-        if db_ref:
+        if firebase_connected and db_ref:
             users_data = db_ref.child("users").get()
             return users_data if users_data else {}
         else:
@@ -287,7 +175,7 @@ def load_users_from_firebase():
 def update_user_in_firebase(username, data):
     """Firebase'de kullanıcı verilerini günceller (Fallback destekli)"""
     try:
-        if db_ref:
+        if firebase_connected and db_ref:
             db_ref.child("users").child(username).update(data)
             return True
         else:
@@ -3452,7 +3340,7 @@ def create_progress_chart(daily_data):
         showlegend=True
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    safe_plotly_chart(fig, use_container_width=True)
 
 def show_exam_based_trend_analysis(user_data):
     """Deneme bazlı trend analizi - sınav performansı odaklı"""
@@ -3663,7 +3551,7 @@ def create_speed_projection_chart(current_speed, required_speed, weeks_left, cur
         yaxis=dict(range=[0, 120])
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    safe_plotly_chart(fig, use_container_width=True)
 
 def show_interactive_systematic_planner(weekly_plan, survey_data):
     """Basit ve etkili haftalık planlayıcı - DİNAMİK TARİH SİSTEMİ"""
@@ -5302,7 +5190,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(102, 126, 234, 0.2)')
                 fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(102, 126, 234, 0.2)')
                 
-                st.plotly_chart(fig, use_container_width=True)
+                safe_plotly_chart(fig, use_container_width=True)
         else:
             st.markdown("""
             <div style="text-align: center; padding: 50px; background: linear-gradient(45deg, #667eea, #764ba2); 
@@ -6568,7 +6456,7 @@ def show_daily_pomodoro_stats(user_data):
                     ])
                     fig = px.pie(subject_df, values='Dakika', names='Ders', 
                                 title='Bugünkü Çalışma Süresi Dağılımı')
-                    st.plotly_chart(fig, use_container_width=True, height=400)
+                    safe_plotly_chart(fig, use_container_width=True, height=400)
         
         # === TOPLAM İSTATİSTİKLER (TÜM ZAMANLAR) ===
         st.markdown("#### 🏆 Toplam İstatistikler")
@@ -9145,7 +9033,7 @@ def main():
                                 plot_bgcolor='rgba(0,0,0,0)'
                             )
                             
-                            st.plotly_chart(trend_fig1, use_container_width=True)
+                            safe_plotly_chart(trend_fig1, use_container_width=True)
                         
                         with col_graph2:
                             st.markdown("**🔢 Soru Çözme Trendi:**")
@@ -9171,7 +9059,7 @@ def main():
                                 plot_bgcolor='rgba(0,0,0,0)'
                             )
                             
-                            st.plotly_chart(trend_fig2, use_container_width=True)
+                            safe_plotly_chart(trend_fig2, use_container_width=True)
                         
                         with col_graph3:
                             st.markdown("**🎯 Deneme Trendi:**")
@@ -9197,7 +9085,7 @@ def main():
                                 plot_bgcolor='rgba(0,0,0,0)'
                             )
                             
-                            st.plotly_chart(trend_fig3, use_container_width=True)
+                            safe_plotly_chart(trend_fig3, use_container_width=True)
                     
                     with tab_history:
                         st.markdown("**📅 Geçmiş Günlerdeki Performansınızı İnceleyin:**")
@@ -9578,7 +9466,7 @@ def main():
                                 )
                                 
                                 # Speedometer chart göster
-                                st.plotly_chart(fig, use_container_width=True, key=f"car_speed_{subject}_{i}")
+                                safe_plotly_chart(fig, use_container_width=True, key=f"car_speed_{subject}_{i}")
                                 
                                 # Alt bilgi - Modern araba konsolu
                                 st.markdown(f"""
@@ -9935,7 +9823,7 @@ def main():
                 progress_df = pd.DataFrame(progress_data)
                 fig = px.line(progress_df, x='Ay', y=['Tamamlanan Konu', 'Çalışılan Saat', 'Deneme Net Ort.'], 
                              title='Aylık İlerleme Grafiği', markers=True)
-                st.plotly_chart(fig, use_container_width=True)
+                safe_plotly_chart(fig, use_container_width=True)
                 
                 # Motivasyon ve hatırlatıcılar
                 st.markdown("---")
@@ -10726,7 +10614,7 @@ def main():
                             fig = px.bar(x=dersler, y=netler, title="Derslere Göre Net Dağılımı",
                                          labels={'x': 'Dersler', 'y': 'Net'}, color=netler,
                                          color_continuous_scale="Viridis")
-                            st.plotly_chart(fig, use_container_width=True, key=f"analysis_chart_{deneme.get('adi', '')}_{deneme.get('tarih', '')}_{hash(str(dersler))}")
+                            safe_plotly_chart(fig, use_container_width=True, key=f"analysis_chart_{deneme.get('adi', '')}_{deneme.get('tarih', '')}_{hash(str(dersler))}")
 
                         # Öneriler (kaydedilmiş öneriler gösterilsin) - DOM hatasını önlemek için tek markdown
                         st.subheader("💡 Kayıtlı Gelişim Tavsiyeleri")
@@ -10747,7 +10635,7 @@ def main():
                         gelisim_df = pd.DataFrame({"Tarih": tarihler, "Toplam Net": netler})
                         fig_line = px.line(gelisim_df, x="Tarih", y="Toplam Net", markers=True,
                                            title="Denemelerde Net Gelişimi")
-                        st.plotly_chart(fig_line, use_container_width=True, key=f"gelisim_grafigi_{len(deneme_kayitlari)}_{hash(str(netler))}")
+                        safe_plotly_chart(fig_line, use_container_width=True, key=f"gelisim_grafigi_{len(deneme_kayitlari)}_{hash(str(netler))}")
 
                         # Son denemeye özel ders bazlı öneriler (kısa, eyleme dönük)
                         son_deneme = deneme_kayitlari[-1]
@@ -10804,7 +10692,7 @@ def main():
                     subjects = list(progress_data.keys())
                     percents = [data['percent'] for data in progress_data.values()]
                     fig = px.bar(x=subjects, y=percents, title="Derslere Göre Tamamlanma Oranları", labels={'x': 'Dersler', 'y': 'Tamamlanma (%)'}, color=percents, color_continuous_scale="Viridis")
-                    st.plotly_chart(fig, use_container_width=True)
+                    safe_plotly_chart(fig, use_container_width=True)
                     st.subheader("📋 Detaylı İlerleme Tablosu")
                     progress_df = pd.DataFrame([{'Ders': s, 'Tamamlanan': d['completed'], 'Toplam': d['total'], 'Oran (%)': d['percent']} for s, d in progress_data.items()])
                     st.dataframe(progress_df, use_container_width=True)
@@ -11105,7 +10993,7 @@ def display_modern_vak_analysis(dominant_style, visual_percent, auditory_percent
             font=dict(size=14),
             showlegend=True
         )
-        st.plotly_chart(fig, use_container_width=True)
+        safe_plotly_chart(fig, use_container_width=True)
     
     with col2:
         st.markdown("### 📈 Puan Detayları")
@@ -12454,7 +12342,7 @@ def display_vak_analysis(user_data):
                     font=dict(size=14),
                     showlegend=True
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                safe_plotly_chart(fig, use_container_width=True)
             
             with col2:
                 st.markdown("### 📈 Puan Detayları")
@@ -12684,7 +12572,7 @@ def display_cognitive_analysis(user_data):
                     font=dict(size=14),
                     showlegend=True
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                safe_plotly_chart(fig, use_container_width=True)
             
             with col2:
                 st.markdown("### 📈 Puan Detayları")
@@ -12868,7 +12756,7 @@ def display_motivation_analysis(user_data):
                     font=dict(size=14),
                     showlegend=True
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                safe_plotly_chart(fig, use_container_width=True)
             
             with col2:
                 st.markdown("### 📈 Puan Detayları")
@@ -13099,7 +12987,7 @@ def display_time_management_analysis(user_data):
                     font=dict(size=14),
                     showlegend=True
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                safe_plotly_chart(fig, use_container_width=True)
             
             with col2:
                 st.markdown("### 📈 Puan Detayları")
