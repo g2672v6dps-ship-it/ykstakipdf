@@ -4139,9 +4139,6 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         
         timeline_days = prepare_daily_data()
         
-        # Debug bilgi
-        st.write(f"🔍 DEBUG: {len(timeline_days)} gün verisi hazırlandı")
-        
         # Otomatik ilerleme kontrolü
         current_time = time.time()
         if (st.session_state.auto_play and 
@@ -4155,6 +4152,25 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         
         if st.session_state.cinema_day < len(timeline_days):
             day_data = timeline_days[st.session_state.cinema_day]
+            
+            # Dinamik HTML bölümlerini hazırla
+            topics_section = ""
+            if day_data['topic_names']:
+                topics_section = f"""
+                <div style="margin: 20px 0; color: #ffffff;">
+                    <strong style="color: #d4af37;">📄 Tamamlanan Konular:</strong><br>
+                    {' • '.join(day_data['topic_names'])}
+                </div>
+                """
+            
+            note_section = ""
+            if day_data['daily_note']:
+                note_section = f"""
+                <div style="margin: 20px 0; padding: 15px; background: rgba(212, 175, 55, 0.2); border-radius: 10px; color: #ffffff;">
+                    <strong style="color: #d4af37;">💭 Günün Notu:</strong><br>
+                    {day_data['daily_note']}
+                </div>
+                """
             
             # Günün sinematik gösterimi
             st.markdown(f"""
@@ -4189,9 +4205,9 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                             {' • '.join(day_data['subjects'])}
                         </div>
                         
-                        {"<div style='margin: 20px 0; color: #ffffff;'><strong style='color: #d4af37;'>📄 Tamamlanan Konular:</strong><br>" + ' • '.join(day_data['topic_names']) + "</div>" if day_data['topic_names'] else ""}
+                        {topics_section}
                         
-                        {"<div style='margin: 20px 0; padding: 15px; background: rgba(212, 175, 55, 0.2); border-radius: 10px; color: #ffffff;'><strong style='color: #d4af37;'>💭 Günün Notu:</strong><br>" + day_data['daily_note'] + "</div>" if day_data['daily_note'] else ""}
+                        {note_section}
                         
                         <div class="auto-progress" style="width: {(day_data['day_number'] / len(timeline_days)) * 100}%;"></div>
                         
