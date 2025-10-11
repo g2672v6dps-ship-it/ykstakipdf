@@ -3811,39 +3811,46 @@ def show_weekly_summary(weekly_plan):
             st.rerun()
 
 def show_sar_zamani_geriye_page(user_data, progress_data):
-    """⏰ Sar Zamanı Geriye - Sinema Tarzı Yolculuk Hikayesi"""
+    """⏰ Sar Zamanı Geriye - Günlük Detaylı Analiz"""
     
     # Merkezi gün bilgisini al
     study_day_info = get_current_study_day_info(user_data)
     
-    # ÖNCE TÜM CSS STİLLERİNİ YÜKLEYELİM - Animasyon Öncesi
+    # Sayfanın başlığını göster
+    st.markdown("# ⏰ Sar Zamanı Geriye - Günlük Analiz")
+    st.markdown("---")
+    
+    # CSS stilleri - basit ve etkili
     st.markdown("""
     <style>
-    /* Timeline Animasyon Stilleri */
-    .stats-row {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-around;
-        gap: 15px;
-        margin: 20px 0;
+    .daily-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        border-radius: 15px;
+        color: white;
+        margin: 10px 0;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
     }
     
-    .stat-box {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin: 15px 0;
+    }
+    
+    .stat-item {
+        background: rgba(255,255,255,0.2);
         padding: 15px;
-        border-radius: 12px;
+        border-radius: 10px;
         text-align: center;
-        min-width: 120px;
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        animation: fadeInUp 0.6s ease-out;
     }
     
     .stat-number {
         font-size: 24px;
         font-weight: bold;
-        margin-bottom: 5px;
         color: #FFD700;
+        margin-bottom: 5px;
     }
     
     .stat-label {
@@ -3852,7 +3859,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         font-weight: 500;
     }
     
-    .progress-indicator {
+    .progress-bar {
         background: linear-gradient(45deg, #ff6b6b, #ee5a24);
         color: white;
         padding: 12px 20px;
@@ -3860,1703 +3867,211 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         text-align: center;
         font-weight: bold;
         margin: 15px 0;
-        animation: pulse 2s ease-in-out infinite;
         box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
     }
-    
-    .day-card-cinema {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 30px;
-        border-radius: 20px;
-        color: white;
-        margin: 20px 0;
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-        animation: slideInUp 0.8s ease-out;
-    }
-    
-    .date-header {
-        background: #667eea;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        text-align: center;
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }
-    
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes slideInUp {
-        from { opacity: 0; transform: translateY(50px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-    }
-    
-    /* Cinema Header */
-    .cinema-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 40px 20px;
-        border-radius: 16px;
-        color: white;
-        text-align: center;
-        margin: 20px 0;
-        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
-    }
-    
-    .cinema-screen {
-        background: #1a1a1a;
-        border: 8px solid #333;
-        border-radius: 12px;
-        padding: 40px;
-        margin: 30px 0;
-        text-align: center;
-        color: white;
-        box-shadow: inset 0 0 50px rgba(0,0,0,0.8), 0 0 50px rgba(102, 126, 234, 0.3);
-    }
-    
-    .screen-content h2 {
-        color: #FFD700;
-        margin-bottom: 20px;
-        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-    }
     </style>
-    """, unsafe_allow_html=True)
-
-    # Modern ve sade tasarım stilleri
-    st.markdown("""
-    <style>
-    .cinema-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 40px 20px;
-        border-radius: 16px;
-        color: white;
-        text-align: center;
-        margin: 20px 0;
-        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
-    }
-    
-    .cinema-screen {
-        background: #1a1a1a;
-        border: 8px solid #333;
-        border-radius: 12px;
-        padding: 40px;
-        margin: 30px auto;
-        max-width: 800px;
-        position: relative;
-        box-shadow: 
-            0 0 50px rgba(0,0,0,0.8),
-            inset 0 0 100px rgba(255,255,255,0.05);
-    }
-    
-    .cinema-screen::before {
-        content: '';
-        position: absolute;
-        top: -4px;
-        left: -4px;
-        right: -4px;
-        bottom: -4px;
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        border-radius: 16px;
-        z-index: -1;
-    }
-    
-    .screen-content {
-        color: #fff;
-        text-align: center;
-        font-size: 18px;
-        line-height: 1.6;
-    }
-    
-    .day-card-cinema {
-        background: white;
-        border-radius: 12px;
-        padding: 24px;
-        margin: 20px auto;
-        max-width: 600px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        border-left: 4px solid #667eea;
-        animation: slideIn 0.5s ease-out;
-    }
-    
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .date-header {
-        background: #667eea;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        text-align: center;
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Ana başlık
-    st.markdown("""
-    <div class="cinema-header">
-        <h1 style="margin: 0; font-size: 36px;">
-            ⏰ Sar Zamanı Geriye
-        </h1>
-        <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">
-            Başarı yolculuğunuzun hikayesi
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Motivasyon metni
-    st.markdown("""
-    <div style="text-align: center; font-size: 20px; color: #555; margin: 30px 0; font-style: italic;">
-        "Bugüne kolay gelmedin."
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Sinema ekranı
-    st.markdown("""
-    <div class="cinema-screen">
-        <div class="screen-content">
-            <h2 style="margin: 0 0 20px 0;">🎬 ZAMAN MAKİNESİ</h2>
-            <p style="margin: 0 0 30px 0;">
-                Her günün hikayesini yeniden yaşamaya hazır mısın?<br>
-                Başlangıçtan bugüne kadar ki tüm mücadeleni gör...
-            </p>
-            <div style="font-size: 64px; margin: 20px 0;">
-                ⏳
-            </div>
-        </div>
-    </div>
     """, unsafe_allow_html=True)
     
     # Kullanıcı verilerini kontrol et
     if not user_data:
         st.error("Kullanıcı verisi bulunamadı!")
         return
-    
-    # Session state için değişkenler
-    if 'timeline_running' not in st.session_state:
-        st.session_state.timeline_running = False
-    if 'timeline_day' not in st.session_state:
-        st.session_state.timeline_day = 0
-    if 'play_music_timeline' not in st.session_state:
-        st.session_state.play_music_timeline = False
-    
-    # Oynatma butonu + GÜÇLÜ MÜZİK SİSTEMİ
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("🎬 Sar Zamanı Geriye", key="start_timeline", use_container_width=True, type="primary"):
-            st.session_state.timeline_running = True
-            st.session_state.timeline_day = 0
-            st.session_state.play_music_timeline = True
-            st.rerun()
-    
-    # GÜÇLÜ MÜZİK SİSTEMİ - Animasyon başladığında çalacak
-    if st.session_state.play_music_timeline:
-        st.markdown("""
-        <!-- GÜVENİLİR MÜZİK PLAYER -->
-        <audio id="timelineMusic" loop preload="auto" style="display: none;">
-            <source src="https://www.soundjay.com/misc/sounds/beep-01a.mp3" type="audio/mpeg">
-            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="audio/mp4">
-        </audio>
-        
-        <!-- YouTube Backup Player -->
-        <div id="youtube-container" style="position: fixed; top: -200px; left: -200px; opacity: 0; pointer-events: none;">
-            <iframe id="youtube-music" 
-                    width="100" 
-                    height="100" 
-                    src="https://www.youtube.com/embed/EQBVjwXZ7GY?autoplay=1&loop=1&playlist=EQBVjwXZ7GY&controls=0&mute=0&modestbranding=1&showinfo=0&rel=0"
-                    frameborder="0" 
-                    allow="autoplay; encrypted-media" 
-                    allowfullscreen>
-            </iframe>
-        </div>
-        
-        <!-- Müzik Kontrol Butonu -->
-        <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
-            <button id="musicControlBtn" onclick="toggleTimelineMusic()" 
-                    style="background: linear-gradient(45deg, #28a745, #20c997); color: white; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 20px; cursor: pointer; box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4); animation: pulse 2s ease-in-out infinite;">
-                🎵
-            </button>
-        </div>
-        
-        <!-- Müzik Durumu Bildirimi -->
-        <div id="musicStatus" style="position: fixed; top: 20px; right: 20px; z-index: 1001; opacity: 0; transition: all 0.3s ease;">
-        </div>
-        
-        <script>
-        let musicPlaying = false;
-        let currentAudio = null;
-        let youtubePlayer = null;
-        
-        function showMusicNotification(message, color = '#28a745') {
-            const notification = document.getElementById('musicStatus');
-            notification.innerHTML = message;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: linear-gradient(45deg, ${color}, #20c997);
-                color: white;
-                padding: 12px 20px;
-                border-radius: 25px;
-                z-index: 1001;
-                opacity: 1;
-                font-weight: bold;
-                box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
-                transition: all 0.3s ease;
-            `;
-            
-            setTimeout(() => {
-                notification.style.opacity = '0';
-            }, 3000);
-        }
-        
-        function toggleTimelineMusic() {
-            const audio = document.getElementById('timelineMusic');
-            const musicBtn = document.getElementById('musicControlBtn');
-            const youtubeFrame = document.getElementById('youtube-music');
-            
-            if (!musicPlaying) {
-                // Müziği başlat
-                console.log('🎵 Müzik başlatılıyor...');
-                
-                // Önce HTML5 audio dene
-                if (audio) {
-                    audio.volume = 0.3;
-                    const playPromise = audio.play();
-                    
-                    if (playPromise !== undefined) {
-                        playPromise.then(() => {
-                            musicPlaying = true;
-                            currentAudio = audio;
-                            musicBtn.innerHTML = '🔇';
-                            musicBtn.style.background = 'linear-gradient(45deg, #dc3545, #c82333)';
-                            showMusicNotification('🎵 Müzik başlatıldı!');
-                            console.log('✅ HTML5 Audio başarılı!');
-                        }).catch((error) => {
-                            console.log('❌ HTML5 Audio hatası, YouTube deneniyor:', error);
-                            tryYouTubeMusic();
-                        });
-                    } else {
-                        tryYouTubeMusic();
-                    }
-                } else {
-                    tryYouTubeMusic();
-                }
-            } else {
-                // Müziği durdur
-                stopMusic();
-            }
-        }
-        
-        function tryYouTubeMusic() {
-            console.log('🎥 YouTube müzik deneniyor...');
-            const youtubeFrame = document.getElementById('youtube-music');
-            const musicBtn = document.getElementById('musicControlBtn');
-            
-            if (youtubeFrame) {
-                try {
-                    // YouTube iframe'i yeniden yükle (autoplay ile)
-                    youtubeFrame.src = youtubeFrame.src.replace('autoplay=1', 'autoplay=1');
-                    musicPlaying = true;
-                    musicBtn.innerHTML = '🔇';
-                    musicBtn.style.background = 'linear-gradient(45deg, #dc3545, #c82333)';
-                    showMusicNotification('🎵 Müzik başlatıldı! (YouTube)');
-                    console.log('✅ YouTube müzik başarılı!');
-                } catch (error) {
-                    console.log('❌ YouTube hatası:', error);
-                    fallbackMusicOptions();
-                }
-            } else {
-                fallbackMusicOptions();
-            }
-        }
-        
-        function fallbackMusicOptions() {
-            console.log('🆘 Fallback seçenekleri gösteriliyor...');
-            showMusicNotification(`
-                🎵 Müzik için: 
-                <a href="https://www.youtube.com/watch?v=EQBVjwXZ7GY" target="_blank" 
-                   style="color: #FFD700; text-decoration: underline; font-weight: bold;">
-                   YouTube'da Aç 🎶
-                </a>
-            `, '#6c757d');
-        }
-        
-        function stopMusic() {
-            const audio = document.getElementById('timelineMusic');
-            const musicBtn = document.getElementById('musicControlBtn');
-            const youtubeFrame = document.getElementById('youtube-music');
-            
-            // HTML5 Audio durdur
-            if (audio && !audio.paused) {
-                audio.pause();
-            }
-            
-            // YouTube durdur
-            if (youtubeFrame) {
-                youtubeFrame.src = youtubeFrame.src.replace('autoplay=1', 'autoplay=0');
-            }
-            
-            musicPlaying = false;
-            musicBtn.innerHTML = '🎵';
-            musicBtn.style.background = 'linear-gradient(45deg, #28a745, #20c997)';
-            showMusicNotification('🔇 Müzik durduruldu');
-            console.log('⏹️ Müzik durduruldu');
-        }
-        
-        // Sayfa yüklendiğinde otomatik müzik başlat
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('📱 Sayfa yüklendi, müzik hazırlanıyor...');
-            
-            // 1 saniye sonra müziği otomatik başlat
-            setTimeout(() => {
-                if (!musicPlaying) {
-                    console.log('🚀 Otomatik müzik başlatma...');
-                    toggleTimelineMusic();
-                }
-            }, 1000);
-        });
-        
-        // CSS animasyonları ekle
-        if (!document.getElementById('music-animations')) {
-            const style = document.createElement('style');
-            style.id = 'music-animations';
-            style.textContent = `
-                @keyframes pulse {
-                    0%, 100% { transform: scale(1); }
-                    50% { transform: scale(1.1); }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-        </script>
-        """, unsafe_allow_html=True)
-    
-    # Başlangıç tarihini hesapla - Öğrencinin sisteme kayıt tarihi
+
+    # Temel tarih hesaplamaları
     try:
-        # Öğrencinin sisteme kayıt tarihini al
         if 'created_date' in user_data and user_data['created_date']:
             register_date = datetime.strptime(user_data['created_date'], '%Y-%m-%d')
-        elif 'created_at' in user_data and user_data['created_at']:
-            register_date = datetime.strptime(user_data['created_at'][:10], '%Y-%m-%d')
         else:
-            register_date = datetime.now() - timedelta(days=7)  # 7 gün öncesini varsayılan yap
+            register_date = datetime.now() - timedelta(days=30)
     except:
-        register_date = datetime.now() - timedelta(days=7)  # 7 gün öncesini varsayılan yap
-    
+        register_date = datetime.now() - timedelta(days=30)
+
     current_date = datetime.now()
     days_passed = (current_date - register_date).days + 1
     
-    if st.session_state.timeline_running:
-        # Gerçek kullanıcı verilerini yükle ve haftalık hedef konuları çek
+    # Başlatma butonu
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("📊 Günlük Analizimi Göster", key="start_analysis", use_container_width=True, type="primary"):
+            st.session_state.show_daily_analysis = True
+            st.rerun()
+    
+    # Günlük analiz göster
+    if st.session_state.get('show_daily_analysis', False):
+        # Gerçek kullanıcı verilerini yükle
         try:
             topic_progress = json.loads(user_data.get('topic_progress', '{}'))
-            weekly_plan = json.loads(user_data.get('weekly_plan', '{}'))
             pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
-            
-            # Haftalık hedef konuları al
-            weekly_target_topics = weekly_plan.get('new_topics', []) + weekly_plan.get('review_topics', [])
         except:
             topic_progress = {}
-            weekly_target_topics = []
             pomodoro_history = []
         
-        # Günlük verileri hazırla - Gerçek verilerden
-        timeline_days = []
-        
-        for i in range(min(days_passed, 10)):  # Son 10 gün
-            date = register_date + timedelta(days=i)
-            date_str = date.strftime('%Y-%m-%d')
-            
-            # O günün gerçek verilerini hesapla
-            daily_completed_topics = []
-            daily_net_improvements = 0
-            daily_pomodoros = 0
-            daily_subjects = set()
-            
-            # Topic progress'ten o günün tamamlanan konularını bul
-            for topic_key, net_value in topic_progress.items():
-                try:
-                    net_int = int(float(net_value))
-                    if net_int >= 14:  # Tamamlanmış sayılan konular
-                        parts = topic_key.split(' | ')
-                        if len(parts) >= 2:
-                            subject = parts[0]
-                            topic_name = parts[-1]
-                            daily_completed_topics.append(topic_name)
-                            daily_subjects.add(subject)
-                            if net_int >= 15:
-                                daily_net_improvements += 1
-                except:
-                    continue
-            
-            # Pomodoro verilerini o gün için say
-            for pomodoro in pomodoro_history:
-                if pomodoro.get('date', '').startswith(date_str):
-                    daily_pomodoros += 1
-            
-            # Haftalık hedef konularından günlük konuları seç
-            if weekly_target_topics and i < len(weekly_target_topics):
-                # Her gün farklı konulardan seç
-                topics_for_day = weekly_target_topics[i:i+3] if i+3 <= len(weekly_target_topics) else weekly_target_topics[-3:]
-            else:
-                # Fallback: Alanına göre varsayılan konular
-                user_field = user_data.get('field', 'Sayısal')
-                if user_field == 'Sayısal':
-                    fallback_topics = ['Fonksiyonlar', 'Türev', 'İntegral', 'Elektrik', 'Kimyasal Denge']
-                elif user_field == 'Sözel':
-                    fallback_topics = ['Paragraf', 'Osmanlı Tarihi', 'Dünya Coğrafyası', 'Edebiyat Tarihi']
-                else:
-                    fallback_topics = ['Cebirsel İfadeler', 'Paragraf Sorular', 'Hücre Biyolojisi']
-                topics_for_day = fallback_topics[i%len(fallback_topics):i%len(fallback_topics)+2]
-            
-            # Günlük istatistikleri hesapla
-            completed_topics_count = len(daily_completed_topics) if daily_completed_topics else min(i+1, 3)
-            solved_questions_count = daily_net_improvements * 5 + random.randint(8, 18)  # Net artışına bağlı
-            pomodoro_count = daily_pomodoros if daily_pomodoros > 0 else random.randint(3, 7)
-            
-            # Çalışılan dersleri belirleme
-            if daily_subjects:
-                subjects_list = list(daily_subjects)[:3]
-            else:
-                user_field = user_data.get('field', 'Sayısal')
-                if user_field == 'Sayısal':
-                    subjects_list = random.sample(['TYT Matematik', 'TYT Fizik', 'TYT Kimya', 'AYT Matematik', 'AYT Fizik'], 3)
-                elif user_field == 'Sözel':
-                    subjects_list = random.sample(['TYT Türkçe', 'TYT Tarih', 'AYT Edebiyat', 'AYT Coğrafya'], 3)
-                else:
-                    subjects_list = random.sample(['TYT Matematik', 'TYT Türkçe', 'TYT Fen', 'AYT Temel Mat'], 3)
-            
-            timeline_days.append({
-                'date': date,
-                'day_number': i + 1,
-                'completed_topics': completed_topics_count,
-                'solved_questions': solved_questions_count,
-                'pomodoro_count': pomodoro_count,
-                'subjects': subjects_list,
-                'total_study_time': pomodoro_count * 25,  # Dakika
-                'actual_topics': topics_for_day[:2] if len(topics_for_day) >= 2 else daily_completed_topics[:2] if daily_completed_topics else ['Matematik Problem Çözme', 'Türkçe Paragraf']
-            })
-        
-        # Mevcut günü göster
-        if st.session_state.timeline_day < len(timeline_days):
-            day_data = timeline_days[st.session_state.timeline_day]
-            
-            # Gün kartı - BASIT HTML
-            stats_html = f"""
-            <div style="
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: 30px;
-                border-radius: 20px;
-                color: white;
-                margin: 20px 0;
-                box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-            ">
-                <h3 style="text-align: center; margin-bottom: 20px;">
-                    📅 {day_data['date'].strftime('%d %B %Y')}
-                </h3>
-                
-                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px; margin: 20px 0;">
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; text-align: center; min-width: 120px;">
-                        <div style="font-size: 24px; font-weight: bold; color: #FFD700;">{day_data['completed_topics']}</div>
-                        <div style="font-size: 12px;">Konu Tamamlandı</div>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; text-align: center; min-width: 120px;">
-                        <div style="font-size: 24px; font-weight: bold; color: #FFD700;">{day_data['solved_questions']}</div>
-                        <div style="font-size: 12px;">Soru Çözüldü</div>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; text-align: center; min-width: 120px;">
-                        <div style="font-size: 24px; font-weight: bold; color: #FFD700;">{day_data['pomodoro_count']}</div>
-                        <div style="font-size: 12px;">Pomodoro</div>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; text-align: center; min-width: 120px;">
-                        <div style="font-size: 24px; font-weight: bold; color: #FFD700;">{day_data['total_study_time']}dk</div>
-                        <div style="font-size: 12px;">Çalışma Süresi</div>
-                    </div>
-                </div>
-                
-                <div style="margin: 20px 0;">
-                    <strong>📚 Çalışılan Dersler:</strong><br>
-                    {', '.join(day_data['subjects'])}
-                </div>
-                
-                <div style="margin: 20px 0;">
-                    <strong>📄 Tamamlanan Konular:</strong><br>
-                    {' • '.join(day_data['actual_topics']) if day_data['actual_topics'] else 'Matematik ve Türkçe çalışmaları'}
-                </div>
-                
-                <div style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; padding: 12px 20px; border-radius: 25px; text-align: center; font-weight: bold; margin: 15px 0;">
-                    Gün {day_data['day_number']} / {len(timeline_days)} - Yolculuk devam ediyor! 🚀
-                </div>
-            </div>
-            """
-            
-            st.markdown(stats_html, unsafe_allow_html=True)
-            
-            # İlerleme çubuğu
-            progress = st.progress((day_data['day_number'] / len(timeline_days)))
-            
-            # 3 saniye otomatik geçiş
-            st.markdown(f"""
-            <script>
-            setTimeout(function() {{
-                console.log('🕐 3 saniye geçti, sonraki güne geçiliyor...');
-            }}, 3000);
-            </script>
-            """, unsafe_allow_html=True)
-            
-            # Kontrol butonları
-            col_next, col_stop = st.columns([2, 1])
-            
-            with col_stop:
-                if st.button("⏹️ Durdur", key=f"stop_timeline_{st.session_state.timeline_day}"):
-                    st.session_state.timeline_running = False
-                    st.session_state.timeline_day = 0
-                    st.session_state.play_music_timeline = False
-                    st.rerun()
-            
-            # 3 saniye bekle ve sonraki güne geç
-            time.sleep(3)
-            if st.session_state.timeline_day < len(timeline_days) - 1:
-                st.session_state.timeline_day += 1
-                st.rerun()
-            else:
-                st.session_state.timeline_running = False
-                st.session_state.timeline_day = 0
-                st.session_state.play_music_timeline = False
-                st.success("🎉 Zaman yolculuğu tamamlandı! Ne muhteşem bir hikaye!")
-                if st.button("🔄 Tekrar İzle", key="restart_timeline"):
-                    st.session_state.timeline_running = True
-                    st.session_state.timeline_day = 0
-                    st.session_state.play_music_timeline = True
-                    st.rerun()
-        
-        else:
-            # Timeline tamamlandı
-            st.success("🎉 Zaman yolculuğu tamamlandı! Ne muhteşem bir hikaye!")
-            st.session_state.timeline_running = False
-            st.session_state.timeline_day = 0
-            st.session_state.play_music_timeline = False
-    
-    # Müzik kontrolü (animasyon çalışırken)
-    if st.session_state.play_music_timeline:
-        st.markdown(f"""
-        <div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
-            <button style="background: #667eea; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 20px;">
-                🎵
-            </button>
-        </div>
-        
-        <script>
-        // Müzik çalmaya başla
-        console.log('🎵 Timeline müziği başlatılıyor...');
-        </script>
-        """, unsafe_allow_html=True)
+        # Günlük detaylı analizler
+        display_daily_detailed_analysis(user_data, topic_progress, pomodoro_history, register_date, days_passed)
 
-    # CSS ve Animasyon Stilleri
-    st.markdown("""
-    <style>
-    .subject-badge {
-        display: inline-block;
-        background: #667eea;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 16px;
-        font-size: 12px;
-        margin: 3px;
-        font-weight: 500;
-    }
-    
-    .achievement-badge {
-        background: #28a745;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        margin: 3px;
-        display: inline-block;
-        font-weight: 500;
-    }
-    
-    .fade-in {
-        animation: fadeIn 0.5s ease-out;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* Günlük İstatistik Kartları */
-    .stats-row {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-around;
-        gap: 15px;
-        margin: 20px 0;
-    }
-    
-    .stat-box {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        padding: 15px;
-        border-radius: 12px;
-        text-align: center;
-        min-width: 120px;
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        animation: fadeInUp 0.6s ease-out;
-    }
-    
-    .stat-number {
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 5px;
-        color: #FFD700;
-    }
-    
-    .stat-label {
-        font-size: 12px;
-        opacity: 0.9;
-        font-weight: 500;
-    }
-    
-    .progress-indicator {
-        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-        color: white;
-        padding: 12px 20px;
-        border-radius: 25px;
-        text-align: center;
-        font-weight: bold;
-        margin: 15px 0;
-        animation: pulse 2s ease-in-out infinite;
-        box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-    }
 
-    .metric-card {
-        padding: 20px;
-        border-radius: 15px;
-        color: white;
-        text-align: center;
-        animation: fadeInUp 0.8s ease-out, countUp 1s ease-out;
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        transition: transform 0.3s ease;
+def display_daily_detailed_analysis(user_data, topic_progress, pomodoro_history, register_date, days_passed):
+    """Günlük detaylı analiz fonksiyonu"""
+    st.markdown("### 📊 Günlük Detaylı Analiz")
+    st.markdown("---")
+    
+    # Son 10 günü analiz et
+    analysis_days = min(days_passed, 10)
+    
+    for day_offset in range(analysis_days):
+        current_day = analysis_days - day_offset  # En yeni günden başla
+        date = register_date + timedelta(days=current_day - 1)
+        date_str = date.strftime('%Y-%m-%d')
+        
+        # O günün gerçek verilerini hesapla
+        daily_data = analyze_single_day(date_str, topic_progress, pomodoro_history, user_data)
+        
+        # Günlük kartını göster
+        display_day_card(current_day, date, daily_data)
+        
+        # Günler arası boşluk
+        st.markdown("<br>", unsafe_allow_html=True)
+
+
+def analyze_single_day(date_str, topic_progress, pomodoro_history, user_data):
+    """Tek günün verilerini analiz et"""
+    daily_data = {
+        'completed_topics': [],
+        'solved_questions': 0,
+        'pomodoro_count': 0,
+        'study_time': 0,
+        'subjects': set(),
+        'motivation_score': 0,
+        'notes': []
     }
     
-    .metric-card:hover {
-        transform: translateY(-5px);
-        animation: pulse 1s ease-in-out infinite;
-    }
+    # Topic progress'ten o günün tamamlanan konularını bul
+    for topic_key, net_value in topic_progress.items():
+        try:
+            net_int = int(float(net_value))
+            if net_int >= 14:  # Tamamlanmış sayılan konular
+                parts = topic_key.split(' | ')
+                if len(parts) >= 2:
+                    subject = parts[0]
+                    topic_name = parts[-1]
+                    daily_data['completed_topics'].append(topic_name)
+                    daily_data['subjects'].add(subject)
+                    if net_int >= 15:
+                        daily_data['solved_questions'] += 5  # Her gelişim ~5 soru anlamına gelir
+                    else:
+                        daily_data['solved_questions'] += 3
+        except:
+            continue
     
-    .timeline-item {
-        background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
-        padding: 20px;
-        margin: 15px 0;
-        border-radius: 15px;
-        color: white;
-        animation: slideInRight 0.6s ease-out;
-        box-shadow: 0 8px 25px rgba(240, 147, 251, 0.4);
-        position: relative;
-        overflow: hidden;
-    }
+    # Pomodoro verilerini o gün için say
+    for pomodoro in pomodoro_history:
+        if pomodoro.get('date', '').startswith(date_str) or pomodoro.get('timestamp', '').startswith(date_str):
+            daily_data['pomodoro_count'] += 1
+            daily_data['study_time'] += 25  # Her pomodoro 25 dakika
+            if pomodoro.get('subject'):
+                daily_data['subjects'].add(pomodoro['subject'])
     
-    .timeline-item::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        animation: shine 3s ease-in-out infinite;
-    }
+    # Motivasyon puanı hesapla (1-10 arası)
+    base_score = 5
+    if daily_data['pomodoro_count'] > 0:
+        base_score += min(2, daily_data['pomodoro_count'] // 2)
+    if daily_data['completed_topics']:
+        base_score += min(2, len(daily_data['completed_topics']))
+    if daily_data['solved_questions'] > 10:
+        base_score += 1
     
-    @keyframes shine {
-        0% { left: -100%; }
-        100% { left: 100%; }
-    }
+    daily_data['motivation_score'] = min(10, base_score)
     
-    .progress-bar-animated {
-        background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f, #4ecdc4, #45b7d1);
-        background-size: 200% 100%;
-        animation: rainbow 2s linear infinite;
-        height: 25px;
-        border-radius: 15px;
-        position: relative;
-        overflow: hidden;
-        transition: width 2s ease-in-out;
-    }
+    # Günlük notlar (performansa göre)
+    if daily_data['motivation_score'] >= 8:
+        daily_data['notes'].append("🔥 Mükemmel bir gün!")
+    elif daily_data['motivation_score'] >= 6:
+        daily_data['notes'].append("💪 İyi bir çalışma günü")
+    else:
+        daily_data['notes'].append("📚 Daha iyi olabilir")
     
-    .record-card {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        padding: 25px;
-        margin: 15px 0;
-        border-radius: 20px;
-        color: white;
-        text-align: center;
-        animation: fadeInUp 1s ease-out;
-        box-shadow: 0 15px 35px rgba(250, 112, 154, 0.4);
-        position: relative;
-    }
+    return daily_data
+
+
+def display_day_card(day_number, date, daily_data):
+    """Tek günün kartını görüntüle"""
     
-    .motivational-quote {
-        background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
-        background-size: 300% 300%;
-        animation: rainbow 3s ease infinite;
-        padding: 30px;
-        border-radius: 20px;
-        color: white;
-        text-align: center;
-        margin: 20px 0;
-        font-size: 18px;
-        box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
-    }
-    
-    .badge-animation {
-        background: linear-gradient(45deg, #FFD700, #FFA500, #FF6347, #FF1493);
-        background-size: 300% 300%;
-        animation: rainbow 2s ease infinite;
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
-        margin: 10px;
-        color: white;
-        font-weight: bold;
-        box-shadow: 0 10px 20px rgba(255, 215, 0, 0.4);
-        transform: rotate(-2deg);
-        animation: pulse 2s ease-in-out infinite;
-    }
-    
-    .journey-animation {
-        background: linear-gradient(270deg, #667eea, #764ba2, #667eea);
-        background-size: 200% 200%;
-        animation: rainbow 4s ease infinite;
-        padding: 25px;
-        border-radius: 20px;
-        color: white;
-        margin: 20px 0;
-        position: relative;
-    }
-    
-    /* Parıltı efektleri */
-    .sparkle-effect {
-        position: relative;
-    }
-    
-    .sparkle-effect::before,
-    .sparkle-effect::after {
-        content: "✨";
-        position: absolute;
-        animation: sparkle 1.5s ease-in-out infinite;
-    }
-    
-    .sparkle-effect::before {
-        top: -10px;
-        left: -10px;
-    }
-    
-    .sparkle-effect::after {
-        bottom: -10px;
-        right: -10px;
-        animation-delay: 0.75s;
-    }
-    
-    /* Günlük ilerleme animasyonu */
-    .daily-progress-container {
-        margin: 20px 0;
-        padding: 20px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        border-radius: 15px;
-        color: white;
-    }
-    
-    .day-progress-bar {
-        height: 30px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 15px;
-        margin: 10px 0;
-        overflow: hidden;
-        position: relative;
-    }
-    
-    .day-progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f);
-        border-radius: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        transition: width 1s ease-in-out;
-        position: relative;
-    }
-    
-    .day-progress-fill::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-        animation: shine 2s ease-in-out infinite;
-    }
-    
-    .music-control {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1000;
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        font-size: 20px;
-        cursor: pointer;
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        transition: all 0.3s ease;
-        animation: pulse 2s ease-in-out infinite;
-    }
-    
-    .music-control:hover {
-        transform: scale(1.1);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
-        background: linear-gradient(45deg, #764ba2, #667eea);
-    }
-    
-    .music-control.playing {
-        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-        animation: musical-pulse 1s ease-in-out infinite;
-    }
-    
-    @keyframes musical-pulse {
-        0%, 100% { 
-            transform: scale(1); 
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-        }
-        50% { 
-            transform: scale(1.05); 
-            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
-        }
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 0.7; transform: translateY(0); }
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Sade modern başlık
-    st.markdown("""
-    <div class="cinematic-header">
-        <h1 style="color: white; margin: 0; font-size: 2.5em; font-weight: bold;">
-            ⏰ Sar Zamanı Geriye
-        </h1>
-        <p style="color: white; font-size: 18px; margin: 15px 0; opacity: 0.9;">
-            Başarı yolculuğunuzun hikayesi
-        </p>
-        <p style="color: #ffd700; font-size: 16px; font-style: italic;">
-            "Bugünlere nasıl geldiğinizi görme zamanı!"
-        </p>
+    # Tarih başlığı
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                color: white; padding: 15px; border-radius: 10px; text-align: center; margin: 10px 0;">
+        <h4 style="margin: 0;">📅 Gün {day_number} - {date.strftime('%d %B %Y')}</h4>
     </div>
     """, unsafe_allow_html=True)
     
-    # Kullanıcı verilerini al
-    registration_date = user_data.get('registration_date', datetime.now().strftime('%Y-%m-%d'))
-    current_date = datetime.now()
-    
-    try:
-        start_date = datetime.strptime(registration_date, '%Y-%m-%d')
-        days_passed = (current_date - start_date).days
-        weeks_passed = days_passed // 7
-    except:
-        days_passed = 1
-        weeks_passed = 1
-        start_date = current_date - timedelta(days=1)
-    
-    # Animasyonlu dashboard metrikleri
-    st.markdown("### 🎯 CANLI İSTATİSTİKLER")
+    # İstatistik kartları
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <h2>🗓️</h2>
-            <h1 class="animated-number">{days_passed}</h1>
-            <p>Çalışma Günü</p>
-            <small>+{weeks_passed} hafta</small>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric(
+            label="📚 Tamamlanan Konu",
+            value=len(daily_data['completed_topics']),
+            delta=f"+{len(daily_data['completed_topics'])}" if daily_data['completed_topics'] else None
+        )
     
     with col2:
-        total_completed = sum(data['completed'] for data in progress_data.values()) if progress_data else 0
-        st.markdown(f"""
-        <div class="metric-card">
-            <h2>🎯</h2>
-            <h1 class="animated-number">{total_completed}</h1>
-            <p>Tamamlanan Konu</p>
-            <small>Bu hafta +{total_completed//weeks_passed if weeks_passed > 0 else total_completed}</small>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric(
+            label="🧠 Çözülen Soru",
+            value=daily_data['solved_questions'],
+            delta=f"+{daily_data['solved_questions']}" if daily_data['solved_questions'] > 0 else None
+        )
     
     with col3:
-        completion_rate = 0
-        if progress_data:
-            total_topics = sum(data['total'] for data in progress_data.values())
-            completion_rate = (total_completed / total_topics * 100) if total_topics > 0 else 0
-        
-        st.markdown(f"""
-        <div class="metric-card">
-            <h2>📊</h2>
-            <h1 class="animated-number">{int(completion_rate)}</h1>
-            <p>İlerleme Oranı (%)</p>
-            <small>{'🔥 Süper!' if completion_rate > 50 else '⚡ Hızlan!'}</small>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric(
+            label="🍅 Pomodoro",
+            value=daily_data['pomodoro_count'],
+            delta=f"+{daily_data['pomodoro_count']}" if daily_data['pomodoro_count'] > 0 else None
+        )
     
     with col4:
-        pomodoro_count = user_data.get('total_pomodoros', 0)
-        st.markdown(f"""
-        <div class="metric-card">
-            <h2>🍅</h2>
-            <h1 class="animated-number">{pomodoro_count}</h1>
-            <p>Pomodoro Sayısı</p>
-            <small>Günlük ort: {pomodoro_count//days_passed if days_passed > 0 else 0}</small>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric(
+            label="⏱️ Çalışma (dk)",
+            value=daily_data['study_time'],
+            delta=f"+{daily_data['study_time']}" if daily_data['study_time'] > 0 else None
+        )
     
-    # 🎬 ANİMASYONLU GÜNLÜK İLERLEME GÖSTERİMİ
-    st.markdown("### 🎬 ANİMASYONLU GÜNLÜK İLERLEME")
+    # Detaylı bilgiler
+    col_left, col_right = st.columns([1, 1])
     
-    # Animation state'i yönet
-    if 'animation_running' not in st.session_state:
-        st.session_state.animation_running = False
-        st.session_state.animation_day = 0
-    
-    # Müzik otomatik başlatma component'i
-    st.components.v1.html("""
-    <div id="musicAutoPlay" style="display: none;">
-        <script>
-        function startMusicWithAnimation() {
-            console.log('🎵 Müzik başlatılıyor...');
-            // Music player'ı bul ve başlat
-            const musicButton = document.querySelector('[data-testid="stMarkdownContainer"] button');
-            const audioElements = document.querySelectorAll('audio');
-            const iframes = document.querySelectorAll('iframe[src*="youtube"]');
-            
-            // YouTube iframe varsa
-            if (iframes.length > 0) {
-                console.log('🎬 YouTube iframe bulundu, müzik başlatılıyor...');
-                const iframe = iframes[0];
-                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-            }
-            
-            // Audio element varsa
-            if (audioElements.length > 0) {
-                console.log('🔊 Audio element bulundu, çalıyor...');
-                audioElements[0].play().catch(console.log);
-            }
-            
-            // Müzik butonunu bul ve tıkla
-            const buttons = document.querySelectorAll('button');
-            for (let btn of buttons) {
-                if (btn.innerHTML.includes('🎵') || btn.innerHTML.includes('müzik') || btn.innerHTML.includes('Müzik')) {
-                    console.log('🎵 Müzik butonu bulundu, tıklanıyor...');
-                    btn.click();
-                    break;
-                }
-            }
-        }
-        
-        // Sayfa yüklendiğinde müziği başlat
-        if (window.parent && window.parent.document) {
-            setTimeout(startMusicWithAnimation, 1000);
-        }
-        </script>
-    </div>
-    """, height=50)
-    
-    # Her gün için ilerleme hesapla
-    col_btn, col_info = st.columns([3, 1])
-    
-    with col_btn:
-        if st.button("🚀 İlerleme Animasyonunu Başlat", key="start_daily_animation", 
-                     use_container_width=True, type="primary"):
-            st.session_state.animation_running = True
-            st.session_state.animation_day = 0
-            st.session_state.play_music_now = True
-            st.rerun()
-    
-    with col_info:
-        if st.session_state.animation_running:
-            st.info(f"🎬 Gün {st.session_state.animation_day + 1}")
-    
-    # Animasyon çalışıyorsa
-    if st.session_state.animation_running:
-        # Kullanıcının başlangıç tarihini al
-        start_date = datetime.now() - timedelta(days=min(days_passed, 7))
-        
-        # Kullanıcının gerçek verilerini kullan
-        try:
-            topic_progress = json.loads(user_data.get('topic_progress', '{}'))
-            completed_topics = len([k for k, v in topic_progress.items() if v == 'completed'])
-            study_program = json.loads(user_data.get('study_program', '{}'))
-            pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
-            user_answers = json.loads(user_data.get('user_answers', '{}'))
-        except:
-            topic_progress = {}
-            completed_topics = 0
-            study_program = {}
-            pomodoro_history = []
-            user_answers = {}
-        
-        # Gerçek öğrenci verilerine dayalı günlük analiz
-        daily_activities = []
-        for i in range(min(days_passed, 7)):
-            date = start_date + timedelta(days=i)
-            date_str = date.strftime('%Y-%m-%d')
-            
-            # O günün gerçek çalışma verilerini hesapla
-            daily_pomodoros = [p for p in pomodoro_history if p.get('date', '').startswith(date_str)]
-            daily_study_time = sum([p.get('duration', 25) for p in daily_pomodoros])
-            
-            # O günün konu ilerlemesi
-            daily_topics = []
-            for topic, status in topic_progress.items():
-                if status == 'completed':
-                    daily_topics.append(topic)
-            
-            # Kullanıcının alanına göre dersler
-            user_field = user_data.get('field', 'Sayısal')
-            if user_field == 'Sayısal':
-                main_subjects = ['TYT Matematik', 'TYT Fizik', 'TYT Kimya', 'AYT Matematik', 'AYT Fizik']
-            elif user_field == 'Sözel':
-                main_subjects = ['TYT Türkçe', 'TYT Tarih', 'TYT Coğrafya', 'AYT Edebiyat', 'AYT Tarih']
-            else:
-                main_subjects = ['TYT Matematik', 'TYT Türkçe', 'TYT Fen', 'TYT Sosyal', 'AYT Temel Mat']
-            
-            # O günün başarı yüzdesi
-            daily_progress = min(100, (daily_study_time / 120) * 100) if daily_study_time > 0 else (20 + i * 10)
-            
-            # Günlük analiz
-            completed_count = max(1, len(daily_topics) // max(days_passed, 1)) + i
-            solved_questions = len([q for q in user_answers.values() if q.get('date', '').startswith(date_str)]) or (8 + i * 3)
-            
-            daily_activities.append({
-                'date': date,
-                'day_number': i + 1,
-                'study_time': daily_study_time or (45 + i * 15),
-                'subjects': random.sample(main_subjects, min(3, len(main_subjects))),
-                'completed_topics': completed_count,
-                'solved_questions': solved_questions,
-                'daily_progress': daily_progress,
-                'success_level': (
-                    'Mükemmel!' if daily_progress >= 80 else
-                    'Çok İyi!' if daily_progress >= 60 else
-                    'İyi!' if daily_progress >= 40 else
-                    'Gelişiyor!'
-                ),
-                'improvements': [
-                    f'{completed_count} konu tamamlandı',
-                    f'{solved_questions} soru çözüldü',
-                    f'{user_field} alanında odaklanma sağlandı',
-                    f'Günlük hedef %{int(daily_progress)} oranında gerçekleşti'
-                ]
-            })
-        
-        # Mevcut günü göster
-        if st.session_state.animation_day < len(daily_activities):
-            activity = daily_activities[st.session_state.animation_day]
-            
-            # Üst başlık
-            st.markdown(f"""
-            <div style="text-align: center; margin: 20px 0;">
-                <h2 style="color: #667eea; margin: 0;">📈 İlerleme Animasyonu</h2>
-                <p style="color: #666; margin: 5px 0;">Gün {activity['day_number']} / {len(daily_activities)}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Ana dikdörtgen kart
-            st.markdown(f"""
-            <div class="daily-progress-modern fade-in">
-                <!-- Tarih Başlığı -->
-                <div style="text-align: center; margin-bottom: 20px; padding: 12px; background: #667eea; color: white; border-radius: 8px;">
-                    <h3 style="margin: 0; font-size: 24px;">📅 {activity['date'].strftime('%d %B %Y')}</h3>
-                    <p style="margin: 5px 0 0 0; opacity: 0.9;">Gün {activity['day_number']} - {activity['success_level']}</p>
-                </div>
-                
-                <!-- Günlük Analiz İçeriği -->
-                <div class="timeline-card">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; text-align: center;">
-                        <div>
-                            <h4 style="color: #667eea; margin: 0 0 8px 0; font-size: 14px;">⏱️ ÇALIŞMA SÜRESİ</h4>
-                            <div style="font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 8px;">
-                                {activity['study_time']}dk
-                            </div>
-                            <div class="progress-bar-modern">
-                                <div class="progress-fill-modern" style="width: {activity['daily_progress']}%"></div>
-                            </div>
-                            <div style="font-size: 12px; color: #666; margin-top: 4px;">
-                                %{int(activity['daily_progress'])} başarı
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h4 style="color: #667eea; margin: 0 0 8px 0; font-size: 14px;">📚 TAMAMLANAN KONU</h4>
-                            <div style="font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 8px;">
-                                {activity['completed_topics']}
-                            </div>
-                            <div style="color: #28a745; font-weight: 500; font-size: 14px;">
-                                Konu tamamlandı
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h4 style="color: #667eea; margin: 0 0 8px 0; font-size: 14px;">🎯 ÇÖZÜLEN SORU</h4>
-                            <div style="font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 8px;">
-                                {activity['solved_questions']}
-                            </div>
-                            <div style="color: #fd7e14; font-weight: 500; font-size: 14px;">
-                                Soru çözüldü
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #667eea; margin: 0 0 10px 0; font-size: 16px;">📖 Çalışılan Dersler</h4>
-                        <div style="text-align: center;">
-                            {''.join([f'<span class="subject-badge">{subject}</span>' for subject in activity['subjects']])}
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #667eea; margin: 0 0 10px 0; font-size: 16px;">✨ Günün Başarıları</h4>
-                        <div style="text-align: center;">
-                            {''.join([f'<span class="achievement-badge">{improvement}</span> ' for improvement in activity['improvements']])}
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; color: white; margin-top: 20px;">
-                        <div style="font-size: 18px; font-weight: bold; margin-bottom: 4px;">
-                            🏆 {activity['success_level']}
-                        </div>
-                        <div style="font-size: 14px; opacity: 0.9;">
-                            Genel İlerleme: %{int((activity['day_number'] / len(daily_activities)) * 100)}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Otomatik 3 saniye geçiş
-            st.markdown(f"""
-            <script>
-            setTimeout(function() {{
-                console.log('🎬 3 saniye tamamlandı, sonraki güne geçiliyor...');
-                // Sonraki güne otomatik geçiş
-                const nextDay = {st.session_state.animation_day + 1};
-                const totalDays = {len(daily_activities)};
-                
-                if (nextDay < totalDays) {{
-                    // Sonraki güne geç
-                    window.parent.postMessage({{
-                        type: 'streamlit:rerun',
-                        data: {{
-                            'animation_day': nextDay
-                        }}
-                    }}, '*');
-                }} else {{
-                    // Animasyon tamamlandı
-                    window.parent.postMessage({{
-                        type: 'streamlit:rerun',
-                        data: {{
-                            'animation_running': false,
-                            'animation_day': 0,
-                            'play_music_now': false
-                        }}
-                    }}, '*');
-                }}
-            }}, 3000);
-            </script>
-            """, unsafe_allow_html=True)
-            
-            # Kontrol butonları
-            col_progress, col_stop = st.columns([3, 1])
-            
-            with col_progress:
-                progress_bar = st.progress((activity['day_number'] / len(daily_activities)))
-                st.markdown(f"<div style='text-align: center; margin-top: 5px; color: #666;'>Gün {activity['day_number']} / {len(daily_activities)}</div>", unsafe_allow_html=True)
-            
-            with col_stop:
-                if st.button("⏹️ Durdur", key=f"stop_animation_{st.session_state.animation_day}", type="secondary"):
-                    st.session_state.animation_running = False
-                    st.session_state.animation_day = 0
-                    st.session_state.play_music_now = False
-                    st.rerun()
-            
-            # 3 saniye sonra otomatik ilerleme
-            time.sleep(3)
-            if st.session_state.animation_day < len(daily_activities) - 1:
-                st.session_state.animation_day += 1
-                st.rerun()
-            else:
-                st.session_state.animation_running = False
-                st.session_state.animation_day = 0
-                st.session_state.play_music_now = False
-                st.success("🎉 İlerleme animasyonu tamamlandı! Muhteşem bir yolculuk!")
-                st.rerun()
-        
+    with col_left:
+        if daily_data['subjects']:
+            st.markdown("**📖 Çalışılan Dersler:**")
+            for subject in daily_data['subjects']:
+                st.markdown(f"• {subject}")
         else:
-            # Animasyon tamamlandı
-            st.session_state.animation_running = False
-            st.session_state.animation_day = 0
-            st.session_state.play_music_now = False
-            st.success("🎉 İlerleme animasyonu tamamlandı! Muhteşem bir yolculuk!")
-            if st.button("🔄 Tekrar İzle", key="restart_animation"):
-                st.session_state.animation_running = True
-                st.session_state.animation_day = 0
-                st.session_state.play_music_now = True
-                st.rerun()
+            st.info("Bu gün ders kaydı bulunamadı")
     
+    with col_right:
+        if daily_data['completed_topics']:
+            st.markdown("**✅ Tamamlanan Konular:**")
+            for topic in daily_data['completed_topics'][:5]:  # İlk 5 konuyu göster
+                st.markdown(f"• {topic}")
+            if len(daily_data['completed_topics']) > 5:
+                st.markdown(f"• +{len(daily_data['completed_topics']) - 5} konu daha...")
+        else:
+            st.info("Bu gün konu tamamlama kaydı yok")
+    
+    # Motivasyon puanı ve notlar
+    col_motivation, col_notes = st.columns([1, 2])
+    
+    with col_motivation:
+        stars = "⭐" * daily_data['motivation_score']
+        st.markdown(f"**💯 Motivasyon Puanı: {daily_data['motivation_score']}/10**")
+        st.markdown(f"{stars}")
+    
+    with col_notes:
+        st.markdown("**📝 Günlük Not:**")
+        for note in daily_data['notes']:
+            st.markdown(f"• {note}")
+    
+    # Ayırıcı çizgi
     st.markdown("---")
     
-    # Sade Tab sistemi
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📊 İlerleme Grafiği", 
-        "💬 Günlük Motivasyon", 
-        "🏆 Başarılarım", 
-        "🎯 Hedeflerim",
-        "📈 Rekorlarım"
-    ])
-    
-    with tab1:
-        st.markdown("## 🎬 İLERLEME SİNEMASI")
-        
-        if progress_data:
-            # Sinematik ilerleme gösterimi
-            st.markdown("### 🎥 Ders Bazında Başarı Filmi")
-            
-            subjects = list(progress_data.keys())
-            progress_values = [data['percent'] for data in progress_data.values()]
-            
-            # Her ders için animasyonlu kart
-            for i, (subject, progress) in enumerate(zip(subjects, progress_values)):
-                color_intensity = min(255, int(progress * 2.55))
-                
-                st.markdown(f"""
-                <div class="timeline-item" style="animation-delay: {i*0.2}s;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="flex: 1;">
-                            <h3 style="margin: 0; color: white;">{subject}</h3>
-                            <div style="background: rgba(255,255,255,0.3); border-radius: 10px; padding: 5px; margin: 10px 0;">
-                                <div class="progress-bar-animated" style="width: {progress}%; 
-                                           display: flex; align-items: center; justify-content: center; 
-                                           color: white; font-weight: bold; height: 25px;">
-                                    %{progress:.1f}
-                                </div>
-                            </div>
-                        </div>
-                        <div style="font-size: 50px; margin-left: 20px;">
-                            {'🏆' if progress >= 80 else '🔥' if progress >= 60 else '⚡' if progress >= 40 else '🌱'}
-                        </div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Haftalık ilerleme animasyonu
-            st.markdown("### 📈 HAFTALIK İLERLEME ANİMASYONU")
-            
-            if weeks_passed > 0:
-                weekly_data = []
-                for week in range(min(weeks_passed, 12)):  # Son 12 hafta
-                    week_progress = min(100, (week + 1) * (completion_rate / weeks_passed))
-                    weekly_data.append({
-                        'Hafta': f"Hafta {week + 1}",
-                        'İlerleme': week_progress,
-                        'Renklendir': week_progress
-                    })
-                
-                df_weekly = pd.DataFrame(weekly_data)
-                
-                # Plotly ile animasyonlu grafik
-                fig = go.Figure()
-                
-                # Renkli çizgi grafik
-                fig.add_trace(go.Scatter(
-                    x=df_weekly['Hafta'],
-                    y=df_weekly['İlerleme'],
-                    mode='lines+markers',
-                    name='İlerleme',
-                    line=dict(color='rgba(102, 126, 234, 1)', width=4),
-                    marker=dict(size=12, color=df_weekly['İlerleme'], 
-                               colorscale='Rainbow', cmin=0, cmax=100),
-                    hovertemplate='<b>%{x}</b><br>İlerleme: %{y:.1f}%<extra></extra>'
-                ))
-                
-                # Grafik düzenlemesi
-                fig.update_layout(
-                    title={
-                        'text': "🚀 Haftalık İlerleme Trendi",
-                        'x': 0.5,
-                        'xanchor': 'center',
-                        'font': {'size': 24, 'color': '#667eea'}
-                    },
-                    xaxis_title="Haftalar",
-                    yaxis_title="İlerleme Oranı (%)",
-                    height=400,
-                    template="plotly_white",
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    font=dict(color='#667eea', size=14)
-                )
-                
-                # Arka plan rengi ve grid
-                fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(102, 126, 234, 0.2)')
-                fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(102, 126, 234, 0.2)')
-                
-                safe_plotly_chart(fig, use_container_width=True)
-        else:
-            st.markdown("""
-            <div style="text-align: center; padding: 50px; background: linear-gradient(45deg, #667eea, #764ba2); 
-                        border-radius: 20px; color: white;">
-                <h2>🎬 İlk Sahneiniz Sizi Bekliyor!</h2>
-                <p style="font-size: 18px;">Konu takip sayfasından ilerlemenizi kaydedin ve hikayeniz başlasın!</p>
-            </div>
-            """, unsafe_allow_html=True)
-    
-    with tab2:
-        st.markdown("## 🎭 MOTİVASYON TİYATROSU")
-        
-        # Günlük motivasyon teması
-        motivation_themes = [
-            {"tema": "🔥 Ateş Günü", "renk": "linear-gradient(45deg, #ff6b6b, #ffd93d)", "mesaj": f"{days_passed} gündür alev alev yanıyorsun! Bu ateş söndürülemez! 🔥"},
-            {"tema": "⚡ Yıldırım Günü", "renk": "linear-gradient(45deg, #4ecdc4, #44a08d)", "mesaj": f"Bugün {days_passed}. günün! Hızın her geçen gün artıyor! ⚡"},
-            {"tema": "🌟 Yıldız Günü", "renk": "linear-gradient(45deg, #667eea, #764ba2)", "mesaj": f"{total_completed} konu tamamladın! Sen bir yıldızsın! 🌟"},
-            {"tema": "💎 Elmas Günü", "renk": "linear-gradient(45deg, #fa709a, #fee140)", "mesaj": f"Basınç altında parıldıyorsun! Elmas gibi değerlisin! 💎"},
-            {"tema": "🚀 Roket Günü", "renk": "linear-gradient(45deg, #a8edea, #fed6e3)", "mesaj": f"YKS'ye doğru tam gaz! Hiçbir şey seni durduramaz! 🚀"},
-        ]
-        
-        # Günlük tema seç
-        theme_index = (current_date.day + current_date.month) % len(motivation_themes)
-        daily_theme = motivation_themes[theme_index]
-        
-        st.markdown(f"""
-        <div class="motivational-quote" style="background: {daily_theme['renk']};">
-            <h2 style="margin: 0;">{daily_theme['tema']}</h2>
-            <h3 style="margin: 15px 0; font-style: italic;">{daily_theme['mesaj']}</h3>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Motivasyon kartları
-        motivational_cards = [
-            {"icon": "🎯", "başlık": "Hedef Odağı", "mesaj": f"{weeks_passed} hafta boyunca hedefinden şaşmadın!"},
-            {"icon": "💪", "başlık": "Güç Rezervi", "mesaj": f"Her gün biraz daha güçlendin, şimdi imkansız yok!"},
-            {"icon": "🧠", "başlık": "Beyin Gücü", "mesaj": f"{total_completed} konu = {total_completed * 50} yeni nöron bağlantısı!"},
-            {"icon": "⚡", "başlık": "Enerji Seviyesi", "mesaj": f"Motivasyon enerjin %{min(100, completion_rate + 20):.0f} seviyesinde!"},
-        ]
-        
-        cols = st.columns(2)
-        for i, card in enumerate(motivational_cards):
-            with cols[i % 2]:
-                st.markdown(f"""
-                <div class="record-card" style="animation-delay: {i*0.3}s;">
-                    <h1 style="margin: 0; font-size: 3em;">{card['icon']}</h1>
-                    <h3 style="margin: 10px 0;">{card['başlık']}</h3>
-                    <p style="margin: 0; font-size: 16px;">{card['mesaj']}</p>
-                </div>
-                """, unsafe_allow_html=True)
-        
-        # İlham veren alıntılar döngüsü
-        inspiring_quotes = [
-            "🌟 Başarı, son durakta değil; yolculukta gizlidir!",
-            "💎 Her zorluğun arkasında büyük bir fırsat vardır!",
-            "🚀 Hayalleriniz büyük olsun, çabalarınız daha büyük!",
-            "💪 Sen bu kadar güçlü olduğunu bilmiyordun, değil mi?",
-            "📖 Her gün yeni bir sayfa, her sayfa yeni bir umut!",
-            "🏆 Asıl zafer, vazgeçmemekte gizlidir!",
-            "⭐ Bugün imkansız olan, yarın gerçek olacak!",
-            "🏗️ Sen sadece öğrenci değil, geleceğin mimarısın!"
-        ]
-        
-        # Her 3 saniyede bir farklı alıntı göster
-        quote_index = (int(time.time()) // 3) % len(inspiring_quotes)
-        
-        st.markdown(f"""
-        <div class="journey-animation">
-            <h2 style="text-align: center; margin: 0;">
-                {inspiring_quotes[quote_index]}
-            </h2>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with tab3:
-        st.markdown("## 🏆 BAŞARI GALERİSİ")
-        
-        # Başarı milestone'ları - daha renkli
-        milestones = []
-        
-        if days_passed >= 1:
-            milestones.append({"gün": 1, "başarı": "İlk günün! Yolculuk başladı", "icon": "🚀", "renk": "#ff6b6b"})
-        if days_passed >= 3:
-            milestones.append({"gün": 3, "başarı": "3 gün üst üste! Disiplin oluşuyor", "icon": "📅", "renk": "#ffd93d"})
-        if days_passed >= 7:
-            milestones.append({"gün": 7, "başarı": "1 hafta tamamlandı!", "icon": "🎉", "renk": "#6bcf7f"})
-        if days_passed >= 14:
-            milestones.append({"gün": 14, "başarı": "2 hafta! Alışkanlık haline geldi", "icon": "🔥", "renk": "#4ecdc4"})
-        if days_passed >= 30:
-            milestones.append({"gün": 30, "başarı": "1 ay boyunca devam! Efsane", "icon": "💪", "renk": "#667eea"})
-        if total_completed >= 5:
-            milestones.append({"gün": days_passed, "başarı": f"{total_completed} konu tamamlandı!", "icon": "📚", "renk": "#764ba2"})
-        if total_completed >= 25:
-            milestones.append({"gün": days_passed, "başarı": "25+ konu! Bilgi hazinesi", "icon": "🎯", "renk": "#f093fb"})
-        if completion_rate >= 25:
-            milestones.append({"gün": days_passed, "başarı": "Yolun 1/4'ü geride!", "icon": "🌟", "renk": "#f5576c"})
-        if completion_rate >= 50:
-            milestones.append({"gün": days_passed, "başarı": "Yarı yol geçildi!", "icon": "🔥", "renk": "#fa709a"})
-        if completion_rate >= 75:
-            milestones.append({"gün": days_passed, "başarı": "Son çeyreğe girildi!", "icon": "🏆", "renk": "#fee140"})
-        if pomodoro_count >= 25:
-            milestones.append({"gün": days_passed, "başarı": f"{pomodoro_count} Pomodoro! Zaman ustası", "icon": "🍅", "renk": "#ff8a80"})
-        if pomodoro_count >= 100:
-            milestones.append({"gün": days_passed, "başarı": "100+ Pomodoro! Konsantrasyon şampiyonu", "icon": "⏰", "renk": "#7986cb"})
-        
-        # Milestone kartları - animasyonlu
-        for i, milestone in enumerate(milestones):
-            st.markdown(f"""
-            <div class="timeline-item" style="background: linear-gradient(45deg, {milestone['renk']}, {milestone['renk']}aa); 
-                                              animation-delay: {i*0.2}s;">
-                <div style="display: flex; align-items: center;">
-                    <div style="font-size: 40px; margin-right: 20px; animation: pulse 2s ease-in-out infinite;">
-                        {milestone['icon']}
-                    </div>
-                    <div>
-                        <h3 style="margin: 0; color: white;">Gün {milestone['gün']}</h3>
-                        <h4 style="margin: 5px 0; color: white;">{milestone['başarı']}</h4>
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        if not milestones:
-            st.markdown("""
-            <div class="journey-animation">
-                <h2 style="text-align: center;">🌱 İlk milestone'unuz için çalışmaya devam edin!</h2>
-            </div>
-            """, unsafe_allow_html=True)
-    
-    with tab4:
-        st.markdown("## 🎯 HEDEF HARİTASI")
-        
-        # Günlük, haftalık, aylık hedefler - renkli kartlar
-        goals_sections = [
-            {
-                "tip": "🌅 GÜNLÜK HEDEFLER",
-                "renk": "linear-gradient(45deg, #ff9a56, #ffad56)",
-                "hedefler": [
-                    {"hedef": f"{days_passed} gün sistemi kullanma", "durum": "✅", "motivasyon": "Disiplin geliştirdin!"},
-                    {"hedef": "Günlük konu takip", "durum": "✅" if total_completed > 0 else "🟡", "motivasyon": "Kayıt tutmaya devam!"},
-                    {"hedef": "Pomodoro teknikleri", "durum": "✅" if pomodoro_count > 0 else "🔴", "motivasyon": "Odaklanma gücün artıyor!"},
-                ]
-            },
-            {
-                "tip": "📅 HAFTALIK HEDEFLER",
-                "renk": "linear-gradient(45deg, #667eea, #764ba2)",
-                "hedefler": [
-                    {"hedef": f"{weeks_passed} hafta düzenli çalışma", "durum": "✅", "motivasyon": "Süreklilik sağladın!"},
-                    {"hedef": "Haftalık ilerleme analizi", "durum": "✅" if weeks_passed > 0 else "🟡", "motivasyon": "Kendini tanıyorsun!"},
-                ]
-            },
-            {
-                "tip": "🏆 DERS HEDEFLERİ",
-                "renk": "linear-gradient(45deg, #f093fb, #f5576c)",
-                "hedefler": []
-            }
-        ]
-        
-        # Ders hedeflerini ekle
-        if progress_data:
-            for subject, data in progress_data.items():
-                if data['percent'] >= 80:
-                    goals_sections[2]["hedefler"].append({
-                        "hedef": f"{subject} - %{data['percent']:.1f}",
-                        "durum": "🏆 MASTER",
-                        "motivasyon": "Bu derste efsanesin!"
-                    })
-                elif data['percent'] >= 50:
-                    goals_sections[2]["hedefler"].append({
-                        "hedef": f"{subject} - %{data['percent']:.1f}",
-                        "durum": "🔥 İYİ",
-                        "motivasyon": "Bu derste güçlü!"
-                    })
-                elif data['percent'] >= 25:
-                    goals_sections[2]["hedefler"].append({
-                        "hedef": f"{subject} - %{data['percent']:.1f}",
-                        "durum": "⚡ ORTA",
-                        "motivasyon": "Biraz daha gayret!"
-                    })
-                else:
-                    goals_sections[2]["hedefler"].append({
-                        "hedef": f"{subject} - %{data['percent']:.1f}",
-                        "durum": "🎯 BAŞLA",
-                        "motivasyon": "Bu dersi güçlendir!"
-                    })
-        
-        # Hedef kartlarını göster
-        for section in goals_sections:
-            st.markdown(f"""
-            <div style="background: {section['renk']}; padding: 20px; margin: 15px 0; 
-                        border-radius: 15px; color: white;">
-                <h3 style="margin: 0 0 15px 0; text-align: center;">{section['tip']}</h3>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            for goal in section["hedefler"]:
-                bg_color = "#e8f5e8" if "✅" in goal['durum'] or "🏆" in goal['durum'] else \
-                          "#fff8e7" if "🟡" in goal['durum'] or "⚡" in goal['durum'] else \
-                          "#ffe8e8" if "🔴" in goal['durum'] or "🎯" in goal['durum'] else "#f0f8ff"
-                
-                st.markdown(f"""
-                <div style="background: {bg_color}; padding: 15px; margin: 10px 0; 
-                            border-radius: 10px; border-left: 4px solid #667eea;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <strong style="color: #667eea;">{goal['hedef']}</strong><br>
-                            <span style="color: #666; font-style: italic;">{goal['motivasyon']}</span>
-                        </div>
-                        <div style="font-size: 18px; font-weight: bold;">{goal['durum']}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-    
-    with tab5:
-        st.markdown("## 💎 REKOR MÜZESİ")
-        
-        # Rekor kategorileri
-        record_categories = [
-            {
-                "kategori": "⏰ ZAMAN REKORLARİ",
-                "renk": "linear-gradient(135deg, #667eea, #764ba2)",
-                "rekorlar": [
-                    {"başlık": "En Uzun Süre", "değer": f"{days_passed} gün", "açıklama": "Kesintisiz motivasyon!"},
-                    {"başlık": "Haftalık Süreklilik", "değer": f"{weeks_passed} hafta", "açıklama": "Disiplin şampiyonu!"},
-                ]
-            },
-            {
-                "kategori": "📚 BİLGİ REKORLARİ", 
-                "renk": "linear-gradient(135deg, #fa709a, #fee140)",
-                "rekorlar": [
-                    {"başlık": "Toplam Konu Sayısı", "değer": f"{total_completed}", "açıklama": "Bilgi hazinesi oluşturuyor!"},
-                    {"başlık": "İlerleme Oranı", "değer": f"%{completion_rate:.1f}", "açıklama": "Hedefe yaklaşıyor!"},
-                ]
-            },
-            {
-                "kategori": "🔥 PERFORMANS REKORLARİ",
-                "renk": "linear-gradient(135deg, #ff6b6b, #ffd93d)",
-                "rekorlar": [
-                    {"başlık": "Pomodoro Sayısı", "değer": f"{pomodoro_count}", "açıklama": "Odaklanma ustası!"},
-                    {"başlık": "Günlük Ortalama", "değer": f"{total_completed//days_passed if days_passed > 0 else 0} konu/gün", "açıklama": "Tutarlı performans!"},
-                ]
-            }
-        ]
-        
-        if progress_data:
-            best_subject = max(progress_data.items(), key=lambda x: x[1]['percent'])
-            record_categories.append({
-                "kategori": "🏆 UZMANLIK REKORLARİ",
-                "renk": "linear-gradient(135deg, #4ecdc4, #44a08d)",
-                "rekorlar": [
-                    {"başlık": "En Güçlü Ders", "değer": f"{best_subject[0]}", "açıklama": f"%{best_subject[1]['percent']:.1f} tamamlanma"},
-                    {"başlık": "Ders Sayısı", "değer": f"{len(progress_data)} ders", "açıklama": "Çok yönlü gelişim!"},
-                ]
-            })
-        
-        # Rekor kartlarını göster
-        for category in record_categories:
-            st.markdown(f"""
-            <div style="background: {category['renk']}; padding: 20px; margin: 20px 0; 
-                        border-radius: 20px; color: white; text-align: center;">
-                <h2 style="margin: 0 0 20px 0;">{category['kategori']}</h2>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            cols = st.columns(len(category['rekorlar']))
-            for i, rekor in enumerate(category['rekorlar']):
-                with cols[i]:
-                    st.markdown(f"""
-                    <div class="record-card" style="animation-delay: {i*0.3}s;">
-                        <h3 style="margin: 0; color: white;">{rekor['başlık']}</h3>
-                        <h1 style="margin: 10px 0; color: white; font-size: 2.5em;">{rekor['değer']}</h1>
-                        <p style="margin: 0; opacity: 0.9;">{rekor['açıklama']}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-        
-        # Başarı rozeti sistemi - animasyonlu
-        st.markdown("### 🏅 KAZANDIĞIM ROZETLER")
-        
-        badges = []
-        if days_passed >= 7:
-            badges.append({"isim": "🎯 1 Hafta Savaşçısı", "renk": "#FFD700"})
-        if days_passed >= 30:
-            badges.append({"isim": "💪 1 Ay Kahramanı", "renk": "#FF6347"})
-        if total_completed >= 10:
-            badges.append({"isim": "📚 Konu Ustası", "renk": "#4169E1"})
-        if completion_rate >= 50:
-            badges.append({"isim": "⚡ Hız Canavarı", "renk": "#32CD32"})
-        if pomodoro_count >= 25:
-            badges.append({"isim": "🍅 Pomodoro Ustası", "renk": "#FF4500"})
-        if weeks_passed >= 4:
-            badges.append({"isim": "🏆 Süreklilik Şampiyonu", "renk": "#8A2BE2"})
-        if completion_rate >= 75:
-            badges.append({"isim": "💎 Elmas Seviye", "renk": "#DC143C"})
-        if total_completed >= 50:
-            badges.append({"isim": "🚀 Bilgi Roketi", "renk": "#FF1493"})
-        
-        if badges:
-            cols = st.columns(min(len(badges), 4))
-            for i, badge in enumerate(badges):
-                with cols[i % 4]:
-                    st.markdown(f"""
-                    <div class="badge-animation" style="background: {badge['renk']}; animation-delay: {i*0.2}s;">
-                        {badge['isim']}
-                    </div>
-                    """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div class="journey-animation">
-                <h3 style="text-align: center;">🌱 İlk rozetinizi kazanmak için çalışmaya devam edin!</h3>
-            </div>
-            """, unsafe_allow_html=True)
-    
-    # Final motivasyon mesajı - sinematik
-    st.markdown("---")
-    st.markdown(f"""
-    <div class="cinematic-header sparkle-effect">
-        <h2 style="color: white; margin: 0;">🌟 SEN BU YOLCULUKTA YALNIZ DEĞİLSİN!</h2>
-        <p style="color: white; font-size: 18px; margin: 15px 0;">
-            {days_passed} gün önce başladığın bu efsane yolculukta şimdiye kadar<br>
-            <strong style="color: #ffd700; font-size: 24px;">{total_completed} KONU TAMAMLADIN!</strong><br>
-            Bu, senin azmin ve kararlılığının KANITİ! 💪
-        </p>
-        <h3 style="color: #ffd700; margin: 10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-            HEDEFLERİN SENİ BEKLİYOR, VAZGEÇME! 🎯
-        </h3>
-    </div>
-    """, unsafe_allow_html=True)
 
 def show_systematic_recommendations(weekly_plan, survey_data, student_field):
     """Sistematik akıllı öneriler"""
