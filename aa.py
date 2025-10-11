@@ -3828,14 +3828,51 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         margin: 0 !important;
     }
     
+    /* Streamlit konteynerler için override */
+    .stApp {
+        background: radial-gradient(ellipse at center, #000 20%, #0a0a0a 40%, #050505 100%) !important;
+    }
+    
+    /* Streamlit default margin/padding kaldır */
+    .element-container {
+        margin: 0 !important;
+    }
+    
+    /* Sinema perdesi içindeki metrikler için özel stil */
+    .cinema-screen-real .metric-container {
+        background: rgba(255,255,255,0.9) !important;
+        border-radius: 10px !important;
+        padding: 15px !important;
+        margin: 10px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    }
+    
+    /* Sinema perdesi içindeki butonlar */
+    .cinema-screen-real .stButton > button {
+        background: linear-gradient(45deg, #3498db, #2980b9) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3) !important;
+    }
+    
+    /* Perde içi progress bar */
+    .cinema-screen-real .stProgress {
+        background: rgba(255,255,255,0.8) !important;
+        border-radius: 10px !important;
+        padding: 5px !important;
+    }
+    
     /* Sinema Salonu Atmosferi */
     .cinema-hall {
         background: 
             radial-gradient(ellipse at center, #000 20%, #0a0a0a 40%, #050505 100%);
         min-height: 100vh;
-        padding: 40px 20px;
+        padding: 20px;
         position: relative;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
     
     /* Projeksiyon Işığı Efekti */
@@ -3859,10 +3896,10 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             linear-gradient(135deg, #f8f8f8 0%, #ffffff 50%, #f0f0f0 100%);
         border: 20px solid #2c1810;
         border-radius: 15px;
-        margin: 80px auto 40px auto;
-        width: 85%;
-        max-width: 1200px;
-        min-height: 70vh;
+        margin: 50px auto 80px auto;
+        width: 90%;
+        max-width: 1400px;
+        min-height: 80vh;
         position: relative;
         box-shadow: 
             0 0 0 8px #1a1a1a,
@@ -3891,24 +3928,26 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     
     /* Perde İçeriği */
     .screen-content {
-        padding: 40px;
+        padding: 30px;
         color: #333;
         background: 
-            radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, rgba(248,248,248,0.9) 100%);
+            radial-gradient(ellipse at center, rgba(255,255,255,0.98) 0%, rgba(248,248,248,0.95) 100%);
         border-radius: 8px;
-        min-height: calc(70vh - 80px);
+        min-height: calc(80vh - 60px);
         position: relative;
-        overflow: hidden;
+        overflow-y: auto;
+        overflow-x: hidden;
+        height: auto;
     }
     
     /* Sinema Koltukları (Alt Gölge Efekti) */
     .cinema-hall::after {
         content: "";
-        position: absolute;
+        position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
-        height: 150px;
+        height: 80px;
         background: 
             repeating-linear-gradient(
                 90deg,
@@ -3921,7 +3960,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             );
         border-radius: 20px 20px 0 0;
         box-shadow: 0 -20px 40px rgba(0,0,0,0.5);
-        z-index: 5;
+        z-index: 1;
     }
     
     /* Timeline Animasyon Stilleri */
@@ -5179,6 +5218,20 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         if st.session_state.timeline_day < len(timeline_days):
             day_data = timeline_days[st.session_state.timeline_day]
             
+            # Timeline container başlangıcı - Sinema perdesi içinde kalmayı garanti eder
+            st.markdown("""
+            <div class="timeline-animation-container" style="
+                width: 100%; 
+                height: 100%; 
+                position: relative; 
+                z-index: 20;
+                background: rgba(255,255,255,0.02);
+                border-radius: 10px;
+                padding: 20px;
+                margin: 0;
+            ">
+            """, unsafe_allow_html=True)
+            
             # 🎬 Perde İçi Timeline Başlığı
             st.markdown("""
             <div style="text-align: center; margin: 40px 0;">
@@ -5332,13 +5385,32 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     st.session_state.timeline_day = 0
                     st.session_state.play_music_timeline = True
                     st.rerun()
+            
+            # Timeline animation container kapanışı
+            st.markdown("</div>", unsafe_allow_html=True)
         
         else:
             # Timeline tamamlandı
+            st.markdown("""
+            <div class="timeline-animation-container" style="
+                width: 100%; 
+                height: 100%; 
+                position: relative; 
+                z-index: 20;
+                background: rgba(255,255,255,0.02);
+                border-radius: 10px;
+                padding: 20px;
+                margin: 0;
+            ">
+            """, unsafe_allow_html=True)
+            
             st.success("🎉 Zaman yolculuğu tamamlandı! Ne muhteşem bir hikaye!")
             st.session_state.timeline_running = False
             st.session_state.timeline_day = 0
             st.session_state.play_music_timeline = False
+            
+            # Timeline animation container kapanışı
+            st.markdown("</div>", unsafe_allow_html=True)
     
     # Sinema Perdesi Son
     st.markdown("""
