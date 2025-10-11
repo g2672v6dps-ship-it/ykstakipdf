@@ -4918,116 +4918,121 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         st.markdown('</div>', unsafe_allow_html=True)
         return
 
+    # Müzik kontrolü için JavaScript
+    st.markdown("""
+    <script>
+    function toggleTimelineMusic() {
+        const audio = document.getElementById('timelineMusic');
+        const musicBtn = document.getElementById('musicControlBtn');
+        const youtubeFrame = document.getElementById('youtube-music');
         
-        function toggleTimelineMusic() {
-            const audio = document.getElementById('timelineMusic');
-            const musicBtn = document.getElementById('musicControlBtn');
-            const youtubeFrame = document.getElementById('youtube-music');
+        if (!musicPlaying) {
+            // Müziği başlat
+            console.log('🎵 Müzik başlatılıyor...');
             
-            if (!musicPlaying) {
-                // Müziği başlat
-                console.log('🎵 Müzik başlatılıyor...');
+            // Önce HTML5 audio dene
+            if (audio) {
+                audio.volume = 0.3;
+                const playPromise = audio.play();
                 
-                // Önce HTML5 audio dene
-                if (audio) {
-                    audio.volume = 0.3;
-                    const playPromise = audio.play();
-                    
-                    if (playPromise !== undefined) {
-                        playPromise.then(() => {
-                            musicPlaying = true;
-                            currentAudio = audio;
-                            musicBtn.innerHTML = '🔇';
-                            musicBtn.style.background = 'linear-gradient(45deg, #dc3545, #c82333)';
-                            showMusicNotification('🎵 Müzik başlatıldı!');
-                            console.log('✅ HTML5 Audio başarılı!');
-                        }).catch((error) => {
-                            console.log('❌ HTML5 Audio hatası, YouTube deneniyor:', error);
-                            tryYouTubeMusic();
-                        });
-                    } else {
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        musicPlaying = true;
+                        currentAudio = audio;
+                        musicBtn.innerHTML = '🔇';
+                        musicBtn.style.background = 'linear-gradient(45deg, #dc3545, #c82333)';
+                        showMusicNotification('🎵 Müzik başlatıldı!');
+                        console.log('✅ HTML5 Audio başarılı!');
+                    }).catch((error) => {
+                        console.log('❌ HTML5 Audio hatası, YouTube deneniyor:', error);
                         tryYouTubeMusic();
-                    }
+                    });
                 } else {
                     tryYouTubeMusic();
                 }
             } else {
-                // Müziği durdur
-                stopMusic();
+                tryYouTubeMusic();
             }
+        } else {
+            // Müziği durdur
+            stopMusic();
         }
+    }
+    
+    function tryYouTubeMusic() {
+        console.log('🎥 YouTube müzik deneniyor...');
+        const youtubeFrame = document.getElementById('youtube-music');
+        const musicBtn = document.getElementById('musicControlBtn');
         
-        function tryYouTubeMusic() {
-            console.log('🎥 YouTube müzik deneniyor...');
-            const youtubeFrame = document.getElementById('youtube-music');
-            const musicBtn = document.getElementById('musicControlBtn');
-            
-            if (youtubeFrame) {
-                try {
-                    // YouTube iframe'i yeniden yükle (autoplay ile)
-                    youtubeFrame.src = youtubeFrame.src.replace('autoplay=1', 'autoplay=1');
-                    musicPlaying = true;
-                    musicBtn.innerHTML = '🔇';
-                    musicBtn.style.background = 'linear-gradient(45deg, #dc3545, #c82333)';
-                    showMusicNotification('🎵 Müzik başlatıldı! (YouTube)');
-                    console.log('✅ YouTube müzik başarılı!');
-                } catch (error) {
-                    console.log('❌ YouTube hatası:', error);
-                    fallbackMusicOptions();
-                }
-            } else {
+        if (youtubeFrame) {
+            try {
+                // YouTube iframe'i yeniden yükle (autoplay ile)
+                youtubeFrame.src = youtubeFrame.src.replace('autoplay=1', 'autoplay=1');
+                musicPlaying = true;
+                musicBtn.innerHTML = '🔇';
+                musicBtn.style.background = 'linear-gradient(45deg, #dc3545, #c82333)';
+                showMusicNotification('🎵 Müzik başlatıldı! (YouTube)');
+                console.log('✅ YouTube müzik başarılı!');
+            } catch (error) {
+                console.log('❌ YouTube hatası:', error);
                 fallbackMusicOptions();
             }
+        } else {
+            fallbackMusicOptions();
+        }
+    }
+    
+    function fallbackMusicOptions() {
+        console.log('🆘 Fallback seçenekleri gösteriliyor...');
+        showMusicNotification(`
+            🎵 Müzik için: 
+            <a href="https://www.youtube.com/watch?v=EQBVjwXZ7GY" target="_blank" 
+               style="color: #FFD700; text-decoration: underline; font-weight: bold;">
+               YouTube'da Aç 🎶
+            </a>
+        `, '#6c757d');
+    }
+    
+    function stopMusic() {
+        const audio = document.getElementById('timelineMusic');
+        const musicBtn = document.getElementById('musicControlBtn');
+        const youtubeFrame = document.getElementById('youtube-music');
+        
+        // HTML5 Audio durdur
+        if (audio && !audio.paused) {
+            audio.pause();
         }
         
-        function fallbackMusicOptions() {
-            console.log('🆘 Fallback seçenekleri gösteriliyor...');
-            showMusicNotification(`
-                🎵 Müzik için: 
-                <a href="https://www.youtube.com/watch?v=EQBVjwXZ7GY" target="_blank" 
-                   style="color: #FFD700; text-decoration: underline; font-weight: bold;">
-                   YouTube'da Aç 🎶
-                </a>
-            `, '#6c757d');
+        // YouTube durdur
+        if (youtubeFrame) {
+            youtubeFrame.src = youtubeFrame.src.replace('autoplay=1', 'autoplay=0');
         }
         
-        function stopMusic() {
-            const audio = document.getElementById('timelineMusic');
-            const musicBtn = document.getElementById('musicControlBtn');
-            const youtubeFrame = document.getElementById('youtube-music');
-            
-            // HTML5 Audio durdur
-            if (audio && !audio.paused) {
-                audio.pause();
-            }
-            
-            // YouTube durdur
-            if (youtubeFrame) {
-                youtubeFrame.src = youtubeFrame.src.replace('autoplay=1', 'autoplay=0');
-            }
-            
-            musicPlaying = false;
-            currentAudio = null;
-            musicBtn.innerHTML = '🎵';
-            musicBtn.style.background = 'linear-gradient(45deg, #28a745, #20c997)';
-            showMusicNotification('🔇 Müzik durduruldu');
-            console.log('🔇 Müzik durduruldu');
+        musicPlaying = false;
+        currentAudio = null;
+        musicBtn.innerHTML = '🎵';
+        musicBtn.style.background = 'linear-gradient(45deg, #28a745, #20c997)';
+        showMusicNotification('🔇 Müzik durduruldu');
+        console.log('🔇 Müzik durduruldu');
+    }
+    
+    // Sayfa yüklendiğinde müziği otomatik başlat (deneme)
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            console.log('🎵 Otomatik müzik başlatma deneniyor...');
+            toggleTimelineMusic();
+        }, 1000);
+    });
+    
+    // Kullanıcı etkileşimi sonrası müzik başlatma
+    document.addEventListener('click', function() {
+        if (!musicPlaying) {
+            console.log('👆 Kullanıcı etkileşimi algılandı, müzik başlatılıyor...');
+            toggleTimelineMusic();
         }
-        
-        // Sayfa yüklendiğinde müziği otomatik başlat (deneme)
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(() => {
-                console.log('🎵 Otomatik müzik başlatma deneniyor...');
-                toggleTimelineMusic();
-            }, 1000);
-        });
-        
-        // Kullanıcı etkileşimi sonrası müzik başlatma
-        document.addEventListener('click', function() {
-            if (!musicPlaying) {
-                console.log('👆 Kullanıcı etkileşimi algılandı, müzik başlatılıyor...');
-                toggleTimelineMusic();
-            }
+    });
+    </script>
+    """, unsafe_allow_html=True)
     
     # Timeline çalışmıyorsa başlangıç ekranı
     if not st.session_state.timeline_running:
