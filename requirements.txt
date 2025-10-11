@@ -1,9 +1,4 @@
-# YKS Takip Sistemi Dependencies
-streamlit==1.29.0
-firebase-admin==6.3.0
-pandas==2.1.4
-plotly==5.17.0
-
-# Ek gereksinimler
-google-cloud-firestore==2.13.1
-cryptography==41.0.8
+streamlit
+firebase-admin
+plotly
+pandas
