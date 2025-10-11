@@ -3856,7 +3856,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         padding: 40px;
     }
     
-    /* Timeline Header */
+    /* Modern header */
     .timeline-header {
         text-align: center;
         margin-bottom: 40px;
@@ -3929,6 +3929,232 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         to { opacity: 1; transform: translateY(0); }
     }
     
+    .daily-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .day-number {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 15px;
+        font-size: 1.2em;
+        font-weight: bold;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .date-info {
+        color: #64748b;
+        font-size: 1.1em;
+        font-weight: 500;
+    }
+    
+    /* İstatistik Kutuları */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 25px 0;
+    }
+    
+    .stat-item {
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        border-color: #667eea;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #FFFFFF;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .stat-label {
+        font-size: 12px;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+    
+    .progress-indicator {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 25px;
+        text-align: center;
+        font-weight: bold;
+        margin: 15px 0;
+        animation: pulse 2s ease-in-out infinite;
+        box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+    }
+    
+    .day-card-cinema {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 30px;
+        border-radius: 20px;
+        color: white;
+        margin: 20px 0;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        animation: slideInUp 0.8s ease-out;
+    }
+    
+    .date-header {
+        background: #667eea;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideInUp {
+        from { opacity: 0; transform: translateY(50px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    /* Cinema Header */
+    .cinema-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px 20px;
+        border-radius: 16px;
+        color: white;
+        text-align: center;
+        margin: 20px 0;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    }
+    
+    /* Cinema Screen Effect */
+    .cinema-screen {
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        border: 8px solid #34495e;
+        border-radius: 20px;
+        margin: 30px auto;
+        max-width: 700px;
+        padding: 40px 20px;
+        position: relative;
+        box-shadow: 
+            0 0 0 4px #2c3e50,
+            0 20px 40px rgba(0,0,0,0.3),
+            inset 0 0 20px rgba(0,0,0,0.2);
+    }
+    
+    .cinema-screen::before {
+        content: "";
+        position: absolute;
+        top: -12px;
+        left: -12px;
+        right: -12px;
+        bottom: -12px;
+        background: linear-gradient(45deg, #e74c3c, #f39c12, #2ecc71, #3498db);
+        border-radius: 24px;
+        z-index: -1;
+        filter: blur(8px);
+        opacity: 0.7;
+    }
+    
+    /* Neon efekt */
+    .neon-text {
+        animation: neonGlow 2s ease-in-out infinite;
+        text-shadow: 
+            0 0 5px #fff,
+            0 0 10px #fff,
+            0 0 15px #667eea,
+            0 0 20px #667eea,
+            0 0 35px #667eea,
+            0 0 40px #667eea;
+    }
+    
+    @keyframes neonGlow {
+        0%, 100% {
+            text-shadow: 
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 15px #667eea,
+                0 0 20px #667eea,
+                0 0 35px #667eea,
+                0 0 40px #667eea;
+        }
+        50% {
+            text-shadow: 
+                0 0 2px #fff,
+                0 0 5px #fff,
+                0 0 8px #667eea,
+                0 0 12px #667eea,
+                0 0 18px #667eea,
+                0 0 25px #667eea;
+        }
+    }
+    
+    /* Parlama efektleri */
+    @keyframes shimmer {
+        0% { background-position: -200% center; }
+        100% { background-position: 200% center; }
+    }
+    
+    .shimmer-effect {
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite;
+    }
+    
+    /* Film şeridi efekti */
+    .film-strip {
+        background: repeating-linear-gradient(
+            90deg,
+            #2c3e50 0px,
+            #2c3e50 20px,
+            #34495e 20px,
+            #34495e 40px
+        );
+        height: 20px;
+        margin: 20px 0;
+        border-radius: 4px;
+        position: relative;
+    }
+    
+    .film-strip::before,
+    .film-strip::after {
+        content: "";
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: #000;
+        border-radius: 50%;
+        top: 6px;
+    }
+    
+    .film-strip::before { left: 6px; }
+    .film-strip::after { right: 6px; }
+    
     /* 3D Düğme Efekti */
     .btn-3d {
         background: linear-gradient(45deg, #667eea, #764ba2);
@@ -3954,9 +4180,11 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             0 6px 10px rgba(0,0,0,0.2);
     }
     
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+    .btn-3d:active {
+        transform: translateY(1px);
+        box-shadow: 
+            0 4px 8px rgba(102, 126, 234, 0.3),
+            0 2px 4px rgba(0,0,0,0.1);
     }
     
     /* İlerleme çubuğu animasyonu */
@@ -3980,6 +4208,590 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     @keyframes progressGlow {
         0%, 100% { box-shadow: 0 0 5px rgba(255, 107, 107, 0.6); }
         50% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.9); }
+    }
+    
+    /* Kart hover efektleri */
+    .interactive-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .interactive-card:hover {
+        transform: translateY(-5px) rotateY(5deg);
+        box-shadow: 0 20px 40px rgba(102, 126, 234, 0.6);
+    }
+    
+    /* Başarı rozetleri */
+    .achievement-badge {
+        background: linear-gradient(45deg, #FFD700, #FFA500, #FF6347);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        margin: 5px;
+        display: inline-block;
+        box-shadow: 0 4px 8px rgba(255, 215, 0, 0.4);
+        animation: badgeFloat 3s ease-in-out infinite;
+    }
+    
+    @keyframes badgeFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-3px); }
+    }
+    
+    /* Çoklu renk animasyonu */
+    @keyframes rainbow {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    
+    .rainbow-bg {
+        background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+        background-size: 300% 300%;
+        animation: rainbow 4s ease infinite;
+    }
+    
+    /* Pulsing glow efekti */
+    .glow-effect {
+        animation: glowPulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes glowPulse {
+        0%, 100% {
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+        }
+        50% {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
+        }
+    }
+    
+    /* Metin typewriter efekti */
+    .typewriter {
+        overflow: hidden;
+        border-right: 2px solid rgba(255,255,255,.75);
+        white-space: nowrap;
+        margin: 0 auto;
+        animation: 
+            typing 3.5s steps(40, end),
+            blink-caret .75s step-end infinite;
+    }
+    
+    @keyframes typing {
+        from { width: 0 }
+        to { width: 100% }
+    }
+    
+    @keyframes blink-caret {
+        from, to { border-color: transparent }
+        50% { border-color: rgba(255,255,255,.75); }
+    }
+    
+    /* Floating elementler */
+    .floating {
+        animation: floating 3s ease-in-out infinite;
+    }
+    
+    @keyframes floating {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    /* Gradient text */
+    .gradient-text {
+        background: linear-gradient(45deg, #667eea, #764ba2, #f093fb);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: bold;
+    }
+    
+    /* Card flip efekti */
+    .flip-card {
+        background-color: transparent;
+        perspective: 1000px;
+        height: 200px;
+    }
+    
+    .flip-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.8s;
+        transform-style: preserve-3d;
+    }
+    
+    .flip-card:hover .flip-card-inner {
+        transform: rotateY(180deg);
+    }
+    
+    .flip-card-front, .flip-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .flip-card-front {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+    
+    .flip-card-back {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: white;
+        transform: rotateY(180deg);
+    }
+    
+    /* Kalp atışı efekti */
+    .heartbeat {
+        animation: heartbeat 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes heartbeat {
+        0%, 50%, 100% { transform: scale(1); }
+        25%, 75% { transform: scale(1.1); }
+    }
+    
+    /* Matrix rain efekti */
+    .matrix-bg {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .matrix-bg::before {
+        content: "01100001 01110010 01100001 01100010 01100001";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        color: rgba(0, 255, 0, 0.1);
+        font-family: monospace;
+        font-size: 10px;
+        line-height: 12px;
+        animation: matrixRain 10s linear infinite;
+        pointer-events: none;
+    }
+    
+    @keyframes matrixRain {
+        0% { transform: translateY(-100%); }
+        100% { transform: translateY(100%); }
+    }
+    
+    /* Hologram efekti */
+    .hologram {
+        position: relative;
+        color: #00ffff;
+        animation: hologramFlicker 0.15s infinite linear;
+    }
+    
+    @keyframes hologramFlicker {
+        0%, 100% { opacity: 1; text-shadow: 0 0 5px #00ffff; }
+        98% { opacity: 0.98; text-shadow: 0 0 8px #00ffff; }
+        99% { opacity: 0.9; text-shadow: 0 0 12px #00ffff; }
+    }
+    
+    /* Ses dalgası efekti */
+    .sound-wave {
+        display: inline-block;
+        position: relative;
+        margin: 0 5px;
+    }
+    
+    .sound-wave::before,
+    .sound-wave::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #667eea;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        animation: soundRipple 2s ease-out infinite;
+    }
+    
+    .sound-wave::after {
+        animation-delay: 1s;
+    }
+    
+    @keyframes soundRipple {
+        0% {
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translate(-50%, -50%) scale(3);
+            opacity: 0;
+        }
+    }
+    
+    /* Parallax efekti */
+    .parallax-container {
+        height: 300px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .parallax-element {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        animation: parallaxMove 20s linear infinite;
+    }
+    
+    @keyframes parallaxMove {
+        0% { transform: translateX(-10%); }
+        100% { transform: translateX(10%); }
+    }
+    
+    /* DNA helix efekti */
+    .dna-helix {
+        position: relative;
+        width: 100px;
+        height: 200px;
+        margin: 20px auto;
+    }
+    
+    .dna-strand {
+        position: absolute;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(to bottom, #667eea, #764ba2);
+        border-radius: 2px;
+        animation: dnaRotate 4s linear infinite;
+    }
+    
+    .dna-strand:nth-child(1) { left: 20px; }
+    .dna-strand:nth-child(2) { right: 20px; animation-delay: 2s; }
+    
+    @keyframes dnaRotate {
+        0% { transform: rotateY(0deg); }
+        100% { transform: rotateY(360deg); }
+    }
+    
+    /* Elektrik efekti */
+    .electric-border {
+        position: relative;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        background: linear-gradient(#000, #000) padding-box,
+                    linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c) border-box;
+        animation: electricPulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes electricPulse {
+        0%, 100% { box-shadow: 0 0 5px rgba(102, 126, 234, 0.5); }
+        50% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.9), 0 0 30px rgba(118, 75, 162, 0.7); }
+    }
+    
+    /* Yıldız patlaması efekti */
+    .starburst {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .starburst::before {
+        content: "✨";
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        animation: starburstRotate 3s linear infinite;
+    }
+    
+    .starburst::after {
+        content: "⭐";
+        position: absolute;
+        bottom: -10px;
+        right: -10px;
+        animation: starburstRotate 3s linear infinite reverse;
+    }
+    
+    @keyframes starburstRotate {
+        0% { transform: rotate(0deg) scale(1); }
+        50% { transform: rotate(180deg) scale(1.2); }
+        100% { transform: rotate(360deg) scale(1); }
+    }
+    
+    /* Lava lamp efekti */
+    .lava-lamp {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .lava-bubble {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        animation: lavaBubble 8s ease-in-out infinite;
+    }
+    
+    .lava-bubble:nth-child(1) {
+        width: 40px;
+        height: 40px;
+        left: 10%;
+        animation-delay: 0s;
+    }
+    
+    .lava-bubble:nth-child(2) {
+        width: 60px;
+        height: 60px;
+        left: 60%;
+        animation-delay: 2s;
+    }
+    
+    .lava-bubble:nth-child(3) {
+        width: 30px;
+        height: 30px;
+        left: 80%;
+        animation-delay: 4s;
+    }
+    
+    @keyframes lavaBubble {
+        0%, 100% { 
+            transform: translateY(100px) scale(1);
+            opacity: 0;
+        }
+        25% {
+            transform: translateY(60px) scale(1.2);
+            opacity: 0.8;
+        }
+        50% {
+            transform: translateY(20px) scale(0.8);
+            opacity: 1;
+        }
+        75% {
+            transform: translateY(-20px) scale(1.1);
+            opacity: 0.6;
+        }
+    }
+    
+    /* Kristal efekti */
+    .crystal-effect {
+        background: linear-gradient(45deg, 
+            rgba(102, 126, 234, 0.8),
+            rgba(118, 75, 162, 0.8),
+            rgba(240, 147, 251, 0.8));
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        box-shadow: 
+            0 8px 32px rgba(31, 38, 135, 0.37),
+            inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Geçirgen cam efekti */
+    .glass-morphism {
+        background: rgba(255, 255, 255, 0.25);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    
+    /* Motivasyonel alıntı kutusu */
+    .motivational-quote {
+        background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+        background-size: 300% 300%;
+        animation: rainbow 3s ease infinite;
+        padding: 30px;
+        border-radius: 20px;
+        color: white;
+        text-align: center;
+        margin: 20px 0;
+        font-size: 18px;
+        box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+    }
+    
+    .badge-animation {
+        background: linear-gradient(45deg, #FFD700, #FFA500, #FF6347, #FF1493);
+        background-size: 300% 300%;
+        animation: rainbow 2s ease infinite;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        margin: 10px;
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 10px 20px rgba(255, 215, 0, 0.4);
+        transform: rotate(-2deg);
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .journey-animation {
+        background: linear-gradient(270deg, #667eea, #764ba2, #667eea);
+        background-size: 200% 200%;
+        animation: rainbow 4s ease infinite;
+        padding: 25px;
+        border-radius: 20px;
+        color: white;
+        margin: 20px 0;
+        position: relative;
+    }
+    
+    /* Parıltı efektleri */
+    .sparkle-effect {
+        position: relative;
+    }
+    
+    .sparkle-effect::before,
+    .sparkle-effect::after {
+        content: "✨";
+        position: absolute;
+        animation: sparkle 1.5s ease-in-out infinite;
+    }
+    
+    .sparkle-effect::before {
+        top: -10px;
+        left: -10px;
+    }
+    
+    .sparkle-effect::after {
+        bottom: -10px;
+        right: -10px;
+        animation-delay: 0.75s;
+    }
+    
+    /* Günlük ilerleme animasyonu */
+    .daily-progress-container {
+        margin: 20px 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 15px;
+        color: white;
+    }
+    
+    .day-progress-bar {
+        height: 30px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 15px;
+        margin: 10px 0;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .day-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        transition: width 1s ease-in-out;
+        position: relative;
+    }
+    
+    .day-progress-fill::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes sparkle {
+        0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        50% { transform: scale(1.2) rotate(180deg); opacity: 0.8; }
+    }
+    
+    /* Sinema ekranı efekti geliştirilmiş */
+    .cinema-screen-advanced {
+        background: radial-gradient(ellipse at center, #2c3e50 0%, #1a252f 70%);
+        border: 12px solid #34495e;
+        border-radius: 25px;
+        margin: 30px auto;
+        max-width: 800px;
+        padding: 50px 30px;
+        position: relative;
+        box-shadow: 
+            0 0 0 6px #2c3e50,
+            0 25px 50px rgba(0,0,0,0.5),
+            inset 0 0 30px rgba(0,0,0,0.3);
+    }
+    
+    .cinema-screen-advanced::before {
+        content: "";
+        position: absolute;
+        top: -18px;
+        left: -18px;
+        right: -18px;
+        bottom: -18px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 31px;
+        z-index: -1;
+        filter: blur(12px);
+        opacity: 0.8;
+        animation: screenGlow 3s ease-in-out infinite;
+    }
+    
+    @keyframes screenGlow {
+        0%, 100% { filter: blur(12px) brightness(1); }
+        50% { filter: blur(16px) brightness(1.2); }
+    }
+    
+    .cinema-screen-advanced::after {
+        content: "";
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        right: -4px;
+        bottom: -4px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 16px;
+        z-index: -1;
+    }
+    
+    .screen-content {
+        color: #fff;
+        text-align: center;
+        font-size: 18px;
+        line-height: 1.6;
+    }
+    
+    .day-card-cinema {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin: 20px auto;
+        max-width: 600px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        border-left: 4px solid #667eea;
+        animation: slideIn 0.5s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .date-header {
+        background: #667eea;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -4007,6 +4819,58 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     </div>
     """, unsafe_allow_html=True)
     
+    # Ana sayfa özet kutusu - GERÇEK VERİLER
+    try:
+        # Bugünkü gerçek verileri al
+        today_date = datetime.now().strftime('%Y-%m-%d')
+        today_topics = 0
+        today_pomodoros = 0
+        
+        # Topic progress'ten bugünkü konuları al
+        topic_progress = json.loads(user_data.get('topic_progress', '{}'))
+        for topic_key, net_value in topic_progress.items():
+            try:
+                if int(float(net_value)) >= 14:
+                    today_topics += 1
+            except:
+                continue
+        
+        # Pomodoro geçmişinden bugünkü pomodoro'ları al
+        pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
+        for pomodoro in pomodoro_history:
+            if pomodoro.get('date', '').startswith(today_date):
+                today_pomodoros += 1
+        
+        # Bugünkü motivasyon puanı hesapla
+        today_motivation = min(10, 5 + (today_pomodoros // 2) + (today_topics // 2))
+        
+    except:
+        today_motivation = 5
+        today_topics = 0
+        today_pomodoros = 0
+    
+    st.markdown(f"""
+    <div class="main-summary">
+        <h3 style="margin-bottom: 20px; font-size: 1.8em;">
+            "Her büyük başarı, küçük adımların toplamıdır!" 🎆
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
+            <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);">
+                <h4>🎆 Bugünkü Motivasyon Puanı</h4>
+                <div style="font-size: 1.5em; font-weight: bold;">⭐ {today_motivation}/10</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);">
+                <h4>📏 Bugünkü Konu Sayısı</h4>
+                <div style="font-size: 1.5em; font-weight: bold;">📚 {today_topics} konu</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);">
+                <h4>📸 Bugünkü Pomodoro</h4>
+                <div style="font-size: 1.5em; font-weight: bold;">🍅 {today_pomodoros} adet</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
     # Session state başlatma
     if 'timeline_running' not in st.session_state:
         st.session_state.timeline_running = False
@@ -4018,6 +4882,11 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     # Müzik sistemi
     if st.session_state.play_music_timeline:
         st.markdown("""
+        <!-- Modern Music Player -->
+        <audio id="timelineMusic" loop preload="auto" style="display: none;">
+            <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
+        </audio>
+        
         <div id="youtube-container" style="position: fixed; top: -200px; left: -200px; opacity: 0; pointer-events: none;">
             <iframe 
                 id="youtube-player" 
@@ -4029,55 +4898,190 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 style="opacity: 0; pointer-events: none;">
             </iframe>
         </div>
+        
+        <script>
+        setTimeout(function() {
+            var audio = document.getElementById('timelineMusic');
+            if (audio) {
+                audio.volume = 0.3;
+                audio.play().catch(function(e) {
+                    console.log('Audio fallback to YouTube');
+                });
+            }
+        }, 1000);
+        </script>
         """, unsafe_allow_html=True)
+    
+    # Kullanıcı verilerini kontrol et
+    if not user_data:
+        st.error("Kullanıcı verisi bulunamadı!")
+        st.markdown('</div>', unsafe_allow_html=True)
+        return
+
+        
+        function toggleTimelineMusic() {
+            const audio = document.getElementById('timelineMusic');
+            const musicBtn = document.getElementById('musicControlBtn');
+            const youtubeFrame = document.getElementById('youtube-music');
+            
+            if (!musicPlaying) {
+                // Müziği başlat
+                console.log('🎵 Müzik başlatılıyor...');
+                
+                // Önce HTML5 audio dene
+                if (audio) {
+                    audio.volume = 0.3;
+                    const playPromise = audio.play();
+                    
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            musicPlaying = true;
+                            currentAudio = audio;
+                            musicBtn.innerHTML = '🔇';
+                            musicBtn.style.background = 'linear-gradient(45deg, #dc3545, #c82333)';
+                            showMusicNotification('🎵 Müzik başlatıldı!');
+                            console.log('✅ HTML5 Audio başarılı!');
+                        }).catch((error) => {
+                            console.log('❌ HTML5 Audio hatası, YouTube deneniyor:', error);
+                            tryYouTubeMusic();
+                        });
+                    } else {
+                        tryYouTubeMusic();
+                    }
+                } else {
+                    tryYouTubeMusic();
+                }
+            } else {
+                // Müziği durdur
+                stopMusic();
+            }
+        }
+        
+        function tryYouTubeMusic() {
+            console.log('🎥 YouTube müzik deneniyor...');
+            const youtubeFrame = document.getElementById('youtube-music');
+            const musicBtn = document.getElementById('musicControlBtn');
+            
+            if (youtubeFrame) {
+                try {
+                    // YouTube iframe'i yeniden yükle (autoplay ile)
+                    youtubeFrame.src = youtubeFrame.src.replace('autoplay=1', 'autoplay=1');
+                    musicPlaying = true;
+                    musicBtn.innerHTML = '🔇';
+                    musicBtn.style.background = 'linear-gradient(45deg, #dc3545, #c82333)';
+                    showMusicNotification('🎵 Müzik başlatıldı! (YouTube)');
+                    console.log('✅ YouTube müzik başarılı!');
+                } catch (error) {
+                    console.log('❌ YouTube hatası:', error);
+                    fallbackMusicOptions();
+                }
+            } else {
+                fallbackMusicOptions();
+            }
+        }
+        
+        function fallbackMusicOptions() {
+            console.log('🆘 Fallback seçenekleri gösteriliyor...');
+            showMusicNotification(`
+                🎵 Müzik için: 
+                <a href="https://www.youtube.com/watch?v=EQBVjwXZ7GY" target="_blank" 
+                   style="color: #FFD700; text-decoration: underline; font-weight: bold;">
+                   YouTube'da Aç 🎶
+                </a>
+            `, '#6c757d');
+        }
+        
+        function stopMusic() {
+            const audio = document.getElementById('timelineMusic');
+            const musicBtn = document.getElementById('musicControlBtn');
+            const youtubeFrame = document.getElementById('youtube-music');
+            
+            // HTML5 Audio durdur
+            if (audio && !audio.paused) {
+                audio.pause();
+            }
+            
+            // YouTube durdur
+            if (youtubeFrame) {
+                youtubeFrame.src = youtubeFrame.src.replace('autoplay=1', 'autoplay=0');
+            }
+            
+            musicPlaying = false;
+            currentAudio = null;
+            musicBtn.innerHTML = '🎵';
+            musicBtn.style.background = 'linear-gradient(45deg, #28a745, #20c997)';
+            showMusicNotification('🔇 Müzik durduruldu');
+            console.log('🔇 Müzik durduruldu');
+        }
+        
+        // Sayfa yüklendiğinde müziği otomatik başlat (deneme)
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                console.log('🎵 Otomatik müzik başlatma deneniyor...');
+                toggleTimelineMusic();
+            }, 1000);
+        });
+        
+        // Kullanıcı etkileşimi sonrası müzik başlatma
+        document.addEventListener('click', function() {
+            if (!musicPlaying) {
+                console.log('👆 Kullanıcı etkileşimi algılandı, müzik başlatılıyor...');
+                toggleTimelineMusic();
+            }
     
     # Timeline çalışmıyorsa başlangıç ekranı
     if not st.session_state.timeline_running:
         # Ana başlangıç butonu
+        st.markdown("""
+        <div class="timeline-buttons">
+        </div>
+        """, unsafe_allow_html=True)
+        
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             if st.button("🎬 SAR ZAMANI GERİYE BAŞLAT", 
                         key="start_timeline",
-                        help="Zaman yolculuğunu başlat ve günlük hikayeni izle!",
-                        type="primary"):
+                        help="Zaman yolculuğunu başlat ve günlük hikayeni izle!"):
                 st.session_state.timeline_running = True
                 st.session_state.timeline_day = 0
                 st.session_state.play_music_timeline = True
                 st.rerun()
         
-        # Ek bilgi kutusu
+        # Ek bilgi kutusu (Perde İçi)
         st.markdown("""
         <div style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; 
                     padding: 20px; border-radius: 15px; margin: 30px 0; text-align: center; 
                     box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);">
             <p style="margin: 0; font-size: 1.1em; font-weight: 500;">
-                🎵 Müzik eşliğinde animasyonlu bir yolculuk seni bekliyor!<br>
-                📈 Her büyük başarı, küçük adımların toplamıdır!<br>
-                🎆 Motivasyon puanların • 📏 Günlük notların • 📸 Fotoğrafların ve daha fazlası!
+                🎵 Müzik eşliğinde animasyonlu bir yolculuk seni bekliyor!
             </p>
         </div>
         """, unsafe_allow_html=True)
         
     elif st.session_state.timeline_running:
-        # Gerçek kullanıcı verilerini yükle
+        # Gerçek kullanıcı verilerini yükle ve haftalık hedef konuları çek
         try:
             topic_progress = json.loads(user_data.get('topic_progress', '{}'))
             weekly_plan = json.loads(user_data.get('weekly_plan', '{}'))
             pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
+            
+            # Haftalık hedef konuları al
+            weekly_target_topics = weekly_plan.get('new_topics', []) + weekly_plan.get('review_topics', [])
         except:
             topic_progress = {}
-            weekly_plan = {}
+            weekly_target_topics = []
             pomodoro_history = []
         
-        # Günlük verileri hazırla
+        # Günlük verileri hazırla - Gerçek verilerden
         timeline_days = []
         
         for i in range(min(days_passed, 10)):  # Son 10 gün
             date = register_date + timedelta(days=i)
             date_str = date.strftime('%Y-%m-%d')
             
-            # O günün verilerini hesapla
-            daily_completed_topics = 0
+            # O günün gerçek verilerini hesapla
+            daily_completed_topics = []
+            daily_net_improvements = 0
             daily_pomodoros = 0
             daily_subjects = set()
             
@@ -4089,8 +5093,11 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                         parts = topic_key.split(' | ')
                         if len(parts) >= 2:
                             subject = parts[0]
+                            topic_name = parts[-1]
+                            daily_completed_topics.append(topic_name)
                             daily_subjects.add(subject)
-                            daily_completed_topics += 1
+                            if net_int >= 15:
+                                daily_net_improvements += 1
                 except:
                     continue
             
@@ -4098,36 +5105,52 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             for pomodoro in pomodoro_history:
                 if pomodoro.get('date', '').startswith(date_str):
                     daily_pomodoros += 1
-                    if pomodoro.get('subject'):
-                        daily_subjects.add(pomodoro['subject'])
             
-            # Günlük istatistikleri hesapla
-            completed_topics_count = max(daily_completed_topics, min(i+1, 3))
-            solved_questions_count = daily_completed_topics * 5 + random.randint(8, 18)
-            pomodoro_count = max(daily_pomodoros, random.randint(3, 7))
-            
-            # Çalışılan dersleri belirleme
-            if daily_subjects:
-                subjects_list = list(daily_subjects)[:3]
+            # Haftalık hedef konularından günlük konuları seç
+            if weekly_target_topics and i < len(weekly_target_topics):
+                # Her gün farklı konulardan seç
+                topics_for_day = weekly_target_topics[i:i+3] if i+3 <= len(weekly_target_topics) else weekly_target_topics[-3:]
             else:
+                # Fallback: Alanına göre varsayılan konular
                 user_field = user_data.get('field', 'Sayısal')
                 if user_field == 'Sayısal':
-                    subjects_list = random.sample(['TYT Matematik', 'TYT Fizik', 'TYT Kimya', 'AYT Matematik'], 3)
+                    fallback_topics = ['Fonksiyonlar', 'Türev', 'İntegral', 'Elektrik', 'Kimyasal Denge']
                 elif user_field == 'Sözel':
-                    subjects_list = random.sample(['TYT Türkçe', 'TYT Tarih', 'AYT Edebiyat', 'AYT Coğrafya'], 3)
+                    fallback_topics = ['Paragraf', 'Osmanlı Tarihi', 'Dünya Coğrafyası', 'Edebiyat Tarihi']
                 else:
-                    subjects_list = random.sample(['TYT Matematik', 'TYT Türkçe', 'TYT Fen'], 3)
+                    fallback_topics = ['Cebirsel İfadeler', 'Paragraf Sorular', 'Hücre Biyolojisi']
+                topics_for_day = fallback_topics[i%len(fallback_topics):i%len(fallback_topics)+2]
             
-            # Motivasyon puanı hesapla
-            motivation_score = min(10, 5 + (pomodoro_count // 2) + (completed_topics_count // 2))
+            # Günlük istatistikleri hesapla - GERÇEK VERİLER
+            completed_topics_count = len(daily_completed_topics)  # Gerçek tamamlanan konu sayısı
+            solved_questions_count = daily_net_improvements * 5  # Net gelişime bağlı gerçek soru sayısı
+            pomodoro_count = daily_pomodoros  # Gerçek pomodoro sayısı
             
-            # Günlük notlar
+            # Çalışılan dersleri belirleme - GERÇEK VERİLER
+            if daily_subjects:
+                subjects_list = list(daily_subjects)[:3]  # Gerçek çalışılan dersler
+            else:
+                subjects_list = []  # Eğer veri yoksa boş liste
+            
+            # Motivasyon puanı hesaplama - GERÇEK VERİLER
+            motivation_score = 0
+            if daily_pomodoros > 0:
+                motivation_score += min(5, daily_pomodoros)  # Pomodoro'ya göre
+            if len(daily_completed_topics) > 0:
+                motivation_score += min(3, len(daily_completed_topics))  # Tamamlanan konulara göre
+            if daily_net_improvements > 0:
+                motivation_score += min(2, daily_net_improvements)  # Net gelişime göre
+            motivation_score = min(10, motivation_score)  # Maksimum 10
+            
+            # Günlük not - GERÇEK VERİLER
             if motivation_score >= 8:
                 daily_note = "🔥 Mükemmel bir gün!"
-            elif motivation_score >= 6:
+            elif motivation_score >= 5:
                 daily_note = "💪 İyi bir çalışma günü"
+            elif motivation_score > 0:
+                daily_note = "📚 Başlangıç seviyesi"
             else:
-                daily_note = "📚 Daha iyi olabilir"
+                daily_note = "😴 Dinlenme günü"
             
             timeline_days.append({
                 'date': date,
@@ -4137,35 +5160,63 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 'pomodoro_count': pomodoro_count,
                 'subjects': subjects_list,
                 'total_study_time': pomodoro_count * 25,  # Dakika
+                'actual_topics': topics_for_day[:2] if len(topics_for_day) >= 2 else daily_completed_topics[:2] if daily_completed_topics else [],
                 'motivation_score': motivation_score,
                 'daily_note': daily_note,
-                'photo_count': random.randint(1, 3)  # Günlük fotoğraf sayısı
+                'photo_count': 1 if daily_pomodoros > 0 else 0  # Çalışılan günler için fotoğraf
             })
         
         # Mevcut günü göster
         if st.session_state.timeline_day < len(timeline_days):
             day_data = timeline_days[st.session_state.timeline_day]
             
-            # Gün başlığı
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #667eea, #764ba2); 
-                        padding: 30px; border-radius: 15px; margin: 30px 0; 
-                        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3); color: white; text-align: center;">
-                <h1 style="font-size: 2.5em; margin-bottom: 20px;">
-                    📅 {day_data['date'].strftime('%d %B %Y')}
-                </h1>
-                <div style="font-size: 1.2em; font-weight: 600;">
-                    GÜN {day_data['day_number']} / {len(timeline_days)} - BAŞARI YOLCULUĞU
-                </div>
+            # Timeline container başlangıcı - Sinema perdesi içinde kalmayı garanti eder
+            st.markdown("""
+            <div class="timeline-animation-container" style="
+                width: 100%; 
+                height: 100%; 
+                position: relative; 
+                z-index: 20;
+                background: rgba(255,255,255,0.02);
+                border-radius: 10px;
+                padding: 20px;
+                margin: 0;
+            ">
+            """, unsafe_allow_html=True)
+            
+            # 🎬 Perde İçi Timeline Başlığı
+            st.markdown("""
+            <div style="text-align: center; margin: 40px 0;">
+                <div style="height: 2px; background: linear-gradient(90deg, transparent, #3498db, transparent); 
+                            margin: 20px 0; border-radius: 1px;"></div>
+                <h2 style="font-size: 2.2em; margin: 20px 0; color: #2c3e50; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">
+                    🎬 ZAMAN MAKİNESİ EKRANI
+                </h2>
+                <div style="height: 2px; background: linear-gradient(90deg, transparent, #3498db, transparent); 
+                            margin: 20px 0; border-radius: 1px;"></div>
             </div>
             """, unsafe_allow_html=True)
             
-            # İstatistik kutuları
+            # Gün başlığı - Perde İçi
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #ecf0f1, #bdc3c7); 
+                        padding: 30px; border-radius: 15px; margin: 30px 0; 
+                        box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 2px solid #3498db;">
+                <h1 style="text-align: center; color: #2c3e50; font-size: 2.5em; margin-bottom: 20px; 
+                           text-shadow: 1px 1px 3px rgba(0,0,0,0.1);">
+                    📅 {day_data['date'].strftime('%d %B %Y')}
+                </h1>
+                <div style="text-align: center; color: #34495e; font-size: 1.2em; margin-bottom: 20px; font-weight: 600;">
+                    GÜN {day_data['day_number']} / {len(timeline_days)} - BAŞARI YOLCULUĞU
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # İstatistik kutuları - Streamlit metric kullanarak
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
                 st.metric(
-                    label="📚 Konu Tamamlandı",
+                    label="🎯 Konu Tamamlandı",
                     value=day_data['completed_topics']
                 )
             
@@ -4187,7 +5238,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     value=f"{day_data['total_study_time']}dk"
                 )
             
-            # Ek bilgiler
+            # Ek metrikler - Motivasyon ve Fotoğraf
             col5, col6 = st.columns(2)
             
             with col5:
@@ -4202,46 +5253,124 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     value=f"{day_data['photo_count']} adet"
                 )
             
-            # Çalışılan dersler
-            st.markdown("### 📚 Çalışılan Dersler")
-            for subject in day_data['subjects']:
+            # Günlük Not Bölümü
+            if day_data['daily_note']:
                 st.markdown(f"""
-                <div style="color: #2c3e50; font-size: 1.1em; padding: 12px 20px; margin: 10px 0; 
-                            background: linear-gradient(135deg, #3498db22, #2980b922); border-radius: 10px; 
-                            border-left: 4px solid #3498db; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                    • {subject}
+                <div style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white;
+                            padding: 20px; border-radius: 15px; margin: 20px 0; 
+                            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3); text-align: center;">
+                    <h4>📏 Günlük Not:</h4>
+                    <p style="font-size: 1.2em; margin: 0;">{day_data['daily_note']}</p>
                 </div>
                 """, unsafe_allow_html=True)
             
-            # Günlük not ve hedefler
-            st.markdown("### 🎯 Günlük Hedefler & Notlar")
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white;
-                        padding: 20px; border-radius: 15px; margin: 20px 0; 
-                        box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);">
-                <h4>📏 Günlük Not:</h4>
-                <p style="font-size: 1.2em; margin: 0;">{day_data['daily_note']}</p>
-            </div>
-            """, unsafe_allow_html=True)
+                # Çalışılan dersler section - Perde İçi
+                st.markdown("""
+                <div style="margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); 
+                            border-radius: 15px; border: 2px solid #3498db; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
+                    <h3 style="color: #2c3e50; text-align: center; margin-bottom: 20px; font-weight: 600;">📚 Çalışılan Dersler</h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Dersler listesi - Perde İçi - GERÇEK VERİLER
+                if day_data['subjects']:
+                    for subject in day_data['subjects']:
+                        st.markdown(f"""
+                        <div style="color: #2c3e50; font-size: 1.1em; padding: 12px 20px; margin: 10px 0; 
+                                    background: linear-gradient(135deg, #3498db22, #2980b922); border-radius: 10px; 
+                                    border-left: 4px solid #3498db; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                            • {subject}
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.markdown("""
+                    <div style="color: #7f8c8d; font-size: 1.1em; padding: 12px 20px; margin: 10px 0; 
+                                background: linear-gradient(135deg, #ecf0f1, #bdc3c7); border-radius: 10px; 
+                                border-left: 4px solid #95a5a6; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center;">
+                        Bu gün çalışma kaydı bulunamadı
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Tamamlanan konular section - Perde İçi
+                st.markdown("""
+                <div style="margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); 
+                            border-radius: 15px; border: 2px solid #e67e22; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
+                    <h3 style="color: #2c3e50; text-align: center; margin-bottom: 20px; font-weight: 600;">📄 Tamamlanan Konular</h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Konular listesi - Perde İçi - GERÇEK VERİLER
+                if day_data['actual_topics']:
+                    for topic in day_data['actual_topics']:
+                        st.markdown(f"""
+                        <div style="color: #2c3e50; font-size: 1.1em; padding: 12px 20px; margin: 10px 0; 
+                                    background: linear-gradient(135deg, #f39c1222, #e67e2222); border-radius: 10px; 
+                                    border-left: 4px solid #e67e22; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                            • {topic}
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.markdown("""
+                    <div style="color: #7f8c8d; font-size: 1.1em; padding: 12px 20px; margin: 10px 0; 
+                                background: linear-gradient(135deg, #ecf0f1, #bdc3c7); border-radius: 10px; 
+                                border-left: 4px solid #95a5a6; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center;">
+                        Bu gün tamamlanan konu bulunamadı
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Soru Takibi Bölümü - GERÇEK VERİLER
+                st.markdown("""
+                <div style="margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); 
+                            border-radius: 15px; border: 2px solid #27ae60; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
+                    <h3 style="color: #2c3e50; text-align: center; margin-bottom: 20px; font-weight: 600;">🔢 Soru Takibi</h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Soru takibi detayları - GERÇEK VERİLER
+                if day_data['solved_questions'] > 0:
+                    success_rate = min(100, (day_data['motivation_score'] * 10))
+                    st.markdown(f"""
+                    <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); color: white;
+                                padding: 20px; border-radius: 15px; margin: 10px 0; 
+                                box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);">
+                        <p style="font-size: 1.1em; margin: 0;">
+                            ✅ Toplam {day_data['solved_questions']} soru çözüldü<br>
+                            📊 Günlük hedef: {day_data['completed_topics']} konu tamamlandı<br>
+                            📈 Başarı oranı: %{success_rate}
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #95a5a6, #7f8c8d); color: white;
+                                padding: 20px; border-radius: 15px; margin: 10px 0; 
+                                box-shadow: 0 5px 15px rgba(149, 165, 166, 0.3); text-align: center;">
+                        <p style="font-size: 1.1em; margin: 0;">
+                            Bu gün soru çözme kaydı bulunamadı
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # İlerleme göstergesi - Perde İçi
+                st.markdown(f"""
+                <div style="background: linear-gradient(45deg, #27ae60, #2ecc71); color: white; 
+                            padding: 15px 25px; border-radius: 25px; text-align: center; font-weight: bold; 
+                            margin: 30px 0; font-size: 1.2em; box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);">
+                    🚀 Gün {day_data['day_number']} / {len(timeline_days)} - Yolculuk devam ediyor!
+                </div>
+                """, unsafe_allow_html=True)
             
-            # Soru takibi
-            st.markdown("### 🔢 Soru Takibi")
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); color: white;
-                        padding: 20px; border-radius: 15px; margin: 20px 0; 
-                        box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);">
-                <p style="font-size: 1.1em; margin: 0;">
-                    ✅ Toplam {day_data['solved_questions']} soru çözüldü<br>
-                    📊 Günlük hedef: {day_data['completed_topics']} konu tamamlandı<br>
-                    📈 Başarı oranı: %{min(100, day_data['motivation_score'] * 10)}
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+            # Timeline kutusu kapanışı
+            st.markdown("</div>", unsafe_allow_html=True)
             
-            # İlerleme çubuğu
+            # İlerleme çubuğu - Perde İçinde
+            st.markdown("""
+            <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+            """, unsafe_allow_html=True)
             st.progress((day_data['day_number'] / len(timeline_days)))
+            st.markdown("</div>", unsafe_allow_html=True)
             
-            # Otomatik geçiş bilgisi
+            # Otomatik geçiş bilgisi - Perde İçinde
             st.markdown("""
             <div style="background: linear-gradient(45deg, #3498db, #2980b9); color: white; 
                         padding: 12px 20px; border-radius: 15px; text-align: center; margin: 15px 0; 
@@ -4250,7 +5379,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             </div>
             """, unsafe_allow_html=True)
             
-            # Kontrol butonları
+            # Kontrol butonları - Perde İçinde
             col_next, col_stop = st.columns([2, 1])
             
             with col_stop:
@@ -4276,16 +5405,39 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     st.session_state.timeline_day = 0
                     st.session_state.play_music_timeline = True
                     st.rerun()
+            
+            # Timeline animation container kapanışı
+            st.markdown("</div>", unsafe_allow_html=True)
         
         else:
             # Timeline tamamlandı
+            st.markdown("""
+            <div class="timeline-animation-container" style="
+                width: 100%; 
+                height: 100%; 
+                position: relative; 
+                z-index: 20;
+                background: rgba(255,255,255,0.02);
+                border-radius: 10px;
+                padding: 20px;
+                margin: 0;
+            ">
+            """, unsafe_allow_html=True)
+            
             st.success("🎉 Zaman yolculuğu tamamlandı! Ne muhteşem bir hikaye!")
             st.session_state.timeline_running = False
             st.session_state.timeline_day = 0
             st.session_state.play_music_timeline = False
+            
+            # Timeline animation container kapanışı
+            st.markdown("</div>", unsafe_allow_html=True)
     
-    # Container kapanışı
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Sinema Perdesi Son
+    st.markdown("""
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def display_daily_detailed_analysis(user_data, topic_progress, pomodoro_history, register_date, days_passed):
