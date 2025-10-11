@@ -4655,40 +4655,27 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     </style>
     """, unsafe_allow_html=True)
     
-    # Ana başlık
-    st.markdown("""
-    <div class="cinema-header">
-        <h1 style="margin: 0; font-size: 36px;">
-            ⏰ Sar Zamanı Geriye
-        </h1>
-        <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">
-            Başarı yolculuğunuzun hikayesi
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    # Ana başlık - Native Streamlit
+    st.title("⏰ Sar Zamanı Geriye")
+    st.subheader("Başarı yolculuğunuzun hikayesi")
     
     # Motivasyon metni
-    st.markdown("""
-    <div style="text-align: center; font-size: 20px; color: #555; margin: 30px 0; font-style: italic;">
-        "Bugüne kolay gelmedin."
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("---")
+    st.markdown("*\"Bugüne kolay gelmedin.\"*")
+    st.markdown("---")
     
-    # Sinema ekranı
-    st.markdown("""
-    <div class="cinema-screen">
-        <div class="screen-content">
-            <h2 style="margin: 0 0 20px 0;">🎬 ZAMAN MAKİNESİ</h2>
-            <p style="margin: 0 0 30px 0;">
-                Her günün hikayesini yeniden yaşamaya hazır mısın?<br>
-                Başlangıçtan bugüne kadar ki tüm mücadeleni gör...
-            </p>
-            <div style="font-size: 64px; margin: 20px 0;">
-                ⏳
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # 🎬 Sinema ekranı - Native Streamlit
+    st.markdown("---")
+    
+    # Sinema başlığı
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown("## 🎬 ZAMAN MAKİNESİ")
+        st.markdown("### ⏳")
+        st.write("Her günün hikayesini yeniden yaşamaya hazır mısın?")
+        st.write("Başlangıçtan bugüne kadar ki tüm mücadeleni gör...")
+    
+    st.markdown("---")
     
     # Kullanıcı verilerini kontrol et
     if not user_data:
@@ -4996,21 +4983,13 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         if st.session_state.timeline_day < len(timeline_days):
             day_data = timeline_days[st.session_state.timeline_day]
             
-            # Gün kartı - Streamlit Native Bileşenlerle
-            # Başlık
-            st.markdown(f"""
-            <div style="
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: 20px;
-                border-radius: 20px;
-                color: white;
-                margin: 20px 0;
-                box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-                text-align: center;
-            ">
-                <h3 style="margin: 0;">📅 {day_data['date'].strftime('%d %B %Y')}</h3>
-            </div>
-            """, unsafe_allow_html=True)
+            # 🎬 Sinema ekranı efekti
+            st.markdown("### 🎬 ZAMAN MAKİNESİ EKRANI")
+            st.markdown("---")
+            
+            # Gün başlığı - Native Streamlit
+            st.header(f"📅 {day_data['date'].strftime('%d %B %Y')}")
+            st.markdown("---")
             
             # İstatistik kutuları - Streamlit metric kullanarak
             col1, col2, col3, col4 = st.columns(4)
@@ -5039,50 +5018,34 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     value=f"{day_data['total_study_time']}dk"
                 )
             
-            # Çalışılan dersler ve konular
-            st.markdown(f"""
-            <div style="
-                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                padding: 20px;
-                border-radius: 15px;
-                color: white;
-                margin: 15px 0;
-            ">
-                <p><strong>📚 Çalışılan Dersler:</strong><br>
-                {', '.join(day_data['subjects'])}</p>
-                
-                <p><strong>📄 Tamamlanan Konular:</strong><br>
-                {' • '.join(day_data['actual_topics']) if day_data['actual_topics'] else 'Matematik ve Türkçe çalışmaları'}</p>
-            </div>
-            """, unsafe_allow_html=True)
+            # Sinema efekti için boşluk
+            st.markdown("---")
             
-            # İlerleme göstergesi
-            st.markdown(f"""
-            <div style="
-                background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-                color: white;
-                padding: 12px 20px;
-                border-radius: 25px;
-                text-align: center;
-                font-weight: bold;
-                margin: 15px 0;
-                animation: pulse 2s ease-in-out infinite;
-            ">
-                Gün {day_data['day_number']} / {len(timeline_days)} - Yolculuk devam ediyor! 🚀
-            </div>
-            """, unsafe_allow_html=True)
+            # Çalışılan dersler - Native Streamlit
+            st.subheader("📚 Çalışılan Dersler")
+            for subject in day_data['subjects']:
+                st.write(f"• {subject}")
+            
+            # Tamamlanan konular - Native Streamlit  
+            st.subheader("📄 Tamamlanan Konular")
+            if day_data['actual_topics']:
+                for topic in day_data['actual_topics']:
+                    st.write(f"• {topic}")
+            else:
+                st.write("• Matematik ve Türkçe çalışmaları")
+            
+            # İlerleme göstergesi - Native Streamlit
+            st.markdown("---")
+            st.success(f"🚀 Gün {day_data['day_number']} / {len(timeline_days)} - Yolculuk devam ediyor!")
+            
+            # Sinema efekti için boşluk
+            st.markdown("---")
             
             # İlerleme çubuğu
             progress = st.progress((day_data['day_number'] / len(timeline_days)))
             
-            # 3 saniye otomatik geçiş
-            st.markdown(f"""
-            <script>
-            setTimeout(function() {{
-                console.log('🕐 3 saniye geçti, sonraki güne geçiliyor...');
-            }}, 3000);
-            </script>
-            """, unsafe_allow_html=True)
+            # Otomatik geçiş bilgisi
+            st.info("⏱️ 3 saniye sonra otomatik olarak sonraki güne geçiliyor...")
             
             # Kontrol butonları
             col_next, col_stop = st.columns([2, 1])
