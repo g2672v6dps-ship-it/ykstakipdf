@@ -3786,169 +3786,7 @@ def show_weekly_summary(weekly_plan):
 def show_sar_zamani_geriye_page(user_data, progress_data):
     """🎬 Sar Zamanı Geriye - Sinematik Film Makinesi Deneyimi"""
     
-    # Film makinesi CSS styling - Dosyaya yazıp okuyalım
-    css_content = """
-    <style>
-    .cinema-container {
-        background: linear-gradient(135deg, #1a1a2e, #16213e, #0f1419);
-        border-radius: 25px;
-        padding: 40px;
-        margin: 20px 0;
-        border: 3px solid #d4af37;
-        box-shadow: 
-            0 0 50px rgba(212, 175, 55, 0.3),
-            inset 0 0 50px rgba(255, 255, 255, 0.1);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .cinema-container::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 2px,
-            rgba(212, 175, 55, 0.1) 2px,
-            rgba(212, 175, 55, 0.1) 4px
-        );
-        animation: filmGrain 0.2s infinite;
-    }
-    
-    @keyframes filmGrain {
-        0%, 100% { transform: translate(0, 0); }
-        10% { transform: translate(-1px, -1px); }
-        20% { transform: translate(1px, 1px); }
-        30% { transform: translate(-1px, 1px); }
-        40% { transform: translate(1px, -1px); }
-        50% { transform: translate(-1px, -1px); }
-        60% { transform: translate(1px, 1px); }
-        70% { transform: translate(-1px, 1px); }
-        80% { transform: translate(1px, -1px); }
-        90% { transform: translate(-1px, -1px); }
-    }
-    
-    .cinema-screen {
-        background: linear-gradient(135deg, #000000, #1a1a1a);
-        border: 5px solid #d4af37;
-        border-radius: 15px;
-        padding: 30px;
-        margin: 20px;
-        position: relative;
-        z-index: 2;
-        box-shadow: 
-            inset 0 0 30px rgba(0, 0, 0, 0.8),
-            0 0 20px rgba(212, 175, 55, 0.4);
-    }
-    
-    .film-title {
-        font-size: 2.5em;
-        text-align: center;
-        color: #d4af37;
-        text-shadow: 0 0 20px rgba(212, 175, 55, 0.8);
-        margin-bottom: 20px;
-        font-family: 'Times New Roman', serif;
-    }
-    
-    .day-frame {
-        background: radial-gradient(circle, #2a2a2a, #1a1a1a);
-        border: 2px solid #d4af37;
-        border-radius: 10px;
-        padding: 25px;
-        margin: 15px 0;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
-        animation: slideIn 1s ease-in-out;
-    }
-    
-    @keyframes slideIn {
-        from { 
-            opacity: 0; 
-            transform: translateY(30px); 
-        }
-        to { 
-            opacity: 1; 
-            transform: translateY(0); 
-        }
-    }
-    
-    .metrics-row {
-        display: flex;
-        justify-content: space-around;
-        flex-wrap: wrap;
-        margin: 20px 0;
-    }
-    
-    .metric-box {
-        background: linear-gradient(45deg, #2c3e50, #3498db);
-        border: 2px solid #d4af37;
-        border-radius: 10px;
-        padding: 15px;
-        margin: 5px;
-        text-align: center;
-        min-width: 120px;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-    }
-    
-    .metric-number {
-        font-size: 1.8em;
-        font-weight: bold;
-        color: #d4af37;
-        text-shadow: 0 0 10px rgba(212, 175, 55, 0.8);
-    }
-    
-    .metric-label {
-        color: #ffffff;
-        font-size: 0.9em;
-        margin-top: 5px;
-    }
-    
-    .projector-light {
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        width: 20px;
-        height: 20px;
-        background: radial-gradient(circle, #ff6b6b, #c44569);
-        border-radius: 50%;
-        animation: blink 2s infinite;
-        z-index: 3;
-    }
-    
-    @keyframes blink {
-        0%, 50% { opacity: 1; }
-        51%, 100% { opacity: 0.3; }
-    }
-    
-    .film-controls {
-        text-align: center;
-        margin-top: 30px;
-        padding: 20px;
-        background: rgba(212, 175, 55, 0.1);
-        border-radius: 10px;
-        border: 1px solid #d4af37;
-    }
-    
-    .auto-progress {
-        background: linear-gradient(90deg, #d4af37, #f1c40f);
-        height: 8px;
-        border-radius: 4px;
-        margin: 20px 0;
-        animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.7; }
-    }
-    </style>
-    """
-    
-    # CSS'i components ile render et
-    st.components.v1.html(css_content, height=0)
+
     
     # Kullanıcı verilerini kontrol et
     if not user_data:
@@ -4090,8 +3928,53 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         
         return timeline_days
     
-    # Ana başlık - HTML ile
+    # Ana başlık - CSS dahil HTML
     title_html = """
+    <style>
+    .cinema-container {
+        background: linear-gradient(135deg, #1a1a2e, #16213e, #0f1419);
+        border-radius: 25px;
+        padding: 40px;
+        margin: 20px 0;
+        border: 3px solid #d4af37;
+        box-shadow: 0 0 50px rgba(212, 175, 55, 0.3), inset 0 0 50px rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    .cinema-screen {
+        background: linear-gradient(135deg, #000000, #1a1a1a);
+        border: 5px solid #d4af37;
+        border-radius: 15px;
+        padding: 30px;
+        margin: 20px;
+        position: relative;
+        z-index: 2;
+        box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.4);
+    }
+    .film-title {
+        font-size: 2.5em;
+        text-align: center;
+        color: #d4af37;
+        text-shadow: 0 0 20px rgba(212, 175, 55, 0.8);
+        margin-bottom: 20px;
+        font-family: 'Times New Roman', serif;
+    }
+    .projector-light {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        width: 20px;
+        height: 20px;
+        background: radial-gradient(circle, #ff6b6b, #c44569);
+        border-radius: 50%;
+        animation: blink 2s infinite;
+        z-index: 3;
+    }
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0.3; }
+    }
+    </style>
     <div class="cinema-container">
         <div class="projector-light"></div>
         <div class="cinema-screen">
@@ -4115,8 +3998,30 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 st.session_state.last_auto_update = time.time()
                 st.rerun()
         
-        # Bilgi paneli - HTML ile
+        # Bilgi paneli - CSS dahil HTML
         info_html = """
+        <style>
+        .cinema-container {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f1419);
+            border-radius: 25px;
+            padding: 40px;
+            margin: 20px 0;
+            border: 3px solid #d4af37;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.3), inset 0 0 50px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .cinema-screen {
+            background: linear-gradient(135deg, #000000, #1a1a1a);
+            border: 5px solid #d4af37;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px;
+            position: relative;
+            z-index: 2;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.4);
+        }
+        </style>
         <div class="cinema-container">
             <div class="cinema-screen">
                 <h3 style="color: #d4af37; text-align: center;">🎭 Sinematik Deneyim Özellikleri</h3>
@@ -4201,8 +4106,81 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 </div>
                 """
             
-            # HTML string'i oluştur
+            # HTML string'i oluştur - CSS dahil
             day_html = """
+            <style>
+            .cinema-container {
+                background: linear-gradient(135deg, #1a1a2e, #16213e, #0f1419);
+                border-radius: 25px;
+                padding: 40px;
+                margin: 20px 0;
+                border: 3px solid #d4af37;
+                box-shadow: 0 0 50px rgba(212, 175, 55, 0.3), inset 0 0 50px rgba(255, 255, 255, 0.1);
+                position: relative;
+                overflow: hidden;
+            }
+            .cinema-screen {
+                background: linear-gradient(135deg, #000000, #1a1a1a);
+                border: 5px solid #d4af37;
+                border-radius: 15px;
+                padding: 30px;
+                margin: 20px;
+                position: relative;
+                z-index: 2;
+                box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.4);
+            }
+            .day-frame {
+                background: radial-gradient(circle, #2a2a2a, #1a1a1a);
+                border: 2px solid #d4af37;
+                border-radius: 10px;
+                padding: 25px;
+                margin: 15px 0;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
+                animation: slideIn 1s ease-in-out;
+            }
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateY(30px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .metrics-row {
+                display: flex;
+                justify-content: space-around;
+                flex-wrap: wrap;
+                margin: 20px 0;
+            }
+            .metric-box {
+                background: linear-gradient(45deg, #2c3e50, #3498db);
+                border: 2px solid #d4af37;
+                border-radius: 10px;
+                padding: 15px;
+                margin: 5px;
+                text-align: center;
+                min-width: 120px;
+                box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+            }
+            .metric-number {
+                font-size: 1.8em;
+                font-weight: bold;
+                color: #d4af37;
+                text-shadow: 0 0 10px rgba(212, 175, 55, 0.8);
+            }
+            .metric-label {
+                color: #ffffff;
+                font-size: 0.9em;
+                margin-top: 5px;
+            }
+            .auto-progress {
+                background: linear-gradient(90deg, #d4af37, #f1c40f);
+                height: 8px;
+                border-radius: 4px;
+                margin: 20px 0;
+                animation: pulse 2s infinite;
+            }
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.7; }
+            }
+            </style>
             <div class="cinema-container">
                 <div class="cinema-screen">
                     <div class="day-frame">
@@ -4283,8 +4261,38 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     st.rerun()
         
         else:
-            # Film tamamlandı - HTML ile
+            # Film tamamlandı - CSS dahil HTML
             completed_html = """
+            <style>
+            .cinema-container {
+                background: linear-gradient(135deg, #1a1a2e, #16213e, #0f1419);
+                border-radius: 25px;
+                padding: 40px;
+                margin: 20px 0;
+                border: 3px solid #d4af37;
+                box-shadow: 0 0 50px rgba(212, 175, 55, 0.3), inset 0 0 50px rgba(255, 255, 255, 0.1);
+                position: relative;
+                overflow: hidden;
+            }
+            .cinema-screen {
+                background: linear-gradient(135deg, #000000, #1a1a1a);
+                border: 5px solid #d4af37;
+                border-radius: 15px;
+                padding: 30px;
+                margin: 20px;
+                position: relative;
+                z-index: 2;
+                box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.4);
+            }
+            .film-title {
+                font-size: 2.5em;
+                text-align: center;
+                color: #d4af37;
+                text-shadow: 0 0 20px rgba(212, 175, 55, 0.8);
+                margin-bottom: 20px;
+                font-family: 'Times New Roman', serif;
+            }
+            </style>
             <div class="cinema-container">
                 <div class="cinema-screen">
                     <div class="film-title">🎉 FİLM TAMAMLANDI! 🎉</div>
