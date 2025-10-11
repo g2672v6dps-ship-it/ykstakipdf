@@ -63,7 +63,7 @@ except ImportError:
 def safe_plotly_chart(fig, **kwargs):
     """Plotly yoksa uyarı gösterir, varsa grafiği çizer"""
     if PLOTLY_AVAILABLE:
-        safe_plotly_chart(fig, **kwargs)
+        st.plotly_chart(fig, **kwargs)  # ← DOĞRU: st.plotly_chart
     else:
         st.warning("📊 Grafik görüntülenemedi - Plotly yüklü değil")
 
