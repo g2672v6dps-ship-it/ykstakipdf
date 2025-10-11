@@ -4037,7 +4037,6 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         if topic_progress:
             completed_topics = len([k for k, v in topic_progress.items() if int(float(v)) >= 14])
             st.write(f"📚 **Tamamlanan konular:** {completed_topics}")
-                // Müziği başlat
                 console.log('🎵 Müzik başlatılıyor...');
                 
                 // Önce HTML5 audio dene
