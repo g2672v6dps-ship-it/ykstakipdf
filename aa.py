@@ -4102,6 +4102,14 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     </div>
     """, unsafe_allow_html=True)
     
+    # Test HTML render
+    st.markdown("""
+    <div style="background: #1a1a2e; color: #d4af37; padding: 20px; border-radius: 10px; margin: 10px 0;">
+        <h3>🎬 HTML Test - Bu görünüyorsa HTML çalışıyor</h3>
+        <p>Eğer bu metin stillenmiş görünüyorsa, HTML render sorunu değil.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
     # Kontrol paneli
     if not st.session_state.cinema_running:
         col1, col2, col3 = st.columns([1, 2, 1])
@@ -4137,7 +4145,14 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 frameborder="0" allow="autoplay; encrypted-media"></iframe>
         """, height=0)
         
-        timeline_days = prepare_daily_data()
+        try:
+            timeline_days = prepare_daily_data()
+            if not timeline_days:
+                st.error("❌ Günlük veri hazırlanamadı!")
+                return
+        except Exception as e:
+            st.error(f"❌ Veri hazırlama hatası: {str(e)}")
+            return
         
         # Otomatik ilerleme kontrolü
         current_time = time.time()
@@ -4153,24 +4168,38 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         if st.session_state.cinema_day < len(timeline_days):
             day_data = timeline_days[st.session_state.cinema_day]
             
-            # Dinamik HTML bölümlerini hazırla
+            # Dinamik HTML bölümlerini güvenli bir şekilde hazırla
             topics_section = ""
-            if day_data['topic_names']:
+            if day_data.get('topic_names') and len(day_data['topic_names']) > 0:
+                topic_list = [str(topic) for topic in day_data['topic_names']]
+                topics_text = ' • '.join(topic_list)
                 topics_section = f"""
                 <div style="margin: 20px 0; color: #ffffff;">
                     <strong style="color: #d4af37;">📄 Tamamlanan Konular:</strong><br>
-                    {' • '.join(day_data['topic_names'])}
+                    {topics_text}
                 </div>
                 """
             
             note_section = ""
-            if day_data['daily_note']:
+            if day_data.get('daily_note') and str(day_data['daily_note']).strip():
+                clean_note = str(day_data['daily_note']).replace('"', '&quot;').replace("'", "&#39;")
                 note_section = f"""
                 <div style="margin: 20px 0; padding: 15px; background: rgba(212, 175, 55, 0.2); border-radius: 10px; color: #ffffff;">
                     <strong style="color: #d4af37;">💭 Günün Notu:</strong><br>
-                    {day_data['daily_note']}
+                    {clean_note}
                 </div>
                 """
+            
+            # Güvenli veri hazırlığı
+            date_str = day_data['date'].strftime('%d.%m.%Y')  # Basit format
+            subjects_list = day_data.get('subjects', ['Ders bulunamadı'])
+            subjects_text = ' • '.join([str(s) for s in subjects_list]) if subjects_list else 'Veri yok'
+            
+            hours = day_data['study_minutes'] // 60
+            minutes = day_data['study_minutes'] % 60
+            time_text = f"{hours}s {minutes}dk"
+            
+            progress_width = (day_data['day_number'] / len(timeline_days)) * 100
             
             # Günün sinematik gösterimi
             st.markdown(f"""
@@ -4178,7 +4207,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 <div class="cinema-screen">
                     <div class="day-frame">
                         <h2 style="color: #d4af37; text-align: center; margin-bottom: 20px;">
-                            📅 {day_data['date'].strftime('%d %B %Y')} - Gün {day_data['day_number']}
+                            📅 {date_str} - Gün {day_data['day_number']}
                         </h2>
                         
                         <div class="metrics-row">
@@ -4195,21 +4224,21 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                                 <div class="metric-label">🍅 Pomodoro</div>
                             </div>
                             <div class="metric-box">
-                                <div class="metric-number">{day_data['study_minutes']//60}s {day_data['study_minutes']%60}dk</div>
+                                <div class="metric-number">{time_text}</div>
                                 <div class="metric-label">⏱️ Çalışma Süresi</div>
                             </div>
                         </div>
                         
                         <div style="margin: 20px 0; color: #ffffff;">
                             <strong style="color: #d4af37;">📚 Çalışılan Dersler:</strong><br>
-                            {' • '.join(day_data['subjects'])}
+                            {subjects_text}
                         </div>
                         
                         {topics_section}
                         
                         {note_section}
                         
-                        <div class="auto-progress" style="width: {(day_data['day_number'] / len(timeline_days)) * 100}%;"></div>
+                        <div class="auto-progress" style="width: {progress_width}%;"></div>
                         
                         <p style="text-align: center; color: #d4af37; font-size: 1.2em; margin-top: 20px;">
                             🚀 Başarı Yolculuğu Devam Ediyor... ({day_data['day_number']}/{len(timeline_days)})
