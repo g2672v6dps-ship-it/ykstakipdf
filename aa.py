@@ -3784,11 +3784,174 @@ def show_weekly_summary(weekly_plan):
             st.rerun()
 
 def show_sar_zamani_geriye_page(user_data, progress_data):
-    """⏰ Sar Zamanı Geriye - Düzeltilmiş Versiyon - Gerçek Verilerle Gün Gün Animasyon"""
+    """🎬 Sar Zamanı Geriye - Sinematik Film Makinesi Deneyimi"""
     
-    # Ana başlık ve açıklama
-    st.title("⏰ Sar Zamanı Geriye")
-    st.markdown("**Başarı yolculuğunuzun hikayesini gün gün yaşayın**")
+    # Müzik embed etme
+    st.components.v1.html("""
+    <iframe width="0" height="0" src="https://www.youtube.com/embed/EQBVjwXZ7GY?autoplay=1&loop=1&controls=0&mute=0&playlist=EQBVjwXZ7GY" 
+            frameborder="0" allow="autoplay; encrypted-media"></iframe>
+    """, height=0)
+    
+    # Film makinesi CSS styling
+    st.markdown("""
+    <style>
+    .cinema-container {
+        background: linear-gradient(135deg, #1a1a2e, #16213e, #0f1419);
+        border-radius: 25px;
+        padding: 40px;
+        margin: 20px 0;
+        border: 3px solid #d4af37;
+        box-shadow: 
+            0 0 50px rgba(212, 175, 55, 0.3),
+            inset 0 0 50px rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cinema-container::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 2px,
+            rgba(212, 175, 55, 0.1) 2px,
+            rgba(212, 175, 55, 0.1) 4px
+        );
+        animation: filmGrain 0.2s infinite;
+    }
+    
+    @keyframes filmGrain {
+        0%, 100% { transform: translate(0, 0); }
+        10% { transform: translate(-1px, -1px); }
+        20% { transform: translate(1px, 1px); }
+        30% { transform: translate(-1px, 1px); }
+        40% { transform: translate(1px, -1px); }
+        50% { transform: translate(-1px, -1px); }
+        60% { transform: translate(1px, 1px); }
+        70% { transform: translate(-1px, 1px); }
+        80% { transform: translate(1px, -1px); }
+        90% { transform: translate(-1px, -1px); }
+    }
+    
+    .cinema-screen {
+        background: linear-gradient(135deg, #000000, #1a1a1a);
+        border: 5px solid #d4af37;
+        border-radius: 15px;
+        padding: 30px;
+        margin: 20px;
+        position: relative;
+        z-index: 2;
+        box-shadow: 
+            inset 0 0 30px rgba(0, 0, 0, 0.8),
+            0 0 20px rgba(212, 175, 55, 0.4);
+    }
+    
+    .film-title {
+        font-size: 2.5em;
+        text-align: center;
+        color: #d4af37;
+        text-shadow: 0 0 20px rgba(212, 175, 55, 0.8);
+        margin-bottom: 20px;
+        font-family: 'Times New Roman', serif;
+    }
+    
+    .day-frame {
+        background: radial-gradient(circle, #2a2a2a, #1a1a1a);
+        border: 2px solid #d4af37;
+        border-radius: 10px;
+        padding: 25px;
+        margin: 15px 0;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
+        animation: slideIn 1s ease-in-out;
+    }
+    
+    @keyframes slideIn {
+        from { 
+            opacity: 0; 
+            transform: translateY(30px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+    }
+    
+    .metrics-row {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        margin: 20px 0;
+    }
+    
+    .metric-box {
+        background: linear-gradient(45deg, #2c3e50, #3498db);
+        border: 2px solid #d4af37;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 5px;
+        text-align: center;
+        min-width: 120px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+    }
+    
+    .metric-number {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #d4af37;
+        text-shadow: 0 0 10px rgba(212, 175, 55, 0.8);
+    }
+    
+    .metric-label {
+        color: #ffffff;
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+    
+    .projector-light {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        width: 20px;
+        height: 20px;
+        background: radial-gradient(circle, #ff6b6b, #c44569);
+        border-radius: 50%;
+        animation: blink 2s infinite;
+        z-index: 3;
+    }
+    
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0.3; }
+    }
+    
+    .film-controls {
+        text-align: center;
+        margin-top: 30px;
+        padding: 20px;
+        background: rgba(212, 175, 55, 0.1);
+        border-radius: 10px;
+        border: 1px solid #d4af37;
+    }
+    
+    .auto-progress {
+        background: linear-gradient(90deg, #d4af37, #f1c40f);
+        height: 8px;
+        border-radius: 4px;
+        margin: 20px 0;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    </style>
+    """, unsafe_allow_html=True)
     
     # Kullanıcı verilerini kontrol et
     if not user_data:
@@ -3796,10 +3959,14 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         return
     
     # Session state'leri başlat
-    if 'timeline_running' not in st.session_state:
-        st.session_state.timeline_running = False
-    if 'timeline_day' not in st.session_state:
-        st.session_state.timeline_day = 0
+    if 'cinema_running' not in st.session_state:
+        st.session_state.cinema_running = False
+    if 'cinema_day' not in st.session_state:
+        st.session_state.cinema_day = 0
+    if 'auto_play' not in st.session_state:
+        st.session_state.auto_play = False
+    if 'last_auto_update' not in st.session_state:
+        st.session_state.last_auto_update = 0
     
     # Ana sayfa verilerini çek
     try:
@@ -3926,117 +4093,161 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         
         return timeline_days
     
-    # Başlama butonu
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("🎬 Sar Zamanı Geriye Başlat", key="start_timeline", use_container_width=True, type="primary"):
-            st.session_state.timeline_running = True
-            st.session_state.timeline_day = 0
-            st.rerun()
+    # Ana başlık
+    st.markdown("""
+    <div class="cinema-container">
+        <div class="projector-light"></div>
+        <div class="cinema-screen">
+            <div class="film-title">🎬 ZAMAN MAKİNESİ 🎬</div>
+            <p style="text-align: center; color: #d4af37; font-size: 1.2em;">
+                Başarı Yolculuğunuzun Sinematik Hikayesi
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Animasyon çalışıyorsa
-    if st.session_state.timeline_running:
-        timeline_days = prepare_daily_data()
+    # Kontrol paneli
+    if not st.session_state.cinema_running:
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("🎬 FİLM MAKİNESİNİ BAŞLAT", type="primary", use_container_width=True):
+                st.session_state.cinema_running = True
+                st.session_state.cinema_day = 0
+                st.session_state.auto_play = True
+                st.session_state.last_auto_update = time.time()
+                st.rerun()
         
-        if st.session_state.timeline_day < len(timeline_days):
-            day_data = timeline_days[st.session_state.timeline_day]
+        # Bilgi paneli
+        st.markdown("""
+        <div class="cinema-container">
+            <div class="cinema-screen">
+                <h3 style="color: #d4af37; text-align: center;">🎭 Sinematik Deneyim Özellikleri</h3>
+                <ul style="color: #ffffff; font-size: 1.1em;">
+                    <li>🎵 Otomatik sinematik müzik çalar</li>
+                    <li>🎬 Film makinesi görsel efektleri</li>
+                    <li>⚡ Otomatik gün gün animasyon</li>
+                    <li>📊 Gerçek zamanlı verilerle hikaye</li>
+                    <li>🎞️ Projeksiyon tarzı modern tasarım</li>
+                </ul>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Sinematik gösterim
+    if st.session_state.cinema_running:
+        # Otomatik ilerleme kontrolü
+        current_time = time.time()
+        if (st.session_state.auto_play and 
+            current_time - st.session_state.last_auto_update > 3):  # 3 saniye arayla
+            if st.session_state.cinema_day < len(timeline_days) - 1:
+                st.session_state.cinema_day += 1
+                st.session_state.last_auto_update = current_time
+                st.rerun()
+            else:
+                st.session_state.auto_play = False
+        
+            day_data = timeline_days[st.session_state.cinema_day]
             
-            # Gün kartını göster
-            st.markdown(f"### 📅 {day_data['date'].strftime('%d %B %Y')}")
-            
-            # İstatistik kartları
-            col1, col2, col3, col4 = st.columns(4)
-            
-            with col1:
-                st.metric(
-                    label="📚 Konu Tamamlandı",
-                    value=day_data['completed_topics']
-                )
-            
-            with col2:
-                st.metric(
-                    label="❓ Soru Çözüldü", 
-                    value=day_data['solved_questions']
-                )
-            
-            with col3:
-                st.metric(
-                    label="🍅 Pomodoro",
-                    value=day_data['pomodoro_count']
-                )
-            
-            with col4:
-                st.metric(
-                    label="⏱️ Çalışma Süresi",
-                    value=f"{day_data['study_time']}dk"
-                )
-            
-            # Çalışılan dersler
-            if day_data['subjects']:
-                st.write("**📚 Çalışılan Dersler:**")
-                st.write(", ".join(day_data['subjects']))
-            
-            # Tamamlanan konular
-            if day_data['topic_names']:
-                st.write("**📄 Tamamlanan Konular:**")
-                st.write(" • ".join(day_data['topic_names']))
-            
-            # Motivasyon notu
-            if day_data['daily_note']:
-                st.write("**💭 Günün Notu:**")
-                st.info(day_data['daily_note'])
-            
-            # İlerleme
-            progress_text = f"Gün {day_data['day_number']} / {len(timeline_days)} - Yolculuk devam ediyor! 🚀"
-            st.success(progress_text)
-            
-            # İlerleme çubuğu
-            progress = st.progress(day_data['day_number'] / len(timeline_days))
+            # Günün sinematik gösterimi
+            st.markdown(f"""
+            <div class="cinema-container">
+                <div class="cinema-screen">
+                    <div class="day-frame">
+                        <h2 style="color: #d4af37; text-align: center; margin-bottom: 20px;">
+                            📅 {day_data['date'].strftime('%d %B %Y')} - Gün {day_data['day_number']}
+                        </h2>
+                        
+                        <div class="metrics-row">
+                            <div class="metric-box">
+                                <div class="metric-number">{day_data['completed_topics']}</div>
+                                <div class="metric-label">📚 Konu Tamamlandı</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-number">{day_data['solved_questions']}</div>
+                                <div class="metric-label">📝 Soru Çözüldü</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-number">{day_data['pomodoro_count']}</div>
+                                <div class="metric-label">🍅 Pomodoro</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-number">{day_data['study_minutes']//60}s {day_data['study_minutes']%60}dk</div>
+                                <div class="metric-label">⏱️ Çalışma Süresi</div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin: 20px 0; color: #ffffff;">
+                            <strong style="color: #d4af37;">📚 Çalışılan Dersler:</strong><br>
+                            {' • '.join(day_data['subjects'])}
+                        </div>
+                        
+                        {"<div style='margin: 20px 0; color: #ffffff;'><strong style='color: #d4af37;'>📄 Tamamlanan Konular:</strong><br>" + ' • '.join(day_data['topic_names']) + "</div>" if day_data['topic_names'] else ""}
+                        
+                        {"<div style='margin: 20px 0; padding: 15px; background: rgba(212, 175, 55, 0.2); border-radius: 10px; color: #ffffff;'><strong style='color: #d4af37;'>💭 Günün Notu:</strong><br>" + day_data['daily_note'] + "</div>" if day_data['daily_note'] else ""}
+                        
+                        <div class="auto-progress" style="width: {(day_data['day_number'] / len(timeline_days)) * 100}%;"></div>
+                        
+                        <p style="text-align: center; color: #d4af37; font-size: 1.2em; margin-top: 20px;">
+                            🚀 Başarı Yolculuğu Devam Ediyor... ({day_data['day_number']}/{len(timeline_days)})
+                        </p>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
             
             # Kontrol butonları
-            col_next, col_stop = st.columns([2, 1])
+            col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
             
-            with col_next:
-                if st.button("⏭️ Sonraki Gün", key=f"next_{st.session_state.timeline_day}"):
-                    if st.session_state.timeline_day < len(timeline_days) - 1:
-                        st.session_state.timeline_day += 1
-                        st.rerun()
-                    else:
-                        st.session_state.timeline_running = False
-                        st.session_state.timeline_day = 0
-                        st.balloons()
-                        st.success("🎉 Zaman yolculuğu tamamlandı! Ne muhteşem bir hikaye!")
+            with col1:
+                if st.button("⏯️ " + ("Durdur" if st.session_state.auto_play else "Devam")):
+                    st.session_state.auto_play = not st.session_state.auto_play
+                    st.session_state.last_auto_update = time.time()
+                    st.rerun()
+            
+            with col2:
+                if st.button("⏭️ Sonraki Gün"):
+                    if st.session_state.cinema_day < len(timeline_days) - 1:
+                        st.session_state.cinema_day += 1
+                        st.session_state.last_auto_update = time.time()
                         st.rerun()
             
-            with col_stop:
-                if st.button("⏹️ Durdur", key=f"stop_{st.session_state.timeline_day}"):
-                    st.session_state.timeline_running = False
-                    st.session_state.timeline_day = 0
+            with col3:
+                if st.button("⏮️ Önceki Gün"):
+                    if st.session_state.cinema_day > 0:
+                        st.session_state.cinema_day -= 1
+                        st.session_state.last_auto_update = time.time()
+                        st.rerun()
+            
+            with col4:
+                if st.button("⏹️ Filmi Bitir"):
+                    st.session_state.cinema_running = False
+                    st.session_state.cinema_day = 0
+                    st.session_state.auto_play = False
+                    st.balloons()
                     st.rerun()
         
         else:
-            st.session_state.timeline_running = False
-            st.session_state.timeline_day = 0
-            st.success("🎉 Zaman yolculuğu tamamlandı!")
-    
-    else:
-        # Başlamamışsa özet bilgi göster
-        st.markdown("---")
-        st.info("**🎬 Zaman Makinesi Nasıl Çalışır?**\n\n"
-                "• Sisteme kayıt olduğunuz günden bugüne kadar ki tüm çalışma verilerinizi gösterir\n"
-                "• Ana sayfadaki 'Günlük Motivasyon ve Çalışma Takibi' verilerinizi kullanır\n" 
-                "• 'YKS Canlı Takip' sekmesinden hedef konularınızı alır\n"
-                "• Pomodoro geçmişinizden günlük çalışma saatlerinizi hesaplar\n"
-                "• Her günü tek tek animasyonla gösterir")
+            # Film tamamlandı
+            st.markdown("""
+            <div class="cinema-container">
+                <div class="cinema-screen">
+                    <div class="film-title">🎉 FİLM TAMAMLANDI! 🎉</div>
+                    <p style="text-align: center; color: #d4af37; font-size: 1.4em;">
+                        Muhteşem bir başarı hikayesi yaşadınız!
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.session_state.cinema_running = False
+            st.session_state.cinema_day = 0
+            st.session_state.auto_play = False
+            st.balloons()
         
-        # Mevcut veri özeti
-        if daily_motivation:
-            st.write(f"📊 **Motivasyon verisi:** {len(daily_motivation)} gün")
-        if pomodoro_history:
-            st.write(f"🍅 **Pomodoro geçmişi:** {len(pomodoro_history)} oturum")
-        if topic_progress:
-            completed_topics = len([k for k, v in topic_progress.items() if int(float(v)) >= 14])
-            st.write(f"📚 **Tamamlanan konular:** {completed_topics}")
+        # Otomatik güncelleme için sürekli yenileme
+        if st.session_state.auto_play:
+            time.sleep(0.1)
+            st.rerun()
 
 def show_systematic_recommendations(weekly_plan, survey_data, student_field):
     """Sistematik akıllı öneriler"""
