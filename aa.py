@@ -4996,56 +4996,81 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         if st.session_state.timeline_day < len(timeline_days):
             day_data = timeline_days[st.session_state.timeline_day]
             
-            # Gün kartı - BASIT HTML
-            stats_html = f"""
+            # Gün kartı - Streamlit Native Bileşenlerle
+            # Başlık
+            st.markdown(f"""
             <div style="
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: 30px;
+                padding: 20px;
                 border-radius: 20px;
                 color: white;
                 margin: 20px 0;
                 box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+                text-align: center;
             ">
-                <h3 style="text-align: center; margin-bottom: 20px;">
-                    📅 {day_data['date'].strftime('%d %B %Y')}
-                </h3>
-                
-                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px; margin: 20px 0;">
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; text-align: center; min-width: 120px;">
-                        <div style="font-size: 24px; font-weight: bold; color: #FFD700;">{day_data['completed_topics']}</div>
-                        <div style="font-size: 12px;">Konu Tamamlandı</div>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; text-align: center; min-width: 120px;">
-                        <div style="font-size: 24px; font-weight: bold; color: #FFD700;">{day_data['solved_questions']}</div>
-                        <div style="font-size: 12px;">Soru Çözüldü</div>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; text-align: center; min-width: 120px;">
-                        <div style="font-size: 24px; font-weight: bold; color: #FFD700;">{day_data['pomodoro_count']}</div>
-                        <div style="font-size: 12px;">Pomodoro</div>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; text-align: center; min-width: 120px;">
-                        <div style="font-size: 24px; font-weight: bold; color: #FFD700;">{day_data['total_study_time']}dk</div>
-                        <div style="font-size: 12px;">Çalışma Süresi</div>
-                    </div>
-                </div>
-                
-                <div style="margin: 20px 0;">
-                    <strong>📚 Çalışılan Dersler:</strong><br>
-                    {', '.join(day_data['subjects'])}
-                </div>
-                
-                <div style="margin: 20px 0;">
-                    <strong>📄 Tamamlanan Konular:</strong><br>
-                    {' • '.join(day_data['actual_topics']) if day_data['actual_topics'] else 'Matematik ve Türkçe çalışmaları'}
-                </div>
-                
-                <div style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; padding: 12px 20px; border-radius: 25px; text-align: center; font-weight: bold; margin: 15px 0;">
-                    Gün {day_data['day_number']} / {len(timeline_days)} - Yolculuk devam ediyor! 🚀
-                </div>
+                <h3 style="margin: 0;">📅 {day_data['date'].strftime('%d %B %Y')}</h3>
             </div>
-            """
+            """, unsafe_allow_html=True)
             
-            st.markdown(stats_html, unsafe_allow_html=True)
+            # İstatistik kutuları - Streamlit metric kullanarak
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.metric(
+                    label="🎯 Konu Tamamlandı",
+                    value=day_data['completed_topics']
+                )
+            
+            with col2:
+                st.metric(
+                    label="✅ Soru Çözüldü", 
+                    value=day_data['solved_questions']
+                )
+            
+            with col3:
+                st.metric(
+                    label="🍅 Pomodoro",
+                    value=day_data['pomodoro_count']
+                )
+            
+            with col4:
+                st.metric(
+                    label="⏱️ Çalışma Süresi",
+                    value=f"{day_data['total_study_time']}dk"
+                )
+            
+            # Çalışılan dersler ve konular
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                padding: 20px;
+                border-radius: 15px;
+                color: white;
+                margin: 15px 0;
+            ">
+                <p><strong>📚 Çalışılan Dersler:</strong><br>
+                {', '.join(day_data['subjects'])}</p>
+                
+                <p><strong>📄 Tamamlanan Konular:</strong><br>
+                {' • '.join(day_data['actual_topics']) if day_data['actual_topics'] else 'Matematik ve Türkçe çalışmaları'}</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # İlerleme göstergesi
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 25px;
+                text-align: center;
+                font-weight: bold;
+                margin: 15px 0;
+                animation: pulse 2s ease-in-out infinite;
+            ">
+                Gün {day_data['day_number']} / {len(timeline_days)} - Yolculuk devam ediyor! 🚀
+            </div>
+            """, unsafe_allow_html=True)
             
             # İlerleme çubuğu
             progress = st.progress((day_data['day_number'] / len(timeline_days)))
