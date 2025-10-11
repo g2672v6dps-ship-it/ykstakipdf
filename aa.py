@@ -4324,29 +4324,36 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         if st.session_state.timeline_day < len(timeline_days):
             day_data = timeline_days[st.session_state.timeline_day]
             
-            # Gün kartı
-            st.markdown(f"""
-            <div class="day-card-cinema">
-                <div class="date-header">
+            # Gün kartı - BASIT HTML
+            stats_html = f"""
+            <div style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 30px;
+                border-radius: 20px;
+                color: white;
+                margin: 20px 0;
+                box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            ">
+                <h3 style="text-align: center; margin-bottom: 20px;">
                     📅 {day_data['date'].strftime('%d %B %Y')}
-                </div>
+                </h3>
                 
-                <div class="stats-row">
-                    <div class="stat-box">
-                        <div class="stat-number">{day_data['completed_topics']}</div>
-                        <div class="stat-label">Konu Tamamlandı</div>
+                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px; margin: 20px 0;">
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; text-align: center; min-width: 120px;">
+                        <div style="font-size: 24px; font-weight: bold; color: #FFD700;">{day_data['completed_topics']}</div>
+                        <div style="font-size: 12px;">Konu Tamamlandı</div>
                     </div>
-                    <div class="stat-box">
-                        <div class="stat-number">{day_data['solved_questions']}</div>
-                        <div class="stat-label">Soru Çözüldü</div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; text-align: center; min-width: 120px;">
+                        <div style="font-size: 24px; font-weight: bold; color: #FFD700;">{day_data['solved_questions']}</div>
+                        <div style="font-size: 12px;">Soru Çözüldü</div>
                     </div>
-                    <div class="stat-box">
-                        <div class="stat-number">{day_data['pomodoro_count']}</div>
-                        <div class="stat-label">Pomodoro</div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; text-align: center; min-width: 120px;">
+                        <div style="font-size: 24px; font-weight: bold; color: #FFD700;">{day_data['pomodoro_count']}</div>
+                        <div style="font-size: 12px;">Pomodoro</div>
                     </div>
-                    <div class="stat-box">
-                        <div class="stat-number">{day_data['total_study_time']}dk</div>
-                        <div class="stat-label">Çalışma Süresi</div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; text-align: center; min-width: 120px;">
+                        <div style="font-size: 24px; font-weight: bold; color: #FFD700;">{day_data['total_study_time']}dk</div>
+                        <div style="font-size: 12px;">Çalışma Süresi</div>
                     </div>
                 </div>
                 
@@ -4360,11 +4367,13 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     {' • '.join(day_data['actual_topics']) if day_data['actual_topics'] else 'Matematik ve Türkçe çalışmaları'}
                 </div>
                 
-                <div class="progress-indicator">
+                <div style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; padding: 12px 20px; border-radius: 25px; text-align: center; font-weight: bold; margin: 15px 0;">
                     Gün {day_data['day_number']} / {len(timeline_days)} - Yolculuk devam ediyor! 🚀
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+            """
+            
+            st.markdown(stats_html, unsafe_allow_html=True)
             
             # İlerleme çubuğu
             progress = st.progress((day_data['day_number'] / len(timeline_days)))
