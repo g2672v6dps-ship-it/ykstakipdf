@@ -4845,14 +4845,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     if 'play_music_timeline' not in st.session_state:
         st.session_state.play_music_timeline = False
     
-    # Oynatma butonu + GÜÇLÜ MÜZİK SİSTEMİ
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("🎬 Sar Zamanı Geriye", key="start_timeline", use_container_width=True, type="primary"):
-            st.session_state.timeline_running = True
-            st.session_state.timeline_day = 0
-            st.session_state.play_music_timeline = True
-            st.rerun()
+    # Müzik sistemi için gerekli session state kontrolleri yapıldı
     
     # GÜÇLÜ MÜZİK SİSTEMİ - Animasyon başladığında çalacak
     if st.session_state.play_music_timeline:
@@ -5043,7 +5036,55 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     current_date = datetime.now()
     days_passed = (current_date - register_date).days + 1
     
-    if st.session_state.timeline_running:
+    if not st.session_state.timeline_running:
+        # Timeline henüz başlamadıysa - başlangıç ekranı (Perde İçi)
+        st.markdown("""
+        <div style="text-align: center; margin: 40px 0; padding: 40px; 
+                    background: linear-gradient(135deg, #f8f9fa, #e9ecef); 
+                    border-radius: 20px; border: 3px solid #3498db; 
+                    box-shadow: 0 10px 30px rgba(52, 152, 219, 0.2);">
+            <h2 style="color: #2c3e50; font-size: 2.2em; margin-bottom: 25px; text-shadow: 1px 1px 3px rgba(0,0,0,0.1);">
+                🎬 Zaman Yolculuğuna Hazır mısın?
+            </h2>
+            <p style="color: #7f8c8d; font-size: 1.3em; margin: 20px 0; font-weight: 500; line-height: 1.6;">
+                Başlangıçtan bugüne kadar geçen tüm süreçte<br>
+                📚 hangi konuları çalıştığını,<br>
+                ⏱️ kaç dakika emek verdiğini,<br>
+                🎯 hangi hedeflere ulaştığını göreceksin...
+            </p>
+            <p style="color: #e67e22; font-size: 1.1em; margin: 25px 0; font-style: italic; font-weight: 600;">
+                "Her büyük başarı, küçük adımların toplamıdır!"
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Başlangıç Butonu - Modern ve göz alıcı (Perde İçi)
+        st.markdown("""
+        <div style="text-align: center; margin: 30px 0;">
+        """, unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("🎬 Sar Zamanı Geriye", key="start_timeline_main", use_container_width=True, type="primary"):
+                st.session_state.timeline_running = True
+                st.session_state.timeline_day = 0
+                st.session_state.play_music_timeline = True
+                st.rerun()
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        # Ek bilgi kutusu (Perde İçi)
+        st.markdown("""
+        <div style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; 
+                    padding: 20px; border-radius: 15px; margin: 30px 0; text-align: center; 
+                    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);">
+            <p style="margin: 0; font-size: 1.1em; font-weight: 500;">
+                🎵 Müzik eşliğinde animasyonlu bir yolculuk seni bekliyor!
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    elif st.session_state.timeline_running:
         # Gerçek kullanıcı verilerini yükle ve haftalık hedef konuları çek
         try:
             topic_progress = json.loads(user_data.get('topic_progress', '{}'))
@@ -5249,13 +5290,23 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             # Timeline kutusu kapanışı
             st.markdown("</div>", unsafe_allow_html=True)
             
-            # İlerleme çubuğu - Dışarıda
+            # İlerleme çubuğu - Perde İçinde
+            st.markdown("""
+            <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+            """, unsafe_allow_html=True)
             st.progress((day_data['day_number'] / len(timeline_days)))
+            st.markdown("</div>", unsafe_allow_html=True)
             
-            # Otomatik geçiş bilgisi
-            st.info("⏱️ 3 saniye sonra otomatik olarak sonraki güne geçiliyor...")
+            # Otomatik geçiş bilgisi - Perde İçinde
+            st.markdown("""
+            <div style="background: linear-gradient(45deg, #3498db, #2980b9); color: white; 
+                        padding: 12px 20px; border-radius: 15px; text-align: center; margin: 15px 0; 
+                        font-weight: 500; box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);">
+                ⏱️ 3 saniye sonra otomatik olarak sonraki güne geçiliyor...
+            </div>
+            """, unsafe_allow_html=True)
             
-            # Kontrol butonları
+            # Kontrol butonları - Perde İçinde
             col_next, col_stop = st.columns([2, 1])
             
             with col_stop:
