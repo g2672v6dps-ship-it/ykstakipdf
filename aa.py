@@ -63,7 +63,7 @@ except ImportError:
 def safe_plotly_chart(fig, **kwargs):
     """Plotly yoksa uyarı gösterir, varsa grafiği çizer"""
     if PLOTLY_AVAILABLE:
-        safe_plotly_chart(fig, **kwargs)
+        st.plotly_chart(fig, **kwargs)
     else:
         st.warning("📊 Grafik görüntülenemedi - Plotly yüklü değil")
 
@@ -3985,7 +3985,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         </div>
     </div>
     """
-    st.components.v1.html(title_html, height=200)
+    st.components.v1.html(title_html, height=250)
     
     # Kontrol paneli
     if not st.session_state.cinema_running:
@@ -4035,7 +4035,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             </div>
         </div>
         """
-        st.components.v1.html(info_html, height=300)
+        st.components.v1.html(info_html, height=350)
     
     # Sinematik gösterim
     if st.session_state.cinema_running:
@@ -4227,7 +4227,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             """
             
             # HTML'i render et
-            st.components.v1.html(day_html, height=600)
+            st.components.v1.html(day_html, height=700)
             
             # Kontrol butonları
             col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
@@ -4302,7 +4302,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 </div>
             </div>
             """
-            st.components.v1.html(completed_html, height=200)
+            st.components.v1.html(completed_html, height=250)
             
             st.session_state.cinema_running = False
             st.session_state.cinema_day = 0
