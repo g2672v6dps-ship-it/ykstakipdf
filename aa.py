@@ -3786,11 +3786,7 @@ def show_weekly_summary(weekly_plan):
 def show_sar_zamani_geriye_page(user_data, progress_data):
     """🎬 Sar Zamanı Geriye - Sinematik Film Makinesi Deneyimi"""
     
-    # Müzik embed etme
-    st.components.v1.html("""
-    <iframe width="0" height="0" src="https://www.youtube.com/embed/EQBVjwXZ7GY?autoplay=1&loop=1&controls=0&mute=0&playlist=EQBVjwXZ7GY" 
-            frameborder="0" allow="autoplay; encrypted-media"></iframe>
-    """, height=0)
+
     
     # Film makinesi CSS styling
     st.markdown("""
@@ -4017,7 +4013,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 'completed_topics': 0,
                 'solved_questions': 0,
                 'pomodoro_count': 0,
-                'study_time': 0,
+                'study_minutes': 0,
                 'subjects': [],
                 'topic_names': [],
                 'motivation_score': 5,
@@ -4041,7 +4037,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                            (p.get('timestamp', '') and p['timestamp'].startswith(date_str))]
             
             daily_data['pomodoro_count'] = len(day_pomodoros)
-            daily_data['study_time'] = len(day_pomodoros) * 25  # 25 dk/pomodoro
+            daily_data['study_minutes'] = len(day_pomodoros) * 25  # 25 dk/pomodoro
             
             # Çalışılan konuları ve dersleri topla
             subjects_set = set()
@@ -4087,7 +4083,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             daily_data['completed_topics'] = max(1, daily_data['completed_topics'])
             daily_data['solved_questions'] = max(5, daily_data['solved_questions'])
             daily_data['pomodoro_count'] = max(1, daily_data['pomodoro_count'])
-            daily_data['study_time'] = max(25, daily_data['study_time'])
+            daily_data['study_minutes'] = max(25, daily_data['study_minutes'])
             
             timeline_days.append(daily_data)
         
@@ -4135,6 +4131,17 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     
     # Sinematik gösterim
     if st.session_state.cinema_running:
+        # Müzik embed etme (sadece film başladığında)
+        st.components.v1.html("""
+        <iframe width="0" height="0" src="https://www.youtube.com/embed/EQBVjwXZ7GY?autoplay=1&loop=1&controls=0&mute=0&playlist=EQBVjwXZ7GY" 
+                frameborder="0" allow="autoplay; encrypted-media"></iframe>
+        """, height=0)
+        
+        timeline_days = prepare_daily_data()
+        
+        # Debug bilgi
+        st.write(f"🔍 DEBUG: {len(timeline_days)} gün verisi hazırlandı")
+        
         # Otomatik ilerleme kontrolü
         current_time = time.time()
         if (st.session_state.auto_play and 
@@ -4146,6 +4153,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             else:
                 st.session_state.auto_play = False
         
+        if st.session_state.cinema_day < len(timeline_days):
             day_data = timeline_days[st.session_state.cinema_day]
             
             # Günün sinematik gösterimi
@@ -4246,7 +4254,6 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         
         # Otomatik güncelleme için sürekli yenileme
         if st.session_state.auto_play:
-            time.sleep(0.1)
             st.rerun()
 
 def show_systematic_recommendations(weekly_plan, survey_data, student_field):
