@@ -3959,13 +3959,13 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             <ul style="color: #ffffff; font-size: 1.1em; margin: 10px 0;">
                 <li>🎵 Otomatik sinematik müzik çalar</li>
                 <li>🎬 Film makinesi görsel efektleri</li>
-                <li>⚡ Otomatik gün gün animasyon (8 saniye arayla)</li>
+                <li>⚡ Otomatik gün gün animasyon (5 saniye arayla)</li>
                 <li>📊 Gerçek zamanlı verilerle hikaye</li>
                 <li>🎞️ Projeksiyon tarzı modern tasarım</li>
             </ul>
         </div>
         """
-        st.components.v1.html(info_html, height=220)
+        st.components.v1.html(info_html, height=280)
     
     # Sinematik gösterim
     if st.session_state.cinema_running:
@@ -3989,7 +3989,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         # Otomatik ilerleme kontrolü - Daha az sıklıkta
         current_time = time.time()
         if (st.session_state.auto_play and 
-            current_time - st.session_state.last_auto_update > 8):  # 8 saniye arayla (daha performanslı)
+            current_time - st.session_state.last_auto_update > 5):  # 5 saniye arayla
             if st.session_state.cinema_day < len(timeline_days) - 1:
                 st.session_state.cinema_day += 1
                 st.session_state.last_auto_update = current_time
@@ -7382,7 +7382,7 @@ def main():
                         
                         if uploaded_file is not None:
                             # Yeni yüklenen fotoğrafı göster
-                            st.image(uploaded_file, caption=f"📸 Bugün yüklenen: {uploaded_file.name}", use_column_width=True)
+                            st.image(uploaded_file, caption=f"📸 Bugün yüklenen: {uploaded_file.name}", use_container_width=True)
                             # Session state'e geçici olarak kaydet
                             import base64
                             photo_bytes = uploaded_file.read()
@@ -7397,7 +7397,7 @@ def main():
                             try:
                                 import base64
                                 photo_bytes = base64.b64decode(today_photo['data'])
-                                st.image(photo_bytes, caption=f"📸 Bugünkü fotoğraf: {today_photo.get('filename', 'Fotoğraf')}", use_column_width=True)
+                                st.image(photo_bytes, caption=f"📸 Bugünkü fotoğraf: {today_photo.get('filename', 'Fotoğraf')}", use_container_width=True)
                             except:
                                 st.info("📷 Fotoğraf yüklenemedi")
                         else:
@@ -7423,7 +7423,7 @@ def main():
                                 try:
                                     import base64
                                     photo_bytes = base64.b64decode(day_photo['data'])
-                                    st.image(photo_bytes, caption=f"📅 {day_name}", use_column_width=True)
+                                    st.image(photo_bytes, caption=f"📅 {day_name}", use_container_width=True)
                                     
                                     # Fotoğraf açıklaması varsa göster
                                     caption = day_data.get('photo_caption', '')
