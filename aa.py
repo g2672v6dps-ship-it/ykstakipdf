@@ -3928,16 +3928,16 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         
         return timeline_days
     
-    # Ana başlık - Basit HTML
+    # Ana başlık - Tam Ekran HTML
     title_html = """
     <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); 
-                border-radius: 15px; padding: 30px; border: 3px solid #d4af37; 
-                text-align: center; margin: 20px 0;">
-        <h1 style="color: #d4af37; font-size: 2.2em; margin-bottom: 10px;">🎬 ZAMAN MAKİNESİ 🎬</h1>
-        <p style="color: #d4af37; font-size: 1.1em;">Başarı Yolculuğunuzun Sinematik Hikayesi</p>
+                border-radius: 15px; padding: 50px; border: 3px solid #d4af37; 
+                text-align: center; margin: 20px 0; width: 100%; box-sizing: border-box;">
+        <h1 style="color: #d4af37; font-size: 3.5em; margin-bottom: 15px; font-weight: bold;">🎬 ZAMAN MAKİNESİ 🎬</h1>
+        <p style="color: #d4af37; font-size: 1.5em;">Başarı Yolculuğunuzun Sinematik Hikayesi</p>
     </div>
     """
-    st.components.v1.html(title_html, height=150)
+    st.components.v1.html(title_html, height=250)
     
     # Kontrol paneli
     if not st.session_state.cinema_running:
@@ -3950,22 +3950,22 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 st.session_state.last_auto_update = time.time()
                 st.rerun()
         
-        # Bilgi paneli - Basit HTML
+        # Bilgi paneli - Tam Ekran HTML
         info_html = """
         <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); 
-                    border-radius: 15px; padding: 25px; border: 3px solid #d4af37; 
-                    margin: 20px 0;">
-            <h3 style="color: #d4af37; text-align: center; margin-bottom: 15px;">🎭 Sinematik Deneyim Özellikleri</h3>
-            <ul style="color: #ffffff; font-size: 1.1em; margin: 10px 0;">
-                <li>🎵 Otomatik sinematik müzik çalar</li>
-                <li>🎬 Film makinesi görsel efektleri</li>
-                <li>⚡ Otomatik gün gün animasyon (5 saniye arayla)</li>
-                <li>📊 Gerçek zamanlı verilerle hikaye</li>
-                <li>🎞️ Projeksiyon tarzı modern tasarım</li>
+                    border-radius: 15px; padding: 40px; border: 3px solid #d4af37; 
+                    margin: 20px 0; width: 100%; box-sizing: border-box;">
+            <h3 style="color: #d4af37; text-align: center; margin-bottom: 25px; font-size: 2.0em; font-weight: bold;">🎭 Sinematik Deneyim Özellikleri</h3>
+            <ul style="color: #ffffff; font-size: 1.4em; margin: 15px 0; line-height: 2.0; list-style: none; padding-left: 0;">
+                <li style="margin: 15px 0; padding: 10px;">🎵 Otomatik sinematik müzik çalar</li>
+                <li style="margin: 15px 0; padding: 10px;">🎬 Film makinesi görsel efektleri</li>
+                <li style="margin: 15px 0; padding: 10px;">⚡ Otomatik gün gün animasyon (5 saniye arayla)</li>
+                <li style="margin: 15px 0; padding: 10px;">📊 Gerçek zamanlı verilerle hikaye</li>
+                <li style="margin: 15px 0; padding: 10px;">🎞️ Projeksiyon tarzı modern tasarım</li>
             </ul>
         </div>
         """
-        st.components.v1.html(info_html, height=280)
+        st.components.v1.html(info_html, height=400)
     
     # Sinematik gösterim
     if st.session_state.cinema_running:
@@ -4092,8 +4092,8 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             </div>
             """
             
-            # HTML'i render et
-            st.components.v1.html(day_html, height=500)
+            # HTML'i render et - Tam Ekran
+            st.components.v1.html(day_html, height=650)
             
             # Kontrol butonları
             col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
@@ -4127,16 +4127,16 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     st.rerun()
         
         else:
-            # Film tamamlandı - Basit HTML
+            # Film tamamlandı - Tam Ekran HTML
             completed_html = """
             <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); 
-                        border-radius: 15px; padding: 30px; border: 3px solid #d4af37; 
-                        text-align: center; margin: 20px 0;">
-                <h1 style="color: #d4af37; font-size: 2.2em; margin-bottom: 10px;">🎉 FİLM TAMAMLANDI! 🎉</h1>
-                <p style="color: #d4af37; font-size: 1.4em;">Muhteşem bir başarı hikayesi yaşadınız!</p>
+                        border-radius: 15px; padding: 50px; border: 3px solid #d4af37; 
+                        text-align: center; margin: 20px 0; width: 100%; box-sizing: border-box;">
+                <h1 style="color: #d4af37; font-size: 3.5em; margin-bottom: 15px; font-weight: bold;">🎉 FİLM TAMAMLANDI! 🎉</h1>
+                <p style="color: #d4af37; font-size: 1.8em;">Muhteşem bir başarı hikayesi yaşadınız!</p>
             </div>
             """
-            st.components.v1.html(completed_html, height=150)
+            st.components.v1.html(completed_html, height=300)
             
             st.session_state.cinema_running = False
             st.session_state.cinema_day = 0
