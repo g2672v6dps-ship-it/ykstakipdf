@@ -3819,69 +3819,109 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     # ÖNCE TÜM CSS STİLLERİNİ YÜKLEYELİM - SİNEMA EKRANI TEMASİ
     st.markdown("""
     <style>
-    /* Ana Sinema Container */
+    /* Ana Sinema Salonu Container */
     .main > div {
-        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 50%, #000000 100%) !important;
+        background: 
+            radial-gradient(ellipse at center top, #1a1a1a 0%, #0d0d0d 30%, #000000 100%) !important;
+        min-height: 100vh !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
     
-    /* Sinema Ekranı Ana Container */
-    .cinema-container {
-        background: #000000;
+    /* Sinema Salonu Atmosferi */
+    .cinema-hall {
+        background: 
+            radial-gradient(ellipse at center, #000 20%, #0a0a0a 40%, #050505 100%);
         min-height: 100vh;
-        padding: 20px;
-        margin: -20px -20px;
+        padding: 40px 20px;
         position: relative;
         overflow: hidden;
     }
     
-    .cinema-container::before {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: 
-            radial-gradient(ellipse at center, rgba(102,126,234,0.1) 0%, rgba(0,0,0,0.9) 70%),
-            linear-gradient(45deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.95) 100%);
-        z-index: -1;
-        pointer-events: none;
-    }
-    
-    /* Film Şeridi Border Efekti */
-    .cinema-frame {
-        border: 12px solid #1a1a1a;
-        border-image: repeating-linear-gradient(
-            90deg,
-            #2c3e50 0px,
-            #2c3e50 15px,
-            #34495e 15px,
-            #34495e 30px
-        ) 12;
-        border-radius: 25px;
-        background: rgba(0,0,0,0.8);
-        padding: 30px;
-        margin: 20px auto;
-        max-width: 90%;
-        box-shadow: 
-            0 0 50px rgba(102,126,234,0.3),
-            inset 0 0 20px rgba(0,0,0,0.5),
-            0 20px 40px rgba(0,0,0,0.8);
-        position: relative;
-    }
-    
-    /* Sinema Spotlight Efekti */
-    .cinema-frame::after {
+    /* Projeksiyon Işığı Efekti */
+    .cinema-hall::before {
         content: "";
         position: absolute;
-        top: -50px;
+        top: 0;
         left: 50%;
         transform: translateX(-50%);
         width: 200px;
         height: 100px;
-        background: radial-gradient(ellipse, rgba(255,255,255,0.1) 0%, transparent 70%);
-        filter: blur(20px);
+        background: 
+            radial-gradient(ellipse, rgba(255,255,255,0.02) 0%, transparent 70%);
+        filter: blur(30px);
+        z-index: 1;
+    }
+    
+    /* Gerçek Sinema Perdesi */
+    .cinema-screen-real {
+        background: 
+            linear-gradient(135deg, #f8f8f8 0%, #ffffff 50%, #f0f0f0 100%);
+        border: 20px solid #2c1810;
+        border-radius: 15px;
+        margin: 80px auto 40px auto;
+        width: 85%;
+        max-width: 1200px;
+        min-height: 70vh;
+        position: relative;
+        box-shadow: 
+            0 0 0 8px #1a1a1a,
+            0 0 0 12px #2c1810,
+            0 30px 80px rgba(0,0,0,0.8),
+            inset 0 0 30px rgba(0,0,0,0.1);
+        z-index: 10;
+    }
+    
+    /* Perde Çerçevesi Detayları */
+    .cinema-screen-real::before {
+        content: "";
+        position: absolute;
+        top: -25px;
+        left: -25px;
+        right: -25px;
+        bottom: -25px;
+        background: 
+            linear-gradient(45deg, #8B4513, #A0522D, #CD853F, #A0522D, #8B4513);
+        border-radius: 20px;
         z-index: -1;
+        box-shadow: 
+            0 0 20px rgba(139, 69, 19, 0.4),
+            inset 0 0 15px rgba(0,0,0,0.3);
+    }
+    
+    /* Perde İçeriği */
+    .screen-content {
+        padding: 40px;
+        color: #333;
+        background: 
+            radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, rgba(248,248,248,0.9) 100%);
+        border-radius: 8px;
+        min-height: calc(70vh - 80px);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Sinema Koltukları (Alt Gölge Efekti) */
+    .cinema-hall::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 150px;
+        background: 
+            repeating-linear-gradient(
+                90deg,
+                #0a0a0a 0px,
+                #0a0a0a 40px,
+                #151515 40px,
+                #151515 60px,
+                #0a0a0a 60px,
+                #0a0a0a 100px
+            );
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -20px 40px rgba(0,0,0,0.5);
+        z-index: 5;
     }
     
     /* Timeline Animasyon Stilleri */
@@ -3894,18 +3934,17 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     }
     
     .stat-box {
-        background: linear-gradient(135deg, #667eea, #764ba2);
+        background: linear-gradient(135deg, #3498db, #2980b9);
         color: white;
         padding: 20px;
         border-radius: 15px;
         text-align: center;
         min-width: 140px;
         box-shadow: 
-            0 8px 25px rgba(102, 126, 234, 0.4),
-            0 0 20px rgba(102, 126, 234, 0.2),
-            inset 0 1px 0 rgba(255,255,255,0.1);
+            0 8px 25px rgba(52, 152, 219, 0.3),
+            0 3px 10px rgba(0,0,0,0.2);
         animation: fadeInUp 0.8s ease-out;
-        border: 1px solid rgba(255,255,255,0.1);
+        border: 2px solid rgba(255,255,255,0.9);
         position: relative;
         overflow: hidden;
     }
@@ -3917,7 +3956,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         left: -100%;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
         animation: shimmer 3s infinite;
     }
     
@@ -3925,7 +3964,8 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         font-size: 24px;
         font-weight: bold;
         margin-bottom: 5px;
-        color: #FFD700;
+        color: #FFFFFF;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
     }
     
     .stat-label {
@@ -4737,38 +4777,58 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     </style>
     """, unsafe_allow_html=True)
     
-    # Sinema Container Başlangıcı
+    # Sinema Salonu ve Perdesi
     st.markdown("""
-    <div class="cinema-container">
-        <div class="cinema-frame">
+    <div class="cinema-hall">
+        <div class="cinema-screen-real">
+            <div class="screen-content">
     """, unsafe_allow_html=True)
     
-    # Ana başlık - Native Streamlit
-    st.markdown('<h1 class="neon-text" style="text-align: center; font-size: 3em; margin: 20px 0;">⏰ SAR ZAMANI GERİYE</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="text-align: center; color: #ccc; font-size: 1.2em; margin-bottom: 30px;">🎬 Başarı yolculuğunuzun hikayesi</p>', unsafe_allow_html=True)
-    
-    # Film şeridi efekti
-    st.markdown('<div class="film-strip"></div>', unsafe_allow_html=True)
-    
-    # Motivasyon metni - Sinematik
+    # Ana başlık - Perde İçi
     st.markdown("""
-    <div style="text-align: center; color: #FFD700; font-size: 1.5em; margin: 30px 0; font-style: italic;">
-        <div class="shimmer-effect">
-            "Bugüne kolay gelmedin..."
-        </div>
+    <h1 style="text-align: center; font-size: 3em; margin: 20px 0; color: #2c3e50; 
+               text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">
+        ⏰ SAR ZAMANI GERİYE
+    </h1>
+    """, unsafe_allow_html=True)
+    st.markdown("""
+    <p style="text-align: center; color: #666; font-size: 1.2em; margin-bottom: 30px; font-weight: 500;">
+        🎬 Başarı yolculuğunuzun hikayesi
+    </p>
+    """, unsafe_allow_html=True)
+    
+    # Dekoratif ayırıcı
+    st.markdown("""
+    <div style="height: 3px; background: linear-gradient(90deg, transparent, #667eea, transparent); 
+                margin: 20px 0; border-radius: 2px;"></div>
+    """, unsafe_allow_html=True)
+    
+    # Motivasyon metni - Perde İçi
+    st.markdown("""
+    <div style="text-align: center; color: #e67e22; font-size: 1.5em; margin: 30px 0; font-style: italic; font-weight: 600;">
+        "Bugüne kolay gelmedin..."
     </div>
     """, unsafe_allow_html=True)
     
-    # Film şeridi efekti
-    st.markdown('<div class="film-strip"></div>', unsafe_allow_html=True)
+    # Dekoratif ayırıcı
+    st.markdown("""
+    <div style="height: 3px; background: linear-gradient(90deg, transparent, #667eea, transparent); 
+                margin: 20px 0; border-radius: 2px;"></div>
+    """, unsafe_allow_html=True)
     
-    # Sinema başlığı - Center spotlight
+    # Sinema başlığı - Perde İçi
     st.markdown("""
     <div style="text-align: center; margin: 40px 0;">
-        <h2 class="neon-text" style="font-size: 2.5em; margin-bottom: 20px;">🎬 ZAMAN MAKİNESİ</h2>
-        <h3 style="color: #667eea; font-size: 2em;">⏳</h3>
-        <p style="color: #ccc; font-size: 1.1em; margin: 15px 0;">Her günün hikayesini yeniden yaşamaya hazır mısın?</p>
-        <p style="color: #888; font-size: 1em;">Başlangıçtan bugüne kadar ki tüm mücadeleni gör...</p>
+        <h2 style="font-size: 2.5em; margin-bottom: 20px; color: #2c3e50; text-shadow: 1px 1px 3px rgba(0,0,0,0.1);">
+            🎬 ZAMAN MAKİNESİ
+        </h2>
+        <h3 style="color: #3498db; font-size: 2em;">⏳</h3>
+        <p style="color: #666; font-size: 1.1em; margin: 15px 0; font-weight: 500;">
+            Her günün hikayesini yeniden yaşamaya hazır mısın?
+        </p>
+        <p style="color: #888; font-size: 1em;">
+            Başlangıçtan bugüne kadar ki tüm mücadeleni gör...
+        </p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -5078,22 +5138,29 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         if st.session_state.timeline_day < len(timeline_days):
             day_data = timeline_days[st.session_state.timeline_day]
             
-            # 🎬 Sinema ekranı efekti - Başlık
-            st.markdown(f"""
+            # 🎬 Perde İçi Timeline Başlığı
+            st.markdown("""
             <div style="text-align: center; margin: 40px 0;">
-                <div class="film-strip"></div>
-                <h2 class="neon-text" style="font-size: 2.2em; margin: 20px 0;">🎬 ZAMAN MAKİNESİ EKRANI</h2>
-                <div class="film-strip"></div>
+                <div style="height: 2px; background: linear-gradient(90deg, transparent, #3498db, transparent); 
+                            margin: 20px 0; border-radius: 1px;"></div>
+                <h2 style="font-size: 2.2em; margin: 20px 0; color: #2c3e50; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">
+                    🎬 ZAMAN MAKİNESİ EKRANI
+                </h2>
+                <div style="height: 2px; background: linear-gradient(90deg, transparent, #3498db, transparent); 
+                            margin: 20px 0; border-radius: 1px;"></div>
             </div>
             """, unsafe_allow_html=True)
             
-            # Gün başlığı - Sinematik
+            # Gün başlığı - Perde İçi
             st.markdown(f"""
-            <div class="cinema-screen" style="margin: 30px auto;">
-                <h1 style="text-align: center; color: #FFD700; font-size: 2.5em; margin-bottom: 30px; text-shadow: 0 0 20px #FFD700;">
+            <div style="background: linear-gradient(135deg, #ecf0f1, #bdc3c7); 
+                        padding: 30px; border-radius: 15px; margin: 30px 0; 
+                        box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 2px solid #3498db;">
+                <h1 style="text-align: center; color: #2c3e50; font-size: 2.5em; margin-bottom: 20px; 
+                           text-shadow: 1px 1px 3px rgba(0,0,0,0.1);">
                     📅 {day_data['date'].strftime('%d %B %Y')}
                 </h1>
-                <div style="text-align: center; color: #ccc; font-size: 1.2em; margin-bottom: 30px;">
+                <div style="text-align: center; color: #34495e; font-size: 1.2em; margin-bottom: 20px; font-weight: 600;">
                     GÜN {day_data['day_number']} / {len(timeline_days)} - BAŞARI YOLCULUĞU
                 </div>
             """, unsafe_allow_html=True)
@@ -5125,57 +5192,61 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     value=f"{day_data['total_study_time']}dk"
                 )
             
-                # Çalışılan dersler section
+                # Çalışılan dersler section - Perde İçi
                 st.markdown("""
-                <div style="margin: 30px 0; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 15px; border: 1px solid rgba(102,126,234,0.3);">
-                    <h3 style="color: #FFD700; text-align: center; margin-bottom: 20px;">📚 Çalışılan Dersler</h3>
+                <div style="margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); 
+                            border-radius: 15px; border: 2px solid #3498db; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
+                    <h3 style="color: #2c3e50; text-align: center; margin-bottom: 20px; font-weight: 600;">📚 Çalışılan Dersler</h3>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Dersler listesi
+                # Dersler listesi - Perde İçi
                 for subject in day_data['subjects']:
                     st.markdown(f"""
-                    <div style="color: #ccc; font-size: 1.1em; padding: 8px 15px; margin: 8px 0; 
-                                background: rgba(102,126,234,0.2); border-radius: 8px; border-left: 4px solid #667eea;">
+                    <div style="color: #2c3e50; font-size: 1.1em; padding: 12px 20px; margin: 10px 0; 
+                                background: linear-gradient(135deg, #3498db22, #2980b922); border-radius: 10px; 
+                                border-left: 4px solid #3498db; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                         • {subject}
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # Tamamlanan konular section
+                # Tamamlanan konular section - Perde İçi
                 st.markdown("""
-                <div style="margin: 30px 0; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 15px; border: 1px solid rgba(102,126,234,0.3);">
-                    <h3 style="color: #FFD700; text-align: center; margin-bottom: 20px;">📄 Tamamlanan Konular</h3>
+                <div style="margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); 
+                            border-radius: 15px; border: 2px solid #e67e22; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
+                    <h3 style="color: #2c3e50; text-align: center; margin-bottom: 20px; font-weight: 600;">📄 Tamamlanan Konular</h3>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Konular listesi
+                # Konular listesi - Perde İçi
                 if day_data['actual_topics']:
                     for topic in day_data['actual_topics']:
                         st.markdown(f"""
-                        <div style="color: #ccc; font-size: 1.1em; padding: 8px 15px; margin: 8px 0; 
-                                    background: rgba(255,215,0,0.2); border-radius: 8px; border-left: 4px solid #FFD700;">
+                        <div style="color: #2c3e50; font-size: 1.1em; padding: 12px 20px; margin: 10px 0; 
+                                    background: linear-gradient(135deg, #f39c1222, #e67e2222); border-radius: 10px; 
+                                    border-left: 4px solid #e67e22; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                             • {topic}
                         </div>
                         """, unsafe_allow_html=True)
                 else:
                     st.markdown("""
-                    <div style="color: #ccc; font-size: 1.1em; padding: 8px 15px; margin: 8px 0; 
-                                background: rgba(255,215,0,0.2); border-radius: 8px; border-left: 4px solid #FFD700;">
+                    <div style="color: #2c3e50; font-size: 1.1em; padding: 12px 20px; margin: 10px 0; 
+                                background: linear-gradient(135deg, #f39c1222, #e67e2222); border-radius: 10px; 
+                                border-left: 4px solid #e67e22; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                         • Matematik ve Türkçe çalışmaları
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # İlerleme göstergesi - Sinematik
+                # İlerleme göstergesi - Perde İçi
                 st.markdown(f"""
-                <div style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; 
+                <div style="background: linear-gradient(45deg, #27ae60, #2ecc71); color: white; 
                             padding: 15px 25px; border-radius: 25px; text-align: center; font-weight: bold; 
-                            margin: 30px 0; font-size: 1.2em; box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-                            animation: pulse 2s ease-in-out infinite;">
+                            margin: 30px 0; font-size: 1.2em; box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);">
                     🚀 Gün {day_data['day_number']} / {len(timeline_days)} - Yolculuk devam ediyor!
                 </div>
                 """, unsafe_allow_html=True)
             
-            # Cinema screen kapanışı
+            # Timeline kutusu kapanışı
             st.markdown("</div>", unsafe_allow_html=True)
             
             # İlerleme çubuğu - Dışarıda
@@ -5218,8 +5289,9 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             st.session_state.timeline_day = 0
             st.session_state.play_music_timeline = False
     
-    # Sinema Container Son
+    # Sinema Perdesi Son
     st.markdown("""
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
