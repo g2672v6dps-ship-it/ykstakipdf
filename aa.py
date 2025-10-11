@@ -3813,6 +3813,9 @@ def show_weekly_summary(weekly_plan):
 def show_sar_zamani_geriye_page(user_data, progress_data):
     """⏰ Sar Zamanı Geriye - Sinema Tarzı Yolculuk Hikayesi"""
     
+    # Merkezi gün bilgisini al
+    study_day_info = get_current_study_day_info(user_data)
+    
     # ÖNCE TÜM CSS STİLLERİNİ YÜKLEYELİM - Animasyon Öncesi
     st.markdown("""
     <style>
