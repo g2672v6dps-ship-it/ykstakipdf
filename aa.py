@@ -4102,13 +4102,13 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     </div>
     """, unsafe_allow_html=True)
     
-    # Test HTML render
-    st.markdown("""
+    # HTML Test - st.components.v1.html ile
+    st.components.v1.html("""
     <div style="background: #1a1a2e; color: #d4af37; padding: 20px; border-radius: 10px; margin: 10px 0;">
         <h3>🎬 HTML Test - Bu görünüyorsa HTML çalışıyor</h3>
         <p>Eğer bu metin stillenmiş görünüyorsa, HTML render sorunu değil.</p>
     </div>
-    """, unsafe_allow_html=True)
+    """, height=120)
     
     # Kontrol paneli
     if not st.session_state.cinema_running:
