@@ -2532,6 +2532,30 @@ def clear_outdated_session_data():
             # Mevcut planları backup al ve yeniden oluştur
             st.session_state.day_plans = {day: [] for day in ["PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ", "PAZAR"]}
 
+def get_current_study_day_info(user_data):
+    """Merkezi gün bilgisi hesaplama fonksiyonu"""
+    # Kullanıcının kayıt tarihini al
+    registration_date = user_data.get('created_date', user_data.get('registration_date', datetime.now().strftime('%Y-%m-%d')))
+    current_date = datetime.now()
+    
+    try:
+        start_date = datetime.strptime(registration_date, '%Y-%m-%d')
+        days_passed = (current_date - start_date).days + 1  # +1 çünkü ilk gün de sayılır
+        # Maksimum 365 gün, minimum 1 gün
+        days_passed = max(1, min(days_passed, 365))
+        total_journey_days = 365  # 1 yıllık hedef
+    except:
+        days_passed = 8  # Varsayılan değer
+        total_journey_days = 365
+    
+    return {
+        'current_day': days_passed,
+        'total_days': total_journey_days,
+        'progress_text': f"Gün {days_passed} / {total_journey_days} - Yolculuk devam ediyor! 🚀",
+        'registration_date': registration_date,
+        'progress_percentage': (days_passed / total_journey_days) * 100
+    }
+
 def yks_takip_page(user_data):
     # Eski session verilerini temizle - her gün güncel sistem!
     clear_outdated_session_data()
@@ -2540,7 +2564,10 @@ def yks_takip_page(user_data):
     week_info = get_current_week_info()
     days_to_yks = week_info['days_to_yks']
     
-    st.markdown(f'<div class="main-header"><h1>🎯 YKS Takip & Planlama Sistemi</h1><p>Haftalık hedeflerinizi belirleyin ve takip edin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
+    # Merkezi gün bilgisini al
+    study_day_info = get_current_study_day_info(user_data)
+    
+    st.markdown(f'<div class="main-header"><h1>🎯 YKS Takip & Planlama Sistemi</h1><p>Haftalık hedeflerinizi belirleyin ve takip edin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p><div style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 12px 20px; border-radius: 25px; text-align: center; font-weight: bold; margin: 15px 0;">{study_day_info["progress_text"]}</div></div>', unsafe_allow_html=True)
     
     # Ana panelden bilgileri al
     student_grade = user_data.get('grade', '')
@@ -4368,7 +4395,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 </div>
                 
                 <div style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; padding: 12px 20px; border-radius: 25px; text-align: center; font-weight: bold; margin: 15px 0;">
-                    Gün {day_data['day_number']} / {len(timeline_days)} - Yolculuk devam ediyor! 🚀
+                    {study_day_info['progress_text']}
                 </div>
             </div>
             """
@@ -8639,7 +8666,18 @@ def main():
                 
                 # 🎯 GÜNLÜK MOTİVASYON VE ÇALIŞMA TAKİBİ SİSTEMİ - YENİ!
                 st.markdown("---")
+                # Merkezi gün bilgisini al
+                study_day_info = get_current_study_day_info(user_data)
+                
                 st.subheader("🎯 Günlük Motivasyon ve Çalışma Takibi")
+                
+                # Günlük bilgileri göster
+                st.markdown(f"""
+                <div style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: #FFD700;">{study_day_info['progress_text']}</h3>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9;">Kayıt Tarihi: {study_day_info['registration_date']} | İlerleme: %{study_day_info['progress_percentage']:.1f}</p>
+                </div>
+                """, unsafe_allow_html=True)
                 
                 # Bugünkü tarih string'i
                 today_str = week_info["today"].strftime("%Y-%m-%d")
