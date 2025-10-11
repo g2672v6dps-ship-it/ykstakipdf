@@ -3816,9 +3816,74 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     # Merkezi gün bilgisini al
     study_day_info = get_current_study_day_info(user_data)
     
-    # ÖNCE TÜM CSS STİLLERİNİ YÜKLEYELİM - Animasyon Öncesi
+    # ÖNCE TÜM CSS STİLLERİNİ YÜKLEYELİM - SİNEMA EKRANI TEMASİ
     st.markdown("""
     <style>
+    /* Ana Sinema Container */
+    .main > div {
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 50%, #000000 100%) !important;
+    }
+    
+    /* Sinema Ekranı Ana Container */
+    .cinema-container {
+        background: #000000;
+        min-height: 100vh;
+        padding: 20px;
+        margin: -20px -20px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cinema-container::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(ellipse at center, rgba(102,126,234,0.1) 0%, rgba(0,0,0,0.9) 70%),
+            linear-gradient(45deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.95) 100%);
+        z-index: -1;
+        pointer-events: none;
+    }
+    
+    /* Film Şeridi Border Efekti */
+    .cinema-frame {
+        border: 12px solid #1a1a1a;
+        border-image: repeating-linear-gradient(
+            90deg,
+            #2c3e50 0px,
+            #2c3e50 15px,
+            #34495e 15px,
+            #34495e 30px
+        ) 12;
+        border-radius: 25px;
+        background: rgba(0,0,0,0.8);
+        padding: 30px;
+        margin: 20px auto;
+        max-width: 90%;
+        box-shadow: 
+            0 0 50px rgba(102,126,234,0.3),
+            inset 0 0 20px rgba(0,0,0,0.5),
+            0 20px 40px rgba(0,0,0,0.8);
+        position: relative;
+    }
+    
+    /* Sinema Spotlight Efekti */
+    .cinema-frame::after {
+        content: "";
+        position: absolute;
+        top: -50px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 100px;
+        background: radial-gradient(ellipse, rgba(255,255,255,0.1) 0%, transparent 70%);
+        filter: blur(20px);
+        z-index: -1;
+    }
+    
     /* Timeline Animasyon Stilleri */
     .stats-row {
         display: flex;
@@ -3831,12 +3896,29 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     .stat-box {
         background: linear-gradient(135deg, #667eea, #764ba2);
         color: white;
-        padding: 15px;
-        border-radius: 12px;
+        padding: 20px;
+        border-radius: 15px;
         text-align: center;
-        min-width: 120px;
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        animation: fadeInUp 0.6s ease-out;
+        min-width: 140px;
+        box-shadow: 
+            0 8px 25px rgba(102, 126, 234, 0.4),
+            0 0 20px rgba(102, 126, 234, 0.2),
+            inset 0 1px 0 rgba(255,255,255,0.1);
+        animation: fadeInUp 0.8s ease-out;
+        border: 1px solid rgba(255,255,255,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        animation: shimmer 3s infinite;
     }
     
     .stat-number {
@@ -4655,27 +4737,40 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
     </style>
     """, unsafe_allow_html=True)
     
+    # Sinema Container Başlangıcı
+    st.markdown("""
+    <div class="cinema-container">
+        <div class="cinema-frame">
+    """, unsafe_allow_html=True)
+    
     # Ana başlık - Native Streamlit
-    st.title("⏰ Sar Zamanı Geriye")
-    st.subheader("Başarı yolculuğunuzun hikayesi")
+    st.markdown('<h1 class="neon-text" style="text-align: center; font-size: 3em; margin: 20px 0;">⏰ SAR ZAMANI GERİYE</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align: center; color: #ccc; font-size: 1.2em; margin-bottom: 30px;">🎬 Başarı yolculuğunuzun hikayesi</p>', unsafe_allow_html=True)
     
-    # Motivasyon metni
-    st.markdown("---")
-    st.markdown("*\"Bugüne kolay gelmedin.\"*")
-    st.markdown("---")
+    # Film şeridi efekti
+    st.markdown('<div class="film-strip"></div>', unsafe_allow_html=True)
     
-    # 🎬 Sinema ekranı - Native Streamlit
-    st.markdown("---")
+    # Motivasyon metni - Sinematik
+    st.markdown("""
+    <div style="text-align: center; color: #FFD700; font-size: 1.5em; margin: 30px 0; font-style: italic;">
+        <div class="shimmer-effect">
+            "Bugüne kolay gelmedin..."
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Sinema başlığı
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.markdown("## 🎬 ZAMAN MAKİNESİ")
-        st.markdown("### ⏳")
-        st.write("Her günün hikayesini yeniden yaşamaya hazır mısın?")
-        st.write("Başlangıçtan bugüne kadar ki tüm mücadeleni gör...")
+    # Film şeridi efekti
+    st.markdown('<div class="film-strip"></div>', unsafe_allow_html=True)
     
-    st.markdown("---")
+    # Sinema başlığı - Center spotlight
+    st.markdown("""
+    <div style="text-align: center; margin: 40px 0;">
+        <h2 class="neon-text" style="font-size: 2.5em; margin-bottom: 20px;">🎬 ZAMAN MAKİNESİ</h2>
+        <h3 style="color: #667eea; font-size: 2em;">⏳</h3>
+        <p style="color: #ccc; font-size: 1.1em; margin: 15px 0;">Her günün hikayesini yeniden yaşamaya hazır mısın?</p>
+        <p style="color: #888; font-size: 1em;">Başlangıçtan bugüne kadar ki tüm mücadeleni gör...</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Kullanıcı verilerini kontrol et
     if not user_data:
@@ -4983,13 +5078,25 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         if st.session_state.timeline_day < len(timeline_days):
             day_data = timeline_days[st.session_state.timeline_day]
             
-            # 🎬 Sinema ekranı efekti
-            st.markdown("### 🎬 ZAMAN MAKİNESİ EKRANI")
-            st.markdown("---")
+            # 🎬 Sinema ekranı efekti - Başlık
+            st.markdown(f"""
+            <div style="text-align: center; margin: 40px 0;">
+                <div class="film-strip"></div>
+                <h2 class="neon-text" style="font-size: 2.2em; margin: 20px 0;">🎬 ZAMAN MAKİNESİ EKRANI</h2>
+                <div class="film-strip"></div>
+            </div>
+            """, unsafe_allow_html=True)
             
-            # Gün başlığı - Native Streamlit
-            st.header(f"📅 {day_data['date'].strftime('%d %B %Y')}")
-            st.markdown("---")
+            # Gün başlığı - Sinematik
+            st.markdown(f"""
+            <div class="cinema-screen" style="margin: 30px auto;">
+                <h1 style="text-align: center; color: #FFD700; font-size: 2.5em; margin-bottom: 30px; text-shadow: 0 0 20px #FFD700;">
+                    📅 {day_data['date'].strftime('%d %B %Y')}
+                </h1>
+                <div style="text-align: center; color: #ccc; font-size: 1.2em; margin-bottom: 30px;">
+                    GÜN {day_data['day_number']} / {len(timeline_days)} - BAŞARI YOLCULUĞU
+                </div>
+            """, unsafe_allow_html=True)
             
             # İstatistik kutuları - Streamlit metric kullanarak
             col1, col2, col3, col4 = st.columns(4)
@@ -5018,31 +5125,61 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     value=f"{day_data['total_study_time']}dk"
                 )
             
-            # Sinema efekti için boşluk
-            st.markdown("---")
+                # Çalışılan dersler section
+                st.markdown("""
+                <div style="margin: 30px 0; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 15px; border: 1px solid rgba(102,126,234,0.3);">
+                    <h3 style="color: #FFD700; text-align: center; margin-bottom: 20px;">📚 Çalışılan Dersler</h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Dersler listesi
+                for subject in day_data['subjects']:
+                    st.markdown(f"""
+                    <div style="color: #ccc; font-size: 1.1em; padding: 8px 15px; margin: 8px 0; 
+                                background: rgba(102,126,234,0.2); border-radius: 8px; border-left: 4px solid #667eea;">
+                        • {subject}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Tamamlanan konular section
+                st.markdown("""
+                <div style="margin: 30px 0; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 15px; border: 1px solid rgba(102,126,234,0.3);">
+                    <h3 style="color: #FFD700; text-align: center; margin-bottom: 20px;">📄 Tamamlanan Konular</h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Konular listesi
+                if day_data['actual_topics']:
+                    for topic in day_data['actual_topics']:
+                        st.markdown(f"""
+                        <div style="color: #ccc; font-size: 1.1em; padding: 8px 15px; margin: 8px 0; 
+                                    background: rgba(255,215,0,0.2); border-radius: 8px; border-left: 4px solid #FFD700;">
+                            • {topic}
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.markdown("""
+                    <div style="color: #ccc; font-size: 1.1em; padding: 8px 15px; margin: 8px 0; 
+                                background: rgba(255,215,0,0.2); border-radius: 8px; border-left: 4px solid #FFD700;">
+                        • Matematik ve Türkçe çalışmaları
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # İlerleme göstergesi - Sinematik
+                st.markdown(f"""
+                <div style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; 
+                            padding: 15px 25px; border-radius: 25px; text-align: center; font-weight: bold; 
+                            margin: 30px 0; font-size: 1.2em; box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+                            animation: pulse 2s ease-in-out infinite;">
+                    🚀 Gün {day_data['day_number']} / {len(timeline_days)} - Yolculuk devam ediyor!
+                </div>
+                """, unsafe_allow_html=True)
             
-            # Çalışılan dersler - Native Streamlit
-            st.subheader("📚 Çalışılan Dersler")
-            for subject in day_data['subjects']:
-                st.write(f"• {subject}")
+            # Cinema screen kapanışı
+            st.markdown("</div>", unsafe_allow_html=True)
             
-            # Tamamlanan konular - Native Streamlit  
-            st.subheader("📄 Tamamlanan Konular")
-            if day_data['actual_topics']:
-                for topic in day_data['actual_topics']:
-                    st.write(f"• {topic}")
-            else:
-                st.write("• Matematik ve Türkçe çalışmaları")
-            
-            # İlerleme göstergesi - Native Streamlit
-            st.markdown("---")
-            st.success(f"🚀 Gün {day_data['day_number']} / {len(timeline_days)} - Yolculuk devam ediyor!")
-            
-            # Sinema efekti için boşluk
-            st.markdown("---")
-            
-            # İlerleme çubuğu
-            progress = st.progress((day_data['day_number'] / len(timeline_days)))
+            # İlerleme çubuğu - Dışarıda
+            st.progress((day_data['day_number'] / len(timeline_days)))
             
             # Otomatik geçiş bilgisi
             st.info("⏱️ 3 saniye sonra otomatik olarak sonraki güne geçiliyor...")
@@ -5080,6 +5217,12 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             st.session_state.timeline_running = False
             st.session_state.timeline_day = 0
             st.session_state.play_music_timeline = False
+    
+    # Sinema Container Son
+    st.markdown("""
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def display_daily_detailed_analysis(user_data, topic_progress, pomodoro_history, register_date, days_passed):
