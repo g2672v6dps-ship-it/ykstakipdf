@@ -4179,15 +4179,21 @@ def show_yks_journey_cinema(user_data, progress_data):
                     </p>
                 </div>
                 
-                <div class="data-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 25px 0;">
                 <style>
-                    @media (max-width: 768px) {
-                        .data-grid {
+                    .data-grid {{
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                        gap: 15px;
+                        margin: 25px 0;
+                    }}
+                    @media (max-width: 768px) {{
+                        .data-grid {{
                             grid-template-columns: 1fr !important;
                             gap: 10px !important;
-                        }
-                    }
+                        }}
+                    }}
                 </style>
+                <div class="data-grid">
                     
                     <div style="background: rgba(255, 215, 0, 0.1); padding: 20px; border-radius: 10px; border-left: 4px solid #ffd700;">
                         <h4 style="color: #ffd700; margin: 0 0 10px 0;">⭐ Günlük Motivasyon</h4>
