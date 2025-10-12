@@ -4467,6 +4467,9 @@ def show_yks_journey_cinema(user_data, progress_data):
                     if (stApp) stApp.classList.remove('fullscreen-enabled');
                 }
             });
+            
+            // Global olarak tanımla ki diğer bileşenler erişebilsin
+            window.toggleFullscreen = toggleFullscreen;
             </script>
             """
             st.components.v1.html(fullscreen_css, height=0)
@@ -4493,13 +4496,49 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.rerun()
             
             with col4:
-                # YouTube tarzı tam ekran butonu 🖼️
-                fullscreen_html = """
-                <button class="fullscreen-button" onclick="toggleFullscreen()" title="Tam Ekran (YouTube gibi)">
+                # YouTube tarzı tam ekran butonu - Global fonksiyon çağrısı
+                fullscreen_button = """
+                <button class="fullscreen-button" onclick="handleFullscreen()" title="Tam Ekran (YouTube gibi)" 
+                        style="width: 100%; height: 38px; background: linear-gradient(45deg, #ff6b6b, #ee5a24); 
+                               color: white; border: none; border-radius: 8px; cursor: pointer; 
+                               font-size: 14px; font-weight: bold; transition: all 0.3s ease;
+                               box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);">
                     🖼️ Tam Ekran
                 </button>
+                <script>
+                function handleFullscreen() {
+                    // Global fonksiyonu çağır
+                    if (window.toggleFullscreen) {
+                        window.toggleFullscreen();
+                    } else {
+                        // Eğer henüz yüklenmemişse, kısa bir süre bekle
+                        setTimeout(function() {
+                            if (window.toggleFullscreen) {
+                                window.toggleFullscreen();
+                            } else {
+                                alert('Tam ekran özelliği henüz yüklenmedi. Lütfen birkaç saniye bekleyin ve tekrar deneyin.');
+                            }
+                        }, 100);
+                    }
+                }
+
+                // Buton için hover efekti
+                document.addEventListener('DOMContentLoaded', function() {
+                    const btn = document.querySelector('.fullscreen-button');
+                    if (btn) {
+                        btn.addEventListener('mouseenter', function() {
+                            this.style.transform = 'translateY(-2px)';
+                            this.style.boxShadow = '0 4px 15px rgba(255, 107, 107, 0.5)';
+                        });
+                        btn.addEventListener('mouseleave', function() {
+                            this.style.transform = 'translateY(0)';
+                            this.style.boxShadow = '0 2px 10px rgba(255, 107, 107, 0.3)';
+                        });
+                    }
+                });
+                </script>
                 """
-                st.components.v1.html(fullscreen_html, height=50)
+                st.components.v1.html(fullscreen_button, height=50)
             
             with col5:
                 if st.button("🚪 Çıkış"):
