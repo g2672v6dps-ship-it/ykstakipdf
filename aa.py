@@ -9654,8 +9654,221 @@ def main():
                                     st.rerun()
                             
                             with col2:
+                                # SESLİ KAĞIT ÇEVİRME BUTONU! 🔊
+                                kart_cevirme_sesi = """
+                                <style>
+                                .flip-sound-btn {
+                                    width: 100%;
+                                    height: 38px;
+                                    background: linear-gradient(45deg, #667eea, #764ba2);
+                                    color: white;
+                                    border: none;
+                                    border-radius: 8px;
+                                    cursor: pointer;
+                                    font-size: 14px;
+                                    font-weight: bold;
+                                    transition: all 0.3s ease;
+                                    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+                                }
+                                
+                                .flip-sound-btn:hover {
+                                    transform: scale(1.05);
+                                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+                                }
+                                
+                                .flip-sound-btn:active {
+                                    transform: rotateY(180deg);
+                                }
+                                
+                                @keyframes flipCard {
+                                    0% { transform: rotateY(0deg); }
+                                    50% { transform: rotateY(90deg); }
+                                    100% { transform: rotateY(0deg); }
+                                }
+                                
+                                .flip-animation {
+                                    animation: flipCard 0.4s ease-in-out;
+                                }
+                                </style>
+                                
+                                <script>
+                                function playCardFlipSound() {
+                                    try {
+                                        // Kağıt çevirme sesi - Web Audio API ile
+                                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                                        
+                                        // İlk ses: Kağıt kalkma sesi (whoosh)
+                                        const oscillator1 = audioContext.createOscillator();
+                                        const gainNode1 = audioContext.createGain();
+                                        
+                                        oscillator1.connect(gainNode1);
+                                        gainNode1.connect(audioContext.destination);
+                                        
+                                        oscillator1.frequency.setValueAtTime(300, audioContext.currentTime);
+                                        oscillator1.frequency.exponentialRampToValueAtTime(1000, audioContext.currentTime + 0.08);
+                                        oscillator1.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.15);
+                                        
+                                        gainNode1.gain.setValueAtTime(0, audioContext.currentTime);
+                                        gainNode1.gain.exponentialRampToValueAtTime(0.2, audioContext.currentTime + 0.02);
+                                        gainNode1.gain.exponentialRampToValueAtTime(0.05, audioContext.currentTime + 0.08);
+                                        gainNode1.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
+                                        
+                                        oscillator1.type = 'triangle';
+                                        oscillator1.start(audioContext.currentTime);
+                                        oscillator1.stop(audioContext.currentTime + 0.15);
+                                        
+                                        // İkinci ses: Kağıt yerleşme sesi (pat)
+                                        setTimeout(() => {
+                                            const oscillator2 = audioContext.createOscillator();
+                                            const gainNode2 = audioContext.createGain();
+                                            
+                                            oscillator2.connect(gainNode2);
+                                            gainNode2.connect(audioContext.destination);
+                                            
+                                            oscillator2.frequency.setValueAtTime(120, audioContext.currentTime);
+                                            oscillator2.frequency.exponentialRampToValueAtTime(60, audioContext.currentTime + 0.06);
+                                            
+                                            gainNode2.gain.setValueAtTime(0, audioContext.currentTime);
+                                            gainNode2.gain.exponentialRampToValueAtTime(0.15, audioContext.currentTime + 0.01);
+                                            gainNode2.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.06);
+                                            
+                                            oscillator2.type = 'sawtooth';
+                                            oscillator2.start(audioContext.currentTime);
+                                            oscillator2.stop(audioContext.currentTime + 0.06);
+                                        }, 120);
+                                        
+                                    } catch (e) {
+                                        console.log('Ses çalınamadı:', e);
+                                        // Ses çalmıyorsa görsel feedback ver
+                                        const btn = document.querySelector('.flip-sound-btn');
+                                        if (btn) {
+                                            btn.style.filter = 'brightness(1.3)';
+                                            setTimeout(() => btn.style.filter = '', 200);
+                                        }
+                                    }
+                                }
+                                </script>
+                                """
+                                
+                                st.components.v1.html(kart_cevirme_sesi, height=0)
+                                
+                                # Ana buton - ses efektli
                                 if st.button(f"🔄 {'Cevabı Gör' if not st.session_state.show_answer else 'Soruya Dön'}", 
-                                           use_container_width=True, type="primary"):
+                                           use_container_width=True, type="primary", key="flip_card_main",
+                                           help="🔊 Kağıt çevirme sesiyle!"):
+                                    
+                                    # JavaScript sesi çalmak için - DAHA GERÇEKÇİ SES!
+                                    ses_calinsin = """
+                                    <script>
+                                    // Kağıt çevirme sesi - daha gerçekçi versiyonu
+                                    function playRealisticCardFlip() {
+                                        try {
+                                            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                                            const now = audioContext.currentTime;
+                                            
+                                            // 1. Kağıt kalkma sesi (papery swoosh)
+                                            const noise1 = audioContext.createBufferSource();
+                                            const noiseBuffer1 = audioContext.createBuffer(1, audioContext.sampleRate * 0.1, audioContext.sampleRate);
+                                            const noiseData1 = noiseBuffer1.getChannelData(0);
+                                            
+                                            // White noise için kağıt hışırtısı
+                                            for (let i = 0; i < noiseData1.length; i++) {
+                                                noiseData1[i] = (Math.random() * 2 - 1) * 0.1;
+                                            }
+                                            noise1.buffer = noiseBuffer1;
+                                            
+                                            const filter1 = audioContext.createBiquadFilter();
+                                            filter1.type = 'highpass';
+                                            filter1.frequency.setValueAtTime(800, now);
+                                            filter1.frequency.exponentialRampToValueAtTime(1500, now + 0.05);
+                                            filter1.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+                                            
+                                            const gain1 = audioContext.createGain();
+                                            gain1.gain.setValueAtTime(0, now);
+                                            gain1.gain.exponentialRampToValueAtTime(0.15, now + 0.02);
+                                            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                                            
+                                            noise1.connect(filter1);
+                                            filter1.connect(gain1);
+                                            gain1.connect(audioContext.destination);
+                                            
+                                            noise1.start(now);
+                                            noise1.stop(now + 0.1);
+                                            
+                                            // 2. Kağıt çevirme sesi (flip whoosh)
+                                            setTimeout(() => {
+                                                const osc = audioContext.createOscillator();
+                                                const gain2 = audioContext.createGain();
+                                                
+                                                osc.type = 'triangle';
+                                                osc.frequency.setValueAtTime(250, audioContext.currentTime);
+                                                osc.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.08);
+                                                osc.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.12);
+                                                
+                                                gain2.gain.setValueAtTime(0, audioContext.currentTime);
+                                                gain2.gain.exponentialRampToValueAtTime(0.25, audioContext.currentTime + 0.03);
+                                                gain2.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.12);
+                                                
+                                                osc.connect(gain2);
+                                                gain2.connect(audioContext.destination);
+                                                
+                                                osc.start(audioContext.currentTime);
+                                                osc.stop(audioContext.currentTime + 0.12);
+                                            }, 50);
+                                            
+                                            // 3. Kağıt yerleşme sesi (soft thud)
+                                            setTimeout(() => {
+                                                const osc2 = audioContext.createOscillator();
+                                                const gain3 = audioContext.createGain();
+                                                
+                                                osc2.type = 'square';
+                                                osc2.frequency.setValueAtTime(80, audioContext.currentTime);
+                                                osc2.frequency.exponentialRampToValueAtTime(40, audioContext.currentTime + 0.05);
+                                                
+                                                gain3.gain.setValueAtTime(0, audioContext.currentTime);
+                                                gain3.gain.exponentialRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+                                                gain3.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+                                                
+                                                osc2.connect(gain3);
+                                                gain3.connect(audioContext.destination);
+                                                
+                                                osc2.start(audioContext.currentTime);
+                                                osc2.stop(audioContext.currentTime + 0.05);
+                                            }, 140);
+                                            
+                                        } catch (e) {
+                                            console.log('Kağıt sesi çalınamadı:', e);
+                                        }
+                                    }
+                                    
+                                    // Ses çal
+                                    playRealisticCardFlip();
+                                    
+                                    // Flip animasyonu
+                                    const allButtons = document.querySelectorAll('button');
+                                    allButtons.forEach(btn => {
+                                        if (btn.textContent.includes('🔄')) {
+                                            btn.style.transform = 'rotateY(0deg)';
+                                            btn.style.transition = 'transform 0.4s ease-in-out';
+                                            
+                                            setTimeout(() => {
+                                                btn.style.transform = 'rotateY(180deg)';
+                                            }, 10);
+                                            
+                                            setTimeout(() => {
+                                                btn.style.transform = 'rotateY(360deg)';
+                                            }, 200);
+                                            
+                                            setTimeout(() => {
+                                                btn.style.transform = 'rotateY(0deg)';
+                                            }, 400);
+                                        }
+                                    });
+                                    </script>
+                                    """
+                                    st.components.v1.html(ses_calinsin, height=0)
+                                    
+                                    # Ana fonksiyon
                                     st.session_state.show_answer = not st.session_state.show_answer
                                     st.rerun()
                             
