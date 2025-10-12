@@ -4074,11 +4074,11 @@ def show_yks_journey_cinema(user_data, progress_data):
         elif st.session_state.music_enabled and not st.session_state.music_playing:
             st.warning("🔇 Müzik duraklatıldı. ▶️ Oynat butonu ile devam ettirin.")
         
-        # Gerçek sinematik perde animasyonu 🎭
+        # 🎭 SINEMA PERDESİ ANİMASYONU - KIRMIZI KADIFE PERDE! 🎭
         curtain_html = """
         <style>
         body {
-            overflow: hidden;
+            overflow: hidden !important;
         }
         
         .cinema-stage {
@@ -4087,9 +4087,10 @@ def show_yks_journey_cinema(user_data, progress_data):
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: #000;
+            background: radial-gradient(circle at center, #1a0000 0%, #000000 100%);
             z-index: 999999;
             overflow: hidden;
+            box-shadow: inset 0 0 100px rgba(139, 0, 0, 0.3);
         }
         
         .curtain-backdrop {
@@ -4098,24 +4099,40 @@ def show_yks_journey_cinema(user_data, progress_data):
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(45deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            background: radial-gradient(ellipse at center, #2d1b1b 0%, #1a0a0a 50%, #000000 100%);
+            animation: backdrop-glow 6s ease-in-out;
+        }
+        
+        @keyframes backdrop-glow {
+            0% { background: #000000; }
+            30% { background: radial-gradient(ellipse at center, #2d1b1b 0%, #1a0a0a 50%, #000000 100%); }
+            100% { background: #000000; }
         }
         
         @keyframes curtain-left-open {
             0% { 
                 transform: translateX(0) scaleY(1);
                 opacity: 1;
+                box-shadow: 15px 0 40px rgba(0,0,0,0.9), inset -30px 0 50px rgba(0,0,0,0.4);
             }
-            20% {
-                transform: translateX(-5%) scaleY(0.98);
+            15% {
+                transform: translateX(-3%) scaleY(0.99);
+                opacity: 0.98;
+            }
+            30% {
+                transform: translateX(-10%) scaleY(0.96);
                 opacity: 0.95;
             }
-            70% {
-                transform: translateX(-85%) scaleY(0.9);
-                opacity: 0.7;
+            60% {
+                transform: translateX(-70%) scaleY(0.92);
+                opacity: 0.8;
+            }
+            80% {
+                transform: translateX(-90%) scaleY(0.88);
+                opacity: 0.5;
             }
             100% { 
-                transform: translateX(-105%) scaleY(0.8);
+                transform: translateX(-110%) scaleY(0.85);
                 opacity: 0;
                 visibility: hidden;
             }
@@ -4125,17 +4142,26 @@ def show_yks_journey_cinema(user_data, progress_data):
             0% { 
                 transform: translateX(0) scaleY(1);
                 opacity: 1;
+                box-shadow: -15px 0 40px rgba(0,0,0,0.9), inset 30px 0 50px rgba(0,0,0,0.4);
             }
-            20% {
-                transform: translateX(5%) scaleY(0.98);
+            15% {
+                transform: translateX(3%) scaleY(0.99);
+                opacity: 0.98;
+            }
+            30% {
+                transform: translateX(10%) scaleY(0.96);
                 opacity: 0.95;
             }
-            70% {
-                transform: translateX(85%) scaleY(0.9);
-                opacity: 0.7;
+            60% {
+                transform: translateX(70%) scaleY(0.92);
+                opacity: 0.8;
+            }
+            80% {
+                transform: translateX(90%) scaleY(0.88);
+                opacity: 0.5;
             }
             100% { 
-                transform: translateX(105%) scaleY(0.8);
+                transform: translateX(110%) scaleY(0.85);
                 opacity: 0;
                 visibility: hidden;
             }
@@ -4143,7 +4169,7 @@ def show_yks_journey_cinema(user_data, progress_data):
         
         @keyframes stage-fadeout {
             0% { opacity: 1; }
-            90% { opacity: 1; }
+            85% { opacity: 1; }
             100% { opacity: 0; visibility: hidden; }
         }
         
@@ -4154,16 +4180,24 @@ def show_yks_journey_cinema(user_data, progress_data):
             width: 52%;
             height: 100%;
             background: linear-gradient(90deg, 
-                #8B0000 0%, 
-                #A52A2A 25%, 
-                #DC143C 50%, 
-                #A52A2A 75%, 
-                #8B0000 100%);
+                #8B0000 0%,    /* Dark Red */
+                #B22222 15%,   /* Fire Brick */
+                #DC143C 30%,   /* Crimson */
+                #FF0000 45%,   /* Red */
+                #DC143C 60%,   /* Crimson */
+                #B22222 80%,   /* Fire Brick */
+                #8B0000 100%   /* Dark Red */
+            );
+            background-image: 
+                repeating-linear-gradient(0deg, transparent 0px, rgba(255,255,255,0.03) 2px, transparent 4px),
+                repeating-linear-gradient(90deg, transparent 0px, rgba(0,0,0,0.1) 1px, transparent 2px);
             box-shadow: 
-                8px 0 30px rgba(0,0,0,0.8),
-                inset -20px 0 40px rgba(0,0,0,0.3);
-            animation: curtain-left-open 5s ease-in-out forwards;
-            border-right: 4px solid #FFD700;
+                15px 0 40px rgba(0,0,0,0.9),
+                inset -30px 0 50px rgba(0,0,0,0.4),
+                inset 0 0 30px rgba(255,215,0,0.1);
+            animation: curtain-left-open 6s ease-in-out forwards;
+            border-right: 6px solid #FFD700;
+            border-image: linear-gradient(180deg, #FFD700 0%, #FFA500 50%, #FFD700 100%) 1;
             transform-origin: left center;
         }
         
@@ -4174,16 +4208,24 @@ def show_yks_journey_cinema(user_data, progress_data):
             width: 52%;
             height: 100%;
             background: linear-gradient(270deg, 
-                #8B0000 0%, 
-                #A52A2A 25%, 
-                #DC143C 50%, 
-                #A52A2A 75%, 
-                #8B0000 100%);
+                #8B0000 0%,    /* Dark Red */
+                #B22222 15%,   /* Fire Brick */
+                #DC143C 30%,   /* Crimson */
+                #FF0000 45%,   /* Red */
+                #DC143C 60%,   /* Crimson */
+                #B22222 80%,   /* Fire Brick */
+                #8B0000 100%   /* Dark Red */
+            );
+            background-image: 
+                repeating-linear-gradient(0deg, transparent 0px, rgba(255,255,255,0.03) 2px, transparent 4px),
+                repeating-linear-gradient(90deg, transparent 0px, rgba(0,0,0,0.1) 1px, transparent 2px);
             box-shadow: 
-                -8px 0 30px rgba(0,0,0,0.8),
-                inset 20px 0 40px rgba(0,0,0,0.3);
-            animation: curtain-right-open 5s ease-in-out forwards;
-            border-left: 4px solid #FFD700;
+                -15px 0 40px rgba(0,0,0,0.9),
+                inset 30px 0 50px rgba(0,0,0,0.4),
+                inset 0 0 30px rgba(255,215,0,0.1);
+            animation: curtain-right-open 6s ease-in-out forwards;
+            border-left: 6px solid #FFD700;
+            border-image: linear-gradient(180deg, #FFD700 0%, #FFA500 50%, #FFD700 100%) 1;
             transform-origin: right center;
         }
         
@@ -4192,27 +4234,45 @@ def show_yks_journey_cinema(user_data, progress_data):
             top: 0;
             left: 0;
             width: 100%;
-            height: 40px;
-            background: linear-gradient(180deg, #FFD700 0%, #B8860B 100%);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            height: 50px;
+            background: linear-gradient(180deg, 
+                #FFD700 0%, 
+                #FFA500 25%, 
+                #FF8C00 50%, 
+                #FFA500 75%, 
+                #B8860B 100%
+            );
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.7),
+                inset 0 -10px 20px rgba(0,0,0,0.3);
             z-index: 10;
+            border-bottom: 3px solid #8B0000;
         }
         
         .curtain-tassels {
             position: absolute;
-            top: 40px;
+            top: 50px;
             width: 100%;
-            height: 60px;
+            height: 80px;
             background: repeating-linear-gradient(
                 90deg,
-                #FFD700 0px, #FFD700 15px,
-                #B8860B 15px, #B8860B 25px
+                #FFD700 0px, #FFD700 20px,
+                #FFA500 20px, #FFA500 30px,
+                #FF8C00 30px, #FF8C00 35px,
+                #FFA500 35px, #FFA500 40px
             );
-            opacity: 0.8;
+            opacity: 0.9;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            animation: tassel-sway 6s ease-in-out infinite;
+        }
+        
+        @keyframes tassel-sway {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(3px); }
         }
         
         .cinema-stage {
-            animation: stage-fadeout 5.5s ease-in-out forwards;
+            animation: stage-fadeout 6.5s ease-in-out forwards;
         }
         
         .cinema-logo {
@@ -4221,34 +4281,134 @@ def show_yks_journey_cinema(user_data, progress_data):
             left: 50%;
             transform: translate(-50%, -50%);
             color: #FFD700;
-            font-size: 3rem;
+            font-size: 4rem;
             font-family: 'Georgia', serif;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
-            opacity: 0.8;
-            animation: logo-fade 5s ease-in-out;
+            text-shadow: 
+                3px 3px 6px rgba(0,0,0,0.8),
+                0 0 20px rgba(255,215,0,0.3),
+                0 0 40px rgba(255,215,0,0.2);
+            opacity: 0;
+            animation: logo-dramatic-entrance 6s ease-in-out;
+            text-align: center;
+            line-height: 1.2;
         }
         
-        @keyframes logo-fade {
-            0% { opacity: 0; }
-            30% { opacity: 0.8; }
-            70% { opacity: 0.8; }
-            100% { opacity: 0; }
+        @keyframes logo-dramatic-entrance {
+            0% { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.5);
+                filter: blur(10px);
+            }
+            20% { 
+                opacity: 0.3; 
+                transform: translate(-50%, -50%) scale(0.8);
+                filter: blur(5px);
+            }
+            40% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1.1);
+                filter: blur(0px);
+            }
+            60% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1);
+                filter: blur(0px);
+            }
+            80% { 
+                opacity: 0.8; 
+                transform: translate(-50%, -50%) scale(0.95);
+            }
+            100% { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.9);
+                filter: blur(2px);
+            }
+        }
+        
+        .spotlight {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            animation: spotlight-pulse 6s ease-in-out;
+            pointer-events: none;
+        }
+        
+        @keyframes spotlight-pulse {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            30% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.2); }
+            70% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
+        
+        .curtain-rope-left {
+            position: absolute;
+            top: 130px;
+            left: 48%;
+            width: 8px;
+            height: 200px;
+            background: linear-gradient(180deg, #8B4513 0%, #654321 100%);
+            border-radius: 4px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+            animation: rope-pull 6s ease-in-out;
+        }
+        
+        .curtain-rope-right {
+            position: absolute;
+            top: 130px;
+            right: 48%;
+            width: 8px;
+            height: 200px;
+            background: linear-gradient(180deg, #8B4513 0%, #654321 100%);
+            border-radius: 4px;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+            animation: rope-pull 6s ease-in-out;
+        }
+        
+        @keyframes rope-pull {
+            0% { transform: translateY(0); }
+            30% { transform: translateY(-20px); }
+            60% { transform: translateY(-40px); }
+            100% { transform: translateY(-60px); opacity: 0; }
         }
         </style>
         
         <div class="cinema-stage">
             <div class="curtain-backdrop"></div>
+            <div class="spotlight"></div>
             <div class="curtain-top-border"></div>
             <div class="curtain-tassels"></div>
+            <div class="curtain-rope-left"></div>
+            <div class="curtain-rope-right"></div>
             <div class="curtain-left"></div>
             <div class="curtain-right"></div>
-            <div class="cinema-logo">🎬 YKS Hikayesi Başlıyor...</div>
+            <div class="cinema-logo">🎭<br/>YKS Hikayesi<br/>Başlıyor...</div>
         </div>
         
         <script>
+        // Sinema perdesi sesi simülasyonu (görsel geri bildirim)
+        let curtainEffect = 0;
+        const curtainSoundEffect = setInterval(() => {
+            curtainEffect++;
+            if (curtainEffect <= 60) {
+                document.body.style.filter = `brightness(${0.2 + (curtainEffect / 100)})`;
+            }
+            if (curtainEffect >= 65) {
+                clearInterval(curtainSoundEffect);
+                document.body.style.filter = '';
+                document.body.style.overflow = 'auto';
+            }
+        }, 100);
+        
+        // Ana temizlik
         setTimeout(() => {
             document.body.style.overflow = 'auto';
-        }, 5500);
+            document.body.style.filter = '';
+        }, 6500);
         </script>
         """
         
@@ -4464,26 +4624,38 @@ def show_yks_journey_cinema(user_data, progress_data):
                         background: #ffed4e;
                     }}
                     
-                    /* Fotoğraf konteyner düzeltmeleri */
+                    /* KÖKLÜ FOTOĞRAF ÇÖZÜMÜ - ARTIK TAM GÖRÜNÜR! */
                     .cinema-photo-container {{
                         display: flex !important;
                         justify-content: center !important;
                         align-items: center !important;
-                        max-height: 60vh !important;
+                        height: 450px !important;
+                        max-height: 450px !important;
+                        min-height: 450px !important;
                         overflow: hidden !important;
-                        border-radius: 10px !important;
-                        background: rgba(0,0,0,0.2) !important;
+                        border-radius: 15px !important;
+                        background: rgba(0,0,0,0.3) !important;
+                        margin: 20px 0 !important;
+                        padding: 10px !important;
+                        box-sizing: border-box !important;
+                        border: 2px solid #ffd700 !important;
                     }}
                     
                     .cinema-photo-container img {{
                         max-width: 100% !important;
-                        max-height: 60vh !important;
+                        max-height: 420px !important;
                         width: auto !important;
                         height: auto !important;
                         object-fit: contain !important;
-                        border-radius: 10px !important;
+                        border-radius: 12px !important;
                         border: 3px solid #ffd700 !important;
-                        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3) !important;
+                        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4) !important;
+                        transition: all 0.3s ease !important;
+                    }}
+                    
+                    .cinema-photo-container img:hover {{
+                        transform: scale(1.02) !important;
+                        box-shadow: 0 12px 35px rgba(255, 215, 0, 0.6) !important;
                     }}
                 </style>
                 <div class="data-grid">
@@ -4528,14 +4700,16 @@ def show_yks_journey_cinema(user_data, progress_data):
                 </div>
                 
                 {f'''
-                <div style="text-align: center; margin-top: 20px; padding: 15px; background: rgba(255, 215, 0, 0.05); border-radius: 10px;">
-                    <h4 style="color: #ffd700; margin-bottom: 15px;">📷 Günün Fotoğrafı</h4>
-                    <div class="cinema-photo-container" style="display: flex; justify-content: center; align-items: center; height: 400px; width: 100%; overflow: hidden; border-radius: 10px; background: rgba(0,0,0,0.2); margin: 15px 0; padding: 5px;">
+                <div style="text-align: center; margin-top: 25px; padding: 20px; background: rgba(255, 215, 0, 0.08); border-radius: 15px; border: 2px solid rgba(255, 215, 0, 0.3);">
+                    <h4 style="color: #ffd700; margin-bottom: 20px; font-size: 1.4rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">📷 Günün Fotoğrafı</h4>
+                    <div class="cinema-photo-container" style="display: flex; justify-content: center; align-items: center; height: 450px; width: 100%; overflow: hidden; border-radius: 15px; background: rgba(0,0,0,0.3); margin: 20px 0; padding: 10px; box-sizing: border-box; border: 2px solid #ffd700;">
                         <img src="data:image/jpeg;base64,{current_day['photo_data']}" 
-                             style="max-width: 100%; max-height: 390px; width: auto; height: auto; object-fit: contain; border-radius: 8px; border: 2px solid #ffd700; box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);"
-                             alt="Günün Fotoğrafı">
+                             style="max-width: 100%; max-height: 420px; width: auto; height: auto; object-fit: contain; border-radius: 12px; border: 3px solid #ffd700; box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4); transition: all 0.3s ease;"
+                             alt="Günün Fotoğrafı"
+                             onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 12px 35px rgba(255, 215, 0, 0.6)';"
+                             onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 25px rgba(255, 215, 0, 0.4)';">
                     </div>
-                    <p style="color: #cccccc; font-size: 0.9rem; margin-top: 10px; font-style: italic;">"{current_day['photo_caption'] or 'Fotoğraf açıklaması eklenmemiş'}"</p>
+                    <p style="color: #e0e0e0; font-size: 1rem; margin-top: 15px; font-style: italic; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">"{current_day['photo_caption'] or 'Fotoğraf açıklaması eklenmemiş'}"</p>
                 </div>
                 ''' if current_day.get('photo_data') and len(str(current_day['photo_data'])) > 50 else f'''
                 <div style="text-align: center; margin-top: 20px; padding: 15px; background: rgba(255, 193, 7, 0.1); border-radius: 10px; border: 2px dashed #ffc107;">
@@ -4557,7 +4731,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             if 'fullscreen_mode' not in st.session_state:
                 st.session_state.fullscreen_mode = False
             
-            col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
+            col1, col2, col3, col4, col5, col6 = st.columns([1, 1, 1, 1, 1, 1])
             
             with col1:
                 if st.button("⏮️ Önceki", disabled=(st.session_state.current_day_index == 0)):
@@ -4567,13 +4741,13 @@ def show_yks_journey_cinema(user_data, progress_data):
             with col2:
                 # Film ve Müzik kontrolleri birleşik
                 if st.session_state.auto_play_mode and st.session_state.music_playing:
-                    play_text = "⏸️ Duraklat (Film+Müzik)"
+                    play_text = "⏸️ Duraklat"
                 elif st.session_state.auto_play_mode and not st.session_state.music_playing:
-                    play_text = "⏸️ Film Duraklat"
+                    play_text = "⏸️ Duraklat"
                 elif not st.session_state.auto_play_mode and st.session_state.music_playing:
-                    play_text = "▶️ Film Oynat"
+                    play_text = "▶️ Oynat"
                 else:
-                    play_text = "▶️ Oynat (Film+Müzik)"
+                    play_text = "▶️ Oynat"
                 
                 if st.button(play_text):
                     # Hem film hem müzik kontrolü
@@ -4591,7 +4765,17 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.rerun()
             
             with col4:
-                # KÖKLÜ TAM EKRAN ÇÖZÜMÜ - HTML/JS BUTON
+                # YENİ "TEKRAR İZLE" BUTONU - HER ZAMAN GÖRÜNSİN!
+                if st.button("🔄 Tekrar İzle"):
+                    st.session_state.current_day_index = 0
+                    st.session_state.last_day_change = time.time()
+                    st.session_state.auto_play_mode = True
+                    st.session_state.music_playing = True
+                    st.success("🎬 Hikaye baştan başlıyor!")
+                    st.rerun()
+            
+            with col5:
+                # KÖKLÜ TAM EKRAN ÇÖZÜMÜ - TAMAMEN YENİDEN YAZILDI!
                 tam_ekran_buton = """
                 <button onclick="toggleFullscreenMode()" 
                         style="width: 100%; height: 38px; 
@@ -4616,70 +4800,208 @@ def show_yks_journey_cinema(user_data, progress_data):
                     if (newState) {
                         btn.innerHTML = '🪟 Normal Mod';
                         btn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
-                        document.body.classList.add('fullscreen-mode');
                     } else {
                         btn.innerHTML = '🖼️ Tam Ekran';
                         btn.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a24)';
-                        document.body.classList.remove('fullscreen-mode');
                     }
                     
-                    // Streamlit UI'yi zorla gizle/göster
+                    // TAMAMEN YENİ VE GÜÇLENDİRİLMİŞ TAM EKRAN MODU!
                     setTimeout(() => {
-                        const elementsToToggle = [
-                            '[data-testid="stSidebar"]',
-                            '[data-testid="stHeader"]', 
-                            '[data-testid="stToolbar"]'
-                        ];
-                        
-                        elementsToToggle.forEach(selector => {
-                            const elements = document.querySelectorAll(selector);
-                            elements.forEach(el => {
-                                if (el) {
-                                    if (newState) {
-                                        // Tam ekran - gizle
-                                        el.style.display = 'none';
-                                        el.style.visibility = 'hidden';
-                                        el.style.opacity = '0';
-                                        el.style.position = 'absolute';
-                                        el.style.left = '-9999px';
-                                    } else {
-                                        // Normal mod - göster
+                        if (newState) {
+                            // TAM EKRAN AKTIF - HER ŞEYİ GİZLE!
+                            document.body.style.cssText = `
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                background: #000 !important;
+                                overflow: auto !important;
+                                width: 100vw !important;
+                                height: 100vh !important;
+                            `;
+                            
+                            // Ana Streamlit konteynerini tam ekran yap
+                            const stApp = document.querySelector('.stApp');
+                            if (stApp) {
+                                stApp.style.cssText = `
+                                    background: #000 !important;
+                                    margin: 0 !important;
+                                    padding: 0 !important;
+                                    width: 100vw !important;
+                                    height: 100vh !important;
+                                `;
+                            }
+                            
+                            // Main bloğu tam ekran yap
+                            const mainBlock = document.querySelector('.main');
+                            if (mainBlock) {
+                                mainBlock.style.cssText = `
+                                    padding: 0 !important;
+                                    margin: 0 !important;
+                                    width: 100vw !important;
+                                    height: 100vh !important;
+                                    background: #000 !important;
+                                    overflow-y: auto !important;
+                                `;
+                            }
+                            
+                            // Block container'ı tam ekran yap
+                            const blockContainer = document.querySelector('.main .block-container');
+                            if (blockContainer) {
+                                blockContainer.style.cssText = `
+                                    max-width: 100% !important;
+                                    width: 100% !important;
+                                    padding: 10px !important;
+                                    margin: 0 !important;
+                                    height: 100vh !important;
+                                    box-sizing: border-box !important;
+                                `;
+                            }
+                            
+                            // Sinema kartlarını tam ekran optimize et
+                            const cinemaDayCards = document.querySelectorAll('.cinema-day-card');
+                            cinemaDayCards.forEach(card => {
+                                card.style.cssText = `
+                                    height: 95vh !important;
+                                    max-height: 95vh !important;
+                                    overflow-y: auto !important;
+                                    margin: 2.5vh 1vw !important;
+                                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+                                    border: 3px solid #ffd700 !important;
+                                    border-radius: 10px !important;
+                                    padding: 15px !important;
+                                    box-sizing: border-box !important;
+                                `;
+                            });
+                            
+                            // Fotoğraf konteynerlerini optimize et
+                            const photoContainers = document.querySelectorAll('.cinema-photo-container');
+                            photoContainers.forEach(container => {
+                                container.style.cssText = `
+                                    height: 500px !important;
+                                    max-height: 500px !important;
+                                    display: flex !important;
+                                    justify-content: center !important;
+                                    align-items: center !important;
+                                    background: #000 !important;
+                                    border-radius: 8px !important;
+                                    overflow: hidden !important;
+                                    margin: 15px 0 !important;
+                                `;
+                            });
+                            
+                            // Fotoğrafları optimize et
+                            const photos = document.querySelectorAll('.cinema-photo-container img');
+                            photos.forEach(img => {
+                                img.style.cssText = `
+                                    max-width: 100% !important;
+                                    max-height: 480px !important;
+                                    width: auto !important;
+                                    height: auto !important;
+                                    object-fit: contain !important;
+                                    border-radius: 6px !important;
+                                    border: 2px solid #ffd700 !important;
+                                `;
+                            });
+                            
+                            // Streamlit UI elementlerini tamamen gizle
+                            const elementsToHide = [
+                                '[data-testid="stSidebar"]',
+                                'section[data-testid="stSidebar"]',
+                                '[data-testid="stHeader"]',
+                                'header[data-testid="stHeader"]',
+                                '[data-testid="stToolbar"]',
+                                '[data-testid="stDecoration"]',
+                                '[data-testid="stStatusWidget"]',
+                                '.css-1d391kg',
+                                '.css-18e3th9',
+                                '.css-1lcbmhc',
+                                '.css-1inwz65',
+                                '.css-k1vhr4',
+                                '.css-12oz5g7'
+                            ];
+                            
+                            elementsToHide.forEach(selector => {
+                                const elements = document.querySelectorAll(selector);
+                                elements.forEach(el => {
+                                    if (el) {
+                                        el.style.display = 'none !important';
+                                        el.style.visibility = 'hidden !important';
+                                        el.style.opacity = '0 !important';
+                                        el.style.position = 'absolute !important';
+                                        el.style.left = '-9999px !important';
+                                        el.style.top = '-9999px !important';
+                                        el.style.width = '0 !important';
+                                        el.style.height = '0 !important';
+                                    }
+                                });
+                            });
+                            
+                        } else {
+                            // NORMAL MOD - HER ŞEYİ GERİ GETİR
+                            document.body.style.cssText = '';
+                            
+                            const stApp = document.querySelector('.stApp');
+                            if (stApp) {
+                                stApp.style.cssText = '';
+                            }
+                            
+                            const mainBlock = document.querySelector('.main');
+                            if (mainBlock) {
+                                mainBlock.style.cssText = '';
+                            }
+                            
+                            const blockContainer = document.querySelector('.main .block-container');
+                            if (blockContainer) {
+                                blockContainer.style.cssText = '';
+                            }
+                            
+                            // Gizlenen elementleri geri göster
+                            const elementsToShow = [
+                                '[data-testid="stSidebar"]',
+                                'section[data-testid="stSidebar"]',
+                                '[data-testid="stHeader"]',
+                                'header[data-testid="stHeader"]',
+                                '[data-testid="stToolbar"]',
+                                '[data-testid="stDecoration"]',
+                                '[data-testid="stStatusWidget"]'
+                            ];
+                            
+                            elementsToShow.forEach(selector => {
+                                const elements = document.querySelectorAll(selector);
+                                elements.forEach(el => {
+                                    if (el) {
                                         el.style.display = '';
                                         el.style.visibility = '';
                                         el.style.opacity = '';
                                         el.style.position = '';
                                         el.style.left = '';
+                                        el.style.top = '';
+                                        el.style.width = '';
+                                        el.style.height = '';
                                     }
-                                }
+                                });
                             });
-                        });
-                        
-                        // Body ayarları
-                        if (newState) {
-                            document.body.style.background = '#000';
-                            document.body.style.overflow = 'hidden';
-                        } else {
-                            document.body.style.background = '';
-                            document.body.style.overflow = '';
                         }
                     }, 100);
                     
                     // Kullanıcıya bilgi ver
-                    showFullscreenNotification(newState ? 'TAM EKRAN AKTIF!' : 'Normal moda döndü');
+                    showFullscreenNotification(newState ? '🎬 TAM EKRAN AKTIF!' : '🪟 Normal moda döndü');
                 }
                 
                 function showFullscreenNotification(message) {
                     const notification = document.createElement('div');
-                    notification.innerHTML = '🎬 ' + message;
+                    notification.innerHTML = message;
                     notification.style.cssText = `
                         position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-                        background: #4CAF50; color: white; padding: 12px 24px;
-                        border-radius: 25px; z-index: 999999; font-size: 14px;
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                        background: linear-gradient(45deg, #4CAF50, #45a049); 
+                        color: white; padding: 15px 30px;
+                        border-radius: 25px; z-index: 999999; font-size: 16px;
+                        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
                         font-family: Arial, sans-serif; font-weight: bold;
+                        border: 2px solid #ffd700;
+                        animation: notification-pulse 2s ease-in-out;
                     `;
                     document.body.appendChild(notification);
-                    setTimeout(() => notification.remove(), 2000);
+                    setTimeout(() => notification.remove(), 3000);
                 }
                 
                 // Sayfa yüklendiğinde durumu kontrol et
@@ -4690,18 +5012,38 @@ def show_yks_journey_cinema(user_data, progress_data):
                     if (isFullscreen && btn) {
                         btn.innerHTML = '🪟 Normal Mod';
                         btn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
-                        document.body.classList.add('fullscreen-mode');
+                        // Tam ekran durumunu uygula
+                        setTimeout(() => toggleFullscreenMode(), 500);
                     }
                 });
+                
+                // CSS animasyonu ekle
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes notification-pulse {
+                        0% { transform: translateX(-50%) scale(0.8); opacity: 0; }
+                        50% { transform: translateX(-50%) scale(1.1); opacity: 1; }
+                        100% { transform: translateX(-50%) scale(1); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
                 </script>
                 """
                 st.components.v1.html(tam_ekran_buton, height=50)
             
-            with col5:
+            with col6:
                 if st.button("🚪 Çıkış"):
                     st.session_state.cinema_active = False
                     st.session_state.current_day_index = 0
                     st.session_state.fullscreen_mode = False
+                    # Tam ekran modunu da temizle
+                    exit_fullscreen_script = """
+                    <script>
+                    window.sessionStorage.removeItem('cinema_fullscreen');
+                    document.body.style.cssText = '';
+                    </script>
+                    """
+                    st.components.v1.html(exit_fullscreen_script, height=0)
                     st.rerun()
             
             # Durum bilgisi - JavaScript ile senkron
