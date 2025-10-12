@@ -3863,7 +3863,16 @@ def show_yks_journey_cinema(user_data, progress_data):
                 day_motivation = daily_motivation[date_str]
                 day_data['motivation_score'] = day_motivation.get('score', 5)
                 day_data['daily_note'] = day_motivation.get('note', '')
-                day_data['photo_data'] = day_motivation.get('photo_data', None)
+                
+                # Fotoğraf verilerini doğru şekilde al
+                photo_info = day_motivation.get('photo_data', None)
+                if photo_info and isinstance(photo_info, dict) and 'data' in photo_info:
+                    day_data['photo_data'] = photo_info['data']  # Sadece base64 string'i al
+                    day_data['photo_filename'] = photo_info.get('filename', 'Fotoğraf')
+                else:
+                    day_data['photo_data'] = None
+                    day_data['photo_filename'] = ''
+                
                 day_data['photo_caption'] = day_motivation.get('photo_caption', '')
                 
                 # Soru takibi verilerini al
@@ -4001,18 +4010,8 @@ def show_yks_journey_cinema(user_data, progress_data):
             else:
                 st.session_state.day_duration = 4
             
-            # Tam ekran seçeneği
-            if 'fullscreen_mode' not in st.session_state:
-                st.session_state.fullscreen_mode = False
-                
-            fullscreen_option = st.checkbox(
-                "🖼️ Tam Ekran Modunda Başlat (Hem telefon hem PC için optimum deneyim)",
-                value=st.session_state.fullscreen_mode
-            )
-            st.session_state.fullscreen_mode = fullscreen_option
-            
-            if fullscreen_option:
-                st.info("🎥 Tam ekran mod aktif! Film başladığında kenar çubukları gizlenecek ve daha sinematik bir deneyim yaşayacaksınız.")
+            # Sinematik deneyim bilgisi
+            st.info("🎥 **Pro İpucu:** Film başladıktan sonra '🖼️ Tam Ekran' butonuna tıklayarak YouTube gibi tam ekran deneyimi yaşayabilirsiniz!")
             
             st.markdown("---")
             
@@ -4069,84 +4068,182 @@ def show_yks_journey_cinema(user_data, progress_data):
             """
             st.components.v1.html(music_html, height=0)
         
-        # Perde animasyonu (İyileştirilmiş)
+        # Gerçek sinematik perde animasyonu 🎭
         curtain_html = """
         <style>
-        @keyframes curtain-open-left {
-            0% { 
-                transform: translateX(0); 
-                opacity: 1;
-            }
-            70% {
-                transform: translateX(-80%);
-                opacity: 0.8;
-            }
-            100% { 
-                transform: translateX(-100%); 
-                opacity: 0;
-                visibility: hidden;
-            }
+        body {
+            overflow: hidden;
         }
         
-        @keyframes curtain-open-right {
-            0% { 
-                transform: translateX(0); 
-                opacity: 1;
-            }
-            70% {
-                transform: translateX(80%);
-                opacity: 0.8;
-            }
-            100% { 
-                transform: translateX(100%); 
-                opacity: 0;
-                visibility: hidden;
-            }
-        }
-        
-        .cinema-curtain-left {
+        .cinema-stage {
             position: fixed;
             top: 0;
             left: 0;
-            width: 50vw;
+            width: 100vw;
             height: 100vh;
-            background: linear-gradient(90deg, #8B0000 0%, #A52A2A 50%, #8B0000 100%);
-            box-shadow: 5px 0 20px rgba(0,0,0,0.5);
+            background: #000;
             z-index: 999999;
-            animation: curtain-open-left 4s ease-in-out forwards;
-            border-right: 3px solid #FFD700;
+            overflow: hidden;
         }
         
-        .cinema-curtain-right {
-            position: fixed;
+        .curtain-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+        }
+        
+        @keyframes curtain-left-open {
+            0% { 
+                transform: translateX(0) scaleY(1);
+                opacity: 1;
+            }
+            20% {
+                transform: translateX(-5%) scaleY(0.98);
+                opacity: 0.95;
+            }
+            70% {
+                transform: translateX(-85%) scaleY(0.9);
+                opacity: 0.7;
+            }
+            100% { 
+                transform: translateX(-105%) scaleY(0.8);
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+        
+        @keyframes curtain-right-open {
+            0% { 
+                transform: translateX(0) scaleY(1);
+                opacity: 1;
+            }
+            20% {
+                transform: translateX(5%) scaleY(0.98);
+                opacity: 0.95;
+            }
+            70% {
+                transform: translateX(85%) scaleY(0.9);
+                opacity: 0.7;
+            }
+            100% { 
+                transform: translateX(105%) scaleY(0.8);
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+        
+        @keyframes stage-fadeout {
+            0% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+        
+        .curtain-left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 52%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                #8B0000 0%, 
+                #A52A2A 25%, 
+                #DC143C 50%, 
+                #A52A2A 75%, 
+                #8B0000 100%);
+            box-shadow: 
+                8px 0 30px rgba(0,0,0,0.8),
+                inset -20px 0 40px rgba(0,0,0,0.3);
+            animation: curtain-left-open 5s ease-in-out forwards;
+            border-right: 4px solid #FFD700;
+            transform-origin: left center;
+        }
+        
+        .curtain-right {
+            position: absolute;
             top: 0;
             right: 0;
-            width: 50vw;
-            height: 100vh;
-            background: linear-gradient(270deg, #8B0000 0%, #A52A2A 50%, #8B0000 100%);
-            box-shadow: -5px 0 20px rgba(0,0,0,0.5);
-            z-index: 999999;
-            animation: curtain-open-right 4s ease-in-out forwards;
-            border-left: 3px solid #FFD700;
+            width: 52%;
+            height: 100%;
+            background: linear-gradient(270deg, 
+                #8B0000 0%, 
+                #A52A2A 25%, 
+                #DC143C 50%, 
+                #A52A2A 75%, 
+                #8B0000 100%);
+            box-shadow: 
+                -8px 0 30px rgba(0,0,0,0.8),
+                inset 20px 0 40px rgba(0,0,0,0.3);
+            animation: curtain-right-open 5s ease-in-out forwards;
+            border-left: 4px solid #FFD700;
+            transform-origin: right center;
         }
         
-        .curtain-rope {
+        .curtain-top-border {
             position: absolute;
-            top: 20px;
-            width: 4px;
-            height: 100px;
-            background: #DAA520;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(180deg, #FFD700 0%, #B8860B 100%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        
+        .curtain-tassels {
+            position: absolute;
+            top: 40px;
+            width: 100%;
+            height: 60px;
+            background: repeating-linear-gradient(
+                90deg,
+                #FFD700 0px, #FFD700 15px,
+                #B8860B 15px, #B8860B 25px
+            );
+            opacity: 0.8;
+        }
+        
+        .cinema-stage {
+            animation: stage-fadeout 5.5s ease-in-out forwards;
+        }
+        
+        .cinema-logo {
+            position: absolute;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
+            color: #FFD700;
+            font-size: 3rem;
+            font-family: 'Georgia', serif;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            opacity: 0.8;
+            animation: logo-fade 5s ease-in-out;
+        }
+        
+        @keyframes logo-fade {
+            0% { opacity: 0; }
+            30% { opacity: 0.8; }
+            70% { opacity: 0.8; }
+            100% { opacity: 0; }
         }
         </style>
         
-        <div class="cinema-curtain-left">
-            <div class="curtain-rope"></div>
+        <div class="cinema-stage">
+            <div class="curtain-backdrop"></div>
+            <div class="curtain-top-border"></div>
+            <div class="curtain-tassels"></div>
+            <div class="curtain-left"></div>
+            <div class="curtain-right"></div>
+            <div class="cinema-logo">🎬 YKS Hikayesi Başlıyor...</div>
         </div>
-        <div class="cinema-curtain-right">
-            <div class="curtain-rope"></div>
-        </div>
+        
+        <script>
+        setTimeout(() => {
+            document.body.style.overflow = 'auto';
+        }, 5500);
+        </script>
         """
         
         if st.session_state.current_day_index == 0:
@@ -4241,7 +4338,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                          style="max-width: 100%; height: auto; max-height: 300px; border-radius: 10px; border: 3px solid #ffd700; box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3); object-fit: cover;">
                     <p style="color: #cccccc; font-size: 0.9rem; margin-top: 10px; font-style: italic;">"{current_day['photo_caption'] or 'Fotoğraf açıklaması eklenmemiş'}"</p>
                 </div>
-                ''' if current_day.get('photo_data') and isinstance(current_day['photo_data'], str) and len(current_day['photo_data']) > 50 else f'''
+                ''' if current_day.get('photo_data') and len(str(current_day['photo_data'])) > 50 else f'''
                 <div style="text-align: center; margin-top: 20px; padding: 15px; background: rgba(255, 193, 7, 0.1); border-radius: 10px; border: 2px dashed #ffc107;">
                     <h4 style="color: #ffc107; margin-bottom: 15px;">📷 Günün Anısı</h4>
                     <div style="color: #ffc107; font-size: 4rem; margin: 20px 0;">🌅</div>
@@ -4255,39 +4352,124 @@ def show_yks_journey_cinema(user_data, progress_data):
             st.components.v1.html(day_frame, height=600)
             
             # Kontrol butonları
-            # Tam ekran özelliği ekle
-            if 'fullscreen_mode' not in st.session_state:
-                st.session_state.fullscreen_mode = False
+            # YouTube tarzı tam ekran hazır
             
-            # Tam ekran CSS
-            if st.session_state.fullscreen_mode:
-                fullscreen_css = """
-                <style>
-                    .main .block-container {
-                        padding-top: 1rem;
-                        padding-bottom: 1rem;
-                        padding-left: 1rem;
-                        padding-right: 1rem;
-                        max-width: 100%;
+            # YouTube tarzı gerçek tam ekran modu 🖼️
+            fullscreen_css = """
+            <style>
+                .cinema-container {
+                    width: 100%;
+                    height: 100%;
+                    background: #000;
+                    position: relative;
+                }
+                
+                .fullscreen-enabled {
+                    position: fixed !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                    width: 100vw !important;
+                    height: 100vh !important;
+                    z-index: 999999 !important;
+                    background: #000 !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                
+                .fullscreen-enabled .main .block-container {
+                    max-width: 100% !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                }
+                
+                .fullscreen-enabled [data-testid="stSidebar"] {
+                    display: none !important;
+                }
+                
+                .fullscreen-enabled header {
+                    display: none !important;
+                }
+                
+                .fullscreen-enabled [data-testid="stToolbar"] {
+                    display: none !important;
+                }
+                
+                .fullscreen-button {
+                    background: rgba(0,0,0,0.7);
+                    color: white;
+                    border: none;
+                    padding: 8px 12px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 16px;
+                    transition: all 0.3s ease;
+                }
+                
+                .fullscreen-button:hover {
+                    background: rgba(0,0,0,0.9);
+                }
+            </style>
+            
+            <script>
+            function toggleFullscreen() {
+                const element = document.documentElement;
+                
+                if (!document.fullscreenElement) {
+                    // Tam ekrana geç
+                    if (element.requestFullscreen) {
+                        element.requestFullscreen();
+                    } else if (element.mozRequestFullScreen) {
+                        element.mozRequestFullScreen();
+                    } else if (element.webkitRequestFullscreen) {
+                        element.webkitRequestFullscreen();
+                    } else if (element.msRequestFullscreen) {
+                        element.msRequestFullscreen();
                     }
-                    .stApp > header {
-                        background-color: transparent;
+                    
+                    // Streamlit app'i tam ekran moduna al
+                    document.body.classList.add('fullscreen-enabled');
+                    const stApp = document.querySelector('.stApp');
+                    if (stApp) stApp.classList.add('fullscreen-enabled');
+                    
+                } else {
+                    // Tam ekrandan çık
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
                     }
-                    .stApp {
-                        margin: 0;
-                        padding: 0;
-                    }
-                    [data-testid="stSidebar"] {
-                        display: none;
-                    }
-                    @media (max-width: 768px) {
-                        .main .block-container {
-                            padding: 0.5rem;
-                        }
-                    }
-                </style>
-                """
-                st.components.v1.html(fullscreen_css, height=0)
+                    
+                    // Normal moda dön
+                    document.body.classList.remove('fullscreen-enabled');
+                    const stApp = document.querySelector('.stApp');
+                    if (stApp) stApp.classList.remove('fullscreen-enabled');
+                }
+            }
+            
+            // Tam ekran değişiklik dinleyicisi
+            document.addEventListener('fullscreenchange', function() {
+                if (!document.fullscreenElement) {
+                    document.body.classList.remove('fullscreen-enabled');
+                    const stApp = document.querySelector('.stApp');
+                    if (stApp) stApp.classList.remove('fullscreen-enabled');
+                }
+            });
+            
+            // ESC tuşu ile çıkış
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && document.fullscreenElement) {
+                    document.body.classList.remove('fullscreen-enabled');
+                    const stApp = document.querySelector('.stApp');
+                    if (stApp) stApp.classList.remove('fullscreen-enabled');
+                }
+            });
+            </script>
+            """
+            st.components.v1.html(fullscreen_css, height=0)
             
             col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
             
@@ -4311,16 +4493,19 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.rerun()
             
             with col4:
-                fullscreen_text = "📱 Normal Ekran" if st.session_state.fullscreen_mode else "🖼️ Tam Ekran"
-                if st.button(fullscreen_text):
-                    st.session_state.fullscreen_mode = not st.session_state.fullscreen_mode
-                    st.rerun()
+                # YouTube tarzı tam ekran butonu 🖼️
+                fullscreen_html = """
+                <button class="fullscreen-button" onclick="toggleFullscreen()" title="Tam Ekran (YouTube gibi)">
+                    🖼️ Tam Ekran
+                </button>
+                """
+                st.components.v1.html(fullscreen_html, height=50)
             
             with col5:
                 if st.button("🚪 Çıkış"):
                     st.session_state.cinema_active = False
                     st.session_state.current_day_index = 0
-                    st.session_state.fullscreen_mode = False
+
                     st.rerun()
             
             # Otomatik geçiş
