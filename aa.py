@@ -4101,11 +4101,15 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             time_text = str(hours) + "s " + str(minutes) + "dk"
             progress_percent = int((day_data['day_number'] / len(timeline_days)) * 100)
             
-            # JavaScript tabanlı yumuşak geri sayım
-            current_time = time.time()
-            elapsed = current_time - st.session_state.last_auto_update
-            remaining_seconds = max(0, 5 - int(elapsed))
-            auto_play_enabled = st.session_state.auto_play
+            # Basit geri sayım hesapla
+            countdown_text = ""
+            if st.session_state.auto_play:
+                current_time = time.time()
+                remaining = 5 - int(current_time - st.session_state.last_auto_update)
+                if remaining > 0:
+                    countdown_text = f"⏱️ Sonraki güne: {remaining} saniye"
+                else:
+                    countdown_text = "⚡ Geçiş yapılıyor..."
             
             # Subjects listesini string'e çevir
             subjects_text = ""
@@ -4164,25 +4168,10 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 </div>
                 """
             
-            # HTML string'i oluştur - YUMUŞAK SİNEMA PERDE + RESPONSİVE
+            # HTML string'i oluştur - BASİT SİNEMA PERDE
             day_html = """
             <!-- MODERN GOOGLE FONTS -->
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-            
-            <!-- RESPONSİVE & FULLSCREEN CSS -->
-            <style>
-                .theater-container:fullscreen {
-                    background: linear-gradient(135deg, #000000 0%, #1a0000 50%, #000000 100%) !important;
-                    padding: 20px !important;
-                    overflow-y: auto !important;
-                }
-                
-                @media (max-width: 768px) {
-                    .theater-container {
-                        padding: 20px 10px !important;
-                    }
-                }
-            </style>
             
             <!-- TAM EKRAN BUTONU -->
             <div style="
@@ -4226,41 +4215,28 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 }
             </script>
             
-            <!-- SİNEMA SALONU ATMOSFER - RESPONSİVE -->
+            <!-- SİNEMA SALONU ATMOSFER - KOMPAKT -->
             <div class="theater-container" style="
                 background: linear-gradient(135deg, #000000 0%, #1a0000 50%, #000000 100%);
-                padding: 40px 15px;
+                padding: 20px 10px;
                 margin: 0;
-                height: 100%;
-                max-height: 95vh;
+                height: auto;
                 position: relative;
                 font-family: 'Inter', sans-serif;
-                overflow-y: auto;
             ">
-                <!-- SİNEMA SPOT IŞIKLARI -->
-                <div style="
-                    position: absolute;
-                    top: 0;
-                    left: 20%;
-                    width: 60%;
-                    height: 40px;
-                    background: radial-gradient(ellipse at center, rgba(255,215,0,0.3) 0%, transparent 70%);
-                "></div>
-                
-                <!-- ANA SİNEMA PERDE - RESPONSİVE -->
+                <!-- ANA SİNEMA PERDE - KOMPAKT -->
                 <div style="
                     background: #000000;
-                    border: 20px solid #8B0000;
+                    border: 15px solid #8B0000;
                     border-image: linear-gradient(45deg, #8B0000, #DC143C, #8B0000) 1;
-                    border-radius: 15px;
-                    margin: 20px auto;
-                    max-width: 96%;
-                    width: 100%;
+                    border-radius: 10px;
+                    margin: 10px auto;
+                    max-width: 98%;
                     position: relative;
                     box-shadow: 
-                        0 0 40px rgba(255,215,0,0.3),
-                        inset 0 0 20px rgba(0,0,0,0.8),
-                        0 15px 30px rgba(0,0,0,0.6);
+                        0 0 30px rgba(255,215,0,0.3),
+                        inset 0 0 15px rgba(0,0,0,0.8),
+                        0 10px 20px rgba(0,0,0,0.6);
                 ">
                     <!-- PERDE ÜST SÜS - KÜÇÜK -->
                     <div style="
@@ -4286,21 +4262,20 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                         box-shadow: 0 -3px 10px rgba(0,0,0,0.5);
                     "></div>
                     
-                    <!-- İÇERİK ALANI - RESPONSİVE -->
+                    <!-- İÇERİK ALANI - KOMPAKT -->
                     <div style="
-                        padding: 30px;
+                        padding: 25px;
                         background: linear-gradient(135deg, #000000 0%, #111111 100%);
                         border-radius: 10px;
                         position: relative;
-                        min-height: 500px;
-                        height: auto;
+                        min-height: 400px;
                     ">
                 
                 <h2 style="
                     color: #ffd700; 
                     text-align: center; 
-                    margin-bottom: 30px; 
-                    font-size: 2.8em; 
+                    margin-bottom: 20px; 
+                    font-size: 2.2em; 
                     font-weight: 600;
                     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                     font-family: 'Space Grotesk', 'Inter', sans-serif;
@@ -4309,57 +4284,57 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     📅 """ + date_str + """ - Gün """ + str(day_data['day_number']) + """
                 </h2>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 30px 0;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0;">
                     <div style="
                         background: #1a1a1a; 
-                        border: 3px solid #ffd700; 
-                        padding: 25px; 
+                        border: 2px solid #ffd700; 
+                        padding: 15px; 
                         text-align: center;
                     ">
-                        <div style="font-size: 2.8em; font-weight: 700; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">""" + str(day_data['completed_topics']) + """</div>
-                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px; font-family: 'Inter', sans-serif;">📚 Konu Tamamlandı</div>
+                        <div style="font-size: 2.2em; font-weight: 700; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">""" + str(day_data['completed_topics']) + """</div>
+                        <div style="color: #ffffff; font-size: 1em; margin-top: 8px; font-family: 'Inter', sans-serif;">📚 Konu Tamamlandı</div>
                     </div>
                     
                     <div style="
                         background: #1a1a1a; 
-                        border: 3px solid #ffd700; 
-                        padding: 25px; 
+                        border: 2px solid #ffd700; 
+                        padding: 15px; 
                         text-align: center;
                     ">
-                        <div style="font-size: 2.8em; font-weight: 700; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">""" + str(day_data['solved_questions']) + """</div>
-                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px; font-family: 'Inter', sans-serif;">📝 Soru Çözüldü</div>
+                        <div style="font-size: 2.2em; font-weight: 700; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">""" + str(day_data['solved_questions']) + """</div>
+                        <div style="color: #ffffff; font-size: 1em; margin-top: 8px; font-family: 'Inter', sans-serif;">📝 Soru Çözüldü</div>
                     </div>
                     
                     <div style="
                         background: #1a1a1a; 
-                        border: 3px solid #ffd700; 
-                        padding: 25px; 
+                        border: 2px solid #ffd700; 
+                        padding: 15px; 
                         text-align: center;
                     ">
-                        <div style="font-size: 2.8em; font-weight: 700; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">""" + str(day_data['pomodoro_count']) + """</div>
-                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px; font-family: 'Inter', sans-serif;">🍅 Pomodoro</div>
+                        <div style="font-size: 2.2em; font-weight: 700; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">""" + str(day_data['pomodoro_count']) + """</div>
+                        <div style="color: #ffffff; font-size: 1em; margin-top: 8px; font-family: 'Inter', sans-serif;">🍅 Pomodoro</div>
                     </div>
                     
                     <div style="
                         background: #1a1a1a; 
-                        border: 3px solid #ffd700; 
-                        padding: 25px; 
+                        border: 2px solid #ffd700; 
+                        padding: 15px; 
                         text-align: center;
                     ">
-                        <div style="font-size: 2.8em; font-weight: 700; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">""" + time_text + """</div>
-                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px; font-family: 'Inter', sans-serif;">⏱️ Çalışma Süresi</div>
+                        <div style="font-size: 2.2em; font-weight: 700; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">""" + time_text + """</div>
+                        <div style="color: #ffffff; font-size: 1em; margin-top: 8px; font-family: 'Inter', sans-serif;">⏱️ Çalışma Süresi</div>
                     </div>
                 </div>
                         
                 <div style="
-                    margin: 30px 0; 
+                    margin: 20px 0; 
                     color: #ffffff; 
-                    font-size: 1.3em; 
+                    font-size: 1.1em; 
                     background: #1a1a1a;
-                    padding: 20px;
+                    padding: 15px;
                     border-left: 4px solid #ffd700;
                 ">
-                    <strong style="color: #ffd700; font-size: 1.4em; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">📚 Çalışılan Dersler:</strong><br><br>
+                    <strong style="color: #ffd700; font-size: 1.2em; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">📚 Çalışılan Dersler:</strong><br><br>
                     """ + subjects_text + """
                 </div>
                         
@@ -4374,17 +4349,17 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                         <p style="
                             text-align: center; 
                             color: #ffd700; 
-                            font-size: 1.8em; 
-                            margin-top: 30px; 
+                            font-size: 1.4em; 
+                            margin-top: 20px; 
                             font-weight: bold;
                             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                         ">
                             🚀 Başarı Yolculuğu Devam Ediyor... (""" + str(day_data['day_number']) + """/""" + str(len(timeline_days)) + """)
                         </p>
                         
-                        <!-- AUTO-PLAY YUMUŞAK GERİ SAYIM -->
-                        """ + (f"""
-                        <div id="countdown-display" style="
+                        <!-- BASİT AUTO-PLAY GÖSTERGESİ -->
+                        """ + ("""
+                        <div style="
                             position: absolute;
                             bottom: 10px;
                             right: 20px;
@@ -4398,59 +4373,22 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                             box-shadow: 0 0 20px rgba(255,215,0,0.4);
                             font-family: 'Inter', sans-serif;
                         ">
-                            ⏱️ Sonraki güne: <span id="countdown-number">{remaining_seconds}</span> saniye
+                            """ + countdown_text + """
                         </div>
-                        
-                        <script>
-                            let startTime = {st.session_state.last_auto_update};
-                            let isAutoPlay = {str(auto_play_enabled).lower()};
-                            let currentDay = {st.session_state.cinema_day};
-                            let maxDays = {len(timeline_days)};
-                            
-                            function updateCountdown() {{
-                                if (!isAutoPlay) {{
-                                    document.getElementById('countdown-display').style.display = 'none';
-                                    return;
-                                }}
-                                
-                                let now = Date.now() / 1000;
-                                let elapsed = now - startTime;
-                                let remaining = Math.max(0, 5 - Math.floor(elapsed));
-                                
-                                let countdownEl = document.getElementById('countdown-number');
-                                if (countdownEl) {{
-                                    if (remaining > 0) {{
-                                        countdownEl.textContent = remaining;
-                                    }} else {{
-                                        document.getElementById('countdown-display').innerHTML = '⚡ Geçiş yapılıyor...';
-                                        // 5 saniye dolduğunda ve son gün değilse sayfayı yenile
-                                        if (currentDay < maxDays - 1) {{
-                                            setTimeout(() => {{
-                                                window.location.reload();
-                                            }}, 1000);
-                                        }}
-                                    }}
-                                }}
-                            }}
-                            
-                            // Her saniye güncelle
-                            if (isAutoPlay) {{
-                                setInterval(updateCountdown, 1000);
-                                updateCountdown(); // İlk çalıştırma
-                            }}
-                        </script>
-                        """ if auto_play_enabled else "") + """
+                        """ if st.session_state.auto_play and countdown_text else "") + """
                         
                     </div>
                 </div>
             </div>
             """
             
-            # HTML'i render et - RESPONSİVE SİNEMA PERDE 
-            st.components.v1.html(day_html, height=850)
+            # HTML'i render et - KOMPAKT SİNEMA PERDE 
+            st.components.v1.html(day_html, height=700)
             
-            # ✨ YUMUŞAK AUTO-PLAY - DISKO FLASHING YOK!
-            # JavaScript geri sayım ile sayfa yenilemesiz geçiş
+            # BASİT AUTO-PLAY - 3 SANİYE ARAYLA GÜNCELLE
+            if st.session_state.auto_play:
+                time.sleep(3)  # 3 saniye bekle
+                st.rerun()  # Geri sayımı güncellemek için
             
             # Kontrol butonları
             col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
