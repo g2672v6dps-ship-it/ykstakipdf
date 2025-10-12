@@ -4044,74 +4044,21 @@ def show_yks_journey_cinema(user_data, progress_data):
     else:
         # Sinema modunda
         # Müzik ekleme (YouTube embed)
-        if st.session_state.music_enabled:
-            st.info("🎵 Sinematik deneyim için müzik açık! 🎬 Oynat/Duraklat butonları ile müziği kontrol edebilirsiniz.")
-            music_html = """
-            <div id="youtube-music-container" style="position: fixed; top: -200px; left: -200px; opacity: 0.01; pointer-events: none; z-index: -1000;">
-                <div id="youtube-player"></div>
-            </div>
+        # Müzik kontrolü için session state
+        if 'music_playing' not in st.session_state:
+            st.session_state.music_playing = True
             
-            <script src="https://www.youtube.com/iframe_api"></script>
-            <script>
-                var player;
-                var isPlayerReady = false;
-                
-                function onYouTubeIframeAPIReady() {
-                    player = new YT.Player('youtube-player', {
-                        height: '100',
-                        width: '100',
-                        videoId: 'V9FW37WkIf0',
-                        playerVars: {
-                            'autoplay': 1,
-                            'loop': 1,
-                            'playlist': 'V9FW37WkIf0',
-                            'controls': 0,
-                            'showinfo': 0,
-                            'rel': 0,
-                            'iv_load_policy': 3,
-                            'modestbranding': 1,
-                            'start': 0
-                        },
-                        events: {
-                            'onReady': onPlayerReady,
-                            'onStateChange': onPlayerStateChange
-                        }
-                    });
-                }
-                
-                function onPlayerReady(event) {
-                    isPlayerReady = true;
-                    event.target.setVolume(50); // %50 ses seviyesi
-                    window.cinemaPlayer = player; // Global erişim
-                }
-                
-                function onPlayerStateChange(event) {
-                    // Video bitince tekrar başlat (loop için)
-                    if (event.data == YT.PlayerState.ENDED) {
-                        event.target.playVideo();
-                    }
-                }
-                
-                // Müzik kontrol fonksiyonları
-                window.playMusic = function() {
-                    if (player && isPlayerReady) {
-                        player.playVideo();
-                    }
-                };
-                
-                window.pauseMusic = function() {
-                    if (player && isPlayerReady) {
-                        player.pauseVideo();
-                    }
-                };
-                
-                window.isMusicPlaying = function() {
-                    if (player && isPlayerReady) {
-                        return player.getPlayerState() === YT.PlayerState.PLAYING;
-                    }
-                    return false;
-                };
-            </script>
+        if st.session_state.music_enabled and st.session_state.music_playing:
+            st.info("🎵 Sinematik müzik çalıyor! Oynat/Duraklat butonları ile kontrol edin.")
+            music_html = """
+            <div style="position: fixed; top: -200px; left: -200px; opacity: 0.01; pointer-events: none; z-index: -1000;">
+                <iframe width="100" height="100" 
+                        src="https://www.youtube.com/embed/V9FW37WkIf0?autoplay=1&loop=1&playlist=V9FW37WkIf0&controls=0&mute=0&start=0" 
+                        frameborder="0" 
+                        allow="autoplay; encrypted-media" 
+                        allowfullscreen>
+                </iframe>
+            </div>
             <style>
                 body { 
                     background: linear-gradient(135deg, #000 0%, #1a1a2e 100%);
@@ -4124,6 +4071,8 @@ def show_yks_journey_cinema(user_data, progress_data):
             </style>
             """
             st.components.v1.html(music_html, height=0)
+        elif st.session_state.music_enabled and not st.session_state.music_playing:
+            st.warning("🔇 Müzik duraklatıldı. ▶️ Oynat butonu ile devam ettirin.")
         
         # Gerçek sinematik perde animasyonu 🎭
         curtain_html = """
@@ -4411,112 +4360,9 @@ def show_yks_journey_cinema(user_data, progress_data):
             # Kontrol butonları
             # YouTube tarzı tam ekran hazır
             
-            # YouTube tarzı tam ekran sistemi - Görünür buton
-            fullscreen_css = """
-            <style>
-                .fullscreen-enabled {
-                    position: fixed !important;
-                    top: 0 !important;
-                    left: 0 !important;
-                    width: 100vw !important;
-                    height: 100vh !important;
-                    z-index: 999999 !important;
-                    background: #000 !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                }
-                
-                .fullscreen-enabled .main .block-container {
-                    max-width: 100% !important;
-                    padding: 0 !important;
-                    margin: 0 !important;
-                }
-                
-                .fullscreen-enabled [data-testid="stSidebar"] {
-                    display: none !important;
-                }
-                
-                .fullscreen-enabled header {
-                    display: none !important;
-                }
-                
-                .fullscreen-enabled [data-testid="stToolbar"] {
-                    display: none !important;
-                }
-            </style>
-            
-            <script>
-            // Tam ekran fonksiyonu
-            function cinemaToggleFullscreen() {
-                const element = document.documentElement;
-                
-                try {
-                    if (!document.fullscreenElement) {
-                        // Tam ekrana geç
-                        if (element.requestFullscreen) {
-                            element.requestFullscreen();
-                        } else if (element.mozRequestFullScreen) {
-                            element.mozRequestFullScreen();
-                        } else if (element.webkitRequestFullscreen) {
-                            element.webkitRequestFullscreen();
-                        } else if (element.msRequestFullscreen) {
-                            element.msRequestFullscreen();
-                        }
-                        
-                        // Streamlit app'i tam ekran moduna al
-                        setTimeout(function() {
-                            document.body.classList.add('fullscreen-enabled');
-                            const stApp = document.querySelector('.stApp');
-                            if (stApp) stApp.classList.add('fullscreen-enabled');
-                        }, 100);
-                        
-                    } else {
-                        // Tam ekrandan çık
-                        if (document.exitFullscreen) {
-                            document.exitFullscreen();
-                        } else if (document.mozCancelFullScreen) {
-                            document.mozCancelFullScreen();
-                        } else if (document.webkitExitFullscreen) {
-                            document.webkitExitFullscreen();
-                        } else if (document.msExitFullscreen) {
-                            document.msExitFullscreen();
-                        }
-                        
-                        // Normal moda dön
-                        document.body.classList.remove('fullscreen-enabled');
-                        const stApp = document.querySelector('.stApp');
-                        if (stApp) stApp.classList.remove('fullscreen-enabled');
-                    }
-                } catch (error) {
-                    console.error('Tam ekran hatası:', error);
-                    alert('Tam ekran özelliği bu tarayıcıda desteklenmiyor.');
-                }
-            }
-            
-            // Tam ekran değişiklik dinleyicisi
-            document.addEventListener('fullscreenchange', function() {
-                if (!document.fullscreenElement) {
-                    document.body.classList.remove('fullscreen-enabled');
-                    const stApp = document.querySelector('.stApp');
-                    if (stApp) stApp.classList.remove('fullscreen-enabled');
-                }
-            });
-            
-            // ESC tuşu ile çıkış
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && document.fullscreenElement) {
-                    document.body.classList.remove('fullscreen-enabled');
-                    const stApp = document.querySelector('.stApp');
-                    if (stApp) stApp.classList.remove('fullscreen-enabled');
-                }
-            });
-            
-            // Global tanımlamalar
-            window.cinemaToggleFullscreen = cinemaToggleFullscreen;
-            window.toggleFullscreen = cinemaToggleFullscreen;
-            </script>
-            """
-            st.components.v1.html(fullscreen_css, height=0)
+            # Tam ekran durumu için session state
+            if 'fullscreen_mode' not in st.session_state:
+                st.session_state.fullscreen_mode = False
             
             col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
             
@@ -4526,32 +4372,21 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.rerun()
             
             with col2:
-                play_pause = "⏸️ Duraklat" if st.session_state.auto_play_mode else "▶️ Oynat"
-                if st.button(play_pause):
-                    # Müzik kontrolü - mevcut durumun tersini yap
-                    if st.session_state.auto_play_mode:
-                        # Şu anda oynatılıyor, duraklat
-                        music_control = """
-                        <script>
-                        if (window.pauseMusic) {
-                            window.pauseMusic();
-                        }
-                        </script>
-                        """
-                    else:
-                        # Şu anda duraklatılmış, oynat
-                        music_control = """
-                        <script>
-                        if (window.playMusic) {
-                            window.playMusic();
-                        }
-                        </script>
-                        """
-                    
-                    st.components.v1.html(music_control, height=0)
-                    
-                    # Auto play modunu değiştir
+                # Film ve Müzik kontrolleri birleşik
+                if st.session_state.auto_play_mode and st.session_state.music_playing:
+                    play_text = "⏸️ Duraklat (Film+Müzik)"
+                elif st.session_state.auto_play_mode and not st.session_state.music_playing:
+                    play_text = "⏸️ Film Duraklat"
+                elif not st.session_state.auto_play_mode and st.session_state.music_playing:
+                    play_text = "▶️ Film Oynat"
+                else:
+                    play_text = "▶️ Oynat (Film+Müzik)"
+                
+                if st.button(play_text):
+                    # Hem film hem müzik kontrolü
                     st.session_state.auto_play_mode = not st.session_state.auto_play_mode
+                    st.session_state.music_playing = st.session_state.auto_play_mode
+                    
                     if st.session_state.auto_play_mode:
                         st.session_state.last_day_change = time.time()
                     st.rerun()
@@ -4563,26 +4398,45 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.rerun()
             
             with col4:
-                # Tam ekran butonu - Streamlit buton olarak
-                fullscreen_btn = """
-                <button onclick="cinemaToggleFullscreen()" 
-                        style="width: 100%; height: 38px; background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-                               color: white; border: none; border-radius: 8px; cursor: pointer;
-                               font-size: 14px; font-weight: bold; transition: all 0.3s ease;
-                               box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);">
-                    🖼️ Tam Ekran
-                </button>
-                """
-                st.components.v1.html(fullscreen_btn, height=50)
+                # Tam ekran butonu - Basit CSS yaklaşımı
+                fullscreen_text = "🔲 Normal Ekran" if st.session_state.fullscreen_mode else "🖼️ Tam Ekran"
+                if st.button(fullscreen_text):
+                    st.session_state.fullscreen_mode = not st.session_state.fullscreen_mode
+                    st.rerun()
             
             with col5:
                 if st.button("🚪 Çıkış"):
                     st.session_state.cinema_active = False
                     st.session_state.current_day_index = 0
+                    st.session_state.fullscreen_mode = False
                     st.rerun()
             
-            # Bilgi mesajı
-            st.success("🎵 **Müzik Kontrolü:** Oynat/Duraklat butonları müziği de kontrol eder | 🖼️ **Tam Ekran:** YouTube tarzı deneyim")
+            # Tam ekran CSS uygulaması
+            if st.session_state.fullscreen_mode:
+                fullscreen_css = """
+                <style>
+                [data-testid="stSidebar"] {
+                    display: none !important;
+                }
+                .main .block-container {
+                    max-width: 100% !important;
+                    padding: 1rem !important;
+                }
+                [data-testid="stHeader"] {
+                    display: none !important;
+                }
+                .stApp > header {
+                    display: none !important;
+                }
+                </style>
+                """
+                st.markdown(fullscreen_css, unsafe_allow_html=True)
+                st.info("🖼️ **Tam Ekran Modu Aktif** - Sidebar ve header gizlendi. '🔲 Normal Ekran' ile çık.")
+            
+            # Durum bilgisi
+            music_status = "🎵 Çalıyor" if st.session_state.music_playing else "🔇 Duraklatıldı"
+            screen_status = "🖼️ Tam Ekran" if st.session_state.fullscreen_mode else "🪟 Normal"
+            st.success(f"**Durum:** {music_status} | {screen_status} | **Gün:** {st.session_state.current_day_index + 1}/{len(journey_data)}")
             
             # Otomatik geçiş
             if st.session_state.auto_play_mode:
