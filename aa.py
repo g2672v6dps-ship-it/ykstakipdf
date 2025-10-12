@@ -3783,7 +3783,478 @@ def show_weekly_summary(weekly_plan):
             st.success("✅ Haftalık plan temizlendi!")
             st.rerun()
 
-# Sar Zamanı Geriye fonksiyonu silindi
+def show_yks_journey_cinema(user_data, progress_data):
+    """🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum - Sinematik Deneyim"""
+    
+    # Kullanıcı verilerini kontrol et
+    if not user_data:
+        st.error("Kullanıcı verisi bulunamadı!")
+        return
+    
+    # Session state'leri başlat
+    if 'cinema_active' not in st.session_state:
+        st.session_state.cinema_active = False
+    if 'current_day_index' not in st.session_state:
+        st.session_state.current_day_index = 0
+    if 'auto_play_mode' not in st.session_state:
+        st.session_state.auto_play_mode = True
+    if 'music_enabled' not in st.session_state:
+        st.session_state.music_enabled = True
+    if 'last_day_change' not in st.session_state:
+        st.session_state.last_day_change = 0
+    
+    # Öğrenci adını al
+    student_name = user_data.get('name', 'Öğrenci')
+    
+    # Başlangıç tarihini hesapla
+    try:
+        if 'created_date' in user_data and user_data['created_date']:
+            start_date = datetime.strptime(user_data['created_date'], '%Y-%m-%d')
+        else:
+            start_date = datetime.now() - timedelta(days=7)
+    except:
+        start_date = datetime.now() - timedelta(days=7)
+    
+    current_date = datetime.now()
+    days_passed = (current_date - start_date).days + 1
+    
+    # Günlük verileri topla
+    def collect_daily_data():
+        journey_days = []
+        
+        try:
+            daily_motivation = json.loads(user_data.get('daily_motivation', '{}'))
+            pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
+            topic_progress = json.loads(user_data.get('topic_progress', '{}'))
+            exam_data = json.loads(user_data.get('exam_data', '{}'))
+            weekly_plan = json.loads(user_data.get('weekly_plan', '{}'))
+        except:
+            daily_motivation = {}
+            pomodoro_history = []
+            topic_progress = {}
+            exam_data = {}
+            weekly_plan = {}
+        
+        for i in range(min(days_passed, 30)):  # Son 30 gün
+            day_date = start_date + timedelta(days=i)
+            date_str = day_date.strftime('%Y-%m-%d')
+            
+            # Günlük veri yapısı
+            day_data = {
+                'date': day_date,
+                'day_number': i + 1,
+                'motivation_score': 5,
+                'daily_note': '',
+                'photo_data': None,
+                'photo_caption': '',
+                'questions_solved': {},
+                'total_questions': 0,
+                'completed_topics': [],
+                'review_topics': [],
+                'exam_taken': False,
+                'exam_scores': {},
+                'tyt_progress': 0,
+                'ayt_progress': 0,
+                'daily_achievement': ''
+            }
+            
+            # Günlük motivasyon verilerini al
+            if date_str in daily_motivation:
+                day_motivation = daily_motivation[date_str]
+                day_data['motivation_score'] = day_motivation.get('score', 5)
+                day_data['daily_note'] = day_motivation.get('note', '')
+                day_data['photo_data'] = day_motivation.get('photo_data', None)
+                day_data['photo_caption'] = day_motivation.get('photo_caption', '')
+                
+                # Soru takibi verilerini al
+                questions_data = day_motivation.get('questions', {})
+                day_data['questions_solved'] = questions_data
+                day_data['total_questions'] = sum([int(v) for v in questions_data.values() if str(v).isdigit()])
+            
+            # Pomodoro verilerinden çalışma verilerini al
+            day_pomodoros = [p for p in pomodoro_history 
+                           if p.get('date', '').startswith(date_str) or 
+                           (p.get('timestamp', '') and p['timestamp'].startswith(date_str))]
+            
+            # Çalışılan konuları topla
+            subjects_studied = set()
+            topics_completed = set()
+            
+            for pomodoro in day_pomodoros:
+                if 'subject' in pomodoro and pomodoro['subject']:
+                    subjects_studied.add(pomodoro['subject'])
+                if 'topic' in pomodoro and pomodoro['topic']:
+                    topics_completed.add(pomodoro['topic'])
+            
+            day_data['completed_topics'] = list(topics_completed)[:3]
+            
+            # Deneme verileri kontrol et
+            if date_str in exam_data:
+                day_data['exam_taken'] = True
+                day_data['exam_scores'] = exam_data[date_str]
+            
+            # TYT-AYT ilerleme hesapla (simulated)
+            day_data['tyt_progress'] = min(i * 2, 100)
+            day_data['ayt_progress'] = min(i * 1.5, 100)
+            
+            # Günlük başarı mesajı oluştur
+            if day_data['total_questions'] > 20:
+                day_data['daily_achievement'] = f"🔥 {day_data['total_questions']} soru çözdün!"
+            elif len(day_data['completed_topics']) > 2:
+                day_data['daily_achievement'] = f"📚 {len(day_data['completed_topics'])} konu tamamladın!"
+            elif day_data['motivation_score'] >= 8:
+                day_data['daily_achievement'] = "⭐ Süper motivasyonla çalıştın!"
+            else:
+                day_data['daily_achievement'] = "💪 YKS yolunda bir adım daha!"
+            
+            journey_days.append(day_data)
+        
+        return journey_days
+    
+    # Sinematik başlık
+    cinema_title = f"""
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <div style="
+        background: linear-gradient(135deg, #000 0%, #1a1a2e 50%, #16213e 100%);
+        border: 8px solid #ffd700;
+        border-radius: 20px;
+        padding: 40px;
+        margin: 20px 0;
+        text-align: center;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+    ">
+        <!-- Film çerçevesi -->
+        <div style="
+            position: absolute;
+            top: -4px; left: -4px; right: -4px; bottom: -4px;
+            background: repeating-linear-gradient(
+                90deg,
+                #ffd700 0px, #ffd700 10px,
+                transparent 10px, transparent 20px
+            );
+            border-radius: 24px;
+            z-index: -1;
+        "></div>
+        
+        <h1 style="
+            color: #ffd700;
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 700;
+            margin: 0 0 20px 0;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            letter-spacing: 2px;
+        ">🎬 {student_name}'nin YKS Hikayesi</h1>
+        
+        <p style="
+            color: #ffffff;
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            font-style: italic;
+        ">İlk Günden Bugüne Başarı Yolculuğu</p>
+        
+        <div style="
+            margin-top: 30px;
+            color: #ffd700;
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            font-family: 'Playfair Display', serif;
+        ">
+            🎭 Sinematik Deneyim Hazır
+        </div>
+    </div>
+    """
+    
+    st.components.v1.html(cinema_title, height=250)
+    
+    # Günlük verileri topla
+    journey_data = collect_daily_data()
+    total_days = len(journey_data)
+    
+    if not st.session_state.cinema_active:
+        # Başlatma ekranı
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.markdown("### 🎬 Sinema Kontrolleri")
+            
+            # Müzik seçeneği
+            music_choice = st.radio(
+                "🎵 Arka Plan Müziği:",
+                ["🎶 Müzikli İzle", "🔇 Sessiz İzle"],
+                index=0 if st.session_state.music_enabled else 1
+            )
+            st.session_state.music_enabled = (music_choice == "🎶 Müzikli İzle")
+            
+            # Oynatma hızı
+            speed_choice = st.radio(
+                "⚡ İzleme Hızı:",
+                ["🐌 Yavaş (6sn/gün)", "⚡ Normal (4sn/gün)", "🚀 Hızlı (2sn/gün)"],
+                index=1
+            )
+            
+            if speed_choice == "🐌 Yavaş (6sn/gün)":
+                st.session_state.day_duration = 6
+            elif speed_choice == "🚀 Hızlı (2sn/gün)":
+                st.session_state.day_duration = 2
+            else:
+                st.session_state.day_duration = 4
+            
+            st.markdown("---")
+            
+            # Başlat butonu
+            if st.button(f"🎬 {student_name}'nin Hikayesini Başlat!", 
+                        type="primary", 
+                        use_container_width=True):
+                st.session_state.cinema_active = True
+                st.session_state.current_day_index = 0
+                st.session_state.last_day_change = time.time()
+                st.rerun()
+        
+        # Önizleme bilgileri
+        if journey_data:
+            st.markdown("### 📊 Yolculuk Özeti")
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.metric("📅 Toplam Gün", total_days)
+            with col2:
+                total_questions = sum(day['total_questions'] for day in journey_data)
+                st.metric("❓ Toplam Soru", total_questions)
+            with col3:
+                avg_motivation = sum(day['motivation_score'] for day in journey_data) / max(total_days, 1)
+                st.metric("⭐ Ort. Motivasyon", f"{avg_motivation:.1f}/10")
+            with col4:
+                total_topics = sum(len(day['completed_topics']) for day in journey_data)
+                st.metric("📚 Toplam Konu", total_topics)
+    
+    else:
+        # Sinema modunda
+        # Müzik ekleme
+        if st.session_state.music_enabled:
+            st.info("🎵 Sinematik deneyim için müzik açık! Eğer müzik çalmıyorsa tarayıcınızın ses ayarlarını kontrol edin.")
+            music_html = """
+            <div style="display: none;">
+                <audio autoplay loop>
+                    <source src="https://www.youtube.com/watch?v=V9FW37WkIf0" type="audio/mpeg">
+                </audio>
+            </div>
+            <style>
+                body { 
+                    background: linear-gradient(135deg, #000 0%, #1a1a2e 100%);
+                    animation: cinema-ambiance 10s ease-in-out infinite alternate;
+                }
+                @keyframes cinema-ambiance {
+                    0% { filter: brightness(0.8); }
+                    100% { filter: brightness(1.0); }
+                }
+            </style>
+            """
+            st.components.v1.html(music_html, height=0)
+        
+        # Perde animasyonu
+        curtain_html = """
+        <style>
+        @keyframes curtain-open {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        @keyframes curtain-open-right {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .curtain-left {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100vh;
+            background: #8B0000;
+            z-index: 9999;
+            animation: curtain-open 3s ease-in-out forwards;
+        }
+        
+        .curtain-right {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100vh;
+            background: #8B0000;
+            z-index: 9999;
+            animation: curtain-open-right 3s ease-in-out forwards;
+        }
+        </style>
+        
+        <div class="curtain-left"></div>
+        <div class="curtain-right"></div>
+        """
+        
+        if st.session_state.current_day_index == 0:
+            st.components.v1.html(curtain_html, height=0)
+        
+        # Günlük gösterim
+        if st.session_state.current_day_index < len(journey_data):
+            current_day = journey_data[st.session_state.current_day_index]
+            
+            # Film karesi stili
+            day_frame = f"""
+            <div style="
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                border: 6px solid #ffd700;
+                border-radius: 15px;
+                padding: 30px;
+                margin: 20px 0;
+                color: white;
+                font-family: 'Arial', sans-serif;
+                box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2);
+            ">
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <h2 style="color: #ffd700; font-size: 2.5rem; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+                        📅 {current_day['day_number']}. Gün
+                    </h2>
+                    <p style="color: #ffffff; font-size: 1.3rem; margin: 5px 0;">
+                        {current_day['date'].strftime('%d.%m.%Y')} - {['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'][current_day['date'].weekday()]}
+                    </p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 25px 0;">
+                    
+                    <div style="background: rgba(255, 215, 0, 0.1); padding: 20px; border-radius: 10px; border-left: 4px solid #ffd700;">
+                        <h4 style="color: #ffd700; margin: 0 0 10px 0;">⭐ Günlük Motivasyon</h4>
+                        <p style="font-size: 1.5rem; margin: 5px 0;">{current_day['motivation_score']}/10</p>
+                        <p style="font-size: 0.9rem; color: #cccccc;">{current_day['daily_note'] or 'Not girilmemiş'}</p>
+                    </div>
+                    
+                    <div style="background: rgba(76, 175, 80, 0.1); padding: 20px; border-radius: 10px; border-left: 4px solid #4CAF50;">
+                        <h4 style="color: #4CAF50; margin: 0 0 10px 0;">❓ Çözülen Sorular</h4>
+                        <p style="font-size: 1.5rem; margin: 5px 0;">{current_day['total_questions']} soru</p>
+                        <p style="font-size: 0.9rem; color: #cccccc;">
+                            {', '.join([f"{k}: {v}" for k, v in current_day['questions_solved'].items() if v]) or 'Veri girilmemiş'}
+                        </p>
+                    </div>
+                    
+                    <div style="background: rgba(33, 150, 243, 0.1); padding: 20px; border-radius: 10px; border-left: 4px solid #2196F3;">
+                        <h4 style="color: #2196F3; margin: 0 0 10px 0;">📚 Tamamlanan Konular</h4>
+                        <p style="font-size: 1.5rem; margin: 5px 0;">{len(current_day['completed_topics'])} konu</p>
+                        <p style="font-size: 0.9rem; color: #cccccc;">
+                            {', '.join(current_day['completed_topics'][:2]) or 'Konu girilmemiş'}
+                        </p>
+                    </div>
+                    
+                    <div style="background: rgba(156, 39, 176, 0.1); padding: 20px; border-radius: 10px; border-left: 4px solid #9C27B0;">
+                        <h4 style="color: #9C27B0; margin: 0 0 10px 0;">🎯 YKS İlerleme</h4>
+                        <p style="font-size: 1.2rem; margin: 5px 0;">
+                            TYT: %{current_day['tyt_progress']} | AYT: %{current_day['ayt_progress']}
+                        </p>
+                        <p style="font-size: 0.9rem; color: #cccccc;">Hedeflere doğru ilerliyor</p>
+                    </div>
+                    
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px; padding: 20px; background: rgba(255, 215, 0, 0.1); border-radius: 10px;">
+                    <h3 style="color: #ffd700; margin: 0 0 10px 0;">🏆 Günün Başarısı</h3>
+                    <p style="font-size: 1.3rem; color: #ffffff; margin: 0;">
+                        {current_day['daily_achievement']}
+                    </p>
+                </div>
+                
+                {f'''
+                <div style="text-align: center; margin-top: 20px; padding: 15px; background: rgba(255, 215, 0, 0.05); border-radius: 10px;">
+                    <h4 style="color: #ffd700; margin-bottom: 15px;">📷 Günün Fotoğrafı</h4>
+                    <img src="data:image/jpeg;base64,{current_day['photo_data']}" 
+                         style="max-width: 300px; max-height: 200px; border-radius: 10px; border: 3px solid #ffd700; box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);">
+                    <p style="color: #cccccc; font-size: 0.9rem; margin-top: 10px; font-style: italic;">"{current_day['photo_caption']}"</p>
+                </div>
+                ''' if current_day['photo_data'] and len(current_day['photo_data']) > 10 else '''
+                <div style="text-align: center; margin-top: 20px; padding: 15px; background: rgba(128, 128, 128, 0.1); border-radius: 10px;">
+                    <h4 style="color: #888888; margin-bottom: 15px;">📷 Fotoğraf Eklenmemiş</h4>
+                    <div style="color: #666666; font-size: 3rem;">📸</div>
+                    <p style="color: #888888; font-size: 0.9rem; margin-top: 10px;">Bu gün için fotoğraf yüklenmemiş</p>
+                </div>
+                '''}
+            </div>
+            """
+            
+            st.components.v1.html(day_frame, height=600)
+            
+            # Kontrol butonları
+            col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+            
+            with col1:
+                if st.button("⏮️ Önceki", disabled=(st.session_state.current_day_index == 0)):
+                    st.session_state.current_day_index = max(0, st.session_state.current_day_index - 1)
+                    st.rerun()
+            
+            with col2:
+                play_pause = "⏸️ Duraklat" if st.session_state.auto_play_mode else "▶️ Oynat"
+                if st.button(play_pause):
+                    st.session_state.auto_play_mode = not st.session_state.auto_play_mode
+                    if st.session_state.auto_play_mode:
+                        st.session_state.last_day_change = time.time()
+                    st.rerun()
+            
+            with col3:
+                if st.button("⏭️ Sonraki", disabled=(st.session_state.current_day_index >= len(journey_data) - 1)):
+                    st.session_state.current_day_index = min(len(journey_data) - 1, st.session_state.current_day_index + 1)
+                    st.session_state.last_day_change = time.time()
+                    st.rerun()
+            
+            with col4:
+                if st.button("🚪 Çıkış"):
+                    st.session_state.cinema_active = False
+                    st.session_state.current_day_index = 0
+                    st.rerun()
+            
+            # Otomatik geçiş
+            if st.session_state.auto_play_mode:
+                current_time = time.time()
+                if current_time - st.session_state.last_day_change >= st.session_state.day_duration:
+                    if st.session_state.current_day_index < len(journey_data) - 1:
+                        st.session_state.current_day_index += 1
+                        st.session_state.last_day_change = current_time
+                        time.sleep(0.1)  # Küçük gecikme
+                        st.rerun()
+                    else:
+                        # Film bitti
+                        st.session_state.auto_play_mode = False
+                        st.balloons()
+                        st.success(f"🎉 {student_name}'nin başarı hikayesi tamamlandı!")
+                        st.info("🔄 'Tekrar İzle' butonuna tıklayarak hikayeyi tekrar izleyebilirsiniz!")
+                else:
+                    # Sayfa yenileme performansını artırmak için sadece gerektiğinde yenile
+                    time.sleep(0.5)
+                    st.rerun()
+            
+            # İlerleme çubuğu
+            progress = (st.session_state.current_day_index + 1) / total_days
+            st.progress(progress)
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.caption(f"📊 İlerleme: {st.session_state.current_day_index + 1}/{total_days} gün")
+            with col2:
+                if st.session_state.auto_play_mode:
+                    remaining_time = st.session_state.day_duration - (time.time() - st.session_state.last_day_change)
+                    if remaining_time > 0:
+                        st.caption(f"⏰ Sonraki gün: {remaining_time:.1f}s")
+                    else:
+                        st.caption("⏰ Geçiş yapılıyor...")
+                else:
+                    st.caption("⏸️ Duraklatıldı")
+            
+        else:
+            # Film bitti
+            st.markdown("### 🎉 Hikaye Tamamlandı!")
+            st.balloons()
+            if st.button("🔄 Tekrar İzle", type="primary"):
+                st.session_state.current_day_index = 0
+                st.session_state.last_day_change = time.time()
+                st.rerun()
+
 def show_systematic_recommendations(weekly_plan, survey_data, student_field):
     """Sistematik akıllı öneriler"""
     st.markdown("### 💡 Size Özel Sistematik Öneriler")
@@ -6860,7 +7331,7 @@ def main():
                     st.rerun()
             
             page = st.sidebar.selectbox("🌐 Sayfa Seçin", 
-                                      ["🏠 Ana Sayfa", "📚 Konu Takip", "⚙️ Benim Programım","🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler"])
+                                      ["🏠 Ana Sayfa", "📚 Konu Takip", "⚙️ Benim Programım","🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
             
             if page == "🏠 Ana Sayfa":
                 # Eski session verilerini temizle - her gün güncel sistem!
@@ -8964,7 +9435,8 @@ def main():
                 else:
                     st.info("📊 Henüz yeterli veri bulunmuyor. Konu takip sayfasından ilerlemenizi kaydedin.")
                     
-
+            elif page == "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum":
+                show_yks_journey_cinema(user_data, progress_data)
             
             elif page == "🎨 Öğrenme Stilleri Testi":
                 run_vak_learning_styles_test()
