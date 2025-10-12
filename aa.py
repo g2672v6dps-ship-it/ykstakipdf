@@ -9808,51 +9808,72 @@ def main():
                                 </style>
                                 
                                 <script>
-                                // MOBİL UYUMLU KAĞIT ÇEVİRME SESİ
+                                // GÜÇLÜ MOBİL TİK SESİ - TELEFON İÇİN ÖZEL!
                                 function playMobileCardFlipSound() {
                                     try {
-                                        // Basit ve etkili ses - mobil uyumlu
+                                        // Mobil için daha güçlü tik sesi
                                         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                                         
-                                        // Tek oscillator ile hızlı ve basit ses
+                                        // AudioContext'i unlock et (mobil için gerekli)
+                                        if (audioContext.state === 'suspended') {
+                                            audioContext.resume();
+                                        }
+                                        
+                                        // GÜÇLÜ TİK SESİ - Telefon hoparlörü için optimize
                                         const oscillator = audioContext.createOscillator();
                                         const gainNode = audioContext.createGain();
                                         
                                         oscillator.connect(gainNode);
                                         gainNode.connect(audioContext.destination);
                                         
-                                        // Kağıt çevirme efekti: hızlı frekans değişimi
-                                        oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
-                                        oscillator.frequency.linearRampToValueAtTime(800, audioContext.currentTime + 0.05);
-                                        oscillator.frequency.linearRampToValueAtTime(200, audioContext.currentTime + 0.1);
+                                        // Yüksek frekanslı kısa tik - telefon hoparlörü için ideal
+                                        oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
+                                        oscillator.frequency.setValueAtTime(1200, audioContext.currentTime + 0.02);
+                                        oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.04);
                                         
-                                        // Ses seviyesi
+                                        // Daha yüksek ses seviyesi mobil için
                                         gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                                        gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
-                                        gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.05);
-                                        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.1);
+                                        gainNode.gain.linearRampToValueAtTime(0.8, audioContext.currentTime + 0.001);
+                                        gainNode.gain.linearRampToValueAtTime(0.8, audioContext.currentTime + 0.02);
+                                        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.04);
                                         
-                                        oscillator.type = 'sawtooth';
+                                        oscillator.type = 'square';  // Daha net ses için
                                         oscillator.start(audioContext.currentTime);
-                                        oscillator.stop(audioContext.currentTime + 0.1);
+                                        oscillator.stop(audioContext.currentTime + 0.04);
+                                        
+                                        console.log('📱 Mobil tik sesi çalındı!');
                                         
                                     } catch (e) {
-                                        console.log('Ses çalınamadı (mobil sınırlama olabilir):', e);
+                                        console.log('⚠️ Ses çalınamadı (mobil sınırlama):', e);
                                         
-                                        // Alternatif: Vibrasyon (destekliyorsa)
+                                        // GÜÇLÜ ALTERNATİF 1: Data URL ile ses
+                                        try {
+                                            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBziR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaAzqWzu7VfSEELojK7taOOQgSYrPp4alZFAxSp+TvwGIcBz2U0euwcSAFNYDE7t6LPAgPVqvl8KdXCwxQpN7uzGQdEE6ky+/EdCIGMoTH8NaOMwgNWK7p6KJTDwdOoOfusmIfCT6Y0O7feysGLIrM7tiDMQQRXLnk7KVXDAhRp+HussUZAT6W0e3ecSAFNYnE7NKLOQcRXLrm7KdXDA1Sp+XwwGIXBT6T0+7ddywGI4PD79iTQAgPW7jp7qVXDAhRpu7yvWEaAz2X0O3acSAFNY3E7NGLOQgRXLPp66VTFApGqODyvmEXADic0e3fdCEGLYDL8d6RTwgPWLbp7apbDQZGouXxtmMZDjyRzvDXeSkGKoTO8deK');
+                                            audio.volume = 1.0;
+                                            audio.play().catch(() => {});
+                                        } catch (audioErr) {
+                                            console.log('⚠️ Audio fallback de çalışmadı');
+                                        }
+                                        
+                                        // GÜÇLÜ ALTERNATİF 2: Vibrasyon
                                         if (navigator.vibrate) {
-                                            navigator.vibrate([50, 30, 50]);
+                                            navigator.vibrate([80]);
+                                            console.log('📳 Vibrasyon çalındı!');
                                         }
                                     }
                                     
-                                    // Görsel feedback - her durumda çalışır
+                                    // GÜÇLÜ Görsel feedback - kesin çalışır
                                     const buttons = document.querySelectorAll('[data-testid="stButton"] button');
                                     for (let btn of buttons) {
                                         if (btn.innerText.includes('Cevabı Gör') || btn.innerText.includes('Soruya Dön')) {
-                                            btn.classList.add('flip-visual-feedback');
+                                            btn.style.backgroundColor = '#ff4444';
+                                            btn.style.transform = 'scale(1.05)';
+                                            btn.style.transition = 'all 0.1s ease';
+                                            
                                             setTimeout(() => {
-                                                btn.classList.remove('flip-visual-feedback');
-                                            }, 200);
+                                                btn.style.backgroundColor = '';
+                                                btn.style.transform = '';
+                                            }, 150);
                                             break;
                                         }
                                     }
