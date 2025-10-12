@@ -3928,16 +3928,49 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         
         return timeline_days
     
-    # Ana başlık - Tam Ekran HTML
+    # Ana başlık - Ultra Modern Tam Ekran
     title_html = """
-    <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); 
-                border-radius: 15px; padding: 50px; border: 3px solid #d4af37; 
-                text-align: center; margin: 20px 0; width: 100%; box-sizing: border-box;">
-        <h1 style="color: #d4af37; font-size: 3.5em; margin-bottom: 15px; font-weight: bold;">🎬 ZAMAN MAKİNESİ 🎬</h1>
-        <p style="color: #d4af37; font-size: 1.5em;">Başarı Yolculuğunuzun Sinematik Hikayesi</p>
+    <div style="
+        background: linear-gradient(45deg, #0a0a23, #1a1a2e, #16213e, #2c3e50);
+        background-size: 400% 400%;
+        animation: gradientShift 3s ease infinite;
+        border-radius: 20px; 
+        padding: 60px; 
+        border: 4px solid #ffd700; 
+        text-align: center; 
+        margin: 0; 
+        width: calc(100vw - 40px); 
+        box-sizing: border-box;
+        box-shadow: 0 20px 40px rgba(255, 215, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+    ">
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+                    background: radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.1) 0%, transparent 70%);"></div>
+        <h1 style="color: #ffd700; font-size: 4em; margin-bottom: 20px; font-weight: bold;
+                   text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.4);
+                   animation: titleGlow 2s ease-in-out infinite alternate; position: relative; z-index: 2;">
+            🎬 ZAMAN MAKİNESİ 🎬
+        </h1>
+        <p style="color: #ffd700; font-size: 1.8em; position: relative; z-index: 2;
+                 text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);">
+            Başarı Yolculuğunuzun Sinematik Hikayesi
+        </p>
     </div>
+    
+    <style>
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    @keyframes titleGlow {
+        from { text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.4); }
+        to { text-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 60px rgba(255, 215, 0, 0.6); }
+    }
+    </style>
     """
-    st.components.v1.html(title_html, height=250)
+    st.components.v1.html(title_html, height=350)
     
     # Kontrol paneli
     if not st.session_state.cinema_running:
@@ -3950,22 +3983,108 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 st.session_state.last_auto_update = time.time()
                 st.rerun()
         
-        # Bilgi paneli - Tam Ekran HTML
+        # Bilgi paneli - Ultra Modern Tam Ekran
         info_html = """
-        <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); 
-                    border-radius: 15px; padding: 40px; border: 3px solid #d4af37; 
-                    margin: 20px 0; width: 100%; box-sizing: border-box;">
-            <h3 style="color: #d4af37; text-align: center; margin-bottom: 25px; font-size: 2.0em; font-weight: bold;">🎭 Sinematik Deneyim Özellikleri</h3>
-            <ul style="color: #ffffff; font-size: 1.4em; margin: 15px 0; line-height: 2.0; list-style: none; padding-left: 0;">
-                <li style="margin: 15px 0; padding: 10px;">🎵 Otomatik sinematik müzik çalar</li>
-                <li style="margin: 15px 0; padding: 10px;">🎬 Film makinesi görsel efektleri</li>
-                <li style="margin: 15px 0; padding: 10px;">⚡ Otomatik gün gün animasyon (5 saniye arayla)</li>
-                <li style="margin: 15px 0; padding: 10px;">📊 Gerçek zamanlı verilerle hikaye</li>
-                <li style="margin: 15px 0; padding: 10px;">🎞️ Projeksiyon tarzı modern tasarım</li>
+        <div style="
+            background: linear-gradient(135deg, #0a0a23, #1a1a2e, #16213e);
+            border-radius: 20px; 
+            padding: 50px; 
+            border: 4px solid #ffd700; 
+            margin: 10px 0; 
+            width: calc(100vw - 40px); 
+            box-sizing: border-box;
+            box-shadow: 0 15px 35px rgba(255, 215, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        ">
+            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+                        background: radial-gradient(circle at 30% 40%, rgba(255, 215, 0, 0.05) 0%, transparent 50%);"></div>
+            
+            <h3 style="
+                color: #ffd700; 
+                text-align: center; 
+                margin-bottom: 40px; 
+                font-size: 2.5em; 
+                font-weight: bold;
+                text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+                position: relative; 
+                z-index: 2;
+            ">🎭 Sinematik Deneyim Özellikleri</h3>
+            
+            <ul style="
+                color: #ffffff; 
+                font-size: 1.5em; 
+                margin: 20px 0; 
+                line-height: 2.5; 
+                list-style: none; 
+                padding-left: 0;
+                position: relative; 
+                z-index: 2;
+            ">
+                <li style="
+                    margin: 20px 0; 
+                    padding: 20px; 
+                    background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+                    border-radius: 15px;
+                    border-left: 5px solid #ffd700;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                " onmouseover="this.style.transform='translateX(10px)'; this.style.boxShadow='0 8px 25px rgba(255, 215, 0, 0.3)';" 
+                   onmouseout="this.style.transform='translateX(0px)'; this.style.boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)';">
+                    🎵 Otomatik sinematik müzik çalar
+                </li>
+                <li style="
+                    margin: 20px 0; 
+                    padding: 20px; 
+                    background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+                    border-radius: 15px;
+                    border-left: 5px solid #ffd700;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                " onmouseover="this.style.transform='translateX(10px)'; this.style.boxShadow='0 8px 25px rgba(255, 215, 0, 0.3)';" 
+                   onmouseout="this.style.transform='translateX(0px)'; this.style.boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)';">
+                    🎬 Film makinesi görsel efektleri
+                </li>
+                <li style="
+                    margin: 20px 0; 
+                    padding: 20px; 
+                    background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+                    border-radius: 15px;
+                    border-left: 5px solid #ffd700;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                " onmouseover="this.style.transform='translateX(10px)'; this.style.boxShadow='0 8px 25px rgba(255, 215, 0, 0.3)';" 
+                   onmouseout="this.style.transform='translateX(0px)'; this.style.boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)';">
+                    ⚡ Otomatik gün gün animasyon (5 saniye arayla)
+                </li>
+                <li style="
+                    margin: 20px 0; 
+                    padding: 20px; 
+                    background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+                    border-radius: 15px;
+                    border-left: 5px solid #ffd700;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                " onmouseover="this.style.transform='translateX(10px)'; this.style.boxShadow='0 8px 25px rgba(255, 215, 0, 0.3)';" 
+                   onmouseout="this.style.transform='translateX(0px)'; this.style.boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)';">
+                    📊 Gerçek zamanlı verilerle hikaye
+                </li>
+                <li style="
+                    margin: 20px 0; 
+                    padding: 20px; 
+                    background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+                    border-radius: 15px;
+                    border-left: 5px solid #ffd700;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                " onmouseover="this.style.transform='translateX(10px)'; this.style.boxShadow='0 8px 25px rgba(255, 215, 0, 0.3)';" 
+                   onmouseout="this.style.transform='translateX(0px)'; this.style.boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)';">
+                    🎞️ Projeksiyon tarzı modern tasarım
+                </li>
             </ul>
         </div>
         """
-        st.components.v1.html(info_html, height=400)
+        st.components.v1.html(info_html, height=600)
     
     # Sinematik gösterim
     if st.session_state.cinema_running:
@@ -3986,30 +4105,15 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             st.error(f"❌ Veri hazırlama hatası: {str(e)}")
             return
         
-        # JavaScript tabanlı otomatik ilerleme sistemi
+        # Basit ve etkili otomatik ilerleme sistemi
         if st.session_state.auto_play and st.session_state.cinema_day < len(timeline_days) - 1:
-            auto_progress_js = """
-            <script>
-            setTimeout(function() {
-                // Streamlit'e otomatik ilerleme sinyali gönder
-                window.parent.postMessage({type: 'next_day'}, '*');
-                // 5 saniye sonra sayfayı yenile
-                setTimeout(function() {
-                    window.location.reload();
-                }, 5000);
-            }, 100);
-            </script>
-            """
-            st.components.v1.html(auto_progress_js, height=0)
-            
-            # 5 saniye sonra otomatik geçiş
-            current_time = time.time()
-            if current_time - st.session_state.last_auto_update > 5:
-                st.session_state.cinema_day += 1
-                st.session_state.last_auto_update = current_time
-                if st.session_state.cinema_day >= len(timeline_days) - 1:
-                    st.session_state.auto_play = False
-                st.rerun()
+            # 5 saniyede bir otomatik geçiş
+            time.sleep(5)
+            st.session_state.cinema_day += 1
+            st.session_state.last_auto_update = time.time()
+            if st.session_state.cinema_day >= len(timeline_days) - 1:
+                st.session_state.auto_play = False
+            st.rerun()
         
         if st.session_state.cinema_day < len(timeline_days):
             day_data = timeline_days[st.session_state.cinema_day]
@@ -4051,46 +4155,123 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 </div>
                 """
             
-            # HTML string'i oluştur - TAM EKRAN CSS
+            # HTML string'i oluştur - ULTRA MODERN TAM EKRAN
             day_html = """
-            <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); 
-                        border-radius: 15px; padding: 50px; border: 3px solid #d4af37; 
-                        margin: 20px 0; width: 100%; box-sizing: border-box;">
-                <h2 style="color: #d4af37; text-align: center; margin-bottom: 30px; font-size: 2.5em; font-weight: bold;">
+            <div style="
+                background: linear-gradient(135deg, #0a0a23, #1a1a2e, #16213e, #2c3e50);
+                background-size: 400% 400%;
+                animation: dayGradient 4s ease infinite;
+                border-radius: 25px; 
+                padding: 60px; 
+                border: 4px solid #ffd700; 
+                margin: 10px 0; 
+                width: calc(100vw - 40px); 
+                box-sizing: border-box;
+                box-shadow: 0 25px 50px rgba(255, 215, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                position: relative;
+                overflow: hidden;
+            ">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+                            background: radial-gradient(circle at 70% 30%, rgba(255, 215, 0, 0.08) 0%, transparent 60%);"></div>
+                
+                <h2 style="
+                    color: #ffd700; 
+                    text-align: center; 
+                    margin-bottom: 40px; 
+                    font-size: 3em; 
+                    font-weight: bold;
+                    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+                    animation: dayTitlePulse 3s ease-in-out infinite;
+                    position: relative; 
+                    z-index: 2;
+                ">
                     📅 """ + date_str + """ - Gün """ + str(day_data['day_number']) + """
                 </h2>
                 
-                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; margin: 30px 0; gap: 15px;">
-                    <div style="background: linear-gradient(45deg, #2c3e50, #3498db); 
-                                border: 2px solid #d4af37; border-radius: 15px; 
-                                padding: 25px; margin: 10px; text-align: center; min-width: 180px; flex: 1;">
-                        <div style="font-size: 2.5em; font-weight: bold; color: #d4af37;">""" + str(day_data['completed_topics']) + """</div>
-                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px;">📚 Konu Tamamlandı</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin: 40px 0; position: relative; z-index: 2;">
+                    <div style="
+                        background: linear-gradient(135deg, #2c3e50, #3498db, #5dade2); 
+                        border: 3px solid #ffd700; 
+                        border-radius: 20px; 
+                        padding: 30px; 
+                        text-align: center; 
+                        transition: all 0.4s ease;
+                        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                        position: relative;
+                        overflow: hidden;
+                    " onmouseover="this.style.transform='scale(1.05) rotateY(5deg)'; this.style.boxShadow='0 15px 40px rgba(255, 215, 0, 0.4)';" 
+                       onmouseout="this.style.transform='scale(1) rotateY(0deg)'; this.style.boxShadow='0 10px 30px rgba(0, 0, 0, 0.3)';">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent); animation: shimmer 2s infinite;"></div>
+                        <div style="font-size: 3em; font-weight: bold; color: #ffd700; text-shadow: 0 0 15px rgba(255, 215, 0, 0.7); position: relative; z-index: 2;">""" + str(day_data['completed_topics']) + """</div>
+                        <div style="color: #ffffff; font-size: 1.3em; margin-top: 15px; position: relative; z-index: 2;">📚 Konu Tamamlandı</div>
                     </div>
-                    <div style="background: linear-gradient(45deg, #2c3e50, #3498db); 
-                                border: 2px solid #d4af37; border-radius: 15px; 
-                                padding: 25px; margin: 10px; text-align: center; min-width: 180px; flex: 1;">
-                        <div style="font-size: 2.5em; font-weight: bold; color: #d4af37;">""" + str(day_data['solved_questions']) + """</div>
-                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px;">📝 Soru Çözüldü</div>
+                    
+                    <div style="
+                        background: linear-gradient(135deg, #2c3e50, #e74c3c, #ec7063); 
+                        border: 3px solid #ffd700; 
+                        border-radius: 20px; 
+                        padding: 30px; 
+                        text-align: center; 
+                        transition: all 0.4s ease;
+                        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                        position: relative;
+                        overflow: hidden;
+                    " onmouseover="this.style.transform='scale(1.05) rotateY(5deg)'; this.style.boxShadow='0 15px 40px rgba(255, 215, 0, 0.4)';" 
+                       onmouseout="this.style.transform='scale(1) rotateY(0deg)'; this.style.boxShadow='0 10px 30px rgba(0, 0, 0, 0.3)';">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent); animation: shimmer 2s infinite;"></div>
+                        <div style="font-size: 3em; font-weight: bold; color: #ffd700; text-shadow: 0 0 15px rgba(255, 215, 0, 0.7); position: relative; z-index: 2;">""" + str(day_data['solved_questions']) + """</div>
+                        <div style="color: #ffffff; font-size: 1.3em; margin-top: 15px; position: relative; z-index: 2;">📝 Soru Çözüldü</div>
                     </div>
-                    <div style="background: linear-gradient(45deg, #2c3e50, #3498db); 
-                                border: 2px solid #d4af37; border-radius: 15px; 
-                                padding: 25px; margin: 10px; text-align: center; min-width: 180px; flex: 1;">
-                        <div style="font-size: 2.5em; font-weight: bold; color: #d4af37;">""" + str(day_data['pomodoro_count']) + """</div>
-                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px;">🍅 Pomodoro</div>
+                    
+                    <div style="
+                        background: linear-gradient(135deg, #2c3e50, #f39c12, #f7dc6f); 
+                        border: 3px solid #ffd700; 
+                        border-radius: 20px; 
+                        padding: 30px; 
+                        text-align: center; 
+                        transition: all 0.4s ease;
+                        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                        position: relative;
+                        overflow: hidden;
+                    " onmouseover="this.style.transform='scale(1.05) rotateY(5deg)'; this.style.boxShadow='0 15px 40px rgba(255, 215, 0, 0.4)';" 
+                       onmouseout="this.style.transform='scale(1) rotateY(0deg)'; this.style.boxShadow='0 10px 30px rgba(0, 0, 0, 0.3)';">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent); animation: shimmer 2s infinite;"></div>
+                        <div style="font-size: 3em; font-weight: bold; color: #ffd700; text-shadow: 0 0 15px rgba(255, 215, 0, 0.7); position: relative; z-index: 2;">""" + str(day_data['pomodoro_count']) + """</div>
+                        <div style="color: #ffffff; font-size: 1.3em; margin-top: 15px; position: relative; z-index: 2;">🍅 Pomodoro</div>
                     </div>
-                    <div style="background: linear-gradient(45deg, #2c3e50, #3498db); 
-                                border: 2px solid #d4af37; border-radius: 15px; 
-                                padding: 25px; margin: 10px; text-align: center; min-width: 180px; flex: 1;">
-                        <div style="font-size: 2.5em; font-weight: bold; color: #d4af37;">""" + time_text + """</div>
-                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px;">⏱️ Çalışma Süresi</div>
+                    
+                    <div style="
+                        background: linear-gradient(135deg, #2c3e50, #8e44ad, #bb8fce); 
+                        border: 3px solid #ffd700; 
+                        border-radius: 20px; 
+                        padding: 30px; 
+                        text-align: center; 
+                        transition: all 0.4s ease;
+                        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                        position: relative;
+                        overflow: hidden;
+                    " onmouseover="this.style.transform='scale(1.05) rotateY(5deg)'; this.style.boxShadow='0 15px 40px rgba(255, 215, 0, 0.4)';" 
+                       onmouseout="this.style.transform='scale(1) rotateY(0deg)'; this.style.boxShadow='0 10px 30px rgba(0, 0, 0, 0.3)';">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent); animation: shimmer 2s infinite;"></div>
+                        <div style="font-size: 3em; font-weight: bold; color: #ffd700; text-shadow: 0 0 15px rgba(255, 215, 0, 0.7); position: relative; z-index: 2;">""" + time_text + """</div>
+                        <div style="color: #ffffff; font-size: 1.3em; margin-top: 15px; position: relative; z-index: 2;">⏱️ Çalışma Süresi</div>
                     </div>
-                        </div>
+                </div>
                         
-                        <div style="margin: 30px 0; color: #ffffff; font-size: 1.3em;">
-                            <strong style="color: #d4af37; font-size: 1.4em;">📚 Çalışılan Dersler:</strong><br>
-                            """ + subjects_text + """
-                        </div>
+                <div style="
+                    margin: 40px 0; 
+                    color: #ffffff; 
+                    font-size: 1.4em; 
+                    background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+                    padding: 25px;
+                    border-radius: 20px;
+                    border-left: 5px solid #ffd700;
+                    position: relative; 
+                    z-index: 2;
+                ">
+                    <strong style="color: #ffd700; font-size: 1.5em; text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);">📚 Çalışılan Dersler:</strong><br><br>
+                    """ + subjects_text + """
+                </div>
                         
                         """ + topics_section + """
                         
@@ -4098,16 +4279,46 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                         
                         <div class="auto-progress" style="width: """ + str(progress_percent) + """%;"></div>
                         
-                        <p style="text-align: center; color: #d4af37; font-size: 1.6em; margin-top: 30px; font-weight: bold;">
+                        <p style="
+                            text-align: center; 
+                            color: #ffd700; 
+                            font-size: 2em; 
+                            margin-top: 40px; 
+                            font-weight: bold;
+                            text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+                            animation: successPulse 2s ease-in-out infinite;
+                            position: relative; 
+                            z-index: 2;
+                        ">
                             🚀 Başarı Yolculuğu Devam Ediyor... (""" + str(day_data['day_number']) + """/""" + str(len(timeline_days)) + """)
                         </p>
                     </div>
                 </div>
             </div>
+            
+            <style>
+            @keyframes dayGradient {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+            @keyframes dayTitlePulse {
+                0%, 100% { text-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+                50% { text-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 50px rgba(255, 215, 0, 0.5); }
+            }
+            @keyframes successPulse {
+                0%, 100% { transform: scale(1); text-shadow: 0 0 15px rgba(255, 215, 0, 0.8); }
+                50% { transform: scale(1.02); text-shadow: 0 0 25px rgba(255, 215, 0, 1), 0 0 40px rgba(255, 215, 0, 0.6); }
+            }
+            @keyframes shimmer {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+            }
+            </style>
             """
             
-            # HTML'i render et - Tam Ekran
-            st.components.v1.html(day_html, height=750)
+            # HTML'i render et - Ultra Modern Tam Ekran
+            st.components.v1.html(day_html, height=900)
             
             # Kontrol butonları
             col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
@@ -4141,25 +4352,95 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     st.rerun()
         
         else:
-            # Film tamamlandı - Tam Ekran HTML
+            # Film tamamlandı - Ultra Modern Tam Ekran
             completed_html = """
-            <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); 
-                        border-radius: 15px; padding: 50px; border: 3px solid #d4af37; 
-                        text-align: center; margin: 20px 0; width: 100%; box-sizing: border-box;">
-                <h1 style="color: #d4af37; font-size: 3.5em; margin-bottom: 15px; font-weight: bold;">🎉 FİLM TAMAMLANDI! 🎉</h1>
-                <p style="color: #d4af37; font-size: 1.8em;">Muhteşem bir başarı hikayesi yaşadınız!</p>
+            <div style="
+                background: linear-gradient(45deg, #0a0a23, #1a1a2e, #16213e, #2c3e50);
+                background-size: 400% 400%;
+                animation: celebrationGradient 2s ease infinite;
+                border-radius: 25px; 
+                padding: 70px; 
+                border: 5px solid #ffd700; 
+                text-align: center; 
+                margin: 10px 0; 
+                width: calc(100vw - 40px); 
+                box-sizing: border-box;
+                box-shadow: 0 30px 60px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                position: relative;
+                overflow: hidden;
+            ">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+                            background: radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.15) 0%, transparent 70%);"></div>
+                            
+                <h1 style="
+                    color: #ffd700; 
+                    font-size: 4.5em; 
+                    margin-bottom: 25px; 
+                    font-weight: bold;
+                    text-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 60px rgba(255, 215, 0, 0.6);
+                    animation: celebrationPulse 1.5s ease-in-out infinite;
+                    position: relative; 
+                    z-index: 2;
+                ">🎉 FİLM TAMAMLANDI! 🎉</h1>
+                
+                <p style="
+                    color: #ffd700; 
+                    font-size: 2.2em; 
+                    text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+                    position: relative; 
+                    z-index: 2;
+                ">Muhteşem bir başarı hikayesi yaşadınız!</p>
+                
+                <div style="
+                    position: absolute; 
+                    top: 20px; 
+                    left: 20px; 
+                    width: 60px; 
+                    height: 60px; 
+                    background: rgba(255, 215, 0, 0.3);
+                    border-radius: 50%;
+                    animation: floatLeft 3s ease-in-out infinite;
+                "></div>
+                <div style="
+                    position: absolute; 
+                    top: 40px; 
+                    right: 30px; 
+                    width: 40px; 
+                    height: 40px; 
+                    background: rgba(255, 215, 0, 0.2);
+                    border-radius: 50%;
+                    animation: floatRight 2.5s ease-in-out infinite;
+                "></div>
             </div>
+            
+            <style>
+            @keyframes celebrationGradient {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+            @keyframes celebrationPulse {
+                0%, 100% { transform: scale(1); text-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 60px rgba(255, 215, 0, 0.6); }
+                50% { transform: scale(1.05); text-shadow: 0 0 40px rgba(255, 215, 0, 1), 0 0 80px rgba(255, 215, 0, 0.8); }
+            }
+            @keyframes floatLeft {
+                0%, 100% { transform: translateY(0px) rotate(0deg); }
+                50% { transform: translateY(-20px) rotate(180deg); }
+            }
+            @keyframes floatRight {
+                0%, 100% { transform: translateY(0px) rotate(0deg); }
+                50% { transform: translateY(-15px) rotate(-180deg); }
+            }
+            </style>
             """
-            st.components.v1.html(completed_html, height=300)
+            st.components.v1.html(completed_html, height=450)
             
             st.session_state.cinema_running = False
             st.session_state.cinema_day = 0
             st.session_state.auto_play = False
             st.balloons()
         
-        # Otomatik güncelleme için sadece belirli durumlarda yenileme
-        if st.session_state.auto_play and st.session_state.cinema_day < len(timeline_days) - 1:
-            time.sleep(0.1)  # CPU yükünü azalt
+        # Performans optimizasyonu - gereksiz sleep kaldırıldı
 
 def show_systematic_recommendations(weekly_plan, survey_data, student_field):
     """Sistematik akıllı öneriler"""
