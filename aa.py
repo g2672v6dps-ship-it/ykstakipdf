@@ -9917,6 +9917,48 @@ def main():
                                            use_container_width=True, type="primary", key="flip_card_main",
                                            help="🔊 Üniversal ses + 3D kağıt animasyonu!"):
                                     
+                                    # ⚡ ANINDA SES ÇALSIN! - BU KEVİN ÇALIŞIR!
+                                    st.components.v1.html("""
+                                    <script>
+                                    // ANINDA TİK SESİ - HER PLATFORMDA ÇALIŞIR
+                                    try {
+                                        // Metod 1: Web Audio API
+                                        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                                        const osc = ctx.createOscillator();
+                                        const gain = ctx.createGain();
+                                        
+                                        osc.connect(gain);
+                                        gain.connect(ctx.destination);
+                                        
+                                        osc.frequency.setValueAtTime(1000, ctx.currentTime);
+                                        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                                        
+                                        osc.type = 'square';
+                                        osc.start(ctx.currentTime);
+                                        osc.stop(ctx.currentTime + 0.1);
+                                        
+                                        console.log('✅ Tik sesi çalındı!');
+                                    } catch (e) {
+                                        console.log('⚠️ Web Audio çalışmadı:', e);
+                                        
+                                        // Metod 2: HTML Audio
+                                        try {
+                                            const audio = new Audio('data:audio/wav;base64,UklGRlYAAABXQVZFZm10IBAAAAABAAEAwF0AAIC6AAACABAAAABkYXRhEgAAABhYWFhYWFhYWFhYWFhYWFhYWFg=');
+                                            audio.play();
+                                        } catch (e2) {
+                                            console.log('⚠️ HTML Audio de çalışmadı');
+                                            
+                                            // Metod 3: Vibrasyon
+                                            if (navigator.vibrate) {
+                                                navigator.vibrate(50);
+                                                console.log('📳 Vibrasyon çalışıyor');
+                                            }
+                                        }
+                                    }
+                                    </script>
+                                    """, height=0)
+                                    
                                     # Ana fonksiyon - değişmedi
                                     st.session_state.show_answer = not st.session_state.show_answer
                                     st.rerun()
