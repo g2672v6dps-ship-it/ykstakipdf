@@ -3905,10 +3905,30 @@ def show_weekly_summary(weekly_plan):
 def show_yks_journey_cinema(user_data, progress_data):
     """🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum - Sinematik Deneyim"""
     
-    # Kullanıcı verilerini kontrol et
+    # KRİTİK: Kullanıcı kimlik kontrolü
     if not user_data:
-        st.error("Kullanıcı verisi bulunamadı!")
+        st.error("❌ Kullanıcı verisi bulunamadı!")
         return
+    
+    # GÜVENLİK KONTROLÜ: Doğru kullanıcının verilerini kullandığımızdan emin ol
+    current_username = st.session_state.get('current_user', None)
+    if not current_username:
+        st.error("❌ Aktif kullanıcı bulunamadı! Lütfen yeniden giriş yapın.")
+        return
+    
+    # Kullanıcı kimlik doğrulama
+    expected_username = user_data.get('username', '')
+    if current_username != expected_username:
+        st.error(f"❌ Veri uyumsuzluğu tespit edildi! Session: {current_username}, Data: {expected_username}")
+        st.error("🔒 Güvenlik için sayfa yenileniyor...")
+        st.rerun()
+        return
+    
+    # DEBUG: Kullanıcı bilgilerini göster (geliştirme aşamasında)
+    if st.session_state.get('debug_mode', False):
+        st.info(f"🔍 Debug: Kullanıcı {current_username} için veriler yükleniyor...")
+        st.info(f"📅 Kayıt tarihi: {user_data.get('created_at', 'Bilinmiyor')}")
+        st.info(f"👤 İsim: {user_data.get('name', 'Bilinmiyor')}")
     
     # Session state'leri başlat
     if 'cinema_active' not in st.session_state:
@@ -3925,14 +3945,37 @@ def show_yks_journey_cinema(user_data, progress_data):
     # Öğrenci adını al
     student_name = user_data.get('name', 'Öğrenci')
     
-    # Başlangıç tarihini hesapla
+    # Başlangıç tarihini hesapla - KULLANICI KAYIT TARİHİNE GÖRE
+    start_date = None
+    
     try:
-        if 'created_date' in user_data and user_data['created_date']:
+        # Önce created_at (ISO format) kontrol et
+        if 'created_at' in user_data and user_data['created_at']:
+            if isinstance(user_data['created_at'], str):
+                # ISO format: 2024-10-12T14:30:00.123456
+                start_date = datetime.fromisoformat(user_data['created_at'].replace('Z', '+00:00')).replace(tzinfo=None)
+            else:
+                start_date = user_data['created_at']
+        
+        # Eğer created_at yoksa created_date kontrol et (eski format)
+        elif 'created_date' in user_data and user_data['created_date']:
             start_date = datetime.strptime(user_data['created_date'], '%Y-%m-%d')
+        
+        # Hiçbiri yoksa varsayılan
         else:
-            start_date = datetime.now() - timedelta(days=7)
-    except:
-        start_date = datetime.now() - timedelta(days=7)
+            start_date = datetime.now() - timedelta(days=1)
+            
+    except Exception as e:
+        # Hata durumunda güvenli varsayılan
+        start_date = datetime.now() - timedelta(days=1)
+        if st.session_state.get('debug_mode', False):
+            st.error(f"⚠️ Tarih ayrıştırma hatası: {e}")
+    
+    # Debug modunda tarih bilgilerini göster
+    if st.session_state.get('debug_mode', False):
+        st.info(f"📅 Hesaplanan başlangıç tarihi: {start_date.strftime('%Y-%m-%d %H:%M')}")
+        st.info(f"🔍 created_at: {user_data.get('created_at', 'Yok')}")
+        st.info(f"🔍 created_date: {user_data.get('created_date', 'Yok')}")
     
     current_date = datetime.now()
     days_passed = (current_date - start_date).days + 1
@@ -8335,9 +8378,35 @@ def main():
                 st.metric("📈 Genel İlerleme", f"%{genel_ilerleme:.1f}")
                 st.metric("✅ Tamamlanan", f"{total_completed}/{total_topics}")
                 
-                if st.button("🚪 Çıkış Yap", use_container_width=True):
-                    st.session_state.current_user = None
-                    st.rerun()
+                # Debug modu kontrolü (geliştiriciler için)
+                st.markdown("---")
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    if st.button("🚪 Çıkış Yap", use_container_width=True):
+                        st.session_state.current_user = None
+                        st.rerun()
+                
+                with col2:
+                    debug_mode = st.session_state.get('debug_mode', False)
+                    if st.button(f"🔍 Debug {'ON' if debug_mode else 'OFF'}", use_container_width=True):
+                        st.session_state.debug_mode = not debug_mode
+                        st.rerun()
+                
+                # Debug bilgileri göster
+                if st.session_state.get('debug_mode', False):
+                    st.markdown("### 🔍 Debug Bilgileri")
+                    st.info(f"👤 Aktif Kullanıcı: {st.session_state.get('current_user', 'Bilinmiyor')}")
+                    st.info(f"📅 Kullanıcı Kayıt Tarihi: {user_data.get('created_at', 'Bilinmiyor')}")
+                    st.info(f"🔤 Kullanıcı Username: {user_data.get('username', 'Bilinmiyor')}")
+                    st.info(f"📝 Kullanıcı Adı: {user_data.get('name', 'Bilinmiyor')}")
+                    
+                    # Session state kontrolü
+                    if st.button("🧹 Session State Temizle"):
+                        for key in list(st.session_state.keys()):
+                            if key not in ['current_user', 'debug_mode']:
+                                del st.session_state[key]
+                        st.success("✅ Session state temizlendi!")
             
             page = st.sidebar.selectbox("🌐 Sayfa Seçin", 
                                       ["🏠 Ana Sayfa", "📚 Konu Takip", "🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
@@ -9917,43 +9986,80 @@ def main():
                                            use_container_width=True, type="primary", key="flip_card_main",
                                            help="🔊 Üniversal ses + 3D kağıt animasyonu!"):
                                     
-                                    # ⚡ ANINDA SES ÇALSIN! - BU KEVİN ÇALIŞIR!
+                                    # ⚡ GÜÇLÜ MOBİL SES SİSTEMİ!
                                     st.components.v1.html("""
                                     <script>
-                                    // ANINDA TİK SESİ - HER PLATFORMDA ÇALIŞIR
-                                    try {
-                                        // Metod 1: Web Audio API
-                                        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                                        const osc = ctx.createOscillator();
-                                        const gain = ctx.createGain();
+                                    // TELEFON İÇİN ÖZEL SES SİSTEMİ
+                                    
+                                    // Mobil tarayıcı kontrolü
+                                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                                    
+                                    if (isMobile) {
+                                        console.log('📱 Mobil cihaz tespit edildi - özel ses sistemi aktif');
                                         
-                                        osc.connect(gain);
-                                        gain.connect(ctx.destination);
-                                        
-                                        osc.frequency.setValueAtTime(1000, ctx.currentTime);
-                                        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-                                        
-                                        osc.type = 'square';
-                                        osc.start(ctx.currentTime);
-                                        osc.stop(ctx.currentTime + 0.1);
-                                        
-                                        console.log('✅ Tik sesi çalındı!');
-                                    } catch (e) {
-                                        console.log('⚠️ Web Audio çalışmadı:', e);
-                                        
-                                        // Metod 2: HTML Audio
+                                        // Metod 1: Önceden yüklenmiş ses
                                         try {
-                                            const audio = new Audio('data:audio/wav;base64,UklGRlYAAABXQVZFZm10IBAAAAABAAEAwF0AAIC6AAACABAAAABkYXRhEgAAABhYWFhYWFhYWFhYWFhYWFhYWFg=');
-                                            audio.play();
-                                        } catch (e2) {
-                                            console.log('⚠️ HTML Audio de çalışmadı');
+                                            const audioData = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU' + 
+                                                             'JAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                                             'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+                                            const audio = new Audio(audioData);
+                                            audio.volume = 1.0;
+                                            audio.preload = 'auto';
                                             
-                                            // Metod 3: Vibrasyon
-                                            if (navigator.vibrate) {
-                                                navigator.vibrate(50);
-                                                console.log('📳 Vibrasyon çalışıyor');
+                                            const playPromise = audio.play();
+                                            if (playPromise !== undefined) {
+                                                playPromise.then(() => {
+                                                    console.log('📱 Mobil ses çalındı!');
+                                                }).catch(error => {
+                                                    console.log('📱 Mobil ses hatası:', error);
+                                                    fallbackMobile();
+                                                });
                                             }
+                                        } catch (mobileError) {
+                                            console.log('📱 Mobil ses sistemi hatası:', mobileError);
+                                            fallbackMobile();
+                                        }
+                                        
+                                        function fallbackMobile() {
+                                            // Metod 2: Vibrasyon + görsel
+                                            if (navigator.vibrate) {
+                                                navigator.vibrate([30, 10, 30]);
+                                                console.log('📳 Vibrasyon aktif');
+                                            }
+                                            
+                                            // Metod 3: Ekran flash (görsel feedback)
+                                            document.body.style.backgroundColor = '#ff4444';
+                                            setTimeout(() => {
+                                                document.body.style.backgroundColor = '';
+                                            }, 100);
+                                        }
+                                        
+                                    } else {
+                                        // Masaüstü için normal Web Audio API
+                                        try {
+                                            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                                            
+                                            if (ctx.state === 'suspended') {
+                                                ctx.resume();
+                                            }
+                                            
+                                            const osc = ctx.createOscillator();
+                                            const gain = ctx.createGain();
+                                            
+                                            osc.connect(gain);
+                                            gain.connect(ctx.destination);
+                                            
+                                            osc.frequency.setValueAtTime(1200, ctx.currentTime);
+                                            gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                                            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+                                            
+                                            osc.type = 'square';
+                                            osc.start(ctx.currentTime);
+                                            osc.stop(ctx.currentTime + 0.08);
+                                            
+                                            console.log('💻 Masaüstü tik sesi çalındı!');
+                                        } catch (desktopError) {
+                                            console.log('💻 Masaüstü ses hatası:', desktopError);
                                         }
                                     }
                                     </script>
