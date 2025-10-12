@@ -10096,7 +10096,7 @@ def main():
                         st.session_state.user_music_creations = {}
                 
                 # Sekme sistemi - Müziklerimi Dinle | Yeni Müzik Yarat
-                music_tab1, music_tab2 = st.tabs(["🎧 Müziklerimi Dinle", "🎼 Yeni Müzik Yarat"])
+                music_tab1, music_tab2 = st.tabs(["🎧 Müziklerimi Dinle", "🎼 Yeni Müzik Oluştur"])
                 
                 with music_tab2:
                     # Form temizleme kontrolü
