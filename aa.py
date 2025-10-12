@@ -3856,7 +3856,9 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 'subjects': [],
                 'topic_names': [],
                 'motivation_score': 5,
-                'daily_note': ''
+                'daily_note': '',
+                'photo_data': None,
+                'photo_caption': ''
             }
             
             # Daily motivation verilerinden o günün bilgilerini al
@@ -3864,6 +3866,10 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 day_motivation = daily_motivation[date_str]
                 daily_data['motivation_score'] = day_motivation.get('score', 5)
                 daily_data['daily_note'] = day_motivation.get('note', '')
+                
+                # 📸 FOTOĞRAF VERİLERİNİ ÇEK
+                daily_data['photo_data'] = day_motivation.get('photo_data', None)
+                daily_data['photo_caption'] = day_motivation.get('photo_caption', '')
                 
                 # Soru sayılarını topla
                 questions_data = day_motivation.get('questions', {})
@@ -3928,8 +3934,9 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         
         return timeline_days
     
-    # Sinema Başlığı - Sade Modern
+    # Sinema Başlığı - Modern Fontlarla
     title_html = """
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <div style="
         background: #000000;
         border: 20px solid #1a1a1a;
@@ -3960,18 +3967,21 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
         
         <h1 style="
             color: #ffd700; 
-            font-size: 3.5em; 
+            font-size: 3.8em; 
             margin: 20px 0; 
-            font-weight: bold;
+            font-weight: 700;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            font-family: 'Arial Black', Arial, sans-serif;
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            letter-spacing: -2px;
         ">🎬 ZAMAN MAKİNESİ 🎬</h1>
         
         <p style="
             color: #ffd700; 
-            font-size: 1.6em;
+            font-size: 1.7em;
             margin: 0;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
         ">Başarı Yolculuğunuzun Sinematik Hikayesi</p>
     </div>
     """
@@ -4019,14 +4029,16 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 color: #ffd700; 
                 text-align: center; 
                 margin-bottom: 30px; 
-                font-size: 2.2em; 
-                font-weight: bold;
+                font-size: 2.4em; 
+                font-weight: 600;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                 padding: 0 50px;
+                font-family: 'Space Grotesk', sans-serif;
+                letter-spacing: -1px;
             ">🎭 Sinematik Deneyim Özellikleri</h3>
             
             <div style="padding: 0 50px;">
-                <div style="color: #ffffff; font-size: 1.3em; line-height: 2.2;">
+                <div style="color: #ffffff; font-size: 1.3em; line-height: 2.2; font-family: 'Inter', sans-serif;">
                     <div style="margin: 15px 0; padding: 15px; background: #1a1a1a; border-left: 4px solid #ffd700;">
                         🎵 Otomatik sinematik müzik çalar
                     </div>
@@ -4128,8 +4140,68 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 </div>
                 """
             
-            # HTML string'i oluştur - GERÇEK SİNEMA PERDE TASARIMI
+            # 📸 FOTOĞRAF SECTION HAZIRLA
+            photo_section = ""
+            if day_data.get('photo_data'):
+                photo_caption = day_data.get('photo_caption', '')
+                caption_text = f"<br><em style='color: #cccccc;'>{photo_caption}</em>" if photo_caption else ""
+                photo_section = """
+                <div style="
+                    margin: 25px 0; 
+                    padding: 20px; 
+                    background: rgba(255, 215, 0, 0.1); 
+                    border-radius: 15px; 
+                    border: 2px solid #ffd700;
+                    text-align: center;
+                ">
+                    <strong style="color: #ffd700; font-size: 1.4em;">📸 Günün Anısı</strong><br><br>
+                    <img src="data:image/jpeg;base64,""" + day_data['photo_data']['data'] + """" 
+                         style="
+                            max-width: 300px; 
+                            max-height: 200px; 
+                            border-radius: 10px; 
+                            border: 3px solid #ffd700;
+                            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+                            object-fit: cover;
+                         " />
+                    """ + caption_text + """
+                </div>
+                """
+            
+            # HTML string'i oluştur - GERÇEK SİNEMA PERDE + MODERN FONTLAR
             day_html = """
+            <!-- MODERN GOOGLE FONTS -->
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+            
+            <!-- TAM EKRAN BUTONU -->
+            <div style="
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                background: rgba(255,215,0,0.9);
+                padding: 10px 15px;
+                border-radius: 25px;
+                cursor: pointer;
+                border: 2px solid #ffd700;
+                color: #000;
+                font-weight: bold;
+                font-family: 'Inter', sans-serif;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            " onclick="toggleFullscreen()">
+                🎬 TAM EKRAN
+            </div>
+            
+            <script>
+                function toggleFullscreen() {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen();
+                    } else {
+                        document.exitFullscreen();
+                    }
+                }
+            </script>
+            
             <!-- SİNEMA SALONU ATMOSFER -->
             <div style="
                 background: linear-gradient(135deg, #000000 0%, #1a0000 50%, #000000 100%);
@@ -4137,6 +4209,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 margin: 0;
                 min-height: 100vh;
                 position: relative;
+                font-family: 'Inter', sans-serif;
             ">
                 <!-- SİNEMA SPOT IŞIKLARI -->
                 <div style="
@@ -4199,9 +4272,11 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     color: #ffd700; 
                     text-align: center; 
                     margin-bottom: 30px; 
-                    font-size: 2.5em; 
-                    font-weight: bold;
+                    font-size: 2.8em; 
+                    font-weight: 600;
                     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                    font-family: 'Space Grotesk', 'Inter', sans-serif;
+                    letter-spacing: -1px;
                 ">
                     📅 """ + date_str + """ - Gün """ + str(day_data['day_number']) + """
                 </h2>
@@ -4213,8 +4288,8 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                         padding: 25px; 
                         text-align: center;
                     ">
-                        <div style="font-size: 2.5em; font-weight: bold; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">""" + str(day_data['completed_topics']) + """</div>
-                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px;">📚 Konu Tamamlandı</div>
+                        <div style="font-size: 2.8em; font-weight: 700; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">""" + str(day_data['completed_topics']) + """</div>
+                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px; font-family: 'Inter', sans-serif;">📚 Konu Tamamlandı</div>
                     </div>
                     
                     <div style="
@@ -4223,8 +4298,8 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                         padding: 25px; 
                         text-align: center;
                     ">
-                        <div style="font-size: 2.5em; font-weight: bold; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">""" + str(day_data['solved_questions']) + """</div>
-                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px;">📝 Soru Çözüldü</div>
+                        <div style="font-size: 2.8em; font-weight: 700; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">""" + str(day_data['solved_questions']) + """</div>
+                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px; font-family: 'Inter', sans-serif;">📝 Soru Çözüldü</div>
                     </div>
                     
                     <div style="
@@ -4233,8 +4308,8 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                         padding: 25px; 
                         text-align: center;
                     ">
-                        <div style="font-size: 2.5em; font-weight: bold; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">""" + str(day_data['pomodoro_count']) + """</div>
-                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px;">🍅 Pomodoro</div>
+                        <div style="font-size: 2.8em; font-weight: 700; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">""" + str(day_data['pomodoro_count']) + """</div>
+                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px; font-family: 'Inter', sans-serif;">🍅 Pomodoro</div>
                     </div>
                     
                     <div style="
@@ -4243,8 +4318,8 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                         padding: 25px; 
                         text-align: center;
                     ">
-                        <div style="font-size: 2.5em; font-weight: bold; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">""" + time_text + """</div>
-                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px;">⏱️ Çalışma Süresi</div>
+                        <div style="font-size: 2.8em; font-weight: 700; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">""" + time_text + """</div>
+                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px; font-family: 'Inter', sans-serif;">⏱️ Çalışma Süresi</div>
                     </div>
                 </div>
                         
@@ -4256,13 +4331,15 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     padding: 20px;
                     border-left: 4px solid #ffd700;
                 ">
-                    <strong style="color: #ffd700; font-size: 1.4em; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">📚 Çalışılan Dersler:</strong><br><br>
+                    <strong style="color: #ffd700; font-size: 1.4em; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Space Grotesk', sans-serif;">📚 Çalışılan Dersler:</strong><br><br>
                     """ + subjects_text + """
                 </div>
                         
                         """ + topics_section + """
                         
                         """ + note_section + """
+                        
+                        """ + photo_section + """
                         
                         <div class="auto-progress" style="width: """ + str(progress_percent) + """%;"></div>
                         
@@ -4289,8 +4366,9 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                             border: 2px solid #ffd700;
                             color: #ffd700;
                             font-size: 1.1em;
-                            font-weight: bold;
+                            font-weight: 600;
                             box-shadow: 0 0 20px rgba(255,215,0,0.4);
+                            font-family: 'Inter', sans-serif;
                         ">
                             """ + countdown_text + """
                         </div>
