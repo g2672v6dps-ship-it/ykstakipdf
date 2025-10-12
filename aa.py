@@ -4001,6 +4001,19 @@ def show_yks_journey_cinema(user_data, progress_data):
             else:
                 st.session_state.day_duration = 4
             
+            # Tam ekran seçeneği
+            if 'fullscreen_mode' not in st.session_state:
+                st.session_state.fullscreen_mode = False
+                
+            fullscreen_option = st.checkbox(
+                "🖼️ Tam Ekran Modunda Başlat (Hem telefon hem PC için optimum deneyim)",
+                value=st.session_state.fullscreen_mode
+            )
+            st.session_state.fullscreen_mode = fullscreen_option
+            
+            if fullscreen_option:
+                st.info("🎥 Tam ekran mod aktif! Film başladığında kenar çubukları gizlenecek ve daha sinematik bir deneyim yaşayacaksınız.")
+            
             st.markdown("---")
             
             # Başlat butonu
@@ -4031,14 +4044,17 @@ def show_yks_journey_cinema(user_data, progress_data):
     
     else:
         # Sinema modunda
-        # Müzik ekleme
+        # Müzik ekleme (YouTube embed)
         if st.session_state.music_enabled:
-            st.info("🎵 Sinematik deneyim için müzik açık! Eğer müzik çalmıyorsa tarayıcınızın ses ayarlarını kontrol edin.")
+            st.info("🎵 Sinematik deneyim için müzik açık! Şarkı otomatik başlayacak.")
             music_html = """
-            <div style="display: none;">
-                <audio autoplay loop>
-                    <source src="https://www.youtube.com/watch?v=V9FW37WkIf0" type="audio/mpeg">
-                </audio>
+            <div style="position: fixed; top: -200px; left: -200px; opacity: 0.01; pointer-events: none; z-index: -1000;">
+                <iframe width="100" height="100" 
+                        src="https://www.youtube.com/embed/V9FW37WkIf0?autoplay=1&loop=1&playlist=V9FW37WkIf0&controls=0&mute=0&start=0" 
+                        frameborder="0" 
+                        allow="autoplay; encrypted-media" 
+                        allowfullscreen>
+                </iframe>
             </div>
             <style>
                 body { 
@@ -4053,44 +4069,84 @@ def show_yks_journey_cinema(user_data, progress_data):
             """
             st.components.v1.html(music_html, height=0)
         
-        # Perde animasyonu
+        # Perde animasyonu (İyileştirilmiş)
         curtain_html = """
         <style>
-        @keyframes curtain-open {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-100%); }
+        @keyframes curtain-open-left {
+            0% { 
+                transform: translateX(0); 
+                opacity: 1;
+            }
+            70% {
+                transform: translateX(-80%);
+                opacity: 0.8;
+            }
+            100% { 
+                transform: translateX(-100%); 
+                opacity: 0;
+                visibility: hidden;
+            }
         }
         
         @keyframes curtain-open-right {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(100%); }
+            0% { 
+                transform: translateX(0); 
+                opacity: 1;
+            }
+            70% {
+                transform: translateX(80%);
+                opacity: 0.8;
+            }
+            100% { 
+                transform: translateX(100%); 
+                opacity: 0;
+                visibility: hidden;
+            }
         }
         
-        .curtain-left {
+        .cinema-curtain-left {
             position: fixed;
             top: 0;
             left: 0;
-            width: 50%;
+            width: 50vw;
             height: 100vh;
-            background: #8B0000;
-            z-index: 9999;
-            animation: curtain-open 3s ease-in-out forwards;
+            background: linear-gradient(90deg, #8B0000 0%, #A52A2A 50%, #8B0000 100%);
+            box-shadow: 5px 0 20px rgba(0,0,0,0.5);
+            z-index: 999999;
+            animation: curtain-open-left 4s ease-in-out forwards;
+            border-right: 3px solid #FFD700;
         }
         
-        .curtain-right {
+        .cinema-curtain-right {
             position: fixed;
             top: 0;
             right: 0;
-            width: 50%;
+            width: 50vw;
             height: 100vh;
-            background: #8B0000;
-            z-index: 9999;
-            animation: curtain-open-right 3s ease-in-out forwards;
+            background: linear-gradient(270deg, #8B0000 0%, #A52A2A 50%, #8B0000 100%);
+            box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+            z-index: 999999;
+            animation: curtain-open-right 4s ease-in-out forwards;
+            border-left: 3px solid #FFD700;
+        }
+        
+        .curtain-rope {
+            position: absolute;
+            top: 20px;
+            width: 4px;
+            height: 100px;
+            background: #DAA520;
+            left: 50%;
+            transform: translateX(-50%);
         }
         </style>
         
-        <div class="curtain-left"></div>
-        <div class="curtain-right"></div>
+        <div class="cinema-curtain-left">
+            <div class="curtain-rope"></div>
+        </div>
+        <div class="cinema-curtain-right">
+            <div class="curtain-rope"></div>
+        </div>
         """
         
         if st.session_state.current_day_index == 0:
@@ -4100,7 +4156,7 @@ def show_yks_journey_cinema(user_data, progress_data):
         if st.session_state.current_day_index < len(journey_data):
             current_day = journey_data[st.session_state.current_day_index]
             
-            # Film karesi stili
+            # Film karesi stili (Mobil responsive)
             day_frame = f"""
             <div style="
                 background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -4111,6 +4167,8 @@ def show_yks_journey_cinema(user_data, progress_data):
                 color: white;
                 font-family: 'Arial', sans-serif;
                 box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2);
+                max-width: 100%;
+                overflow-x: hidden;
             ">
                 <div style="text-align: center; margin-bottom: 25px;">
                     <h2 style="color: #ffd700; font-size: 2.5rem; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
@@ -4121,7 +4179,15 @@ def show_yks_journey_cinema(user_data, progress_data):
                     </p>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 25px 0;">
+                <div class="data-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 25px 0;">
+                <style>
+                    @media (max-width: 768px) {
+                        .data-grid {
+                            grid-template-columns: 1fr !important;
+                            gap: 10px !important;
+                        }
+                    }
+                </style>
                     
                     <div style="background: rgba(255, 215, 0, 0.1); padding: 20px; border-radius: 10px; border-left: 4px solid #ffd700;">
                         <h4 style="color: #ffd700; margin: 0 0 10px 0;">⭐ Günlük Motivasyon</h4>
@@ -4166,14 +4232,15 @@ def show_yks_journey_cinema(user_data, progress_data):
                 <div style="text-align: center; margin-top: 20px; padding: 15px; background: rgba(255, 215, 0, 0.05); border-radius: 10px;">
                     <h4 style="color: #ffd700; margin-bottom: 15px;">📷 Günün Fotoğrafı</h4>
                     <img src="data:image/jpeg;base64,{current_day['photo_data']}" 
-                         style="max-width: 300px; max-height: 200px; border-radius: 10px; border: 3px solid #ffd700; box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);">
-                    <p style="color: #cccccc; font-size: 0.9rem; margin-top: 10px; font-style: italic;">"{current_day['photo_caption']}"</p>
+                         style="max-width: 100%; height: auto; max-height: 300px; border-radius: 10px; border: 3px solid #ffd700; box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3); object-fit: cover;">
+                    <p style="color: #cccccc; font-size: 0.9rem; margin-top: 10px; font-style: italic;">"{current_day['photo_caption'] or 'Fotoğraf açıklaması eklenmemiş'}"</p>
                 </div>
-                ''' if current_day['photo_data'] and len(current_day['photo_data']) > 10 else '''
-                <div style="text-align: center; margin-top: 20px; padding: 15px; background: rgba(128, 128, 128, 0.1); border-radius: 10px;">
-                    <h4 style="color: #888888; margin-bottom: 15px;">📷 Fotoğraf Eklenmemiş</h4>
-                    <div style="color: #666666; font-size: 3rem;">📸</div>
-                    <p style="color: #888888; font-size: 0.9rem; margin-top: 10px;">Bu gün için fotoğraf yüklenmemiş</p>
+                ''' if current_day.get('photo_data') and isinstance(current_day['photo_data'], str) and len(current_day['photo_data']) > 50 else f'''
+                <div style="text-align: center; margin-top: 20px; padding: 15px; background: rgba(255, 193, 7, 0.1); border-radius: 10px; border: 2px dashed #ffc107;">
+                    <h4 style="color: #ffc107; margin-bottom: 15px;">📷 Günün Anısı</h4>
+                    <div style="color: #ffc107; font-size: 4rem; margin: 20px 0;">🌅</div>
+                    <p style="color: #ffc107; font-size: 1.1rem; margin: 10px 0; font-weight: 500;">Bu günün özel anları fotoğrafa çekilmemiş</p>
+                    <p style="color: #888888; font-size: 0.9rem;">Gelecekte hatırlamak için fotoğraf eklemeyi unutma!</p>
                 </div>
                 '''}
             </div>
@@ -4182,7 +4249,41 @@ def show_yks_journey_cinema(user_data, progress_data):
             st.components.v1.html(day_frame, height=600)
             
             # Kontrol butonları
-            col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+            # Tam ekran özelliği ekle
+            if 'fullscreen_mode' not in st.session_state:
+                st.session_state.fullscreen_mode = False
+            
+            # Tam ekran CSS
+            if st.session_state.fullscreen_mode:
+                fullscreen_css = """
+                <style>
+                    .main .block-container {
+                        padding-top: 1rem;
+                        padding-bottom: 1rem;
+                        padding-left: 1rem;
+                        padding-right: 1rem;
+                        max-width: 100%;
+                    }
+                    .stApp > header {
+                        background-color: transparent;
+                    }
+                    .stApp {
+                        margin: 0;
+                        padding: 0;
+                    }
+                    [data-testid="stSidebar"] {
+                        display: none;
+                    }
+                    @media (max-width: 768px) {
+                        .main .block-container {
+                            padding: 0.5rem;
+                        }
+                    }
+                </style>
+                """
+                st.components.v1.html(fullscreen_css, height=0)
+            
+            col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
             
             with col1:
                 if st.button("⏮️ Önceki", disabled=(st.session_state.current_day_index == 0)):
@@ -4204,9 +4305,16 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.rerun()
             
             with col4:
+                fullscreen_text = "📱 Normal Ekran" if st.session_state.fullscreen_mode else "🖼️ Tam Ekran"
+                if st.button(fullscreen_text):
+                    st.session_state.fullscreen_mode = not st.session_state.fullscreen_mode
+                    st.rerun()
+            
+            with col5:
                 if st.button("🚪 Çıkış"):
                     st.session_state.cinema_active = False
                     st.session_state.current_day_index = 0
+                    st.session_state.fullscreen_mode = False
                     st.rerun()
             
             # Otomatik geçiş
