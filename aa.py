@@ -4045,16 +4045,73 @@ def show_yks_journey_cinema(user_data, progress_data):
         # Sinema modunda
         # Müzik ekleme (YouTube embed)
         if st.session_state.music_enabled:
-            st.info("🎵 Sinematik deneyim için müzik açık! Şarkı otomatik başlayacak.")
+            st.info("🎵 Sinematik deneyim için müzik açık! 🎬 Oynat/Duraklat butonları ile müziği kontrol edebilirsiniz.")
             music_html = """
-            <div style="position: fixed; top: -200px; left: -200px; opacity: 0.01; pointer-events: none; z-index: -1000;">
-                <iframe width="100" height="100" 
-                        src="https://www.youtube.com/embed/V9FW37WkIf0?autoplay=1&loop=1&playlist=V9FW37WkIf0&controls=0&mute=0&start=0" 
-                        frameborder="0" 
-                        allow="autoplay; encrypted-media" 
-                        allowfullscreen>
-                </iframe>
+            <div id="youtube-music-container" style="position: fixed; top: -200px; left: -200px; opacity: 0.01; pointer-events: none; z-index: -1000;">
+                <div id="youtube-player"></div>
             </div>
+            
+            <script src="https://www.youtube.com/iframe_api"></script>
+            <script>
+                var player;
+                var isPlayerReady = false;
+                
+                function onYouTubeIframeAPIReady() {
+                    player = new YT.Player('youtube-player', {
+                        height: '100',
+                        width: '100',
+                        videoId: 'V9FW37WkIf0',
+                        playerVars: {
+                            'autoplay': 1,
+                            'loop': 1,
+                            'playlist': 'V9FW37WkIf0',
+                            'controls': 0,
+                            'showinfo': 0,
+                            'rel': 0,
+                            'iv_load_policy': 3,
+                            'modestbranding': 1,
+                            'start': 0
+                        },
+                        events: {
+                            'onReady': onPlayerReady,
+                            'onStateChange': onPlayerStateChange
+                        }
+                    });
+                }
+                
+                function onPlayerReady(event) {
+                    isPlayerReady = true;
+                    event.target.setVolume(50); // %50 ses seviyesi
+                    window.cinemaPlayer = player; // Global erişim
+                }
+                
+                function onPlayerStateChange(event) {
+                    // Video bitince tekrar başlat (loop için)
+                    if (event.data == YT.PlayerState.ENDED) {
+                        event.target.playVideo();
+                    }
+                }
+                
+                // Müzik kontrol fonksiyonları
+                window.playMusic = function() {
+                    if (player && isPlayerReady) {
+                        player.playVideo();
+                    }
+                };
+                
+                window.pauseMusic = function() {
+                    if (player && isPlayerReady) {
+                        player.pauseVideo();
+                    }
+                };
+                
+                window.isMusicPlaying = function() {
+                    if (player && isPlayerReady) {
+                        return player.getPlayerState() === YT.PlayerState.PLAYING;
+                    }
+                    return false;
+                };
+            </script>
             <style>
                 body { 
                     background: linear-gradient(135deg, #000 0%, #1a1a2e 100%);
@@ -4354,16 +4411,9 @@ def show_yks_journey_cinema(user_data, progress_data):
             # Kontrol butonları
             # YouTube tarzı tam ekran hazır
             
-            # YouTube tarzı tam ekran sistemi - Birleşik bileşen
-            fullscreen_system = """
+            # YouTube tarzı tam ekran sistemi - Görünür buton
+            fullscreen_css = """
             <style>
-                .cinema-container {
-                    width: 100%;
-                    height: 100%;
-                    background: #000;
-                    position: relative;
-                }
-                
                 .fullscreen-enabled {
                     position: fixed !important;
                     top: 0 !important;
@@ -4392,29 +4442,6 @@ def show_yks_journey_cinema(user_data, progress_data):
                 
                 .fullscreen-enabled [data-testid="stToolbar"] {
                     display: none !important;
-                }
-                
-                .cinema-fullscreen-btn {
-                    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-                    color: white;
-                    border: none;
-                    padding: 12px 20px;
-                    border-radius: 25px;
-                    cursor: pointer;
-                    font-size: 16px;
-                    font-weight: bold;
-                    transition: all 0.3s ease;
-                    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    z-index: 10000;
-                }
-                
-                .cinema-fullscreen-btn:hover {
-                    transform: translateY(-3px);
-                    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
-                    background: linear-gradient(45deg, #ee5a24, #d63031);
                 }
             </style>
             
@@ -4486,17 +4513,12 @@ def show_yks_journey_cinema(user_data, progress_data):
             
             // Global tanımlamalar
             window.cinemaToggleFullscreen = cinemaToggleFullscreen;
-            window.toggleFullscreen = cinemaToggleFullscreen; // Eski adıyla da erişilebilir
+            window.toggleFullscreen = cinemaToggleFullscreen;
             </script>
-            
-            <!-- Tam Ekran Butonu -->
-            <button class="cinema-fullscreen-btn" onclick="cinemaToggleFullscreen()" title="YouTube Tarzı Tam Ekran">
-                🖼️ Tam Ekran
-            </button>
             """
-            st.components.v1.html(fullscreen_system, height=0)
+            st.components.v1.html(fullscreen_css, height=0)
             
-            col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+            col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
             
             with col1:
                 if st.button("⏮️ Önceki", disabled=(st.session_state.current_day_index == 0)):
@@ -4506,6 +4528,29 @@ def show_yks_journey_cinema(user_data, progress_data):
             with col2:
                 play_pause = "⏸️ Duraklat" if st.session_state.auto_play_mode else "▶️ Oynat"
                 if st.button(play_pause):
+                    # Müzik kontrolü - mevcut durumun tersini yap
+                    if st.session_state.auto_play_mode:
+                        # Şu anda oynatılıyor, duraklat
+                        music_control = """
+                        <script>
+                        if (window.pauseMusic) {
+                            window.pauseMusic();
+                        }
+                        </script>
+                        """
+                    else:
+                        # Şu anda duraklatılmış, oynat
+                        music_control = """
+                        <script>
+                        if (window.playMusic) {
+                            window.playMusic();
+                        }
+                        </script>
+                        """
+                    
+                    st.components.v1.html(music_control, height=0)
+                    
+                    # Auto play modunu değiştir
                     st.session_state.auto_play_mode = not st.session_state.auto_play_mode
                     if st.session_state.auto_play_mode:
                         st.session_state.last_day_change = time.time()
@@ -4518,13 +4563,26 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.rerun()
             
             with col4:
+                # Tam ekran butonu - Streamlit buton olarak
+                fullscreen_btn = """
+                <button onclick="cinemaToggleFullscreen()" 
+                        style="width: 100%; height: 38px; background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+                               color: white; border: none; border-radius: 8px; cursor: pointer;
+                               font-size: 14px; font-weight: bold; transition: all 0.3s ease;
+                               box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);">
+                    🖼️ Tam Ekran
+                </button>
+                """
+                st.components.v1.html(fullscreen_btn, height=50)
+            
+            with col5:
                 if st.button("🚪 Çıkış"):
                     st.session_state.cinema_active = False
                     st.session_state.current_day_index = 0
                     st.rerun()
             
-            # Tam ekran butonu bilgisi
-            st.info("🎯 **YouTube Tarzı Tam Ekran:** Sağ üst köşedeki 🖼️ butonu ile tam ekran deneyimi yaşayın!")
+            # Bilgi mesajı
+            st.success("🎵 **Müzik Kontrolü:** Oynat/Duraklat butonları müziği de kontrol eder | 🖼️ **Tam Ekran:** YouTube tarzı deneyim")
             
             # Otomatik geçiş
             if st.session_state.auto_play_mode:
