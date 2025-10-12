@@ -4101,15 +4101,11 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             time_text = str(hours) + "s " + str(minutes) + "dk"
             progress_percent = int((day_data['day_number'] / len(timeline_days)) * 100)
             
-            # Geri sayım hesapla
-            countdown_text = ""
-            if st.session_state.auto_play:
-                current_time = time.time()
-                remaining = 5 - int(current_time - st.session_state.last_auto_update)
-                if remaining > 0:
-                    countdown_text = f"⏱️ Sonraki güne: {remaining} saniye"
-                else:
-                    countdown_text = "⚡ Geçiş yapılıyor..."
+            # JavaScript tabanlı yumuşak geri sayım
+            current_time = time.time()
+            elapsed = current_time - st.session_state.last_auto_update
+            remaining_seconds = max(0, 5 - int(elapsed))
+            auto_play_enabled = st.session_state.auto_play
             
             # Subjects listesini string'e çevir
             subjects_text = ""
@@ -4168,10 +4164,25 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 </div>
                 """
             
-            # HTML string'i oluştur - GERÇEK SİNEMA PERDE + MODERN FONTLAR
+            # HTML string'i oluştur - YUMUŞAK SİNEMA PERDE + RESPONSİVE
             day_html = """
             <!-- MODERN GOOGLE FONTS -->
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+            
+            <!-- RESPONSİVE & FULLSCREEN CSS -->
+            <style>
+                .theater-container:fullscreen {
+                    background: linear-gradient(135deg, #000000 0%, #1a0000 50%, #000000 100%) !important;
+                    padding: 20px !important;
+                    overflow-y: auto !important;
+                }
+                
+                @media (max-width: 768px) {
+                    .theater-container {
+                        padding: 20px 10px !important;
+                    }
+                }
+            </style>
             
             <!-- TAM EKRAN BUTONU -->
             <div style="
@@ -4194,22 +4205,37 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             
             <script>
                 function toggleFullscreen() {
+                    var elem = document.querySelector('.theater-container');
                     if (!document.fullscreenElement) {
-                        document.documentElement.requestFullscreen();
+                        if (elem.requestFullscreen) {
+                            elem.requestFullscreen();
+                        } else if (elem.webkitRequestFullscreen) {
+                            elem.webkitRequestFullscreen();
+                        } else if (elem.msRequestFullscreen) {
+                            elem.msRequestFullscreen();
+                        }
                     } else {
-                        document.exitFullscreen();
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        } else if (document.webkitExitFullscreen) {
+                            document.webkitExitFullscreen();
+                        } else if (document.msExitFullscreen) {
+                            document.msExitFullscreen();
+                        }
                     }
                 }
             </script>
             
-            <!-- SİNEMA SALONU ATMOSFER -->
-            <div style="
+            <!-- SİNEMA SALONU ATMOSFER - RESPONSİVE -->
+            <div class="theater-container" style="
                 background: linear-gradient(135deg, #000000 0%, #1a0000 50%, #000000 100%);
-                padding: 60px 20px;
+                padding: 40px 15px;
                 margin: 0;
-                min-height: 100vh;
+                height: 100%;
+                max-height: 95vh;
                 position: relative;
                 font-family: 'Inter', sans-serif;
+                overflow-y: auto;
             ">
                 <!-- SİNEMA SPOT IŞIKLARI -->
                 <div style="
@@ -4221,51 +4247,53 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     background: radial-gradient(ellipse at center, rgba(255,215,0,0.3) 0%, transparent 70%);
                 "></div>
                 
-                <!-- ANA SİNEMA PERDE -->
+                <!-- ANA SİNEMA PERDE - RESPONSİVE -->
                 <div style="
                     background: #000000;
-                    border: 30px solid #8B0000;
+                    border: 20px solid #8B0000;
                     border-image: linear-gradient(45deg, #8B0000, #DC143C, #8B0000) 1;
-                    border-radius: 20px;
-                    margin: 40px auto;
-                    max-width: 95%;
+                    border-radius: 15px;
+                    margin: 20px auto;
+                    max-width: 96%;
+                    width: 100%;
                     position: relative;
                     box-shadow: 
-                        0 0 50px rgba(255,215,0,0.3),
-                        inset 0 0 30px rgba(0,0,0,0.8),
-                        0 20px 40px rgba(0,0,0,0.6);
+                        0 0 40px rgba(255,215,0,0.3),
+                        inset 0 0 20px rgba(0,0,0,0.8),
+                        0 15px 30px rgba(0,0,0,0.6);
                 ">
-                    <!-- PERDE ÜST SÜS -->
+                    <!-- PERDE ÜST SÜS - KÜÇÜK -->
                     <div style="
                         position: absolute;
-                        top: -15px;
-                        left: -15px;
-                        right: -15px;
-                        height: 30px;
+                        top: -10px;
+                        left: -10px;
+                        right: -10px;
+                        height: 20px;
                         background: linear-gradient(90deg, #8B0000, #DC143C, #B22222, #DC143C, #8B0000);
-                        border-radius: 15px 15px 0 0;
-                        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+                        border-radius: 10px 10px 0 0;
+                        box-shadow: 0 3px 10px rgba(0,0,0,0.5);
                     "></div>
                     
-                    <!-- PERDE ALTI -->
+                    <!-- PERDE ALTI - KÜÇÜK -->
                     <div style="
                         position: absolute;
-                        bottom: -15px;
-                        left: -15px;
-                        right: -15px;
-                        height: 30px;
+                        bottom: -10px;
+                        left: -10px;
+                        right: -10px;
+                        height: 20px;
                         background: linear-gradient(90deg, #8B0000, #DC143C, #B22222, #DC143C, #8B0000);
-                        border-radius: 0 0 15px 15px;
-                        box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+                        border-radius: 0 0 10px 10px;
+                        box-shadow: 0 -3px 10px rgba(0,0,0,0.5);
                     "></div>
                     
-                    <!-- İÇERİK ALANI -->
+                    <!-- İÇERİK ALANI - RESPONSİVE -->
                     <div style="
-                        padding: 50px;
+                        padding: 30px;
                         background: linear-gradient(135deg, #000000 0%, #111111 100%);
                         border-radius: 10px;
                         position: relative;
-                        min-height: 600px;
+                        min-height: 500px;
+                        height: auto;
                     ">
                 
                 <h2 style="
@@ -4354,9 +4382,9 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                             🚀 Başarı Yolculuğu Devam Ediyor... (""" + str(day_data['day_number']) + """/""" + str(len(timeline_days)) + """)
                         </p>
                         
-                        <!-- AUTO-PLAY DURUM GÖSTERGESİ -->
-                        """ + ("""
-                        <div style="
+                        <!-- AUTO-PLAY YUMUŞAK GERİ SAYIM -->
+                        """ + (f"""
+                        <div id="countdown-display" style="
                             position: absolute;
                             bottom: 10px;
                             right: 20px;
@@ -4370,22 +4398,59 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                             box-shadow: 0 0 20px rgba(255,215,0,0.4);
                             font-family: 'Inter', sans-serif;
                         ">
-                            """ + countdown_text + """
+                            ⏱️ Sonraki güne: <span id="countdown-number">{remaining_seconds}</span> saniye
                         </div>
-                        """ if st.session_state.auto_play and countdown_text else "") + """
+                        
+                        <script>
+                            let startTime = {st.session_state.last_auto_update};
+                            let isAutoPlay = {str(auto_play_enabled).lower()};
+                            let currentDay = {st.session_state.cinema_day};
+                            let maxDays = {len(timeline_days)};
+                            
+                            function updateCountdown() {{
+                                if (!isAutoPlay) {{
+                                    document.getElementById('countdown-display').style.display = 'none';
+                                    return;
+                                }}
+                                
+                                let now = Date.now() / 1000;
+                                let elapsed = now - startTime;
+                                let remaining = Math.max(0, 5 - Math.floor(elapsed));
+                                
+                                let countdownEl = document.getElementById('countdown-number');
+                                if (countdownEl) {{
+                                    if (remaining > 0) {{
+                                        countdownEl.textContent = remaining;
+                                    }} else {{
+                                        document.getElementById('countdown-display').innerHTML = '⚡ Geçiş yapılıyor...';
+                                        // 5 saniye dolduğunda ve son gün değilse sayfayı yenile
+                                        if (currentDay < maxDays - 1) {{
+                                            setTimeout(() => {{
+                                                window.location.reload();
+                                            }}, 1000);
+                                        }}
+                                    }}
+                                }}
+                            }}
+                            
+                            // Her saniye güncelle
+                            if (isAutoPlay) {{
+                                setInterval(updateCountdown, 1000);
+                                updateCountdown(); // İlk çalıştırma
+                            }}
+                        </script>
+                        """ if auto_play_enabled else "") + """
                         
                     </div>
                 </div>
             </div>
             """
             
-            # HTML'i render et - GERÇEK SİNEMA PERDE - BÜYÜK
-            st.components.v1.html(day_html, height=1100)
+            # HTML'i render et - RESPONSİVE SİNEMA PERDE 
+            st.components.v1.html(day_html, height=850)
             
-            # Auto-play için sürekli yenileme
-            if st.session_state.auto_play:
-                time.sleep(1)  # 1 saniye bekle
-                st.rerun()  # Geri sayımı güncellemek için
+            # ✨ YUMUŞAK AUTO-PLAY - DISKO FLASHING YOK!
+            # JavaScript geri sayım ile sayfa yenilemesiz geçiş
             
             # Kontrol butonları
             col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
