@@ -4153,12 +4153,14 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     border-radius: 15px; 
                     border: 2px solid #ffd700;
                     text-align: center;
+                    animation: slowGlow 3s infinite ease-in-out;
                 ">
                     <strong style="color: #ffd700; font-size: 1.4em;">📸 Günün Anısı</strong><br><br>
                     <img src="data:image/jpeg;base64,""" + day_data['photo_data']['data'] + """" 
                          style="
-                            max-width: 300px; 
-                            max-height: 200px; 
+                            max-width: 500px; 
+                            max-height: 350px; 
+                             width: 90%; 
                             border-radius: 10px; 
                             border: 3px solid #ffd700;
                             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
@@ -4280,6 +4282,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                     font-family: 'Space Grotesk', 'Inter', sans-serif;
                     letter-spacing: -1px;
+                    animation: gentlePulse 3s infinite ease-in-out;
                 ">
                     📅 """ + date_str + """ - Gün """ + str(day_data['day_number']) + """
                 </h2>
@@ -4357,9 +4360,9 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                             🚀 Başarı Yolculuğu Devam Ediyor... (""" + str(day_data['day_number']) + """/""" + str(len(timeline_days)) + """)
                         </p>
                         
-                        <!-- BASİT AUTO-PLAY GÖSTERGESİ -->
-                        """ + ("""
-                        <div style="
+                        <!-- 💝 FLASHING YOK + DUYGUSAL ANİMASYON -->
+                        """ + (f"""
+                        <div id="smooth-countdown" style="
                             position: absolute;
                             bottom: 10px;
                             right: 20px;
@@ -4372,10 +4375,98 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                             font-weight: 600;
                             box-shadow: 0 0 20px rgba(255,215,0,0.4);
                             font-family: 'Inter', sans-serif;
+                            animation: gentlePulse 2s infinite;
                         ">
-                            """ + countdown_text + """
+                            ⏱️ Sonraki güne: <span id="timer">5</span> saniye
                         </div>
-                        """ if st.session_state.auto_play and countdown_text else "") + """
+                        
+                        <!-- DUYGUSAL ANİMASYONLAR CSS -->
+                        <style>
+                            @keyframes gentlePulse {{
+                                0%, 100% {{ 
+                                    box-shadow: 0 0 20px rgba(255,215,0,0.4);
+                                    transform: scale(1);
+                                }}
+                                50% {{ 
+                                    box-shadow: 0 0 30px rgba(255,215,0,0.6);
+                                    transform: scale(1.02);
+                                }}
+                            }}
+                            
+                            @keyframes heartBeat {{
+                                0%, 100% {{ transform: scale(1); }}
+                                25% {{ transform: scale(1.03); }}
+                                50% {{ transform: scale(1); }}
+                                75% {{ transform: scale(1.03); }}
+                            }}
+                            
+                            @keyframes slowGlow {{
+                                0%, 100% {{ 
+                                    box-shadow: 0 8px 25px rgba(255,215,0,0.4);
+                                }}
+                                50% {{ 
+                                    box-shadow: 0 8px 35px rgba(255,215,0,0.7);
+                                }}
+                            }}
+                            
+                            .photo-emotional {{
+                                animation: slowGlow 3s infinite ease-in-out;
+                            }}
+                            
+                            .stats-emotional {{
+                                animation: heartBeat 4s infinite ease-in-out;
+                            }}
+                        </style>
+                        
+                        <!-- YUMUŞAK JAVASCRIPT AUTO-PLAY - FLASHING YOK -->
+                        <script>
+                            let countdown = 5;
+                            let autoPlayActive = {str(st.session_state.auto_play).lower()};
+                            let currentDay = {st.session_state.cinema_day};
+                            let totalDays = {len(timeline_days)};
+                            
+                            function updateTimer() {{
+                                if (!autoPlayActive || currentDay >= totalDays - 1) {{
+                                    document.getElementById('smooth-countdown').style.display = 'none';
+                                    return;
+                                }}
+                                
+                                let timerEl = document.getElementById('timer');
+                                if (timerEl) {{
+                                    timerEl.textContent = countdown;
+                                    
+                                    if (countdown <= 0) {{
+                                        document.getElementById('smooth-countdown').innerHTML = '⚡ Sonraki güne geçiliyor...';
+                                        setTimeout(() => {{
+                                            window.location.reload();
+                                        }}, 1500);
+                                    }} else {{
+                                        countdown--;
+                                    }}
+                                }}
+                            }}
+                            
+                            // Duygusal fotoğraf animasyonu
+                            setTimeout(() => {{
+                                let photos = document.querySelectorAll('img');
+                                photos.forEach(img => {{
+                                    img.classList.add('photo-emotional');
+                                }});
+                                
+                                let statsBoxes = document.querySelectorAll('[style*="background: #1a1a1a"]');
+                                statsBoxes.forEach((box, index) => {{
+                                    setTimeout(() => {{
+                                        box.classList.add('stats-emotional');
+                                    }}, index * 200);
+                                }});
+                            }}, 1000);
+                            
+                            // Auto-play aktifse timer başlat
+                            if (autoPlayActive && currentDay < totalDays - 1) {{
+                                setInterval(updateTimer, 1000);
+                            }}
+                        </script>
+                        """ if st.session_state.auto_play else "") + """
                         
                     </div>
                 </div>
@@ -4385,10 +4476,8 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             # HTML'i render et - KOMPAKT SİNEMA PERDE 
             st.components.v1.html(day_html, height=700)
             
-            # BASİT AUTO-PLAY - 3 SANİYE ARAYLA GÜNCELLE
-            if st.session_state.auto_play:
-                time.sleep(3)  # 3 saniye bekle
-                st.rerun()  # Geri sayımı güncellemek için
+            # ✨ FLASHING YOK - SADECE 5 SANİYEDE BİR GEÇİŞ
+            # Geri sayım artık JavaScript ile çalışacak, sayfa yenilenmeyecek
             
             # Kontrol butonları
             col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
