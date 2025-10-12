@@ -9856,216 +9856,73 @@ def main():
                                     st.rerun()
                             
                             with col2:
-                                # SES SİSTEMİ ÜSTTEKİ ÜNİVERSAL SİSTEMDE AKTIF ✅
-                                
-                                # ÜNIVERSAL SES + KAĞIT ÇEVİRME SİSTEMİ (Bilgisayar + Telefon)
-                                st.components.v1.html("""
-                                <style>
-                                /* GERÇEKÇİ KAĞIT ÇEVİRME ANİMASYONU */
-                                @keyframes realisticCardFlip {
-                                    0% {
-                                        transform: perspective(1000px) rotateY(0deg);
-                                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                                    }
-                                    25% {
-                                        transform: perspective(1000px) rotateY(-90deg) translateZ(20px);
-                                        box-shadow: -5px 2px 15px rgba(0,0,0,0.3);
-                                    }
-                                    75% {
-                                        transform: perspective(1000px) rotateY(90deg) translateZ(20px);
-                                        box-shadow: 5px 2px 15px rgba(0,0,0,0.3);
-                                    }
-                                    100% {
-                                        transform: perspective(1000px) rotateY(0deg);
-                                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                                    }
-                                }
-                                
-                                .card-flip-animation {
-                                    animation: realisticCardFlip 0.4s ease-in-out;
-                                    transform-style: preserve-3d;
-                                }
-                                </style>
-                                
-                                <script>
-                                // ÜNIVERSAL TİK SESİ - HER PLATFORMDA ÇALIŞIR
-                                function playUniversalTick() {
-                                    try {
-                                        // Çoklu ses yöntemi - kesin çalışır
+                                # 🔊 BASİT VE ETKİLİ SES SİSTEMİ - HER PLATFORMDA ÇALIŞIR!
+                                if st.button(f"🔄 {'Cevabı Gör' if not st.session_state.show_answer else 'Soruya Dön'}", 
+                                           use_container_width=True, type="primary", key="flip_card_main",
+                                           help="🔊 Basit ve etkili ses sistemi + 3D animasyon!"):
+                                    
+                                    # Önce sesi çal
+                                    st.components.v1.html("""
+                                    <script>
+                                    // TELEFON VE BİLGİSAYAR İÇİN BASİT SES
+                                    function playSimpleClick() {
+                                        // Dokunmatik cihazlarda çalışması için kullanıcı etkileşimi gerekli
+                                        const audio = new Audio();
                                         
-                                        // 1. Web Audio API (bilgisayar için ideal)
-                                        try {
-                                            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                                            
-                                            if (audioContext.state === 'suspended') {
-                                                audioContext.resume();
-                                            }
-                                            
-                                            const oscillator = audioContext.createOscillator();
-                                            const gainNode = audioContext.createGain();
-                                            
-                                            oscillator.connect(gainNode);
-                                            gainNode.connect(audioContext.destination);
-                                            
-                                            // Net tik sesi
-                                            oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
-                                            oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.03);
-                                            
-                                            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                                            gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.01);
-                                            gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.05);
-                                            
-                                            oscillator.type = 'square';
-                                            oscillator.start(audioContext.currentTime);
-                                            oscillator.stop(audioContext.currentTime + 0.05);
-                                            
-                                            console.log('✅ Web Audio çalındı');
-                                            
-                                        } catch (webAudioError) {
-                                            console.log('⚠️ Web Audio hatası:', webAudioError);
-                                            
-                                            // 2. HTML Audio fallback (mobil için)
-                                            const audio = new Audio('data:audio/wav;base64,UklGRlYAAABXQVZFZm10IBAAAAABAAEAwF0AAIC6AAACABAAAABkYXRhEgAAABhYWFhYWFhYWFhYWFhYWFhYWFg=');
-                                            audio.volume = 1.0;
-                                            audio.play().catch(() => {
-                                                console.log('⚠️ HTML Audio de çalışmadı');
+                                        // Çok basit tik sesi - WAV formatında
+                                        audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgbBSuB0fPNfTAEInjEAAAAAA=';
+                                        
+                                        // Ses ayarları
+                                        audio.volume = 0.3;  // Yumuşak ses
+                                        audio.currentTime = 0;
+                                        
+                                        // Çalmaya çalış
+                                        const playPromise = audio.play();
+                                        if (playPromise !== undefined) {
+                                            playPromise.then(() => {
+                                                console.log('🔊 Basit tik sesi çalındı!');
+                                            }).catch(error => {
+                                                console.log('🔇 Ses çalınamadı:', error);
+                                                // Fallback: Vibrasyon
+                                                if (navigator.vibrate) {
+                                                    navigator.vibrate(50);
+                                                    console.log('📳 Vibrasyon aktif');
+                                                }
                                             });
                                         }
-                                        
-                                    } catch (e) {
-                                        console.log('⚠️ Ses sistemi hatası:', e);
                                     }
                                     
-                                    // 3. Vibrasyon (mobil fallback)
-                                    if (navigator.vibrate) {
-                                        navigator.vibrate(30);
-                                        console.log('📳 Vibrasyon aktif');
-                                    }
-                                }
-                                
-                                // Kağıt çevirme animasyonu
-                                function startCardFlipAnimation() {
+                                    // Hemen çal
+                                    playSimpleClick();
+                                    
+                                    // Kağıt çevirme animasyonu için CSS
+                                    const style = document.createElement('style');
+                                    style.textContent = `
+                                        @keyframes cardFlip {
+                                            0% { transform: perspective(1000px) rotateY(0deg); }
+                                            50% { transform: perspective(1000px) rotateY(180deg); }
+                                            100% { transform: perspective(1000px) rotateY(360deg); }
+                                        }
+                                        .flip-animation {
+                                            animation: cardFlip 0.6s ease-in-out;
+                                        }
+                                    `;
+                                    document.head.appendChild(style);
+                                    
+                                    // Butona animasyon ekle
                                     const buttons = document.querySelectorAll('button');
                                     buttons.forEach(btn => {
                                         if (btn.textContent.includes('🔄')) {
-                                            btn.classList.add('card-flip-animation');
+                                            btn.classList.add('flip-animation');
                                             setTimeout(() => {
-                                                btn.classList.remove('card-flip-animation');
-                                            }, 400);
+                                                btn.classList.remove('flip-animation');
+                                            }, 600);
                                         }
                                     });
-                                }
-                                
-                                // Streamlit buton tıklamalarını yakala
-                                function attachToStreamlitButtons() {
-                                    const buttons = document.querySelectorAll('[data-testid="stButton"] button');
-                                    buttons.forEach(btn => {
-                                        if (btn.textContent.includes('🔄')) {
-                                            // Event listener ekle (birden fazla eklemeyi önle)
-                                            if (!btn.hasAttribute('data-audio-attached')) {
-                                                btn.addEventListener('click', function() {
-                                                    playUniversalTick();
-                                                    startCardFlipAnimation();
-                                                });
-                                                btn.setAttribute('data-audio-attached', 'true');
-                                            }
-                                        }
-                                    });
-                                }
-                                
-                                // Sürekli kontrol (Streamlit butonları dinamik yüklenir)
-                                setInterval(attachToStreamlitButtons, 500);
-                                setTimeout(attachToStreamlitButtons, 100);
-                                
-                                console.log('🎯 Üniversal ses sistemi aktif!');
-                                </script>
-                                """, height=0)
-                                
-                                # Ana buton - kod yapısı korundu
-                                if st.button(f"🔄 {'Cevabı Gör' if not st.session_state.show_answer else 'Soruya Dön'}", 
-                                           use_container_width=True, type="primary", key="flip_card_main",
-                                           help="🔊 Üniversal ses + 3D kağıt animasyonu!"):
-                                    
-                                    # ⚡ GÜÇLÜ MOBİL SES SİSTEMİ!
-                                    st.components.v1.html("""
-                                    <script>
-                                    // TELEFON İÇİN ÖZEL SES SİSTEMİ
-                                    
-                                    // Mobil tarayıcı kontrolü
-                                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                                    
-                                    if (isMobile) {
-                                        console.log('📱 Mobil cihaz tespit edildi - özel ses sistemi aktif');
-                                        
-                                        // Metod 1: Önceden yüklenmiş ses
-                                        try {
-                                            const audioData = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU' + 
-                                                             'JAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                                             'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
-                                            const audio = new Audio(audioData);
-                                            audio.volume = 1.0;
-                                            audio.preload = 'auto';
-                                            
-                                            const playPromise = audio.play();
-                                            if (playPromise !== undefined) {
-                                                playPromise.then(() => {
-                                                    console.log('📱 Mobil ses çalındı!');
-                                                }).catch(error => {
-                                                    console.log('📱 Mobil ses hatası:', error);
-                                                    fallbackMobile();
-                                                });
-                                            }
-                                        } catch (mobileError) {
-                                            console.log('📱 Mobil ses sistemi hatası:', mobileError);
-                                            fallbackMobile();
-                                        }
-                                        
-                                        function fallbackMobile() {
-                                            // Metod 2: Vibrasyon + görsel
-                                            if (navigator.vibrate) {
-                                                navigator.vibrate([30, 10, 30]);
-                                                console.log('📳 Vibrasyon aktif');
-                                            }
-                                            
-                                            // Metod 3: Ekran flash (görsel feedback)
-                                            document.body.style.backgroundColor = '#ff4444';
-                                            setTimeout(() => {
-                                                document.body.style.backgroundColor = '';
-                                            }, 100);
-                                        }
-                                        
-                                    } else {
-                                        // Masaüstü için normal Web Audio API
-                                        try {
-                                            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                                            
-                                            if (ctx.state === 'suspended') {
-                                                ctx.resume();
-                                            }
-                                            
-                                            const osc = ctx.createOscillator();
-                                            const gain = ctx.createGain();
-                                            
-                                            osc.connect(gain);
-                                            gain.connect(ctx.destination);
-                                            
-                                            osc.frequency.setValueAtTime(1200, ctx.currentTime);
-                                            gain.gain.setValueAtTime(0.4, ctx.currentTime);
-                                            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
-                                            
-                                            osc.type = 'square';
-                                            osc.start(ctx.currentTime);
-                                            osc.stop(ctx.currentTime + 0.08);
-                                            
-                                            console.log('💻 Masaüstü tik sesi çalındı!');
-                                        } catch (desktopError) {
-                                            console.log('💻 Masaüstü ses hatası:', desktopError);
-                                        }
-                                    }
                                     </script>
                                     """, height=0)
                                     
-                                    # Ana fonksiyon - değişmedi
+                                    # Ana fonksiyon
                                     st.session_state.show_answer = not st.session_state.show_answer
                                     st.rerun()
                             
@@ -10211,6 +10068,558 @@ def main():
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
+                
+                # 🎵 MÜZİK OLUŞTURMA SİSTEMİ - YENİ!
+                st.markdown("---")
+                st.markdown("""
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); color: white; padding: 30px; border-radius: 20px; margin: 40px 0; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                    <h1 style="margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🎵 MÜZİK OLUŞTURMA SİSTEMİ</h1>
+                    <p style="margin: 10px 0 0 0; font-size: 1.3rem; opacity: 0.95;">Konuları müziğe çevir, hafızanda kalıcı hale getir!</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Kullanıcının müziklerini saklamak için Firebase entegrasyonu
+                if 'user_music_creations' not in st.session_state:
+                    username = st.session_state.get('current_user', None)
+                    if username:
+                        users_data = load_users_from_firebase()
+                        user_data = users_data.get(username, {})
+                        saved_music = user_data.get('music_creations', '{}')
+                        try:
+                            if isinstance(saved_music, str):
+                                st.session_state.user_music_creations = json.loads(saved_music)
+                            else:
+                                st.session_state.user_music_creations = saved_music if isinstance(saved_music, dict) else {}
+                        except (json.JSONDecodeError, TypeError):
+                            st.session_state.user_music_creations = {}
+                    else:
+                        st.session_state.user_music_creations = {}
+                
+                # Sekme sistemi - Müziklerimi Dinle | Yeni Müzik Yarat
+                music_tab1, music_tab2 = st.tabs(["🎧 Müziklerimi Dinle", "🎼 Yeni Müzik Yarat"])
+                
+                with music_tab2:
+                    # Form temizleme kontrolü
+                    if 'music_form_counter' not in st.session_state:
+                        st.session_state.music_form_counter = 0
+                    
+                    # Yeni müzik oluşturma formu
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); 
+                               border-radius: 15px; padding: 25px; margin: 20px 0;">
+                        <h3 style="color: #2d3748; margin-bottom: 20px; text-align: center;">🎹 Konunu Müziğe Çevir</h3>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Form alanları - unique key'ler
+                    music_form_key = st.session_state.music_form_counter
+                    music_col1, music_col2 = st.columns(2)
+                    
+                    with music_col1:
+                        # Alan bilgisini sistemden al
+                        user_area = user_data.get('target_department', 'Sayısal')
+                        area_subjects = {
+                            'Sayısal': ["TYT Matematik", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"],
+                            'Eşit Ağırlık': ["TYT Türkçe", "TYT Matematik", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"],
+                            'Sözel': ["TYT Türkçe", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya", "TYT Tarih", "TYT Coğrafya"],
+                            'Dil': ["TYT Türkçe", "AYT Edebiyat", "YDT Dil"]
+                        }
+                        
+                        suggested_subjects = area_subjects.get(user_area, ["TYT Türkçe", "TYT Matematik"])
+                        all_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", 
+                                       "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "AYT Matematik", "AYT Fizik", "AYT Kimya", 
+                                       "AYT Biyoloji", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
+                        
+                        # Önce kendi alanını göster, sonra tümünü
+                        final_subjects = suggested_subjects + [s for s in all_subjects if s not in suggested_subjects]
+                        
+                        # Ders seçimi
+                        music_subject = st.selectbox(
+                            "📚 Hangi ders için müzik?",
+                            final_subjects,
+                            key=f"music_subject_{music_form_key}",
+                            help=f"🎯 Alanın ({user_area}) dersleri öncelikli gösteriliyor"
+                        )
+                        
+                        # Konu seçimi - konu takipten güncel olarak çek
+                        available_topics = get_topic_list(music_subject)
+                        if available_topics:
+                            music_topic = st.selectbox(
+                                "🎯 Hangi konu için müzik?",
+                                available_topics,
+                                key=f"music_topic_{music_form_key}"
+                            )
+                        else:
+                            music_topic = st.text_input(
+                                "🎯 Konu adını yazın",
+                                placeholder="Örnek: İntegral, Hücre Bölünmesi, Osmanlı Tarihi...",
+                                key=f"music_topic_manual_{music_form_key}"
+                            )
+                    
+                    with music_col2:
+                        # Müzik türü seçimi
+                        music_style = st.selectbox(
+                            "🎵 Müzik Tarzı",
+                            ["Pop", "Rap/Hip-Hop", "Rock", "Folk", "Klasik", "Blues", "Reggae", "Elektronik"],
+                            key=f"music_style_{music_form_key}"
+                        )
+                        
+                        # Zorluk seviyesi
+                        difficulty_level = st.selectbox(
+                            "⭐ Zorluk Seviyesi",
+                            ["Temel", "Orta", "İleri", "Çok İleri"],
+                            key=f"music_difficulty_{music_form_key}"
+                        )
+                    
+                    # Müzik yazma alanı
+                    st.markdown("### 🎼 Müziğini Yaz")
+                    music_lyrics = st.text_area(
+                        "🎤 Şarkı Sözleri (Konuyu müziğe çevir)",
+                        placeholder="""Örnek:
+                        
+🎵 (Melodi: Bildiğin bir şarkının melodisine uyarla)
+İntegral almak için, x'i arttırıyoruz
+Türev alarak, eğimi buluyoruz  
+İntegral artış, türev ise azalış
+Matematikte bunlar hep birlikteeee! 🎵
+
+🎵 Osmanlı'nın kuruluşu, 1299'da başlar
+Osman Bey'den itibaren, tarih sayfalarında
+Yeniçeri ocağıyla, güçlendi devletimiz
+Kanuni döneminde zirveye çıktık biz! 🎵""",
+                        height=200,
+                        key=f"music_lyrics_{music_form_key}"
+                    )
+                    
+                    # Notlar/Anımsama ipuçları
+                    music_notes = st.text_area(
+                        "📝 Anımsama Notları (isteğe bağlı)",
+                        placeholder="Bu müziği hangi durumlarda kullanacaksın? Hangi formülleri/bilgileri içeriyor?",
+                        height=80,
+                        key=f"music_notes_{music_form_key}"
+                    )
+                    
+                    # Müzik kaydetme butonu
+                    if st.button("🎵 Müziği Kaydet", use_container_width=True, type="primary", key=f"save_music_{music_form_key}"):
+                        if music_topic and music_lyrics.strip():
+                            # Kullanıcının müziklerine ekle
+                            if music_subject not in st.session_state.user_music_creations:
+                                st.session_state.user_music_creations[music_subject] = []
+                            
+                            new_music = {
+                                'subject': music_subject,
+                                'topic': music_topic,
+                                'style': music_style,
+                                'difficulty': difficulty_level,
+                                'lyrics': music_lyrics.strip(),
+                                'notes': music_notes.strip() if music_notes.strip() else "Notunuz yok",
+                                'created_date': datetime.now().strftime("%Y-%m-%d %H:%M"),
+                                'play_count': 0
+                            }
+                            
+                            st.session_state.user_music_creations[music_subject].append(new_music)
+                            
+                            # Firebase'e kaydet
+                            username = st.session_state.get('current_user', None)
+                            if username:
+                                try:
+                                    music_json = json.dumps(st.session_state.user_music_creations, ensure_ascii=False)
+                                    update_user_in_firebase(username, {'music_creations': music_json})
+                                    st.success(f"🎉 '{music_topic}' konulu müziğin '{music_subject}' dersine eklendi ve Firebase'e kaydedildi!")
+                                except Exception as e:
+                                    st.success(f"🎉 '{music_topic}' konulu müziğin '{music_subject}' dersine eklendi! (Yerel olarak)")
+                                    st.info("💾 Müzikleriniz bu oturum boyunca saklanacak.")
+                            else:
+                                st.success(f"🎉 '{music_topic}' konulu müziğin '{music_subject}' dersine eklendi! (Geçici)")
+                                st.warning("⚠️ Giriş yapın ki müzikleriniz kalıcı olarak saklansın!")
+                            
+                            st.balloons()
+                            
+                            # Form counter'ı artır ve yenile
+                            st.session_state.music_form_counter += 1
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            st.error("❌ Lütfen hem konu hem de şarkı sözlerini yazın!")
+                
+                with music_tab1:
+                    # Müzikleri dinleme/görüntüleme bölümü
+                    if not st.session_state.user_music_creations:
+                        st.info("🎵 Henüz hiç müziğiniz yok. 'Yeni Müzik Yarat' sekmesinden müziklerinizi oluşturun!")
+                    else:
+                        # Ders seçimi
+                        available_music_subjects = list(st.session_state.user_music_creations.keys())
+                        selected_music_subject = st.selectbox(
+                            "🎯 Hangi dersin müziklerini dinlemek istiyorsun?",
+                            available_music_subjects,
+                            key="music_subject_select"
+                        )
+                        
+                        if selected_music_subject and st.session_state.user_music_creations[selected_music_subject]:
+                            musics = st.session_state.user_music_creations[selected_music_subject]
+                            
+                            # İstatistikler
+                            music_col_stat1, music_col_stat2, music_col_stat3 = st.columns(3)
+                            with music_col_stat1:
+                                st.metric("🎵 Toplam Müzik", len(musics))
+                            with music_col_stat2:
+                                total_plays = sum(music.get('play_count', 0) for music in musics)
+                                st.metric("🎧 Toplam Dinleme", total_plays)
+                            with music_col_stat3:
+                                most_recent = max(musics, key=lambda x: x['created_date'])['created_date']
+                                st.metric("📅 Son Eklenen", most_recent[:10])
+                            
+                            # Müzik listesi
+                            for i, music in enumerate(musics):
+                                with st.expander(f"🎵 {music['topic']} - {music['style']} ({music['difficulty']})", expanded=False):
+                                    music_display_col1, music_display_col2 = st.columns([3, 1])
+                                    
+                                    with music_display_col1:
+                                        st.markdown(f"""
+                                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                                   color: white; padding: 20px; border-radius: 15px; margin: 10px 0;">
+                                            <h4 style="margin: 0 0 15px 0;">🎤 {music['topic']} Müziği</h4>
+                                            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; font-family: monospace; white-space: pre-line; line-height: 1.6;">
+{music['lyrics']}
+                                            </div>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                        
+                                        if music['notes'] != "Notunuz yok":
+                                            st.markdown(f"""
+                                            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 4px solid #667eea; margin-top: 10px;">
+                                                <strong>📝 Notlar:</strong> {music['notes']}
+                                            </div>
+                                            """, unsafe_allow_html=True)
+                                    
+                                    with music_display_col2:
+                                        st.markdown(f"""
+                                        <div style="text-align: center; padding: 10px;">
+                                            <div style="margin: 5px 0;"><strong>🎵 Tarz:</strong> {music['style']}</div>
+                                            <div style="margin: 5px 0;"><strong>⭐ Seviye:</strong> {music['difficulty']}</div>
+                                            <div style="margin: 5px 0;"><strong>🎧 Dinlenme:</strong> {music.get('play_count', 0)}</div>
+                                            <div style="margin: 5px 0;"><strong>📅 Tarih:</strong> {music['created_date'][:10]}</div>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                        
+                                        # Dinleme butonu
+                                        if st.button(f"🎧 Dinledim", key=f"play_music_{i}", use_container_width=True):
+                                            music['play_count'] = music.get('play_count', 0) + 1
+                                            
+                                            # Firebase'e kaydet
+                                            username = st.session_state.get('current_user', None)
+                                            if username:
+                                                try:
+                                                    music_json = json.dumps(st.session_state.user_music_creations, ensure_ascii=False)
+                                                    update_user_in_firebase(username, {'music_creations': music_json})
+                                                except:
+                                                    pass  # Sessiz hata yönetimi
+                                            
+                                            st.success("🎵 Harika! Müziğin sayacını artırdık!")
+                                            time.sleep(1)
+                                            st.rerun()
+                                        
+                                        # Silme butonu
+                                        if st.button(f"🗑️ Sil", key=f"delete_music_{i}", use_container_width=True):
+                                            if st.button(f"⚠️ Evet, Sil!", key=f"confirm_delete_music_{i}"):
+                                                musics.pop(i)
+                                                
+                                                # Firebase'e kaydet
+                                                username = st.session_state.get('current_user', None)
+                                                if username:
+                                                    try:
+                                                        music_json = json.dumps(st.session_state.user_music_creations, ensure_ascii=False)
+                                                        update_user_in_firebase(username, {'music_creations': music_json})
+                                                    except:
+                                                        pass  # Sessiz hata yönetimi
+                                                
+                                                st.success("🗑️ Müzik silindi!")
+                                                st.rerun()
+                        else:
+                            st.info(f"🎵 '{selected_music_subject}' dersinde henüz müzik yok. Yeni müzik yaratın!")
+                
+                # 📚 HİKAYELEŞTİRME SİSTEMİ - YENİ!
+                st.markdown("---")
+                st.markdown("""
+                <div style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%); color: white; padding: 30px; border-radius: 20px; margin: 40px 0; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                    <h1 style="margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">📚 KONUYU HİKAYELEŞTİR</h1>
+                    <p style="margin: 10px 0 0 0; font-size: 1.3rem; opacity: 0.95;">Sıkıcı konuları hayal gücünle eğlenceli hikayelere çevir!</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Kullanıcının hikayelerini saklamak için Firebase entegrasyonu
+                if 'user_story_creations' not in st.session_state:
+                    username = st.session_state.get('current_user', None)
+                    if username:
+                        users_data = load_users_from_firebase()
+                        user_data = users_data.get(username, {})
+                        saved_stories = user_data.get('story_creations', '{}')
+                        try:
+                            if isinstance(saved_stories, str):
+                                st.session_state.user_story_creations = json.loads(saved_stories)
+                            else:
+                                st.session_state.user_story_creations = saved_stories if isinstance(saved_stories, dict) else {}
+                        except (json.JSONDecodeError, TypeError):
+                            st.session_state.user_story_creations = {}
+                    else:
+                        st.session_state.user_story_creations = {}
+                
+                # Sekme sistemi - Hikayelerimi Oku | Yeni Hikaye Yaz
+                story_tab1, story_tab2 = st.tabs(["📖 Hikayelerimi Oku", "✍️ Yeni Hikaye Yaz"])
+                
+                with story_tab2:
+                    # Form temizleme kontrolü
+                    if 'story_form_counter' not in st.session_state:
+                        st.session_state.story_form_counter = 0
+                    
+                    # Yeni hikaye oluşturma formu
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); 
+                               border-radius: 15px; padding: 25px; margin: 20px 0;">
+                        <h3 style="color: #2d3748; margin-bottom: 20px; text-align: center;">✍️ Konunu Hikayelere Çevir</h3>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Form alanları - unique key'ler
+                    story_form_key = st.session_state.story_form_counter
+                    story_col1, story_col2 = st.columns(2)
+                    
+                    with story_col1:
+                        # Alan bilgisini sistemden al (aynı mantık)
+                        user_area = user_data.get('target_department', 'Sayısal')
+                        area_subjects = {
+                            'Sayısal': ["TYT Matematik", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"],
+                            'Eşit Ağırlık': ["TYT Türkçe", "TYT Matematik", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"],
+                            'Sözel': ["TYT Türkçe", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya", "TYT Tarih", "TYT Coğrafya"],
+                            'Dil': ["TYT Türkçe", "AYT Edebiyat", "YDT Dil"]
+                        }
+                        
+                        suggested_subjects = area_subjects.get(user_area, ["TYT Türkçe", "TYT Matematik"])
+                        all_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", 
+                                       "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "AYT Matematik", "AYT Fizik", "AYT Kimya", 
+                                       "AYT Biyoloji", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
+                        
+                        # Önce kendi alanını göster, sonra tümünü
+                        final_subjects = suggested_subjects + [s for s in all_subjects if s not in suggested_subjects]
+                        
+                        story_subject = st.selectbox(
+                            "📚 Hangi ders için hikaye?",
+                            final_subjects,
+                            key=f"story_subject_{story_form_key}",
+                            help=f"🎯 Alanın ({user_area}) dersleri öncelikli gösteriliyor"
+                        )
+                        
+                        # Konu seçimi - konu takipten güncel olarak çek
+                        available_story_topics = get_topic_list(story_subject)
+                        if available_story_topics:
+                            story_topic = st.selectbox(
+                                "🎯 Hangi konu için hikaye?",
+                                available_story_topics,
+                                key=f"story_topic_{story_form_key}"
+                            )
+                        else:
+                            story_topic = st.text_input(
+                                "🎯 Konu adını yazın",
+                                placeholder="Örnek: Fotosentez, Fransız İhtilali, Limit Kavramı...",
+                                key=f"story_topic_manual_{story_form_key}"
+                            )
+                    
+                    with story_col2:
+                        # Hikaye türü seçimi
+                        story_type = st.selectbox(
+                            "📖 Hikaye Türü",
+                            ["Fantastik", "Macera", "Bilim Kurgu", "Dedektif", "Romantik", "Komedi", "Gerilim", "Tarihsel"],
+                            key=f"story_type_{story_form_key}"
+                        )
+                        
+                        # Hedef kitle
+                        story_audience = st.selectbox(
+                            "👥 Hedef Kitle",
+                            ["Kendi İçin", "Çocuklar İçin", "Arkadaşlar İçin", "Genel"],
+                            key=f"story_audience_{story_form_key}"
+                        )
+                    
+                    # Hikaye yazma alanı
+                    st.markdown("### 📝 Hikayeni Yaz")
+                    story_content = st.text_area(
+                        "✍️ Hikaye Metni (Konuyu eğlenceli bir hikayeye çevir)",
+                        placeholder="""Örnek Fotosentez Hikayesi:
+
+📖 "Yeşil Yaprakların Sırrı"
+
+Küçük Klorofil, güneşin altın ışınlarını yakalamak için her sabah erken kalkar. Bir gün, arkadaşı Su Molekülü ile birlikte büyük bir maceraya atılırlar. 
+
+Güneş Işığı Krallığı'ndan gelen altın parçacıkları yakalayarak, havadaki CO2 canavarlarını yenmeye karar verirler. Her yakaladıkları CO2 canavarını şekere dönüştürürken, nefes alan tüm canlılar için oksijen hediyesi bırakırlar.
+
+Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu şeker taneleriyle dolup taşar. Ve böylece, Fotosentez Krallığı'nda huzur ve bereket hep sürer...
+
+🧪 "Bu hikaye şu bilgileri içerir: Klorofil + Güneş Işığı + H2O + CO2 = Glikoz + O2"
+                        """,
+                        height=250,
+                        key=f"story_content_{story_form_key}"
+                    )
+                    
+                    # Anahtar noktalar
+                    story_key_points = st.text_area(
+                        "🔑 Anahtar Noktalar (Hikayende hangi bilgiler var?)",
+                        placeholder="Bu hikayedeki önemli bilgiler:\n- Fotosentez = Klorofil + Güneş + Su + Karbondioksit → Şeker + Oksijen\n- Yeşil yapraklarda gerçekleşir\n- Bitkiler böyle enerji üretir",
+                        height=100,
+                        key=f"story_key_points_{story_form_key}"
+                    )
+                    
+                    # Hikaye kaydetme butonu
+                    if st.button("📚 Hikayeyi Kaydet", use_container_width=True, type="primary", key=f"save_story_{story_form_key}"):
+                        if story_topic and story_content.strip():
+                            # Kullanıcının hikayelerine ekle
+                            if story_subject not in st.session_state.user_story_creations:
+                                st.session_state.user_story_creations[story_subject] = []
+                            
+                            new_story = {
+                                'subject': story_subject,
+                                'topic': story_topic,
+                                'type': story_type,
+                                'audience': story_audience,
+                                'content': story_content.strip(),
+                                'key_points': story_key_points.strip() if story_key_points.strip() else "Anahtar nokta belirtilmedi",
+                                'created_date': datetime.now().strftime("%Y-%m-%d %H:%M"),
+                                'read_count': 0
+                            }
+                            
+                            st.session_state.user_story_creations[story_subject].append(new_story)
+                            
+                            # Firebase'e kaydet
+                            username = st.session_state.get('current_user', None)
+                            if username:
+                                try:
+                                    story_json = json.dumps(st.session_state.user_story_creations, ensure_ascii=False)
+                                    update_user_in_firebase(username, {'story_creations': story_json})
+                                    st.success(f"🎉 '{story_topic}' konulu hikayeniz '{story_subject}' dersine eklendi ve Firebase'e kaydedildi!")
+                                except Exception as e:
+                                    st.success(f"🎉 '{story_topic}' konulu hikayeniz '{story_subject}' dersine eklendi! (Yerel olarak)")
+                                    st.info("💾 Hikayeleriniz bu oturum boyunca saklanacak.")
+                            else:
+                                st.success(f"🎉 '{story_topic}' konulu hikayeniz '{story_subject}' dersine eklendi! (Geçici)")
+                                st.warning("⚠️ Giriş yapın ki hikayeleriniz kalıcı olarak saklansın!")
+                            
+                            st.balloons()
+                            
+                            # Form counter'ı artır ve yenile
+                            st.session_state.story_form_counter += 1
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            st.error("❌ Lütfen hem konu hem de hikaye içeriğini yazın!")
+                
+                with story_tab1:
+                    # Hikayeleri okuma bölümü
+                    if not st.session_state.user_story_creations:
+                        st.info("📚 Henüz hiç hikayeleniz yok. 'Yeni Hikaye Yaz' sekmesinden hikayelerinizi oluşturun!")
+                    else:
+                        # Ders seçimi
+                        available_story_subjects = list(st.session_state.user_story_creations.keys())
+                        selected_story_subject = st.selectbox(
+                            "🎯 Hangi dersin hikayelerini okumak istiyorsun?",
+                            available_story_subjects,
+                            key="story_subject_select"
+                        )
+                        
+                        if selected_story_subject and st.session_state.user_story_creations[selected_story_subject]:
+                            stories = st.session_state.user_story_creations[selected_story_subject]
+                            
+                            # İstatistikler
+                            story_col_stat1, story_col_stat2, story_col_stat3 = st.columns(3)
+                            with story_col_stat1:
+                                st.metric("📚 Toplam Hikaye", len(stories))
+                            with story_col_stat2:
+                                total_reads = sum(story.get('read_count', 0) for story in stories)
+                                st.metric("👁️ Toplam Okuma", total_reads)
+                            with story_col_stat3:
+                                story_most_recent = max(stories, key=lambda x: x['created_date'])['created_date']
+                                st.metric("📅 Son Eklenen", story_most_recent[:10])
+                            
+                            # Hikaye listesi
+                            for i, story in enumerate(stories):
+                                with st.expander(f"📖 {story['topic']} - {story['type']} Hikayesi", expanded=False):
+                                    story_display_col1, story_display_col2 = st.columns([3, 1])
+                                    
+                                    with story_display_col1:
+                                        st.markdown(f"""
+                                        <div style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); 
+                                                   color: white; padding: 20px; border-radius: 15px; margin: 10px 0;">
+                                            <h4 style="margin: 0 0 15px 0;">📖 {story['topic']} Hikayesi</h4>
+                                            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; white-space: pre-line; line-height: 1.8; font-size: 1.1rem;">
+{story['content']}
+                                            </div>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                        
+                                        if story['key_points'] != "Anahtar nokta belirtilmedi":
+                                            st.markdown(f"""
+                                            <div style="background: #e8f5e8; padding: 15px; border-radius: 10px; border-left: 4px solid #27ae60; margin-top: 10px;">
+                                                <strong>🔑 Anahtar Noktalar:</strong><br>{story['key_points']}
+                                            </div>
+                                            """, unsafe_allow_html=True)
+                                    
+                                    with story_display_col2:
+                                        st.markdown(f"""
+                                        <div style="text-align: center; padding: 10px;">
+                                            <div style="margin: 5px 0;"><strong>📖 Tür:</strong> {story['type']}</div>
+                                            <div style="margin: 5px 0;"><strong>👥 Kitle:</strong> {story['audience']}</div>
+                                            <div style="margin: 5px 0;"><strong>👁️ Okunma:</strong> {story.get('read_count', 0)}</div>
+                                            <div style="margin: 5px 0;"><strong>📅 Tarih:</strong> {story['created_date'][:10]}</div>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                        
+                                        # Okuma butonu
+                                        if st.button(f"👁️ Okudum", key=f"read_story_{i}", use_container_width=True):
+                                            story['read_count'] = story.get('read_count', 0) + 1
+                                            
+                                            # Firebase'e kaydet
+                                            username = st.session_state.get('current_user', None)
+                                            if username:
+                                                try:
+                                                    story_json = json.dumps(st.session_state.user_story_creations, ensure_ascii=False)
+                                                    update_user_in_firebase(username, {'story_creations': story_json})
+                                                except:
+                                                    pass  # Sessiz hata yönetimi
+                                            
+                                            st.success("📚 Harika! Hikayenin sayacını artırdık!")
+                                            time.sleep(1)
+                                            st.rerun()
+                                        
+                                        # Silme butonu
+                                        if st.button(f"🗑️ Sil", key=f"delete_story_{i}", use_container_width=True):
+                                            if st.button(f"⚠️ Evet, Sil!", key=f"confirm_delete_story_{i}"):
+                                                stories.pop(i)
+                                                
+                                                # Firebase'e kaydet
+                                                username = st.session_state.get('current_user', None)
+                                                if username:
+                                                    try:
+                                                        story_json = json.dumps(st.session_state.user_story_creations, ensure_ascii=False)
+                                                        update_user_in_firebase(username, {'story_creations': story_json})
+                                                    except:
+                                                        pass  # Sessiz hata yönetimi
+                                                
+                                                st.success("🗑️ Hikaye silindi!")
+                                                st.rerun()
+                        else:
+                            st.info(f"📚 '{selected_story_subject}' dersinde henüz hikaye yok. Yeni hikaye yazın!")
+                
+                # Kullanım önerileri ve motivasyon
+                st.markdown("""
+                <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); 
+                           border-radius: 15px; padding: 20px; margin-top: 30px;">
+                    <h4 style="color: #2d3748; margin-bottom: 15px;">💡 Akılda Kalıcılık İpuçları</h4>
+                    <ul style="color: #4a5568; margin: 0; padding-left: 20px;">
+                        <li><strong>🎵 Müzik:</strong> Ritim ve melodi hafızayı güçlendirir</li>
+                        <li><strong>📚 Hikaye:</strong> Görsel hayal gücü bilgileri kalıcı hale getirir</li>
+                        <li><strong>🔄 Tekrar:</strong> Oluşturduğun içerikleri düzenli gözden geçir</li>
+                        <li><strong>🎭 Canlandır:</strong> Hikayeleri zihninde canlandır, müzikleri mırıldan</li>
+                        <li><strong>🤝 Paylaş:</strong> Arkadaşlarınla oluşturduğun içerikleri paylaş</li>
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
             
             elif page == "🎯 YKS Canlı Takip":
                 yks_takip_page(user_data)
