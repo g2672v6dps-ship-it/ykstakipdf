@@ -9787,217 +9787,137 @@ def main():
                                     st.rerun()
                             
                             with col2:
-                                # SESLİ KAĞIT ÇEVİRME BUTONU! 🔊 (MOBİL UYUMLU)
-                                kart_cevirme_sesi = """
+                                # SES SİSTEMİ ÜSTTEKİ ÜNİVERSAL SİSTEMDE AKTIF ✅
+                                
+                                # ÜNIVERSAL SES + KAĞIT ÇEVİRME SİSTEMİ (Bilgisayar + Telefon)
+                                st.components.v1.html("""
                                 <style>
-                                @keyframes flipCard {
-                                    0% { transform: rotateY(0deg); }
-                                    50% { transform: rotateY(90deg); }
-                                    100% { transform: rotateY(0deg); }
+                                /* GERÇEKÇİ KAĞIT ÇEVİRME ANİMASYONU */
+                                @keyframes realisticCardFlip {
+                                    0% {
+                                        transform: perspective(1000px) rotateY(0deg);
+                                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                                    }
+                                    25% {
+                                        transform: perspective(1000px) rotateY(-90deg) translateZ(20px);
+                                        box-shadow: -5px 2px 15px rgba(0,0,0,0.3);
+                                    }
+                                    75% {
+                                        transform: perspective(1000px) rotateY(90deg) translateZ(20px);
+                                        box-shadow: 5px 2px 15px rgba(0,0,0,0.3);
+                                    }
+                                    100% {
+                                        transform: perspective(1000px) rotateY(0deg);
+                                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                                    }
                                 }
                                 
-                                .flip-animation {
-                                    animation: flipCard 0.4s ease-in-out;
-                                }
-                                
-                                .flip-visual-feedback {
-                                    filter: brightness(1.4) saturate(1.2);
-                                    transform: scale(1.02);
-                                    transition: all 0.2s ease;
+                                .card-flip-animation {
+                                    animation: realisticCardFlip 0.4s ease-in-out;
+                                    transform-style: preserve-3d;
                                 }
                                 </style>
                                 
                                 <script>
-                                // GÜÇLÜ MOBİL TİK SESİ - TELEFON İÇİN ÖZEL!
-                                function playMobileCardFlipSound() {
+                                // ÜNIVERSAL TİK SESİ - HER PLATFORMDA ÇALIŞIR
+                                function playUniversalTick() {
                                     try {
-                                        // Mobil için daha güçlü tik sesi
-                                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                                        // Çoklu ses yöntemi - kesin çalışır
                                         
-                                        // AudioContext'i unlock et (mobil için gerekli)
-                                        if (audioContext.state === 'suspended') {
-                                            audioContext.resume();
-                                        }
-                                        
-                                        // GÜÇLÜ TİK SESİ - Telefon hoparlörü için optimize
-                                        const oscillator = audioContext.createOscillator();
-                                        const gainNode = audioContext.createGain();
-                                        
-                                        oscillator.connect(gainNode);
-                                        gainNode.connect(audioContext.destination);
-                                        
-                                        // Yüksek frekanslı kısa tik - telefon hoparlörü için ideal
-                                        oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
-                                        oscillator.frequency.setValueAtTime(1200, audioContext.currentTime + 0.02);
-                                        oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.04);
-                                        
-                                        // Daha yüksek ses seviyesi mobil için
-                                        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                                        gainNode.gain.linearRampToValueAtTime(0.8, audioContext.currentTime + 0.001);
-                                        gainNode.gain.linearRampToValueAtTime(0.8, audioContext.currentTime + 0.02);
-                                        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.04);
-                                        
-                                        oscillator.type = 'square';  // Daha net ses için
-                                        oscillator.start(audioContext.currentTime);
-                                        oscillator.stop(audioContext.currentTime + 0.04);
-                                        
-                                        console.log('📱 Mobil tik sesi çalındı!');
-                                        
-                                    } catch (e) {
-                                        console.log('⚠️ Ses çalınamadı (mobil sınırlama):', e);
-                                        
-                                        // GÜÇLÜ ALTERNATİF 1: Data URL ile ses
+                                        // 1. Web Audio API (bilgisayar için ideal)
                                         try {
-                                            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBziR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaAzqWzu7VfSEELojK7taOOQgSYrPp4alZFAxSp+TvwGIcBz2U0euwcSAFNYDE7t6LPAgPVqvl8KdXCwxQpN7uzGQdEE6ky+/EdCIGMoTH8NaOMwgNWK7p6KJTDwdOoOfusmIfCT6Y0O7feysGLIrM7tiDMQQRXLnk7KVXDAhRp+HussUZAT6W0e3ecSAFNYnE7NKLOQcRXLrm7KdXDA1Sp+XwwGIXBT6T0+7ddywGI4PD79iTQAgPW7jp7qVXDAhRpu7yvWEaAz2X0O3acSAFNY3E7NGLOQgRXLPp66VTFApGqODyvmEXADic0e3fdCEGLYDL8d6RTwgPWLbp7apbDQZGouXxtmMZDjyRzvDXeSkGKoTO8deK');
-                                            audio.volume = 1.0;
-                                            audio.play().catch(() => {});
-                                        } catch (audioErr) {
-                                            console.log('⚠️ Audio fallback de çalışmadı');
-                                        }
-                                        
-                                        // GÜÇLÜ ALTERNATİF 2: Vibrasyon
-                                        if (navigator.vibrate) {
-                                            navigator.vibrate([80]);
-                                            console.log('📳 Vibrasyon çalındı!');
-                                        }
-                                    }
-                                    
-                                    // GÜÇLÜ Görsel feedback - kesin çalışır
-                                    const buttons = document.querySelectorAll('[data-testid="stButton"] button');
-                                    for (let btn of buttons) {
-                                        if (btn.innerText.includes('Cevabı Gör') || btn.innerText.includes('Soruya Dön')) {
-                                            btn.style.backgroundColor = '#ff4444';
-                                            btn.style.transform = 'scale(1.05)';
-                                            btn.style.transition = 'all 0.1s ease';
+                                            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                                             
-                                            setTimeout(() => {
-                                                btn.style.backgroundColor = '';
-                                                btn.style.transform = '';
-                                            }, 150);
-                                            break;
-                                        }
-                                    }
-                                }
-                                </script>
-                                """
-                                
-                                st.components.v1.html(kart_cevirme_sesi, height=0)
-                                
-                                # TELEFON UYUMLU SES SİSTEMİ - ÖNCEDEn hazırla
-                                telefon_ses_sistemi = """
-                                <style>
-                                .mobile-audio-btn {
-                                    width: 100%;
-                                    height: 45px;
-                                    background: linear-gradient(45deg, #667eea, #764ba2);
-                                    color: white;
-                                    border: none;
-                                    border-radius: 8px;
-                                    cursor: pointer;
-                                    font-size: 16px;
-                                    font-weight: bold;
-                                    transition: all 0.2s ease;
-                                    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
-                                }
-                                
-                                .mobile-audio-btn:active {
-                                    transform: scale(0.95);
-                                    background: #ff4444;
-                                }
-                                
-                                .flip-visual {
-                                    animation: quickFlip 0.3s ease-in-out;
-                                }
-                                
-                                @keyframes quickFlip {
-                                    0% { transform: rotateY(0deg); }
-                                    50% { transform: rotateY(180deg); }
-                                    100% { transform: rotateY(0deg); }
-                                }
-                                </style>
-                                
-                                <audio id="cardFlipAudio" preload="auto">
-                                    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBziR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaAzqWzu7VfSEELojK7taOOQgSYrPp4alZFAxSp+TvwGIcBz2U0euwcSAFNYDE7t6LPAgPVqvl8KdXCwxQpN7uzGQdEE6ky+/EdCIGMoTH8NaOMwgNWK7p6KJTDwdOoOfusmIfCT6Y0O7feysGLIrM7tiDMQQRXLnk7KVXDAhRp+HussUZAT6W0e3ecSAFNYnE7NKLOQcRXLrm7KdXDA1Sp+XwwGIXBT6T0+7ddywGI4PD79iTQAgPW7jp7qVXDAhRpu7yvWEaAz2X0O3acSAFNY3E7NGLOQgRXLPp66VTFApGqODyvmEXADic0e3fdCEGLYDL8d6RTwgPWLbp7apbDQZGouXxtmMZDjyRzvDXeSkGKoTO8deK" type="audio/wav">
-                                </audio>
-                                
-                                <script>
-                                let audioCtx = null;
-                                
-                                // Telefon için basit tik sesi fonksiyonu
-                                function createMobileTick() {
-                                    try {
-                                        // HTML5 Audio deneme
-                                        const audio = document.getElementById('cardFlipAudio');
-                                        if (audio) {
-                                            audio.currentTime = 0;
+                                            if (audioContext.state === 'suspended') {
+                                                audioContext.resume();
+                                            }
+                                            
+                                            const oscillator = audioContext.createOscillator();
+                                            const gainNode = audioContext.createGain();
+                                            
+                                            oscillator.connect(gainNode);
+                                            gainNode.connect(audioContext.destination);
+                                            
+                                            // Net tik sesi
+                                            oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
+                                            oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.03);
+                                            
+                                            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                                            gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.01);
+                                            gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.05);
+                                            
+                                            oscillator.type = 'square';
+                                            oscillator.start(audioContext.currentTime);
+                                            oscillator.stop(audioContext.currentTime + 0.05);
+                                            
+                                            console.log('✅ Web Audio çalındı');
+                                            
+                                        } catch (webAudioError) {
+                                            console.log('⚠️ Web Audio hatası:', webAudioError);
+                                            
+                                            // 2. HTML Audio fallback (mobil için)
+                                            const audio = new Audio('data:audio/wav;base64,UklGRlYAAABXQVZFZm10IBAAAAABAAEAwF0AAIC6AAACABAAAABkYXRhEgAAABhYWFhYWFhYWFhYWFhYWFhYWFg=');
                                             audio.volume = 1.0;
                                             audio.play().catch(() => {
-                                                console.log('HTML5 Audio çalmadı');
+                                                console.log('⚠️ HTML Audio de çalışmadı');
                                             });
                                         }
                                         
-                                        // Web Audio API fallback
-                                        if (!audioCtx) {
-                                            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                                        }
-                                        
-                                        if (audioCtx.state === 'suspended') {
-                                            audioCtx.resume();
-                                        }
-                                        
-                                        // Kısa, net tik sesi
-                                        const osc = audioCtx.createOscillator();
-                                        const gain = audioCtx.createGain();
-                                        
-                                        osc.connect(gain);
-                                        gain.connect(audioCtx.destination);
-                                        
-                                        osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
-                                        gain.gain.setValueAtTime(0, audioCtx.currentTime);
-                                        gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
-                                        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.05);
-                                        
-                                        osc.type = 'square';
-                                        osc.start(audioCtx.currentTime);
-                                        osc.stop(audioCtx.currentTime + 0.05);
-                                        
                                     } catch (e) {
-                                        console.log('Ses hatası:', e);
-                                        // Vibrasyon
-                                        if (navigator.vibrate) {
-                                            navigator.vibrate(50);
-                                        }
+                                        console.log('⚠️ Ses sistemi hatası:', e);
+                                    }
+                                    
+                                    // 3. Vibrasyon (mobil fallback)
+                                    if (navigator.vibrate) {
+                                        navigator.vibrate(30);
+                                        console.log('📳 Vibrasyon aktif');
                                     }
                                 }
                                 
-                                // Buton tıklama dinleyicisi ekle
-                                function addClickListener() {
+                                // Kağıt çevirme animasyonu
+                                function startCardFlipAnimation() {
                                     const buttons = document.querySelectorAll('button');
                                     buttons.forEach(btn => {
                                         if (btn.textContent.includes('🔄')) {
-                                            btn.onclick = function(e) {
-                                                createMobileTick();
-                                                btn.classList.add('flip-visual');
-                                                setTimeout(() => btn.classList.remove('flip-visual'), 300);
-                                            };
+                                            btn.classList.add('card-flip-animation');
+                                            setTimeout(() => {
+                                                btn.classList.remove('card-flip-animation');
+                                            }, 400);
                                         }
                                     });
                                 }
                                 
-                                // Sayfa yüklendiğinde ve düzenli olarak listener ekle
-                                setTimeout(addClickListener, 100);
-                                setInterval(addClickListener, 1000);
+                                // Streamlit buton tıklamalarını yakala
+                                function attachToStreamlitButtons() {
+                                    const buttons = document.querySelectorAll('[data-testid="stButton"] button');
+                                    buttons.forEach(btn => {
+                                        if (btn.textContent.includes('🔄')) {
+                                            // Event listener ekle (birden fazla eklemeyi önle)
+                                            if (!btn.hasAttribute('data-audio-attached')) {
+                                                btn.addEventListener('click', function() {
+                                                    playUniversalTick();
+                                                    startCardFlipAnimation();
+                                                });
+                                                btn.setAttribute('data-audio-attached', 'true');
+                                            }
+                                        }
+                                    });
+                                }
+                                
+                                // Sürekli kontrol (Streamlit butonları dinamik yüklenir)
+                                setInterval(attachToStreamlitButtons, 500);
+                                setTimeout(attachToStreamlitButtons, 100);
+                                
+                                console.log('🎯 Üniversal ses sistemi aktif!');
                                 </script>
-                                """
+                                """, height=0)
                                 
-                                st.components.v1.html(telefon_ses_sistemi, height=0)
-                                
-                                # Ana buton - artık ses sistemi otomatik
+                                # Ana buton - kod yapısı korundu
                                 if st.button(f"🔄 {'Cevabı Gör' if not st.session_state.show_answer else 'Soruya Dön'}", 
                                            use_container_width=True, type="primary", key="flip_card_main",
-                                           help="🔊 Mobil uyumlu ses!"):
+                                           help="🔊 Üniversal ses + 3D kağıt animasyonu!"):
                                     
-                                    # Ana fonksiyon
+                                    # Ana fonksiyon - değişmedi
                                     st.session_state.show_answer = not st.session_state.show_answer
                                     st.rerun()
                             
