@@ -8207,7 +8207,7 @@ def main():
                     st.rerun()
             
             page = st.sidebar.selectbox("🌐 Sayfa Seçin", 
-                                      ["🏠 Ana Sayfa", "📚 Konu Takip", "⚙️ Benim Programım","🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
+                                      ["🏠 Ana Sayfa", "📚 Konu Takip", "🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
             
             if page == "🏠 Ana Sayfa":
                 # Eski session verilerini temizle - her gün güncel sistem!
@@ -9360,130 +9360,6 @@ def main():
                             st.session_state.topic_updates = []
                         except Exception as e:
                             st.error(f"Kaydetme hatası: {str(e)}")
-
-            elif page == "⚙️ Benim Programım":
-                st.markdown(f'<div class="main-header"><h1>⚙️ Benim Programım</h1><p>Derece öğrencisi disipliniyle çalışın</p></div>', unsafe_allow_html=True)
-                
-                user_data = get_user_data()
-                
-                # Program seçimi
-                st.subheader("🎯 Çalışma Programını Seçin")
-                selected_program = st.selectbox(
-                    "Size uygun programı seçin:",
-                    list(STUDY_PROGRAMS.keys()),
-                    format_func=lambda x: f"{x} - {STUDY_PROGRAMS[x]['description']}"
-                )
-                
-                program_info = STUDY_PROGRAMS[selected_program]
-                
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("📅 Program Süresi", f"{program_info['duration']} gün")
-                with col2:
-                    st.metric("⏰ Günlük Çalışma", f"{program_info['daily_hours']} saat")
-                with col3:
-                    st.metric("🎯 Hedef", program_info['target'])
-                
-                if st.button("🚀 Programı Başlat", type="primary", use_container_width=True):
-                    study_plan = calculate_study_schedule(user_data, selected_program)
-                    st.session_state.current_study_plan = study_plan
-                    st.success(f"🎉 {selected_program} başlatıldı! {program_info['duration']} gün boyunca bu programı takip edeceksiniz.")
-                
-                # Günlük planlama
-                st.markdown("---")
-                st.subheader("📝 Günlük Çalışma Planı")
-                
-                # Günlük zaman çizelgesi
-                st.write("**⏰ Örnek Günlük Zaman Çizelgesi**")
-                selected_schedule = st.selectbox("Program tipi seçin:", list(DAILY_PLAN_TEMPLATES.keys()))
-                
-                for time_slot, activity in DAILY_PLAN_TEMPLATES[selected_schedule].items():
-                    col1, col2 = st.columns([1, 3])
-                    with col1:
-                        st.write(f"**{time_slot}**")
-                    with col2:
-                        st.write(activity)
-                
-                # Haftalık hedef belirleme
-                st.markdown("---")
-                st.subheader("🎯 Haftalık Hedefler")
-                
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    weekly_goal_subjects = st.number_input("Haftalık ders sayısı", min_value=1, max_value=10, value=4)
-                with col2:
-                    weekly_goal_topics = st.number_input("Haftalık konu sayısı", min_value=1, max_value=20, value=8)
-                with col3:
-                    weekly_goal_hours = st.number_input("Haftalık çalışma saati", min_value=10, max_value=50, value=25)
-                
-                if st.button("💾 Haftalık Hedefleri Kaydet", use_container_width=True):
-                    st.success("Hedefler kaydedildi! Bu hafta bu hedeflere ulaşmaya odaklanın.")
-                
-                # Aylık ilerleme takibi
-                st.markdown("---")
-                st.subheader("📈 Aylık İlerleme Takibi")
-                
-                # Basit bir ilerleme grafiği
-                months = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran"]
-                progress_data = {
-                    'Ay': months,
-                    'Tamamlanan Konu': [15, 28, 42, 35, 50, 65],
-                    'Çalışılan Saat': [120, 135, 150, 140, 160, 180],
-                    'Deneme Net Ort.': [45.2, 48.7, 52.1, 55.3, 58.9, 62.4]
-                }
-                
-                progress_df = pd.DataFrame(progress_data)
-                fig = px.line(progress_df, x='Ay', y=['Tamamlanan Konu', 'Çalışılan Saat', 'Deneme Net Ort.'], 
-                             title='Aylık İlerleme Grafiği', markers=True)
-                safe_plotly_chart(fig, use_container_width=True)
-                
-                # Motivasyon ve hatırlatıcılar
-                st.markdown("---")
-                st.subheader("💫 Motivasyon ve Hatırlatıcılar")
-                
-                fmotivation_tips = [
-                    "🔹 Her gün aynı saatte çalışmaya başlayarak rutin oluşturun",
-                    "🔹 Büyük hedefleri küçük parçalara bölün",
-                    "🔹 Her tamamlanan konu için kendinizi ödüllendirin",
-                    "🔹 Düzenli molalar vererek zihninizi taze tutun",
-                    "🔹 Haftada bir genel tekrar yapın",
-                    "🔹 Uyku düzeninize dikkat edin",
-                    "🔹 Spor yaparak stres atın"
-                ]
-                
-                for tip in fmotivation_tips:
-                    st.write(tip)
-                
-                # Çalışma istatistikleri
-                st.markdown("---")
-                st.subheader("📊 Çalışma İstatistikleri")
-                
-                col1, col2, col3, col4 = st.columns(4)
-                with col1:
-                    st.metric("🔥 Bugünkü Çalışma", "3.5 saat")
-                with col2:
-                    st.metric("✅ Bu Hafta Tamamlanan", "12 konu")
-                with col3:
-                    st.metric("🎯 Bu Ayki Hedef", "45 konu")
-                with col4:
-                    st.metric("📈 İlerleme Oranı", "%68")
-                
-                # Anlık geri bildirim
-                st.markdown("---")
-                st.subheader("💡 Anlık Geri Bildirim")
-                
-                feedback_options = {
-                    "Çok verimli geçti": "🟢",
-                    "Normal verimlilikte": "🟡", 
-                    "Düşük verimlilik": "🔴",
-                    "Planı revize etmem gerek": "🔵"
-                }
-                
-                st.write("Bugünkü çalışmanızı nasıl değerlendiriyorsunuz?")
-                selected_feedback = st.radio("Geri bildirim:", list(feedback_options.keys()))
-                
-                if st.button("📤 Geri Bildirimi Gönder", use_container_width=True):
-                    st.success("Geri bildiriminiz kaydedildi! Programınız bu geri bildirime göre optimize edilecek.")
 
             elif page == "🧠 Çalışma Teknikleri":
                 st.markdown(f'<div class="main-header"><h1>🧠 Çalışma Teknikleri</h1><p>YKS öğrencisine özel, psikolojik ve bilimsel çalışma yöntemleri</p></div>', unsafe_allow_html=True)
