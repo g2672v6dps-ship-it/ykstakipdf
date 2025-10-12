@@ -3986,16 +3986,30 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             st.error(f"❌ Veri hazırlama hatası: {str(e)}")
             return
         
-        # Otomatik ilerleme kontrolü - Daha az sıklıkta
-        current_time = time.time()
-        if (st.session_state.auto_play and 
-            current_time - st.session_state.last_auto_update > 5):  # 5 saniye arayla
-            if st.session_state.cinema_day < len(timeline_days) - 1:
+        # JavaScript tabanlı otomatik ilerleme sistemi
+        if st.session_state.auto_play and st.session_state.cinema_day < len(timeline_days) - 1:
+            auto_progress_js = """
+            <script>
+            setTimeout(function() {
+                // Streamlit'e otomatik ilerleme sinyali gönder
+                window.parent.postMessage({type: 'next_day'}, '*');
+                // 5 saniye sonra sayfayı yenile
+                setTimeout(function() {
+                    window.location.reload();
+                }, 5000);
+            }, 100);
+            </script>
+            """
+            st.components.v1.html(auto_progress_js, height=0)
+            
+            # 5 saniye sonra otomatik geçiş
+            current_time = time.time()
+            if current_time - st.session_state.last_auto_update > 5:
                 st.session_state.cinema_day += 1
                 st.session_state.last_auto_update = current_time
+                if st.session_state.cinema_day >= len(timeline_days) - 1:
+                    st.session_state.auto_play = False
                 st.rerun()
-            else:
-                st.session_state.auto_play = False
         
         if st.session_state.cinema_day < len(timeline_days):
             day_data = timeline_days[st.session_state.cinema_day]
@@ -4037,44 +4051,44 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 </div>
                 """
             
-            # HTML string'i oluştur - Optimize edilmiş CSS
+            # HTML string'i oluştur - TAM EKRAN CSS
             day_html = """
             <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); 
-                        border-radius: 15px; padding: 30px; border: 3px solid #d4af37; 
-                        margin: 20px 0;">
-                <h2 style="color: #d4af37; text-align: center; margin-bottom: 20px;">
+                        border-radius: 15px; padding: 50px; border: 3px solid #d4af37; 
+                        margin: 20px 0; width: 100%; box-sizing: border-box;">
+                <h2 style="color: #d4af37; text-align: center; margin-bottom: 30px; font-size: 2.5em; font-weight: bold;">
                     📅 """ + date_str + """ - Gün """ + str(day_data['day_number']) + """
                 </h2>
                 
-                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; margin: 20px 0;">
+                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; margin: 30px 0; gap: 15px;">
                     <div style="background: linear-gradient(45deg, #2c3e50, #3498db); 
-                                border: 2px solid #d4af37; border-radius: 10px; 
-                                padding: 15px; margin: 5px; text-align: center; min-width: 120px;">
-                        <div style="font-size: 1.8em; font-weight: bold; color: #d4af37;">""" + str(day_data['completed_topics']) + """</div>
-                        <div style="color: #ffffff; font-size: 0.9em; margin-top: 5px;">📚 Konu Tamamlandı</div>
+                                border: 2px solid #d4af37; border-radius: 15px; 
+                                padding: 25px; margin: 10px; text-align: center; min-width: 180px; flex: 1;">
+                        <div style="font-size: 2.5em; font-weight: bold; color: #d4af37;">""" + str(day_data['completed_topics']) + """</div>
+                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px;">📚 Konu Tamamlandı</div>
                     </div>
                     <div style="background: linear-gradient(45deg, #2c3e50, #3498db); 
-                                border: 2px solid #d4af37; border-radius: 10px; 
-                                padding: 15px; margin: 5px; text-align: center; min-width: 120px;">
-                        <div style="font-size: 1.8em; font-weight: bold; color: #d4af37;">""" + str(day_data['solved_questions']) + """</div>
-                        <div style="color: #ffffff; font-size: 0.9em; margin-top: 5px;">📝 Soru Çözüldü</div>
+                                border: 2px solid #d4af37; border-radius: 15px; 
+                                padding: 25px; margin: 10px; text-align: center; min-width: 180px; flex: 1;">
+                        <div style="font-size: 2.5em; font-weight: bold; color: #d4af37;">""" + str(day_data['solved_questions']) + """</div>
+                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px;">📝 Soru Çözüldü</div>
                     </div>
                     <div style="background: linear-gradient(45deg, #2c3e50, #3498db); 
-                                border: 2px solid #d4af37; border-radius: 10px; 
-                                padding: 15px; margin: 5px; text-align: center; min-width: 120px;">
-                        <div style="font-size: 1.8em; font-weight: bold; color: #d4af37;">""" + str(day_data['pomodoro_count']) + """</div>
-                        <div style="color: #ffffff; font-size: 0.9em; margin-top: 5px;">🍅 Pomodoro</div>
+                                border: 2px solid #d4af37; border-radius: 15px; 
+                                padding: 25px; margin: 10px; text-align: center; min-width: 180px; flex: 1;">
+                        <div style="font-size: 2.5em; font-weight: bold; color: #d4af37;">""" + str(day_data['pomodoro_count']) + """</div>
+                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px;">🍅 Pomodoro</div>
                     </div>
                     <div style="background: linear-gradient(45deg, #2c3e50, #3498db); 
-                                border: 2px solid #d4af37; border-radius: 10px; 
-                                padding: 15px; margin: 5px; text-align: center; min-width: 120px;">
-                        <div style="font-size: 1.8em; font-weight: bold; color: #d4af37;">""" + time_text + """</div>
-                        <div style="color: #ffffff; font-size: 0.9em; margin-top: 5px;">⏱️ Çalışma Süresi</div>
+                                border: 2px solid #d4af37; border-radius: 15px; 
+                                padding: 25px; margin: 10px; text-align: center; min-width: 180px; flex: 1;">
+                        <div style="font-size: 2.5em; font-weight: bold; color: #d4af37;">""" + time_text + """</div>
+                        <div style="color: #ffffff; font-size: 1.2em; margin-top: 10px;">⏱️ Çalışma Süresi</div>
                     </div>
                         </div>
                         
-                        <div style="margin: 20px 0; color: #ffffff;">
-                            <strong style="color: #d4af37;">📚 Çalışılan Dersler:</strong><br>
+                        <div style="margin: 30px 0; color: #ffffff; font-size: 1.3em;">
+                            <strong style="color: #d4af37; font-size: 1.4em;">📚 Çalışılan Dersler:</strong><br>
                             """ + subjects_text + """
                         </div>
                         
@@ -4084,7 +4098,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                         
                         <div class="auto-progress" style="width: """ + str(progress_percent) + """%;"></div>
                         
-                        <p style="text-align: center; color: #d4af37; font-size: 1.2em; margin-top: 20px;">
+                        <p style="text-align: center; color: #d4af37; font-size: 1.6em; margin-top: 30px; font-weight: bold;">
                             🚀 Başarı Yolculuğu Devam Ediyor... (""" + str(day_data['day_number']) + """/""" + str(len(timeline_days)) + """)
                         </p>
                     </div>
@@ -4093,7 +4107,7 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             """
             
             # HTML'i render et - Tam Ekran
-            st.components.v1.html(day_html, height=650)
+            st.components.v1.html(day_html, height=750)
             
             # Kontrol butonları
             col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
