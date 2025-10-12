@@ -4354,8 +4354,8 @@ def show_yks_journey_cinema(user_data, progress_data):
             # Kontrol butonları
             # YouTube tarzı tam ekran hazır
             
-            # YouTube tarzı gerçek tam ekran modu 🖼️
-            fullscreen_css = """
+            # YouTube tarzı tam ekran sistemi - Birleşik bileşen
+            fullscreen_system = """
             <style>
                 .cinema-container {
                     width: 100%;
@@ -4394,59 +4394,75 @@ def show_yks_journey_cinema(user_data, progress_data):
                     display: none !important;
                 }
                 
-                .fullscreen-button {
-                    background: rgba(0,0,0,0.7);
+                .cinema-fullscreen-btn {
+                    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
                     color: white;
                     border: none;
-                    padding: 8px 12px;
-                    border-radius: 4px;
+                    padding: 12px 20px;
+                    border-radius: 25px;
                     cursor: pointer;
                     font-size: 16px;
+                    font-weight: bold;
                     transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    z-index: 10000;
                 }
                 
-                .fullscreen-button:hover {
-                    background: rgba(0,0,0,0.9);
+                .cinema-fullscreen-btn:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+                    background: linear-gradient(45deg, #ee5a24, #d63031);
                 }
             </style>
             
             <script>
-            function toggleFullscreen() {
+            // Tam ekran fonksiyonu
+            function cinemaToggleFullscreen() {
                 const element = document.documentElement;
                 
-                if (!document.fullscreenElement) {
-                    // Tam ekrana geç
-                    if (element.requestFullscreen) {
-                        element.requestFullscreen();
-                    } else if (element.mozRequestFullScreen) {
-                        element.mozRequestFullScreen();
-                    } else if (element.webkitRequestFullscreen) {
-                        element.webkitRequestFullscreen();
-                    } else if (element.msRequestFullscreen) {
-                        element.msRequestFullscreen();
+                try {
+                    if (!document.fullscreenElement) {
+                        // Tam ekrana geç
+                        if (element.requestFullscreen) {
+                            element.requestFullscreen();
+                        } else if (element.mozRequestFullScreen) {
+                            element.mozRequestFullScreen();
+                        } else if (element.webkitRequestFullscreen) {
+                            element.webkitRequestFullscreen();
+                        } else if (element.msRequestFullscreen) {
+                            element.msRequestFullscreen();
+                        }
+                        
+                        // Streamlit app'i tam ekran moduna al
+                        setTimeout(function() {
+                            document.body.classList.add('fullscreen-enabled');
+                            const stApp = document.querySelector('.stApp');
+                            if (stApp) stApp.classList.add('fullscreen-enabled');
+                        }, 100);
+                        
+                    } else {
+                        // Tam ekrandan çık
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        } else if (document.mozCancelFullScreen) {
+                            document.mozCancelFullScreen();
+                        } else if (document.webkitExitFullscreen) {
+                            document.webkitExitFullscreen();
+                        } else if (document.msExitFullscreen) {
+                            document.msExitFullscreen();
+                        }
+                        
+                        // Normal moda dön
+                        document.body.classList.remove('fullscreen-enabled');
+                        const stApp = document.querySelector('.stApp');
+                        if (stApp) stApp.classList.remove('fullscreen-enabled');
                     }
-                    
-                    // Streamlit app'i tam ekran moduna al
-                    document.body.classList.add('fullscreen-enabled');
-                    const stApp = document.querySelector('.stApp');
-                    if (stApp) stApp.classList.add('fullscreen-enabled');
-                    
-                } else {
-                    // Tam ekrandan çık
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    } else if (document.mozCancelFullScreen) {
-                        document.mozCancelFullScreen();
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                    } else if (document.msExitFullscreen) {
-                        document.msExitFullscreen();
-                    }
-                    
-                    // Normal moda dön
-                    document.body.classList.remove('fullscreen-enabled');
-                    const stApp = document.querySelector('.stApp');
-                    if (stApp) stApp.classList.remove('fullscreen-enabled');
+                } catch (error) {
+                    console.error('Tam ekran hatası:', error);
+                    alert('Tam ekran özelliği bu tarayıcıda desteklenmiyor.');
                 }
             }
             
@@ -4468,13 +4484,19 @@ def show_yks_journey_cinema(user_data, progress_data):
                 }
             });
             
-            // Global olarak tanımla ki diğer bileşenler erişebilsin
-            window.toggleFullscreen = toggleFullscreen;
+            // Global tanımlamalar
+            window.cinemaToggleFullscreen = cinemaToggleFullscreen;
+            window.toggleFullscreen = cinemaToggleFullscreen; // Eski adıyla da erişilebilir
             </script>
-            """
-            st.components.v1.html(fullscreen_css, height=0)
             
-            col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
+            <!-- Tam Ekran Butonu -->
+            <button class="cinema-fullscreen-btn" onclick="cinemaToggleFullscreen()" title="YouTube Tarzı Tam Ekran">
+                🖼️ Tam Ekran
+            </button>
+            """
+            st.components.v1.html(fullscreen_system, height=0)
+            
+            col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
             
             with col1:
                 if st.button("⏮️ Önceki", disabled=(st.session_state.current_day_index == 0)):
@@ -4496,56 +4518,13 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.rerun()
             
             with col4:
-                # YouTube tarzı tam ekran butonu - Global fonksiyon çağrısı
-                fullscreen_button = """
-                <button class="fullscreen-button" onclick="handleFullscreen()" title="Tam Ekran (YouTube gibi)" 
-                        style="width: 100%; height: 38px; background: linear-gradient(45deg, #ff6b6b, #ee5a24); 
-                               color: white; border: none; border-radius: 8px; cursor: pointer; 
-                               font-size: 14px; font-weight: bold; transition: all 0.3s ease;
-                               box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);">
-                    🖼️ Tam Ekran
-                </button>
-                <script>
-                function handleFullscreen() {
-                    // Global fonksiyonu çağır
-                    if (window.toggleFullscreen) {
-                        window.toggleFullscreen();
-                    } else {
-                        // Eğer henüz yüklenmemişse, kısa bir süre bekle
-                        setTimeout(function() {
-                            if (window.toggleFullscreen) {
-                                window.toggleFullscreen();
-                            } else {
-                                alert('Tam ekran özelliği henüz yüklenmedi. Lütfen birkaç saniye bekleyin ve tekrar deneyin.');
-                            }
-                        }, 100);
-                    }
-                }
-
-                // Buton için hover efekti
-                document.addEventListener('DOMContentLoaded', function() {
-                    const btn = document.querySelector('.fullscreen-button');
-                    if (btn) {
-                        btn.addEventListener('mouseenter', function() {
-                            this.style.transform = 'translateY(-2px)';
-                            this.style.boxShadow = '0 4px 15px rgba(255, 107, 107, 0.5)';
-                        });
-                        btn.addEventListener('mouseleave', function() {
-                            this.style.transform = 'translateY(0)';
-                            this.style.boxShadow = '0 2px 10px rgba(255, 107, 107, 0.3)';
-                        });
-                    }
-                });
-                </script>
-                """
-                st.components.v1.html(fullscreen_button, height=50)
-            
-            with col5:
                 if st.button("🚪 Çıkış"):
                     st.session_state.cinema_active = False
                     st.session_state.current_day_index = 0
-
                     st.rerun()
+            
+            # Tam ekran butonu bilgisi
+            st.info("🎯 **YouTube Tarzı Tam Ekran:** Sağ üst köşedeki 🖼️ butonu ile tam ekran deneyimi yaşayın!")
             
             # Otomatik geçiş
             if st.session_state.auto_play_mode:
