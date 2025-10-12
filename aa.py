@@ -4011,7 +4011,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                 st.session_state.day_duration = 4
             
             # Sinematik deneyim bilgisi
-            st.info("🎥 **Pro İpucu:** Film başladıktan sonra '🖼️ Tam Ekran' butonuna tıklayarak YouTube gibi tam ekran deneyimi yaşayabilirsiniz!")
+            st.info("🎥 **Pro İpucu:** Film başladıktan sonra '🖼️ Tam Ekran' butonuna tıklayarak YouTube gibi tam ekran deneyimi yaşayabilirsiniz! 📱 Mobil cihazlarda da mükemmel çalışır!")
             
             st.markdown("---")
             
@@ -4444,60 +4444,124 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.rerun()
             
             with col4:
-                # Gerçek YouTube tarzı tam ekran butonu
+                # Gelişmiş cihaz uyumlu tam ekran butonu
                 fullscreen_btn_html = """
-                <button onclick="toggleRealFullscreen()" 
+                <button onclick="toggleAdvancedFullscreen()" 
                         style="width: 100%; height: 38px; background: linear-gradient(45deg, #ff6b6b, #ee5a24);
                                color: white; border: none; border-radius: 8px; cursor: pointer;
                                font-size: 14px; font-weight: bold; transition: all 0.3s ease;
                                box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);"
-                        title="YouTube Tarzı Gerçek Tam Ekran">
+                        title="Tüm Cihazlarda Çalışan Tam Ekran">
                     🖼️ Tam Ekran
                 </button>
                 
                 <script>
-                function toggleRealFullscreen() {
-                    const element = document.documentElement;
+                // Mobil cihaz tespiti
+                function isMobileDevice() {
+                    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                }
+                
+                // iOS Safari tespiti
+                function isIOSSafari() {
+                    return /iPad|iPhone|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent);
+                }
+                
+                function toggleAdvancedFullscreen() {
+                    const isMobile = isMobileDevice();
+                    const isIOS = isIOSSafari();
                     
-                    if (!document.fullscreenElement) {
-                        // Tam ekrana geç
-                        if (element.requestFullscreen) {
-                            element.requestFullscreen();
-                        } else if (element.mozRequestFullScreen) {
-                            element.mozRequestFullScreen();
-                        } else if (element.webkitRequestFullscreen) {
-                            element.webkitRequestFullscreen();
-                        } else if (element.msRequestFullscreen) {
-                            element.msRequestFullscreen();
+                    // Mobil cihazlarda önce alternatif çözüm dene
+                    if (isMobile) {
+                        if (!document.fullscreenElement) {
+                            // Mobil için alternatif tam ekran modu
+                            activateMobileFullscreen();
                         } else {
-                            alert('Tam ekran bu tarayıcıda desteklenmiyor.');
-                            return;
+                            // Tam ekrandan çık
+                            exitFullscreen();
                         }
-                        
-                        // Tam ekran CSS uygula
-                        setTimeout(function() {
-                            applyFullscreenStyles();
-                        }, 100);
-                        
+                        return;
+                    }
+                    
+                    // Masaüstü için gelişmiş tam ekran
+                    if (!document.fullscreenElement) {
+                        activateDesktopFullscreen();
                     } else {
-                        // Tam ekrandan çık
-                        if (document.exitFullscreen) {
-                            document.exitFullscreen();
-                        } else if (document.mozCancelFullScreen) {
-                            document.mozCancelFullScreen();
-                        } else if (document.webkitExitFullscreen) {
-                            document.webkitExitFullscreen();
-                        } else if (document.msExitFullscreen) {
-                            document.msExitFullscreen();
-                        }
+                        exitFullscreen();
                     }
                 }
                 
-                function applyFullscreenStyles() {
-                    // Tam ekran stilleri ekle
+                function activateDesktopFullscreen() {
+                    // Ana içerik alanını bul
+                    const targetElement = document.querySelector('.main') || 
+                                        document.querySelector('[data-testid="stApp"]') || 
+                                        document.documentElement;
+                    
+                    if (targetElement.requestFullscreen) {
+                        targetElement.requestFullscreen().then(() => {
+                            setTimeout(() => applyFullscreenStyles(false), 150);
+                        }).catch((err) => {
+                            console.log('Tam ekran hatası:', err);
+                            activateMobileFullscreen(); // Fallback
+                        });
+                    } else if (targetElement.mozRequestFullScreen) {
+                        targetElement.mozRequestFullScreen();
+                        setTimeout(() => applyFullscreenStyles(false), 150);
+                    } else if (targetElement.webkitRequestFullscreen) {
+                        targetElement.webkitRequestFullscreen();
+                        setTimeout(() => applyFullscreenStyles(false), 150);
+                    } else if (targetElement.msRequestFullscreen) {
+                        targetElement.msRequestFullscreen();
+                        setTimeout(() => applyFullscreenStyles(false), 150);
+                    } else {
+                        // Tam ekran desteklenmiyorsa alternatif moda geç
+                        activateMobileFullscreen();
+                    }
+                }
+                
+                function activateMobileFullscreen() {
+                    // Mobil ve desteklenmeyen tarayıcılar için CSS-only tam ekran
+                    applyFullscreenStyles(true);
+                    
+                    // Kullanıcıya bilgi ver
+                    const notification = document.createElement('div');
+                    notification.innerHTML = '📱 Mobil Tam Ekran Aktif! (ESC ile çıkış)';
+                    notification.style.cssText = `
+                        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+                        background: #4CAF50; color: white; padding: 10px 20px;
+                        border-radius: 25px; z-index: 10000; font-size: 14px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                    `;
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), 3000);
+                    
+                    // Mobil tam ekran flag'i ayarla
+                    window.mobileFullscreenActive = true;
+                }
+                
+                function exitFullscreen() {
+                    // Önce gerçek tam ekrandan çık
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                    
+                    // Mobil tam ekrandan da çık
+                    if (window.mobileFullscreenActive) {
+                        removeFullscreenStyles();
+                        window.mobileFullscreenActive = false;
+                    }
+                }
+                
+                function applyFullscreenStyles(isMobileMode) {
                     const style = document.createElement('style');
                     style.id = 'fullscreen-cinema-styles';
                     style.innerHTML = `
+                        /* Streamlit UI elementlerini gizle */
                         [data-testid="stSidebar"] {
                             display: none !important;
                         }
@@ -4507,39 +4571,94 @@ def show_yks_journey_cinema(user_data, progress_data):
                         .stApp > header {
                             display: none !important;
                         }
+                        [data-testid="stToolbar"] {
+                            display: none !important;
+                        }
+                        
+                        /* Ana konteyner düzenlemesi */
                         .main .block-container {
                             max-width: 100% !important;
                             padding: 0.5rem !important;
                             margin: 0 !important;
                         }
-                        .stApp {
+                        
+                        /* Arka plan ve genel stil */
+                        .stApp, html, body {
                             background: #000 !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
                         }
-                        /* Fotoğraf ve içerik düzeni düzeltmeleri */
-                        .cinema-day-card {
-                            max-height: 95vh !important;
+                        
+                        /* Mobil mod için özel ayarlar */
+                        ${isMobileMode ? `
+                        .main {
+                            position: fixed !important;
+                            top: 0 !important;
+                            left: 0 !important;
+                            width: 100vw !important;
+                            height: 100vh !important;
+                            z-index: 9999 !important;
                             overflow-y: auto !important;
                         }
+                        
+                        /* Mobil tam ekran için scroll kilidi */
+                        body {
+                            overflow: hidden !important;
+                        }
+                        ` : ''}
+                        
+                        /* Film kartı düzenlemesi */
+                        .cinema-day-card {
+                            max-height: 92vh !important;
+                            overflow-y: auto !important;
+                            margin: 10px !important;
+                        }
+                        
+                        /* Fotoğraf konteyner düzenlemesi */
                         .cinema-photo-container {
-                            max-height: 65vh !important;
+                            max-height: 70vh !important;
                             overflow: hidden !important;
                             display: flex !important;
                             justify-content: center !important;
                             align-items: center !important;
+                            background: #000 !important;
                         }
+                        
                         .cinema-photo-container img {
                             max-width: 100% !important;
-                            max-height: 65vh !important;
+                            max-height: 70vh !important;
                             width: auto !important;
                             height: auto !important;
                             object-fit: contain !important;
+                            border-radius: 8px !important;
                         }
-                        /* Kontrol butonları tam ekranda görünür kalsın */
-                        .stButton {
+                        
+                        /* Kontrol butonları görünür kalsın */
+                        .stButton, .stColumn {
                             position: relative !important;
                             z-index: 1000 !important;
                         }
+                        
+                        /* Scroll bar özelleştirmesi */
+                        .cinema-day-card::-webkit-scrollbar {
+                            width: 8px !important;
+                        }
+                        
+                        .cinema-day-card::-webkit-scrollbar-track {
+                            background: rgba(255, 215, 0, 0.1) !important;
+                            border-radius: 4px !important;
+                        }
+                        
+                        .cinema-day-card::-webkit-scrollbar-thumb {
+                            background: #ffd700 !important;
+                            border-radius: 4px !important;
+                        }
                     `;
+                    
+                    // Önceki stilleri temizle
+                    removeFullscreenStyles();
+                    
+                    // Yeni stilleri ekle
                     document.head.appendChild(style);
                 }
                 
@@ -4548,19 +4667,57 @@ def show_yks_journey_cinema(user_data, progress_data):
                     if (style) {
                         style.remove();
                     }
+                    
+                    // Body scroll kilidini kaldır
+                    document.body.style.overflow = '';
+                    
+                    // Mobil flag'i temizle
+                    window.mobileFullscreenActive = false;
                 }
                 
-                // Tam ekran değişiklik dinleyicisi
+                // Tam ekran değişiklik dinleyicileri
                 document.addEventListener('fullscreenchange', function() {
-                    if (!document.fullscreenElement) {
+                    if (!document.fullscreenElement && !window.mobileFullscreenActive) {
                         removeFullscreenStyles();
                     }
                 });
                 
-                // ESC tuşu desteği
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape' && document.fullscreenElement) {
+                document.addEventListener('webkitfullscreenchange', function() {
+                    if (!document.webkitFullscreenElement && !window.mobileFullscreenActive) {
                         removeFullscreenStyles();
+                    }
+                });
+                
+                document.addEventListener('mozfullscreenchange', function() {
+                    if (!document.mozFullScreenElement && !window.mobileFullscreenActive) {
+                        removeFullscreenStyles();
+                    }
+                });
+                
+                // ESC tuşu desteği (hem gerçek tam ekran hem mobil mod için)
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        if (document.fullscreenElement || window.mobileFullscreenActive) {
+                            exitFullscreen();
+                        }
+                    }
+                });
+                
+                // Sayfa yüklenince mobil uyarısı (sadece ilk kez)
+                window.addEventListener('load', function() {
+                    if (isMobileDevice() && !sessionStorage.getItem('mobile_fullscreen_info_shown')) {
+                        sessionStorage.setItem('mobile_fullscreen_info_shown', 'true');
+                        
+                        const info = document.createElement('div');
+                        info.innerHTML = '📱 Mobil cihazda daha iyi deneyim için tam ekran butonunu kullanın!';
+                        info.style.cssText = `
+                            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+                            background: #2196F3; color: white; padding: 10px 15px;
+                            border-radius: 20px; z-index: 10000; font-size: 12px;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                        `;
+                        document.body.appendChild(info);
+                        setTimeout(() => info.remove(), 5000);
                     }
                 });
                 </script>
@@ -4576,7 +4733,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             
             # Durum bilgisi
             music_status = "🎵 Çalıyor" if st.session_state.music_playing else "🔇 Duraklatıldı"
-            screen_status = "🖼️ Tam Ekran" if st.session_state.fullscreen_mode else "🪟 Normal"
+            screen_status = "🖼️ Tam Ekran Hazır (Butona Tıklayın)"
             st.success(f"**Durum:** {music_status} | {screen_status} | **Gün:** {st.session_state.current_day_index + 1}/{len(journey_data)}")
             
             # Otomatik geçiş
