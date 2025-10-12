@@ -4067,16 +4067,27 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             st.error(f"❌ Veri hazırlama hatası: {str(e)}")
             return
         
-        # Basit otomatik ilerleme sistemi - performanslı
+        # SÜPER GÜVENİLİR AUTO-PLAY SİSTEMİ - 5 SANİYE GEÇİŞ
         if st.session_state.auto_play:
             current_time = time.time()
-            if current_time - st.session_state.last_auto_update >= 5:  # 5 saniye geçti mi?
+            time_diff = current_time - st.session_state.last_auto_update
+            
+            # 5 saniye geçti mi kontrol et
+            if time_diff >= 5:
                 if st.session_state.cinema_day < len(timeline_days) - 1:
                     st.session_state.cinema_day += 1
                     st.session_state.last_auto_update = current_time
                     st.rerun()
                 else:
+                    # Son gün, auto-play'i durdur
                     st.session_state.auto_play = False
+            else:
+                # Henüz 5 saniye geçmedi, kalan süreyi göster
+                remaining = 5 - int(time_diff)
+                if remaining > 0:
+                    st.info(f"⏰ Sonraki güne {remaining} saniye...")
+                    time.sleep(1)  # 1 saniye bekle
+                    st.rerun()  # Tekrar kontrol et
         
         if st.session_state.cinema_day < len(timeline_days):
             day_data = timeline_days[st.session_state.cinema_day]
@@ -4249,8 +4260,8 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             </div>
             """
             
-            # HTML'i render et - Sinema Çerçevesi
-            st.components.v1.html(day_html, height=650)
+            # HTML'i render et - Sinema Çerçevesi - TAM YÜKSEK
+            st.components.v1.html(day_html, height=900)
             
             # Kontrol butonları
             col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
