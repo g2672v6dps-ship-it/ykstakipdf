@@ -9883,40 +9883,119 @@ def main():
                                 
                                 st.components.v1.html(kart_cevirme_sesi, height=0)
                                 
-                                # Ana buton - ses efektli
-                                if st.button(f"🔄 {'Cevabı Gör' if not st.session_state.show_answer else 'Soruya Dön'}", 
-                                           use_container_width=True, type="primary", key="flip_card_main",
-                                           help="🔊 Kağıt çevirme sesiyle!"):
-                                    
-                                    # JavaScript sesi çalmak için - MOBİL UYUMLU! 📱🔊
-                                    ses_calinsin = """
-                                    <script>
-                                    // Mobil uyumlu ses çal
-                                    playMobileCardFlipSound();
-                                    
-                                    // Flip animasyonu
-                                    const allButtons = document.querySelectorAll('button');
-                                    allButtons.forEach(btn => {
+                                # TELEFON UYUMLU SES SİSTEMİ - ÖNCEDEn hazırla
+                                telefon_ses_sistemi = """
+                                <style>
+                                .mobile-audio-btn {
+                                    width: 100%;
+                                    height: 45px;
+                                    background: linear-gradient(45deg, #667eea, #764ba2);
+                                    color: white;
+                                    border: none;
+                                    border-radius: 8px;
+                                    cursor: pointer;
+                                    font-size: 16px;
+                                    font-weight: bold;
+                                    transition: all 0.2s ease;
+                                    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+                                }
+                                
+                                .mobile-audio-btn:active {
+                                    transform: scale(0.95);
+                                    background: #ff4444;
+                                }
+                                
+                                .flip-visual {
+                                    animation: quickFlip 0.3s ease-in-out;
+                                }
+                                
+                                @keyframes quickFlip {
+                                    0% { transform: rotateY(0deg); }
+                                    50% { transform: rotateY(180deg); }
+                                    100% { transform: rotateY(0deg); }
+                                }
+                                </style>
+                                
+                                <audio id="cardFlipAudio" preload="auto">
+                                    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBziR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaAzqWzu7VfSEELojK7taOOQgSYrPp4alZFAxSp+TvwGIcBz2U0euwcSAFNYDE7t6LPAgPVqvl8KdXCwxQpN7uzGQdEE6ky+/EdCIGMoTH8NaOMwgNWK7p6KJTDwdOoOfusmIfCT6Y0O7feysGLIrM7tiDMQQRXLnk7KVXDAhRp+HussUZAT6W0e3ecSAFNYnE7NKLOQcRXLrm7KdXDA1Sp+XwwGIXBT6T0+7ddywGI4PD79iTQAgPW7jp7qVXDAhRpu7yvWEaAz2X0O3acSAFNY3E7NGLOQgRXLPp66VTFApGqODyvmEXADic0e3fdCEGLYDL8d6RTwgPWLbp7apbDQZGouXxtmMZDjyRzvDXeSkGKoTO8deK" type="audio/wav">
+                                </audio>
+                                
+                                <script>
+                                let audioCtx = null;
+                                
+                                // Telefon için basit tik sesi fonksiyonu
+                                function createMobileTick() {
+                                    try {
+                                        // HTML5 Audio deneme
+                                        const audio = document.getElementById('cardFlipAudio');
+                                        if (audio) {
+                                            audio.currentTime = 0;
+                                            audio.volume = 1.0;
+                                            audio.play().catch(() => {
+                                                console.log('HTML5 Audio çalmadı');
+                                            });
+                                        }
+                                        
+                                        // Web Audio API fallback
+                                        if (!audioCtx) {
+                                            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                                        }
+                                        
+                                        if (audioCtx.state === 'suspended') {
+                                            audioCtx.resume();
+                                        }
+                                        
+                                        // Kısa, net tik sesi
+                                        const osc = audioCtx.createOscillator();
+                                        const gain = audioCtx.createGain();
+                                        
+                                        osc.connect(gain);
+                                        gain.connect(audioCtx.destination);
+                                        
+                                        osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+                                        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                                        gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
+                                        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.05);
+                                        
+                                        osc.type = 'square';
+                                        osc.start(audioCtx.currentTime);
+                                        osc.stop(audioCtx.currentTime + 0.05);
+                                        
+                                    } catch (e) {
+                                        console.log('Ses hatası:', e);
+                                        // Vibrasyon
+                                        if (navigator.vibrate) {
+                                            navigator.vibrate(50);
+                                        }
+                                    }
+                                }
+                                
+                                // Buton tıklama dinleyicisi ekle
+                                function addClickListener() {
+                                    const buttons = document.querySelectorAll('button');
+                                    buttons.forEach(btn => {
                                         if (btn.textContent.includes('🔄')) {
-                                            btn.style.transform = 'rotateY(0deg)';
-                                            btn.style.transition = 'transform 0.4s ease-in-out';
-                                            
-                                            setTimeout(() => {
-                                                btn.style.transform = 'rotateY(180deg)';
-                                            }, 10);
-                                            
-                                            setTimeout(() => {
-                                                btn.style.transform = 'rotateY(360deg)';
-                                            }, 200);
-                                            
-                                            setTimeout(() => {
-                                                btn.style.transform = 'rotateY(0deg)';
-                                            }, 400);
+                                            btn.onclick = function(e) {
+                                                createMobileTick();
+                                                btn.classList.add('flip-visual');
+                                                setTimeout(() => btn.classList.remove('flip-visual'), 300);
+                                            };
                                         }
                                     });
-                                    </script>
-                                    """
-                                    st.components.v1.html(ses_calinsin, height=0)
+                                }
+                                
+                                // Sayfa yüklendiğinde ve düzenli olarak listener ekle
+                                setTimeout(addClickListener, 100);
+                                setInterval(addClickListener, 1000);
+                                </script>
+                                """
+                                
+                                st.components.v1.html(telefon_ses_sistemi, height=0)
+                                
+                                # Ana buton - artık ses sistemi otomatik
+                                if st.button(f"🔄 {'Cevabı Gör' if not st.session_state.show_answer else 'Soruya Dön'}", 
+                                           use_container_width=True, type="primary", key="flip_card_main",
+                                           help="🔊 Mobil uyumlu ses!"):
                                     
                                     # Ana fonksiyon
                                     st.session_state.show_answer = not st.session_state.show_answer
