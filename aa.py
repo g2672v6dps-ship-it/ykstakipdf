@@ -4067,27 +4067,16 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             st.error(f"❌ Veri hazırlama hatası: {str(e)}")
             return
         
-        # SÜPER GÜVENİLİR AUTO-PLAY SİSTEMİ - 5 SANİYE GEÇİŞ
+        # BASİT VE GÜVENİLİR AUTO-PLAY - İÇERİĞİ ENGELLEMİYOR
         if st.session_state.auto_play:
             current_time = time.time()
-            time_diff = current_time - st.session_state.last_auto_update
-            
-            # 5 saniye geçti mi kontrol et
-            if time_diff >= 5:
+            if current_time - st.session_state.last_auto_update >= 5:
                 if st.session_state.cinema_day < len(timeline_days) - 1:
                     st.session_state.cinema_day += 1
                     st.session_state.last_auto_update = current_time
                     st.rerun()
                 else:
-                    # Son gün, auto-play'i durdur
                     st.session_state.auto_play = False
-            else:
-                # Henüz 5 saniye geçmedi, kalan süreyi göster
-                remaining = 5 - int(time_diff)
-                if remaining > 0:
-                    st.info(f"⏰ Sonraki güne {remaining} saniye...")
-                    time.sleep(1)  # 1 saniye bekle
-                    st.rerun()  # Tekrar kontrol et
         
         if st.session_state.cinema_day < len(timeline_days):
             day_data = timeline_days[st.session_state.cinema_day]
@@ -4099,6 +4088,16 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
             minutes = day_data['study_minutes'] % 60
             time_text = str(hours) + "s " + str(minutes) + "dk"
             progress_percent = int((day_data['day_number'] / len(timeline_days)) * 100)
+            
+            # Geri sayım hesapla
+            countdown_text = ""
+            if st.session_state.auto_play:
+                current_time = time.time()
+                remaining = 5 - int(current_time - st.session_state.last_auto_update)
+                if remaining > 0:
+                    countdown_text = f"⏱️ Sonraki güne: {remaining} saniye"
+                else:
+                    countdown_text = "⚡ Geçiş yapılıyor..."
             
             # Subjects listesini string'e çevir
             subjects_text = ""
@@ -4129,50 +4128,72 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                 </div>
                 """
             
-            # HTML string'i oluştur - SINEMA ÇERÇEVESİ SADE
+            # HTML string'i oluştur - GERÇEK SİNEMA PERDE TASARIMI
             day_html = """
+            <!-- SİNEMA SALONU ATMOSFER -->
             <div style="
-                background: #000000;
-                border: 20px solid #1a1a1a;
-                border-top: 40px solid #1a1a1a;
-                border-bottom: 40px solid #1a1a1a;
-                padding: 50px;
-                margin: 10px 0;
+                background: linear-gradient(135deg, #000000 0%, #1a0000 50%, #000000 100%);
+                padding: 60px 20px;
+                margin: 0;
+                min-height: 100vh;
                 position: relative;
             ">
-                <!-- Film Strip Dekorasyonu -->
+                <!-- SİNEMA SPOT IŞIKLARI -->
                 <div style="
                     position: absolute;
-                    top: 5px;
-                    left: 0;
-                    right: 0;
-                    height: 30px;
-                    background: repeating-linear-gradient(90deg, #333 0px, #333 15px, #000 15px, #000 25px);
-                "></div>
-                <div style="
-                    position: absolute;
-                    bottom: 5px;
-                    left: 0;
-                    right: 0;
-                    height: 30px;
-                    background: repeating-linear-gradient(90deg, #333 0px, #333 15px, #000 15px, #000 25px);
-                "></div>
-                <div style="
-                    position: absolute;
-                    left: 5px;
                     top: 0;
-                    bottom: 0;
-                    width: 30px;
-                    background: repeating-linear-gradient(180deg, #333 0px, #333 15px, #000 15px, #000 25px);
+                    left: 20%;
+                    width: 60%;
+                    height: 40px;
+                    background: radial-gradient(ellipse at center, rgba(255,215,0,0.3) 0%, transparent 70%);
                 "></div>
+                
+                <!-- ANA SİNEMA PERDE -->
                 <div style="
-                    position: absolute;
-                    right: 5px;
-                    top: 0;
-                    bottom: 0;
-                    width: 30px;
-                    background: repeating-linear-gradient(180deg, #333 0px, #333 15px, #000 15px, #000 25px);
-                "></div>
+                    background: #000000;
+                    border: 30px solid #8B0000;
+                    border-image: linear-gradient(45deg, #8B0000, #DC143C, #8B0000) 1;
+                    border-radius: 20px;
+                    margin: 40px auto;
+                    max-width: 95%;
+                    position: relative;
+                    box-shadow: 
+                        0 0 50px rgba(255,215,0,0.3),
+                        inset 0 0 30px rgba(0,0,0,0.8),
+                        0 20px 40px rgba(0,0,0,0.6);
+                ">
+                    <!-- PERDE ÜST SÜS -->
+                    <div style="
+                        position: absolute;
+                        top: -15px;
+                        left: -15px;
+                        right: -15px;
+                        height: 30px;
+                        background: linear-gradient(90deg, #8B0000, #DC143C, #B22222, #DC143C, #8B0000);
+                        border-radius: 15px 15px 0 0;
+                        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+                    "></div>
+                    
+                    <!-- PERDE ALTI -->
+                    <div style="
+                        position: absolute;
+                        bottom: -15px;
+                        left: -15px;
+                        right: -15px;
+                        height: 30px;
+                        background: linear-gradient(90deg, #8B0000, #DC143C, #B22222, #DC143C, #8B0000);
+                        border-radius: 0 0 15px 15px;
+                        box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+                    "></div>
+                    
+                    <!-- İÇERİK ALANI -->
+                    <div style="
+                        padding: 50px;
+                        background: linear-gradient(135deg, #000000 0%, #111111 100%);
+                        border-radius: 10px;
+                        position: relative;
+                        min-height: 600px;
+                    ">
                 
                 <h2 style="
                     color: #ffd700; 
@@ -4255,13 +4276,38 @@ def show_sar_zamani_geriye_page(user_data, progress_data):
                         ">
                             🚀 Başarı Yolculuğu Devam Ediyor... (""" + str(day_data['day_number']) + """/""" + str(len(timeline_days)) + """)
                         </p>
+                        
+                        <!-- AUTO-PLAY DURUM GÖSTERGESİ -->
+                        """ + ("""
+                        <div style="
+                            position: absolute;
+                            bottom: 10px;
+                            right: 20px;
+                            background: rgba(255,215,0,0.2);
+                            padding: 10px 20px;
+                            border-radius: 25px;
+                            border: 2px solid #ffd700;
+                            color: #ffd700;
+                            font-size: 1.1em;
+                            font-weight: bold;
+                            box-shadow: 0 0 20px rgba(255,215,0,0.4);
+                        ">
+                            """ + countdown_text + """
+                        </div>
+                        """ if st.session_state.auto_play and countdown_text else "") + """
+                        
                     </div>
                 </div>
             </div>
             """
             
-            # HTML'i render et - Sinema Çerçevesi - TAM YÜKSEK
-            st.components.v1.html(day_html, height=900)
+            # HTML'i render et - GERÇEK SİNEMA PERDE - BÜYÜK
+            st.components.v1.html(day_html, height=1100)
+            
+            # Auto-play için sürekli yenileme
+            if st.session_state.auto_play:
+                time.sleep(1)  # 1 saniye bekle
+                st.rerun()  # Geri sayımı güncellemek için
             
             # Kontrol butonları
             col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
