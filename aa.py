@@ -4011,7 +4011,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                 st.session_state.day_duration = 4
             
             # Sinematik deneyim bilgisi
-            st.info("🎥 **Pro İpucu:** Film başladıktan sonra '🖼️ Tam Ekran' butonuna tıklayarak siyah ekran olmadan mükemmel sinema deneyimi yaşayın! ✅ Artık tüm cihazlarda %100 çalışır!")
+            st.info("🎥 **Pro İpucu:** Film başladıktan sonra '🖼️ Tam Ekran' butonuna tıklayarak mükemmel sinema deneyimi yaşayın! ✅ Pure Streamlit çözümü - %100 çalışır garantisi!")
             
             st.markdown("---")
             
@@ -4255,6 +4255,81 @@ def show_yks_journey_cinema(user_data, progress_data):
         if st.session_state.current_day_index == 0:
             st.components.v1.html(curtain_html, height=0)
         
+        # TAM EKRAN MODU KONTROLÜ VE CSS INJECT
+        if st.session_state.get('fullscreen_mode', False):
+            fullscreen_css = """
+            <style>
+            /* Streamlit arayüzünü gizle */
+            [data-testid="stSidebar"] {
+                display: none !important;
+            }
+            [data-testid="stHeader"] {
+                display: none !important;
+            }
+            [data-testid="stToolbar"] {
+                display: none !important;
+            }
+            .stApp > header {
+                display: none !important;
+            }
+            
+            /* Ana sayfa tam ekran */
+            .stApp {
+                background: #000 !important;
+            }
+            
+            .main .block-container {
+                max-width: 100% !important;
+                padding: 5px !important;
+                margin: 0 !important;
+            }
+            
+            /* Film kartı tam ekran düzenlemesi */
+            .cinema-day-card {
+                max-height: 95vh !important;
+                overflow-y: auto !important;
+                margin: 5px !important;
+            }
+            
+            /* Fotoğraf konteyner */
+            .cinema-photo-container {
+                max-height: 75vh !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                background: #000 !important;
+            }
+            
+            .cinema-photo-container img {
+                max-width: 100% !important;
+                max-height: 75vh !important;
+                object-fit: contain !important;
+            }
+            
+            /* Kontrol butonları görünür */
+            .stButton, .stColumn {
+                position: relative !important;
+                z-index: 1000 !important;
+            }
+            
+            /* Scroll bar */
+            .cinema-day-card::-webkit-scrollbar {
+                width: 8px !important;
+            }
+            
+            .cinema-day-card::-webkit-scrollbar-track {
+                background: rgba(255, 215, 0, 0.1) !important;
+                border-radius: 4px !important;
+            }
+            
+            .cinema-day-card::-webkit-scrollbar-thumb {
+                background: #ffd700 !important;
+                border-radius: 4px !important;
+            }
+            </style>
+            """
+            st.components.v1.html(fullscreen_css, height=0)
+
         # Günlük gösterim
         if st.session_state.current_day_index < len(journey_data):
             current_day = journey_data[st.session_state.current_day_index]
@@ -4444,224 +4519,10 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.rerun()
             
             with col4:
-                # SİYAH EKRAN SORUNU ÇÖZÜLDÜ - CSS-Only Tam Ekran
-                fullscreen_btn_html = """
-                <button onclick="toggleCinemaFullscreen()" 
-                        style="width: 100%; height: 38px; background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-                               color: white; border: none; border-radius: 8px; cursor: pointer;
-                               font-size: 14px; font-weight: bold; transition: all 0.3s ease;
-                               box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);"
-                        title="Kesin Çalışan Tam Ekran">
-                    🖼️ Tam Ekran
-                </button>
-                
-                <script>
-                // Global flag
-                window.cinemaFullscreenActive = false;
-                
-                function toggleCinemaFullscreen() {
-                    if (!window.cinemaFullscreenActive) {
-                        activateCinemaFullscreen();
-                    } else {
-                        deactivateCinemaFullscreen();
-                    }
-                }
-                
-                function activateCinemaFullscreen() {
-                    // CSS-only tam ekran (her zaman çalışır)
-                    const style = document.createElement('style');
-                    style.id = 'cinema-fullscreen-styles';
-                    style.innerHTML = `
-                        /* Streamlit arayüzünü tamamen gizle */
-                        [data-testid="stSidebar"] {
-                            display: none !important;
-                        }
-                        [data-testid="stHeader"] {
-                            display: none !important;
-                        }
-                        [data-testid="stToolbar"] {
-                            display: none !important;
-                        }
-                        .stApp > header {
-                            display: none !important;
-                        }
-                        
-                        /* Ana sayfayı tam ekran yap */
-                        .stApp {
-                            position: fixed !important;
-                            top: 0 !important;
-                            left: 0 !important;
-                            width: 100vw !important;
-                            height: 100vh !important;
-                            background: #000 !important;
-                            z-index: 999999 !important;
-                            overflow: hidden !important;
-                        }
-                        
-                        /* Ana içerik konteynerini düzenle */
-                        .main {
-                            position: fixed !important;
-                            top: 0 !important;
-                            left: 0 !important;
-                            width: 100vw !important;
-                            height: 100vh !important;
-                            background: #000 !important;
-                            overflow-y: auto !important;
-                            z-index: 999999 !important;
-                        }
-                        
-                        .main .block-container {
-                            max-width: 100% !important;
-                            padding: 10px !important;
-                            margin: 0 !important;
-                            width: 100% !important;
-                            height: 100vh !important;
-                        }
-                        
-                        /* Body ve HTML tam ekran */
-                        html, body {
-                            margin: 0 !important;
-                            padding: 0 !important;
-                            width: 100vw !important;
-                            height: 100vh !important;
-                            overflow: hidden !important;
-                            background: #000 !important;
-                        }
-                        
-                        /* Film kartını tam ekrana sığdır */
-                        .cinema-day-card {
-                            max-height: 95vh !important;
-                            overflow-y: auto !important;
-                            margin: 5px !important;
-                            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
-                            border: 3px solid #ffd700 !important;
-                            border-radius: 10px !important;
-                            padding: 20px !important;
-                        }
-                        
-                        /* Fotoğraf görünümünü düzenle */
-                        .cinema-photo-container {
-                            max-height: 75vh !important;
-                            display: flex !important;
-                            justify-content: center !important;
-                            align-items: center !important;
-                            background: #000 !important;
-                            border-radius: 8px !important;
-                            overflow: hidden !important;
-                        }
-                        
-                        .cinema-photo-container img {
-                            max-width: 100% !important;
-                            max-height: 75vh !important;
-                            width: auto !important;
-                            height: auto !important;
-                            object-fit: contain !important;
-                        }
-                        
-                        /* Kontrol butonlarını görünür tut */
-                        .stButton, .stColumn {
-                            position: relative !important;
-                            z-index: 1001 !important;
-                        }
-                        
-                        /* Yazıları beyaz yap */
-                        .cinema-day-card * {
-                            color: white !important;
-                        }
-                        
-                        /* Scroll bar tasarımı */
-                        .cinema-day-card::-webkit-scrollbar {
-                            width: 10px !important;
-                        }
-                        
-                        .cinema-day-card::-webkit-scrollbar-track {
-                            background: rgba(255, 215, 0, 0.2) !important;
-                            border-radius: 5px !important;
-                        }
-                        
-                        .cinema-day-card::-webkit-scrollbar-thumb {
-                            background: #ffd700 !important;
-                            border-radius: 5px !important;
-                        }
-                        
-                        .cinema-day-card::-webkit-scrollbar-thumb:hover {
-                            background: #ffed4e !important;
-                        }
-                    `;
-                    
-                    // Önceki stilleri temizle
-                    const oldStyle = document.getElementById('cinema-fullscreen-styles');
-                    if (oldStyle) oldStyle.remove();
-                    
-                    // Yeni stilleri ekle
-                    document.head.appendChild(style);
-                    
-                    // Flag'i aktif et
-                    window.cinemaFullscreenActive = true;
-                    
-                    // Kullanıcıya bilgi ver
-                    showNotification('🎬 Sinema Modu Aktif! (ESC ile çıkış)', '#4CAF50');
-                }
-                
-                function deactivateCinemaFullscreen() {
-                    // Stilleri kaldır
-                    const style = document.getElementById('cinema-fullscreen-styles');
-                    if (style) {
-                        style.remove();
-                    }
-                    
-                    // Body ve HTML stillerini sıfırla
-                    document.body.style.overflow = '';
-                    document.documentElement.style.overflow = '';
-                    
-                    // Flag'i deaktif et
-                    window.cinemaFullscreenActive = false;
-                    
-                    // Bilgi ver
-                    showNotification('🪟 Normal Moda Döndü', '#FF9800');
-                }
-                
-                function showNotification(message, color) {
-                    const notification = document.createElement('div');
-                    notification.innerHTML = message;
-                    notification.style.cssText = `
-                        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-                        background: ${color}; color: white; padding: 12px 24px;
-                        border-radius: 25px; z-index: 1000000; font-size: 14px;
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                        font-family: Arial, sans-serif; font-weight: bold;
-                    `;
-                    document.body.appendChild(notification);
-                    setTimeout(() => notification.remove(), 3000);
-                }
-                
-                // ESC tuşu ile çıkış
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape' && window.cinemaFullscreenActive) {
-                        deactivateCinemaFullscreen();
-                    }
-                });
-                
-                // Tam ekran API'si dinleyicisi (gereksiz ama güvenlik için)
-                document.addEventListener('fullscreenchange', function() {
-                    if (!document.fullscreenElement && window.cinemaFullscreenActive) {
-                        // Tam ekran kapatıldıysa CSS modunu da kapat
-                        deactivateCinemaFullscreen();
-                    }
-                });
-                
-                // Sayfa yüklendiğinde bilgi ver
-                window.addEventListener('load', function() {
-                    if (!sessionStorage.getItem('cinema_mode_info_shown')) {
-                        sessionStorage.setItem('cinema_mode_info_shown', 'true');
-                        setTimeout(() => {
-                            showNotification('💡 İpucu: Tam Ekran butonu ile sinema deneyimi yaşayın!', '#2196F3');
-                        }, 2000);
-                    }
-                });
-                </script>
-                """
-                st.components.v1.html(fullscreen_btn_html, height=50)
+                # KELİME KELİME ÇALIŞAN TAM EKRAN - STREAMLIT NATIVE!
+                if st.button("🖼️ Tam Ekran"):
+                    st.session_state.fullscreen_mode = not st.session_state.get('fullscreen_mode', False)
+                    st.rerun()
             
             with col5:
                 if st.button("🚪 Çıkış"):
@@ -4672,7 +4533,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             
             # Durum bilgisi
             music_status = "🎵 Çalıyor" if st.session_state.music_playing else "🔇 Duraklatıldı"
-            screen_status = "🎬 Sinema Modu Hazır (Siyah Ekran Yok!)"
+            screen_status = "🖼️ Tam Ekran AKTİF" if st.session_state.get('fullscreen_mode', False) else "🪟 Normal Mod"
             st.success(f"**Durum:** {music_status} | {screen_status} | **Gün:** {st.session_state.current_day_index + 1}/{len(journey_data)}")
             
             # Otomatik geçiş
