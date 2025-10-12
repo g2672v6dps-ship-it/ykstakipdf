@@ -4261,7 +4261,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             
             # Film karesi stili (Mobil responsive)
             day_frame = f"""
-            <div style="
+            <div class="cinema-day-card" style="
                 background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
                 border: 6px solid #ffd700;
                 border-radius: 15px;
@@ -4271,7 +4271,9 @@ def show_yks_journey_cinema(user_data, progress_data):
                 font-family: 'Arial', sans-serif;
                 box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2);
                 max-width: 100%;
+                max-height: 95vh;
                 overflow-x: hidden;
+                overflow-y: auto;
             ">
                 <div style="text-align: center; margin-bottom: 25px;">
                     <h2 style="color: #ffd700; font-size: 2.5rem; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
@@ -4294,6 +4296,47 @@ def show_yks_journey_cinema(user_data, progress_data):
                             grid-template-columns: 1fr !important;
                             gap: 10px !important;
                         }}
+                    }}
+                    
+                    /* Tam ekran için scrollbar stilleri */
+                    .cinema-day-card::-webkit-scrollbar {{
+                        width: 8px;
+                    }}
+                    
+                    .cinema-day-card::-webkit-scrollbar-track {{
+                        background: rgba(255, 215, 0, 0.1);
+                        border-radius: 4px;
+                    }}
+                    
+                    .cinema-day-card::-webkit-scrollbar-thumb {{
+                        background: #ffd700;
+                        border-radius: 4px;
+                    }}
+                    
+                    .cinema-day-card::-webkit-scrollbar-thumb:hover {{
+                        background: #ffed4e;
+                    }}
+                    
+                    /* Fotoğraf konteyner düzeltmeleri */
+                    .cinema-photo-container {{
+                        display: flex !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        max-height: 60vh !important;
+                        overflow: hidden !important;
+                        border-radius: 10px !important;
+                        background: rgba(0,0,0,0.2) !important;
+                    }}
+                    
+                    .cinema-photo-container img {{
+                        max-width: 100% !important;
+                        max-height: 60vh !important;
+                        width: auto !important;
+                        height: auto !important;
+                        object-fit: contain !important;
+                        border-radius: 10px !important;
+                        border: 3px solid #ffd700 !important;
+                        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3) !important;
                     }}
                 </style>
                 <div class="data-grid">
@@ -4340,8 +4383,11 @@ def show_yks_journey_cinema(user_data, progress_data):
                 {f'''
                 <div style="text-align: center; margin-top: 20px; padding: 15px; background: rgba(255, 215, 0, 0.05); border-radius: 10px;">
                     <h4 style="color: #ffd700; margin-bottom: 15px;">📷 Günün Fotoğrafı</h4>
-                    <img src="data:image/jpeg;base64,{current_day['photo_data']}" 
-                         style="max-width: 100%; height: auto; max-height: 300px; border-radius: 10px; border: 3px solid #ffd700; box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3); object-fit: cover;">
+                    <div class="cinema-photo-container" style="display: flex; justify-content: center; align-items: center; min-height: 200px; max-height: 60vh; overflow: hidden; border-radius: 10px; background: rgba(0,0,0,0.2); margin: 15px 0;">
+                        <img src="data:image/jpeg;base64,{current_day['photo_data']}" 
+                             style="max-width: 100%; max-height: 60vh; width: auto; height: auto; object-fit: contain; border-radius: 10px; border: 3px solid #ffd700; box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);"
+                             alt="Günün Fotoğrafı">
+                    </div>
                     <p style="color: #cccccc; font-size: 0.9rem; margin-top: 10px; font-style: italic;">"{current_day['photo_caption'] or 'Fotoğraf açıklaması eklenmemiş'}"</p>
                 </div>
                 ''' if current_day.get('photo_data') and len(str(current_day['photo_data'])) > 50 else f'''
@@ -4355,7 +4401,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             </div>
             """
             
-            st.components.v1.html(day_frame, height=600)
+            st.components.v1.html(day_frame, height=800)
             
             # Kontrol butonları
             # YouTube tarzı tam ekran hazır
@@ -4398,11 +4444,128 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.rerun()
             
             with col4:
-                # Tam ekran butonu - Basit CSS yaklaşımı
-                fullscreen_text = "🔲 Normal Ekran" if st.session_state.fullscreen_mode else "🖼️ Tam Ekran"
-                if st.button(fullscreen_text):
-                    st.session_state.fullscreen_mode = not st.session_state.fullscreen_mode
-                    st.rerun()
+                # Gerçek YouTube tarzı tam ekran butonu
+                fullscreen_btn_html = """
+                <button onclick="toggleRealFullscreen()" 
+                        style="width: 100%; height: 38px; background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+                               color: white; border: none; border-radius: 8px; cursor: pointer;
+                               font-size: 14px; font-weight: bold; transition: all 0.3s ease;
+                               box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);"
+                        title="YouTube Tarzı Gerçek Tam Ekran">
+                    🖼️ Tam Ekran
+                </button>
+                
+                <script>
+                function toggleRealFullscreen() {
+                    const element = document.documentElement;
+                    
+                    if (!document.fullscreenElement) {
+                        // Tam ekrana geç
+                        if (element.requestFullscreen) {
+                            element.requestFullscreen();
+                        } else if (element.mozRequestFullScreen) {
+                            element.mozRequestFullScreen();
+                        } else if (element.webkitRequestFullscreen) {
+                            element.webkitRequestFullscreen();
+                        } else if (element.msRequestFullscreen) {
+                            element.msRequestFullscreen();
+                        } else {
+                            alert('Tam ekran bu tarayıcıda desteklenmiyor.');
+                            return;
+                        }
+                        
+                        // Tam ekran CSS uygula
+                        setTimeout(function() {
+                            applyFullscreenStyles();
+                        }, 100);
+                        
+                    } else {
+                        // Tam ekrandan çık
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        } else if (document.mozCancelFullScreen) {
+                            document.mozCancelFullScreen();
+                        } else if (document.webkitExitFullscreen) {
+                            document.webkitExitFullscreen();
+                        } else if (document.msExitFullscreen) {
+                            document.msExitFullscreen();
+                        }
+                    }
+                }
+                
+                function applyFullscreenStyles() {
+                    // Tam ekran stilleri ekle
+                    const style = document.createElement('style');
+                    style.id = 'fullscreen-cinema-styles';
+                    style.innerHTML = `
+                        [data-testid="stSidebar"] {
+                            display: none !important;
+                        }
+                        [data-testid="stHeader"] {
+                            display: none !important;
+                        }
+                        .stApp > header {
+                            display: none !important;
+                        }
+                        .main .block-container {
+                            max-width: 100% !important;
+                            padding: 0.5rem !important;
+                            margin: 0 !important;
+                        }
+                        .stApp {
+                            background: #000 !important;
+                        }
+                        /* Fotoğraf ve içerik düzeni düzeltmeleri */
+                        .cinema-day-card {
+                            max-height: 95vh !important;
+                            overflow-y: auto !important;
+                        }
+                        .cinema-photo-container {
+                            max-height: 65vh !important;
+                            overflow: hidden !important;
+                            display: flex !important;
+                            justify-content: center !important;
+                            align-items: center !important;
+                        }
+                        .cinema-photo-container img {
+                            max-width: 100% !important;
+                            max-height: 65vh !important;
+                            width: auto !important;
+                            height: auto !important;
+                            object-fit: contain !important;
+                        }
+                        /* Kontrol butonları tam ekranda görünür kalsın */
+                        .stButton {
+                            position: relative !important;
+                            z-index: 1000 !important;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                function removeFullscreenStyles() {
+                    const style = document.getElementById('fullscreen-cinema-styles');
+                    if (style) {
+                        style.remove();
+                    }
+                }
+                
+                // Tam ekran değişiklik dinleyicisi
+                document.addEventListener('fullscreenchange', function() {
+                    if (!document.fullscreenElement) {
+                        removeFullscreenStyles();
+                    }
+                });
+                
+                // ESC tuşu desteği
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && document.fullscreenElement) {
+                        removeFullscreenStyles();
+                    }
+                });
+                </script>
+                """
+                st.components.v1.html(fullscreen_btn_html, height=50)
             
             with col5:
                 if st.button("🚪 Çıkış"):
@@ -4410,28 +4573,6 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.session_state.current_day_index = 0
                     st.session_state.fullscreen_mode = False
                     st.rerun()
-            
-            # Tam ekran CSS uygulaması
-            if st.session_state.fullscreen_mode:
-                fullscreen_css = """
-                <style>
-                [data-testid="stSidebar"] {
-                    display: none !important;
-                }
-                .main .block-container {
-                    max-width: 100% !important;
-                    padding: 1rem !important;
-                }
-                [data-testid="stHeader"] {
-                    display: none !important;
-                }
-                .stApp > header {
-                    display: none !important;
-                }
-                </style>
-                """
-                st.markdown(fullscreen_css, unsafe_allow_html=True)
-                st.info("🖼️ **Tam Ekran Modu Aktif** - Sidebar ve header gizlendi. '🔲 Normal Ekran' ile çık.")
             
             # Durum bilgisi
             music_status = "🎵 Çalıyor" if st.session_state.music_playing else "🔇 Duraklatıldı"
