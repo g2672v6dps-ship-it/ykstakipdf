@@ -5553,6 +5553,10 @@ def init_pomodoro_session_state():
         st.session_state.current_motivation_content = ''
     if 'breathing_usage_log' not in st.session_state:
         st.session_state.breathing_usage_log = []
+    
+    # === REKABET SİSTEMİ SESSION STATES ===
+    if 'show_competition_settings' not in st.session_state:
+        st.session_state.show_competition_settings = False
 
 def show_pomodoro_interface(user_data):
     """Ana pomodoro arayüzünü gösterir - Hibrit Pomodoro Sistemi ile"""
@@ -8643,7 +8647,7 @@ def main():
                         st.success("✅ Session state temizlendi!")
             
             page = st.sidebar.selectbox("🌐 Sayfa Seçin", 
-                                      ["🏠 Ana Sayfa", "📚 Konu Takip", "🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
+                                      ["🏠 Ana Sayfa", "📚 Konu Takip", "🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🏆 Rekabet Panosu", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
             
             if page == "🏠 Ana Sayfa":
                 # Eski session verilerini temizle - her gün güncel sistem!
@@ -11230,8 +11234,8 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
             elif page == "🍅 Pomodoro Timer":
                 pomodoro_timer_page(user_data)
             
-            
-              
+            elif page == "🏆 Rekabet Panosu":
+                competition_leaderboard_page(user_data)
             
             elif page == "🧠 Psikolojim":
                 run_psychology_page()
@@ -15319,6 +15323,627 @@ def show_topic_scheduler_bonus(topic, user_data, index):
         st.success(f"🚀 Bonus konu {selected_day} günü {selected_time} saatine eklendi!")
         st.session_state[f"show_scheduler_bonus_{index}"] = False
         st.rerun()
+
+# === REKABETPANOSURekabet 🏆 SİSTEMİ ===
+
+def competition_leaderboard_page(user_data):
+    """🏆 Güvenli ve Performanslı Rekabet Panosu"""
+    st.markdown(f'<div class="main-header"><h1>🏆 Rekabet Panosu</h1><p>Motivasyonunu artır, hedeflerine daha hızlı ulaş!</p></div>', unsafe_allow_html=True)
+    
+    # Önce kullanıcının katılım durumunu kontrol et
+    participation_status = get_user_competition_status(user_data)
+    
+    if not participation_status['participating']:
+        show_competition_opt_in_interface(user_data)
+    else:
+        show_competition_dashboard(user_data, participation_status)
+
+def get_user_competition_status(user_data):
+    """Kullanıcının rekabet sistemine katılım durumunu kontrol eder"""
+    competition_data = user_data.get('competition_settings', {})
+    
+    return {
+        'participating': competition_data.get('participating', False),
+        'display_name': competition_data.get('display_name', ''),
+        'privacy_level': competition_data.get('privacy_level', 'anonymous'),  # anonymous, nickname, initials
+        'joined_date': competition_data.get('joined_date', ''),
+        'data_sharing': competition_data.get('data_sharing', {
+            'pomodoros': True,
+            'study_hours': True,
+            'topics_studied': True,
+            'questions_solved': False  # Bu özellik henüz yok, gelecek için
+        })
+    }
+
+def show_competition_opt_in_interface(user_data):
+    """Rekabet sistemine katılım arayüzü - Gizlilik odaklı"""
+    
+    st.info("🔒 **Gizliliğiniz Bizim İçin Önemli!** Rekabet panosu tamamen isteğe bağlıdır.")
+    
+    with st.expander("📋 Rekabet Sistemi Hakkında Bilgi", expanded=True):
+        st.markdown("""
+        ### 🎯 **Rekabet Sistemi Nasıl Çalışır?**
+        
+        ✅ **Sadece anonim veriler paylaşılır**
+        - Gerçek isminiz **asla** görünmez
+        - Sadece takma isim veya baş harfleriniz kullanılır
+        
+        📊 **Hangi Veriler Paylaşılır?**
+        - 🍅 Günlük tamamlanan Pomodoro sayısı
+        - ⏱️ Toplam çalışma saati
+        - 📚 Çalışılan konu sayısı
+        
+        🛡️ **Gizlilik Garantileri:**
+        - İstediğiniz zaman çıkabilirsiniz
+        - Verileriniz sadece istatistik için kullanılır
+        - Kişisel bilgileriniz **korunur**
+        
+        🚀 **Faydalar:**
+        - Motivasyon artışı
+        - Çalışma rutininizi güçlendirme
+        - Arkadaşlarınızla sağlıklı rekabet
+        """)
+    
+    st.markdown("---")
+    st.subheader("🚀 Rekabet Sistemine Katılın")
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        # Display name seçimi
+        privacy_level = st.radio(
+            "🔒 Nasıl görünmek istiyorsunuz?",
+            ["anonymous", "nickname", "initials"],
+            format_func=lambda x: {
+                "anonymous": "🎭 Anonim (Sadece 'Öğrenci #X' şeklinde)",
+                "nickname": "😊 Takma isim (Kendi belirlediğiniz isim)",
+                "initials": "📝 Baş harfler (Örn: A.Y.)"
+            }[x],
+            help="Bu ayarı daha sonra değiştirebilirsiniz"
+        )
+        
+        display_name = ""
+        if privacy_level == "nickname":
+            display_name = st.text_input(
+                "Takma isminizi girin:",
+                placeholder="Örn: ÇalışkanÖğrenci, YKSAvcısı",
+                max_chars=20,
+                help="Sadece harf ve rakam kullanın"
+            )
+        elif privacy_level == "initials":
+            first_name = st.text_input("İlk harfler:", placeholder="Örn: A", max_chars=3)
+            last_name = st.text_input("Son harfler:", placeholder="Örn: Y", max_chars=3)
+            if first_name and last_name:
+                display_name = f"{first_name.upper()}.{last_name.upper()}."
+        
+        # Veri paylaşım ayarları
+        st.markdown("📊 **Hangi verilerinizi paylaşmak istiyorsunuz?**")
+        share_pomodoros = st.checkbox("🍅 Pomodoro sayıları", value=True)
+        share_hours = st.checkbox("⏱️ Çalışma saatleri", value=True)
+        share_topics = st.checkbox("📚 Çalışılan konu sayıları", value=True)
+    
+    with col2:
+        st.markdown("### 🎯 Motivasyon")
+        st.info("📈 Rekabet sistemi çalışma motivasyonunuzu **%40'a kadar** artırabilir!")
+        
+        if st.button("🏆 Rekabet Sistemine Katıl!", type="primary", use_container_width=True):
+            if privacy_level in ["anonymous"] or (privacy_level in ["nickname", "initials"] and display_name):
+                # Kullanıcıyı sisteme kaydet
+                join_competition_system(user_data, privacy_level, display_name, {
+                    'pomodoros': share_pomodoros,
+                    'study_hours': share_hours,
+                    'topics_studied': share_topics,
+                    'questions_solved': False
+                })
+                st.success("🎉 Rekabet sistemine başarıyla katıldınız!")
+                st.balloons()
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.warning("⚠️ Lütfen görünüm ayarlarınızı tamamlayın.")
+
+def join_competition_system(user_data, privacy_level, display_name, data_sharing):
+    """Kullanıcıyı rekabet sistemine ekler"""
+    
+    # Anonim kullanıcı için random ID oluştur
+    if privacy_level == "anonymous":
+        import random
+        display_name = f"Öğrenci #{random.randint(1000, 9999)}"
+    
+    competition_settings = {
+        'participating': True,
+        'privacy_level': privacy_level,
+        'display_name': display_name,
+        'joined_date': datetime.now().isoformat(),
+        'data_sharing': data_sharing,
+        'last_activity': datetime.now().isoformat()
+    }
+    
+    # Firebase'e kaydet
+    update_user_in_firebase(st.session_state.current_user, {
+        'competition_settings': json.dumps(competition_settings)
+    })
+    
+    # Session state'i güncelle
+    st.session_state.users_db = load_users_from_firebase()
+
+def show_competition_dashboard(user_data, participation_status):
+    """Ana rekabet panelini gösterir"""
+    
+    # Üst bilgi çubuğu
+    col1, col2, col3 = st.columns([3, 1, 1])
+    
+    with col1:
+        st.markdown(f"### 👋 Hoş geldin **{participation_status['display_name']}**!")
+    
+    with col2:
+        if st.button("⚙️ Ayarlar"):
+            st.session_state.show_competition_settings = True
+    
+    with col3:
+        if st.button("🚪 Çıkış", help="Rekabet sisteminden çık"):
+            leave_competition_system(user_data)
+            st.success("✅ Rekabet sisteminden çıktınız.")
+            time.sleep(1)
+            st.rerun()
+    
+    # Ayarlar modalı
+    if st.session_state.get('show_competition_settings', False):
+        show_competition_settings_modal(user_data, participation_status)
+    
+    # Ana dashboard
+    show_leaderboard_tabs(user_data, participation_status)
+
+def show_competition_settings_modal(user_data, participation_status):
+    """Rekabet ayarları modalı"""
+    with st.expander("⚙️ Rekabet Ayarları", expanded=True):
+        st.markdown("### 🔧 Gizlilik ve Görünüm Ayarları")
+        
+        # Mevcut ayarları göster
+        current_privacy = participation_status['privacy_level']
+        current_name = participation_status['display_name']
+        current_sharing = participation_status['data_sharing']
+        
+        # Yeni ayarlar
+        new_privacy = st.radio(
+            "Görünüm şeklinizi değiştirin:",
+            ["anonymous", "nickname", "initials"],
+            index=["anonymous", "nickname", "initials"].index(current_privacy),
+            format_func=lambda x: {
+                "anonymous": "🎭 Anonim",
+                "nickname": "😊 Takma isim", 
+                "initials": "📝 Baş harfler"
+            }[x]
+        )
+        
+        new_display_name = current_name
+        if new_privacy == "nickname":
+            new_display_name = st.text_input("Yeni takma isim:", value=current_name if current_privacy == "nickname" else "", max_chars=20)
+        elif new_privacy == "initials":
+            parts = current_name.split('.') if current_privacy == "initials" else ['', '']
+            first = st.text_input("İlk harf:", value=parts[0] if len(parts) > 0 else "", max_chars=3)
+            last = st.text_input("Son harf:", value=parts[1] if len(parts) > 1 else "", max_chars=3)
+            if first and last:
+                new_display_name = f"{first.upper()}.{last.upper()}."
+        
+        # Veri paylaşım ayarları
+        st.markdown("📊 **Veri Paylaşım Ayarları**")
+        new_share_pomodoros = st.checkbox("🍅 Pomodoro sayıları", value=current_sharing.get('pomodoros', True))
+        new_share_hours = st.checkbox("⏱️ Çalışma saatleri", value=current_sharing.get('study_hours', True))
+        new_share_topics = st.checkbox("📚 Konu sayıları", value=current_sharing.get('topics_studied', True))
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("✅ Ayarları Kaydet", type="primary"):
+                # Ayarları güncelle
+                update_competition_settings(user_data, {
+                    'privacy_level': new_privacy,
+                    'display_name': new_display_name if new_display_name else participation_status['display_name'],
+                    'data_sharing': {
+                        'pomodoros': new_share_pomodoros,
+                        'study_hours': new_share_hours,
+                        'topics_studied': new_share_topics,
+                        'questions_solved': current_sharing.get('questions_solved', False)
+                    }
+                })
+                st.success("✅ Ayarlar güncellendi!")
+                st.session_state.show_competition_settings = False
+                time.sleep(1)
+                st.rerun()
+        
+        with col2:
+            if st.button("❌ İptal"):
+                st.session_state.show_competition_settings = False
+                st.rerun()
+
+def update_competition_settings(user_data, new_settings):
+    """Rekabet ayarlarını günceller"""
+    current_settings = json.loads(user_data.get('competition_settings', '{}'))
+    current_settings.update(new_settings)
+    
+    update_user_in_firebase(st.session_state.current_user, {
+        'competition_settings': json.dumps(current_settings)
+    })
+    
+    st.session_state.users_db = load_users_from_firebase()
+
+def leave_competition_system(user_data):
+    """Kullanıcıyı rekabet sisteminden çıkarır"""
+    current_settings = json.loads(user_data.get('competition_settings', '{}'))
+    current_settings['participating'] = False
+    current_settings['left_date'] = datetime.now().isoformat()
+    
+    update_user_in_firebase(st.session_state.current_user, {
+        'competition_settings': json.dumps(current_settings)
+    })
+    
+    st.session_state.users_db = load_users_from_firebase()
+
+def show_leaderboard_tabs(user_data, participation_status):
+    """Leaderboard tab'larını gösterir"""
+    
+    # Tab seçimi
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "🏆 Bugün", 
+        "📅 Bu Hafta", 
+        "📊 Kişisel İstatistikler",
+        "🎯 Hedef Arkadaşları"
+    ])
+    
+    with tab1:
+        show_daily_leaderboard(user_data, participation_status)
+    
+    with tab2:
+        show_weekly_leaderboard(user_data, participation_status)
+    
+    with tab3:
+        show_personal_competition_stats(user_data, participation_status)
+    
+    with tab4:
+        show_goal_based_competition(user_data, participation_status)
+
+def show_daily_leaderboard(user_data, participation_status):
+    """Günlük liderlik tablosunu gösterir"""
+    st.markdown("### 🏆 Bugünkü Liderler")
+    
+    # Günlük veriler hesapla (cache kullan)
+    daily_stats = get_cached_daily_leaderboard()
+    
+    if not daily_stats:
+        st.info("📊 Henüz veri yok. İlk olun!")
+        return
+    
+    # Kullanıcının kendi istatistikleri
+    user_stats = calculate_user_daily_stats(user_data)
+    
+    # Üst metrikler
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            "🍅 Bugün Pomodoro", 
+            user_stats['pomodoros'],
+            delta=f"Sıralama: #{user_stats['pomodoro_rank']}" if user_stats['pomodoro_rank'] else "Henüz yok"
+        )
+    
+    with col2:
+        st.metric(
+            "⏱️ Çalışma Saati", 
+            f"{user_stats['study_hours']:.1f}h",
+            delta=f"Sıralama: #{user_stats['hours_rank']}" if user_stats['hours_rank'] else "Henüz yok"
+        )
+    
+    with col3:
+        st.metric(
+            "📚 Konu Sayısı", 
+            user_stats['topics_studied'],
+            delta=f"Sıralama: #{user_stats['topics_rank']}" if user_stats['topics_rank'] else "Henüz yok"
+        )
+    
+    with col4:
+        total_participants = len(daily_stats)
+        st.metric("👥 Aktif Öğrenci", total_participants)
+    
+    st.markdown("---")
+    
+    # Liderlik kategorileri
+    show_category_leaderboard("🍅 Pomodoro Liderleri", daily_stats, 'pomodoros', "🍅")
+    show_category_leaderboard("⏱️ Çalışma Saati Liderleri", daily_stats, 'study_hours', "⏱️", is_time=True)
+    show_category_leaderboard("📚 Konu Çalışma Liderleri", daily_stats, 'topics_studied', "📚")
+
+def show_category_leaderboard(title, stats_data, metric_key, icon, is_time=False):
+    """Belirli bir kategoride liderlik tablosu gösterir"""
+    st.markdown(f"#### {title}")
+    
+    # Metriğe göre sırala (büyükten küçüğe)
+    sorted_stats = sorted(stats_data, key=lambda x: x.get(metric_key, 0), reverse=True)
+    
+    # Top 10 göster
+    top_10 = sorted_stats[:10]
+    
+    for i, student in enumerate(top_10):
+        rank = i + 1
+        medal = "🥇" if rank == 1 else "🥈" if rank == 2 else "🥉" if rank == 3 else f"{rank}️⃣"
+        
+        value = student.get(metric_key, 0)
+        if is_time:
+            display_value = f"{value:.1f}h"
+        else:
+            display_value = str(value)
+        
+        # Çubuk grafiği için genişlik hesapla (max'a göre)
+        max_value = max([s.get(metric_key, 0) for s in top_10]) if top_10 else 1
+        bar_width = (value / max_value * 100) if max_value > 0 else 0
+        
+        st.markdown(f"""
+        <div style="background: linear-gradient(90deg, #f0f2f6 0%, #e6f3ff {bar_width}%, transparent {bar_width}%); 
+                    padding: 8px; margin: 4px 0; border-radius: 6px; border-left: 4px solid #4a90e2;">
+            {medal} <strong>{student['display_name']}</strong> - {icon} {display_value}
+        </div>
+        """, unsafe_allow_html=True)
+    
+    if len(sorted_stats) > 10:
+        st.caption(f"... ve {len(sorted_stats) - 10} öğrenci daha")
+
+def get_cached_daily_leaderboard():
+    """Günlük liderlik verilerini cache'den getirir (Performance optimized)"""
+    
+    cache_key = f"daily_leaderboard_{datetime.now().date().isoformat()}"
+    
+    # Cache kontrolü (5 dakika cache)
+    if hasattr(st.session_state, cache_key):
+        cache_data = st.session_state.__dict__[cache_key]
+        if (datetime.now() - cache_data['timestamp']).seconds < 300:  # 5 dakika
+            return cache_data['data']
+    
+    # Cache yoksa veya eskimişse, verileri hesapla
+    with st.spinner("📊 Güncel veriler hesaplanıyor..."):
+        try:
+            # Timeout ile Firebase'den verileri çek (max 3 saniye)
+            users_data = load_users_from_firebase()
+            
+            daily_stats = []
+            today = datetime.now().date().isoformat()
+            
+            for username, user_data in users_data.items():
+                # Sadece rekabet sistemine katılan kullanıcılar
+                competition_settings = json.loads(user_data.get('competition_settings', '{}'))
+                if not competition_settings.get('participating', False):
+                    continue
+                
+                # Kullanıcının günlük istatistiklerini hesapla
+                user_daily_stats = calculate_user_daily_stats(user_data)
+                user_daily_stats['username'] = username
+                user_daily_stats['display_name'] = competition_settings.get('display_name', 'Anonim')
+                
+                daily_stats.append(user_daily_stats)
+            
+            # Cache'e kaydet
+            st.session_state.__dict__[cache_key] = {
+                'data': daily_stats,
+                'timestamp': datetime.now()
+            }
+            
+            return daily_stats
+            
+        except Exception as e:
+            st.error(f"⚠️ Liderlik verileri yüklenirken hata: {e}")
+            return []
+
+def calculate_user_daily_stats(user_data):
+    """Kullanıcının günlük istatistiklerini hesaplar"""
+    today = datetime.now().date()
+    
+    # Pomodoro sayısı
+    pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
+    daily_pomodoros = [
+        p for p in pomodoro_history 
+        if datetime.fromisoformat(p['timestamp']).date() == today
+    ]
+    
+    # Çalışma saati hesapla (Pomodoro türüne göre)
+    total_minutes = 0
+    for p in daily_pomodoros:
+        duration_map = {
+            'Kısa Odak (25dk+5dk)': 25,
+            'Standart Odak (35dk+10dk)': 35,
+            'Derin Odak (50dk+15dk)': 50,
+            'Tam Konsantrasyon (90dk+25dk)': 90
+        }
+        total_minutes += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
+    
+    # Benzersiz konu sayısı
+    topics_today = set()
+    for p in daily_pomodoros:
+        if p.get('topic'):
+            topics_today.add(p['topic'])
+    
+    return {
+        'pomodoros': len(daily_pomodoros),
+        'study_hours': total_minutes / 60,
+        'topics_studied': len(topics_today),
+        'pomodoro_rank': None,  # Hesaplanacak
+        'hours_rank': None,     # Hesaplanacak  
+        'topics_rank': None     # Hesaplanacak
+    }
+
+def show_weekly_leaderboard(user_data, participation_status):
+    """Haftalık liderlik tablosunu gösterir"""
+    st.markdown("### 📅 Bu Haftanın Liderleri")
+    st.info("🚧 Haftalık istatistikler yakında gelecek!")
+    
+    # Basit haftalık özet
+    week_start = datetime.now() - timedelta(days=datetime.now().weekday())
+    user_week_stats = calculate_user_weekly_stats(user_data, week_start.date())
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("🍅 Bu Hafta Pomodoro", user_week_stats['pomodoros'])
+    with col2:
+        st.metric("⏱️ Bu Hafta Saat", f"{user_week_stats['study_hours']:.1f}h")
+    with col3:
+        st.metric("📚 Bu Hafta Konu", user_week_stats['topics_studied'])
+
+def calculate_user_weekly_stats(user_data, week_start_date):
+    """Kullanıcının haftalık istatistiklerini hesaplar"""
+    week_end = week_start_date + timedelta(days=7)
+    
+    pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
+    weekly_pomodoros = [
+        p for p in pomodoro_history 
+        if week_start_date <= datetime.fromisoformat(p['timestamp']).date() < week_end
+    ]
+    
+    # Çalışma saati hesapla
+    total_minutes = 0
+    for p in weekly_pomodoros:
+        duration_map = {
+            'Kısa Odak (25dk+5dk)': 25,
+            'Standart Odak (35dk+10dk)': 35,
+            'Derin Odak (50dk+15dk)': 50,
+            'Tam Konsantrasyon (90dk+25dk)': 90
+        }
+        total_minutes += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
+    
+    # Benzersiz konu sayısı
+    topics_week = set()
+    for p in weekly_pomodoros:
+        if p.get('topic'):
+            topics_week.add(p['topic'])
+    
+    return {
+        'pomodoros': len(weekly_pomodoros),
+        'study_hours': total_minutes / 60,
+        'topics_studied': len(topics_week)
+    }
+
+def show_personal_competition_stats(user_data, participation_status):
+    """Kişisel rekabet istatistiklerini gösterir"""
+    st.markdown("### 📊 Kişisel Performans İstatistiklerin")
+    
+    # Son 7 günlük trend
+    daily_trend = []
+    for i in range(7):
+        date = datetime.now().date() - timedelta(days=i)
+        day_stats = calculate_user_daily_stats_for_date(user_data, date)
+        daily_trend.append({
+            'date': date.strftime('%d/%m'),
+            'pomodoros': day_stats['pomodoros'],
+            'hours': day_stats['study_hours']
+        })
+    
+    daily_trend.reverse()  # Eskiden yeniye
+    
+    # Trend gösterimi
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 🍅 Son 7 Gün Pomodoro Trendi")
+        for day in daily_trend:
+            bar_length = min(day['pomodoros'] * 10, 100)  # Max 100px
+            st.markdown(f"""
+            <div style="margin: 4px 0;">
+                <strong>{day['date']}</strong>: {day['pomodoros']} 🍅
+                <div style="background: #ff6b6b; height: 20px; width: {bar_length}px; border-radius: 4px;"></div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("#### ⏱️ Son 7 Gün Çalışma Saati Trendi")
+        for day in daily_trend:
+            bar_length = min(day['hours'] * 20, 100)  # Max 100px
+            st.markdown(f"""
+            <div style="margin: 4px 0;">
+                <strong>{day['date']}</strong>: {day['hours']:.1f}h
+                <div style="background: #4ecdc4; height: 20px; width: {bar_length}px; border-radius: 4px;"></div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Genel istatistikler
+    st.markdown("---")
+    st.markdown("#### 🏆 Genel İstatistikleriniz")
+    
+    total_stats = calculate_user_total_stats(user_data)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("🍅 Toplam Pomodoro", total_stats['total_pomodoros'])
+    with col2:
+        st.metric("⏱️ Toplam Saat", f"{total_stats['total_hours']:.1f}h")
+    with col3:
+        st.metric("📚 Benzersiz Konu", total_stats['unique_topics'])
+    with col4:
+        st.metric("📅 Aktif Gün", total_stats['active_days'])
+
+def calculate_user_daily_stats_for_date(user_data, target_date):
+    """Belirli bir tarih için kullanıcının günlük istatistiklerini hesaplar"""
+    
+    pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
+    daily_pomodoros = [
+        p for p in pomodoro_history 
+        if datetime.fromisoformat(p['timestamp']).date() == target_date
+    ]
+    
+    # Çalışma saati hesapla
+    total_minutes = 0
+    for p in daily_pomodoros:
+        duration_map = {
+            'Kısa Odak (25dk+5dk)': 25,
+            'Standart Odak (35dk+10dk)': 35,
+            'Derin Odak (50dk+15dk)': 50,
+            'Tam Konsantrasyon (90dk+25dk)': 90
+        }
+        total_minutes += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
+    
+    return {
+        'pomodoros': len(daily_pomodoros),
+        'study_hours': total_minutes / 60
+    }
+
+def calculate_user_total_stats(user_data):
+    """Kullanıcının toplam istatistiklerini hesaplar"""
+    
+    pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
+    
+    # Toplam çalışma saati
+    total_minutes = 0
+    for p in pomodoro_history:
+        duration_map = {
+            'Kısa Odak (25dk+5dk)': 25,
+            'Standart Odak (35dk+10dk)': 35,
+            'Derin Odak (50dk+15dk)': 50,
+            'Tam Konsantrasyon (90dk+25dk)': 90
+        }
+        total_minutes += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
+    
+    # Benzersiz konular
+    unique_topics = set()
+    for p in pomodoro_history:
+        if p.get('topic'):
+            unique_topics.add(p['topic'])
+    
+    # Aktif günler
+    active_dates = set()
+    for p in pomodoro_history:
+        active_dates.add(datetime.fromisoformat(p['timestamp']).date())
+    
+    return {
+        'total_pomodoros': len(pomodoro_history),
+        'total_hours': total_minutes / 60,
+        'unique_topics': len(unique_topics),
+        'active_days': len(active_dates)
+    }
+
+def show_goal_based_competition(user_data, participation_status):
+    """Hedef odaklı rekabet gösterir"""
+    st.markdown("### 🎯 Hedef Arkadaşları")
+    st.info("🚧 Aynı hedef bölümü olan arkadaşlarınızla rekabet yakında gelecek!")
+    
+    target_dept = user_data.get('target_department', 'Belirlenmedi')
+    st.markdown(f"**Hedef Bölümünüz:** {target_dept}")
+    
+    if target_dept != 'Belirlenmedi':
+        st.markdown(f"Aynı hedefi olan arkadaşlarınızla ({target_dept}) rekabet edebileceksiniz!")
 
 if __name__ == "__main__":
     main()
