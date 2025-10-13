@@ -15326,7 +15326,10 @@ def show_topic_scheduler_bonus(topic, user_data, index):
 
 def competition_leaderboard_page(user_data):
     """🏆 Basit ve Hızlı Rekabet Panosu"""
-    st.markdown(f'<div class="main-header"><h1>🏆 Rekabet Panosu</h1><p>Haftalık güncellenen rekabet listesi - Arkadaşlarınla yarış!</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="main-header"><h1>🏆 Rekabet Panosu</h1><p>Haftalık güncellenen rekabet listesi - Sosyal medya az kullanan kazanır! 📱⬇️</p></div>', unsafe_allow_html=True)
+    
+    # Haftalık temizlik kontrolü
+    clean_old_weekly_data()
     
     # Basit rekabet sistemi - herkes otomatik katılıyor
     show_simple_leaderboard(user_data)
@@ -15341,8 +15344,35 @@ def show_simple_leaderboard(user_data):
     # Kullanıcının sıralamasını bul
     user_rank = find_user_rank(weekly_leaders, st.session_state.current_user)
     
+    # Sosyal medya ekran süresi girişi
+    st.markdown("### 📱 Sosyal Medya Ekran Süresi Bildirimi")
+    col_sm1, col_sm2 = st.columns([2, 1])
+    
+    with col_sm1:
+        st.markdown("Bu hafta sosyal medyada ne kadar zaman geçirdin? (Telefon ayarlarından ekran görüntüsü al)")
+        
+        social_media_hours = st.number_input("Sosyal medya ekran süresi (saat)", min_value=0.0, max_value=24.0*7, value=0.0, step=0.25, key="sm_hours")
+        social_media_minutes = st.number_input("Dakika", min_value=0, max_value=59, value=0, key="sm_minutes")
+        
+        total_sm_time = social_media_hours + (social_media_minutes / 60)
+    
+    with col_sm2:
+        st.markdown("**Ekran görüntüsü yükle**")
+        uploaded_screenshot = st.file_uploader("📱 Telefon ayarlarından ekran süresi ss", type=['png', 'jpg', 'jpeg'], key="sm_screenshot")
+        
+        if st.button("💾 Sosyal Medya Süresini Kaydet", key="save_sm_time"):
+            if uploaded_screenshot and total_sm_time > 0:
+                # Sosyal medya verilerini kaydet
+                save_social_media_time(st.session_state.current_user, total_sm_time, uploaded_screenshot)
+                st.success(f"📱 Sosyal medya süren kaydedildi: {total_sm_time:.1f} saat")
+                st.rerun()
+            else:
+                st.error("Lütfen hem süre hem de ekran görüntüsü yükle!")
+    
+    st.markdown("---")
+    
     # Üst metrik kartları
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.metric("🏆 Haftalık Sıralama", f"#{user_rank}" if user_rank else "Henüz yok")
@@ -15357,6 +15387,9 @@ def show_simple_leaderboard(user_data):
     with col4:
         st.metric("⏱️ Çalışma Saati", f"{current_user_stats['study_hours']:.1f}h")
     
+    with col5:
+        st.metric("📱 Sosyal Medya", f"{current_user_stats['social_media_hours']:.1f}h")
+    
     # Ana liderboard tablosu
     st.markdown("---")
     st.markdown("### 🏆 Haftalık Liderler")
@@ -15370,22 +15403,32 @@ def show_simple_leaderboard(user_data):
     for i, leader in enumerate(weekly_leaders[:20]):
         rank = i + 1
         
-        # Rozet sistemi
+        # Rozet sistemi - Sosyal medya dahil yeni sıralama
         if rank == 1:
             medal = "🥇"
-            color = "#FFD700"
+            bg_color = "#fff9e6"
+            border_color = "#FFD700"
+            text_color = "#000000"
         elif rank == 2:
             medal = "🥈" 
-            color = "#C0C0C0"
+            bg_color = "#f8f9fa"
+            border_color = "#C0C0C0"
+            text_color = "#000000"
         elif rank == 3:
             medal = "🥉"
-            color = "#CD7F32"
+            bg_color = "#fdf6f0"
+            border_color = "#CD7F32"
+            text_color = "#000000"
         elif rank <= 10:
             medal = f"{rank}️⃣"
-            color = "#e6f3ff"
+            bg_color = "#f0f9ff"
+            border_color = "#3b82f6"
+            text_color = "#000000"
         else:
             medal = f"{rank}"
-            color = "#f8f9fa"
+            bg_color = "#ffffff"
+            border_color = "#e5e7eb"
+            text_color = "#374151"
         
         # İlerleme oranı hesapla
         avg_progress = (leader['tyt_progress'] + leader['ayt_progress']) / 2
@@ -15393,14 +15436,17 @@ def show_simple_leaderboard(user_data):
         # Kısa isim (ilk 15 karakter)
         display_name = leader['username'][:15] + "..." if len(leader['username']) > 15 else leader['username']
         
-        # Lider kartı
+        # Lider kartı - Görsellik düzeltildi
         st.markdown(f"""
-        <div style="background: {color}; padding: 12px; margin: 8px 0; border-radius: 8px; 
-                    border-left: 5px solid #4a90e2; display: flex; align-items: center;">
-            <div style="font-size: 24px; margin-right: 15px;">{medal}</div>
+        <div style="background: {bg_color}; padding: 15px; margin: 8px 0; border-radius: 10px; 
+                    border-left: 5px solid {border_color}; display: flex; align-items: center; 
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="font-size: 28px; margin-right: 20px;">{medal}</div>
             <div style="flex: 1;">
-                <strong style="font-size: 16px;">{display_name}</strong><br>
-                <small>📝 {leader['questions_solved']} soru | 📈 %{avg_progress:.1f} | ⏱️ {leader['study_hours']:.1f}h</small>
+                <strong style="font-size: 18px; color: {text_color};">{display_name}</strong><br>
+                <small style="color: {text_color}; font-weight: 500;">
+                    📝 {leader['questions_solved']} soru | 📈 %{avg_progress:.1f} | ⏱️ {leader['study_hours']:.1f}h | 📱 {leader['social_media_hours']:.1f}h
+                </small>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -15413,11 +15459,30 @@ def show_simple_leaderboard(user_data):
         # Kullanıcının kartını göster
         avg_progress = (current_user_stats['tyt_progress'] + current_user_stats['ayt_progress']) / 2
         st.markdown(f"""
-        <div style="background: #fff3cd; padding: 12px; border-radius: 8px; border-left: 5px solid #ffc107;">
-            <strong>{st.session_state.current_user}</strong><br>
-            <small>📝 {current_user_stats['questions_solved']} soru | 📈 %{avg_progress:.1f} | ⏱️ {current_user_stats['study_hours']:.1f}h</small>
+        <div style="background: #fff3cd; padding: 15px; border-radius: 10px; border-left: 5px solid #ffc107; 
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <strong style="font-size: 18px; color: #000000;">{st.session_state.current_user}</strong><br>
+            <small style="color: #000000; font-weight: 500;">
+                📝 {current_user_stats['questions_solved']} soru | 📈 %{avg_progress:.1f} | ⏱️ {current_user_stats['study_hours']:.1f}h | 📱 {current_user_stats['social_media_hours']:.1f}h
+            </small>
         </div>
         """, unsafe_allow_html=True)
+    
+    # Puanlama sistemi açıklaması
+    st.markdown("---")
+    st.markdown("### 📊 Puanlama Sistemi")
+    st.info("""
+    **🏆 Nasıl Puanlanıyor?**
+    - 📝 **Soru çözme**: Her 10 soru = +1 puan
+    - 📈 **İlerleme**: Her %10 TYT/AYT = +1 puan  
+    - ⏱️ **Çalışma saati**: Her saat = +1 puan
+    - 📱 **Sosyal medya**: Her saat = -0.5 puan *(Az kullanan kazanır!)*
+    
+    💡 **İpucu**: Sosyal medyayı azalt, çalışma saatini artır!
+    """)
+    
+    # Haftalık sıfırlama bilgisi
+    st.success("🗓️ **Her Pazartesi liste sıfırlanır ve yeni hafta başlar!**")
 
 def calculate_weekly_leaderboard():
     """Haftalık liderboard hesaplar - Basit ve hızlı"""
@@ -15551,17 +15616,34 @@ def calculate_user_weekly_performance(user_data):
         except:
             pass
         
-        # TOPLAM SKOR hesapla (normalize edilmiş)
+        # 4. SOSYAL MEDYA EKRAN SÜRESİ - Bu hafta bildirilen
+        social_media_hours = 0
+        try:
+            week_key = week_start.strftime('%Y-%W')
+            social_media_str = user_data.get('social_media_weekly', '{}')
+            social_media_data = json.loads(social_media_str) if social_media_str else {}
+            
+            if week_key in social_media_data:
+                social_media_hours = social_media_data[week_key].get('hours', 0)
+                
+        except:
+            pass
+        
+        # TOPLAM SKOR hesapla (yeni sosyal medya puanlaması dahil)
         # Soru sayısı: her 10 soru = 1 puan
         # İlerleme: her %10 = 1 puan  
-        # Saat: her saat = 1 puan
-        total_score = (questions_solved / 10) + ((tyt_progress + ayt_progress) / 20) + study_hours
+        # Çalışma saati: her saat = 1 puan
+        # Sosyal medya: az kullanan kazanır - her saat için -0.5 puan
+        positive_score = (questions_solved / 10) + ((tyt_progress + ayt_progress) / 20) + study_hours
+        social_media_penalty = social_media_hours * 0.5  # Sosyal medya cezası
+        total_score = positive_score - social_media_penalty
         
         return {
             'questions_solved': questions_solved,
             'tyt_progress': tyt_progress,
             'ayt_progress': ayt_progress,
             'study_hours': study_hours,
+            'social_media_hours': social_media_hours,
             'total_score': total_score
         }
         
@@ -15572,8 +15654,44 @@ def calculate_user_weekly_performance(user_data):
             'tyt_progress': 0.0,
             'ayt_progress': 0.0,
             'study_hours': 0.0,
+            'social_media_hours': 0.0,
             'total_score': 0.0
         }
+
+def save_social_media_time(username, total_hours, screenshot_file):
+    """Sosyal medya ekran süresini kaydet"""
+    try:
+        # Bu haftanın başı
+        today = datetime.now()
+        week_start = today - timedelta(days=today.weekday())
+        week_key = week_start.strftime('%Y-%W')
+        
+        # Kullanıcı verilerini al
+        user_data = load_user_data(username)
+        
+        # Sosyal medya verilerini al veya oluştur
+        social_media_data_str = user_data.get('social_media_weekly', '{}')
+        try:
+            social_media_data = json.loads(social_media_data_str) if social_media_data_str else {}
+        except:
+            social_media_data = {}
+        
+        # Bu haftanın verisini kaydet
+        social_media_data[week_key] = {
+            'hours': total_hours,
+            'timestamp': datetime.now().isoformat(),
+            'screenshot_uploaded': True
+        }
+        
+        # Firebase'e kaydet
+        user_data['social_media_weekly'] = json.dumps(social_media_data)
+        save_user_data(username, user_data)
+        
+        return True
+        
+    except Exception as e:
+        st.error(f"Sosyal medya verisi kaydedilirken hata: {e}")
+        return False
 
 def find_user_rank(weekly_leaders, username):
     """Kullanıcının haftalık sıralamasını bulur"""
@@ -15581,6 +15699,49 @@ def find_user_rank(weekly_leaders, username):
         if leader['username'] == username:
             return i + 1
     return None
+
+def clean_old_weekly_data():
+    """Eski haftalık verileri temizler - Her Pazartesi çalışır"""
+    try:
+        # Şu anki hafta
+        today = datetime.now()
+        current_week = today - timedelta(days=today.weekday())
+        current_week_key = current_week.strftime('%Y-%W')
+        
+        # Sadece Pazartesi günü temizlik yap
+        if today.weekday() != 0:  # 0 = Pazartesi
+            return
+        
+        # Tüm kullanıcıları al
+        users_data = load_users_from_firebase()
+        if not users_data:
+            return
+            
+        for username, user_data in users_data.items():
+            try:
+                # Sosyal medya verilerini temizle (2 hafta öncesini sil)
+                social_media_str = user_data.get('social_media_weekly', '{}')
+                social_media_data = json.loads(social_media_str) if social_media_str else {}
+                
+                # 2 hafta öncesinden eski verileri sil
+                weeks_to_keep = []
+                for i in range(2):  # Son 2 hafta
+                    week_date = current_week - timedelta(weeks=i)
+                    week_key = week_date.strftime('%Y-%W')
+                    weeks_to_keep.append(week_key)
+                
+                # Sadece son 2 haftayı tut
+                cleaned_data = {k: v for k, v in social_media_data.items() if k in weeks_to_keep}
+                
+                if cleaned_data != social_media_data:
+                    user_data['social_media_weekly'] = json.dumps(cleaned_data)
+                    save_user_data(username, user_data)
+                    
+            except Exception:
+                continue
+                
+    except Exception as e:
+        print(f"Haftalık temizlik hatası: {e}")
 
 # Karmaşık fonksiyonlar kaldırıldı - Basit sistem artık tamamen hazır!
 
