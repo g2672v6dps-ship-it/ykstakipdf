@@ -10455,7 +10455,12 @@ def main():
                                             col1, col2, col3, col4 = st.columns([3, 2, 1, 1])
                                             with col1:
                                                 # Soru sayısı bilgisini ekle
-                                                question_count = get_topic_question_count(detail)
+                                                try:
+                                                    question_count = get_topic_question_count(detail)
+                                                    question_count = int(question_count) if question_count is not None else 0
+                                                except (TypeError, ValueError):
+                                                    question_count = 0
+                                                
                                                 if question_count > 0:
                                                     st.write(f"• {detail} <span style='color: #ff6b6b; font-size: 0.8em;'>({question_count} soru)</span>", unsafe_allow_html=True)
                                                 else:
@@ -10473,13 +10478,17 @@ def main():
                                                 st.write(calculate_level(new_net))
                                             with col4:
                                                 # Soru sıklığı ikonu
-                                                if question_count > 0:
-                                                    if question_count >= 15:
-                                                        st.write("🔥", help=f"Çok sık çıkan konu: {question_count} soru")
-                                                    elif question_count >= 8:
-                                                        st.write("⚡", help=f"Orta sıklıkta çıkan konu: {question_count} soru")
-                                                    else:
-                                                        st.write("📚", help=f"Az sıklıkta çıkan konu: {question_count} soru")
+                                                try:
+                                                    if question_count > 0:
+                                                        if question_count >= 15:
+                                                            st.write("🔥", help=f"Çok sık çıkan konu: {question_count} soru")
+                                                        elif question_count >= 8:
+                                                            st.write("⚡", help=f"Orta sıklıkta çıkan konu: {question_count} soru")
+                                                        else:
+                                                            st.write("📚", help=f"Az sıklıkta çıkan konu: {question_count} soru")
+                                                except Exception as e:
+                                                    # Hata durumunda sadece boş icon
+                                                    st.write("📚")
                                             
                                             # Güncelleme
                                             if str(new_net) != current_net:
@@ -10499,7 +10508,12 @@ def main():
                                         col1, col2, col3, col4 = st.columns([3, 2, 1, 1])
                                         with col1:
                                             # Soru sayısı bilgisini ekle
-                                            question_count = get_topic_question_count(detail)
+                                            try:
+                                                question_count = get_topic_question_count(detail)
+                                                question_count = int(question_count) if question_count is not None else 0
+                                            except (TypeError, ValueError):
+                                                question_count = 0
+                                            
                                             if question_count > 0:
                                                 st.write(f"• {detail} <span style='color: #ff6b6b; font-size: 0.8em;'>({question_count} soru)</span>", unsafe_allow_html=True)
                                             else:
@@ -10517,13 +10531,17 @@ def main():
                                             st.write(calculate_level(new_net))
                                         with col4:
                                             # Soru sıklığı ikonu
-                                            if question_count > 0:
-                                                if question_count >= 15:
-                                                    st.write("🔥", help=f"Çok sık çıkan konu: {question_count} soru")
-                                                elif question_count >= 8:
-                                                    st.write("⚡", help=f"Orta sıklıkta çıkan konu: {question_count} soru")
-                                                else:
-                                                    st.write("📚", help=f"Az sıklıkta çıkan konu: {question_count} soru")
+                                            try:
+                                                if question_count > 0:
+                                                    if question_count >= 15:
+                                                        st.write("🔥", help=f"Çok sık çıkan konu: {question_count} soru")
+                                                    elif question_count >= 8:
+                                                        st.write("⚡", help=f"Orta sıklıkta çıkan konu: {question_count} soru")
+                                                    else:
+                                                        st.write("📚", help=f"Az sıklıkta çıkan konu: {question_count} soru")
+                                            except Exception as e:
+                                                # Hata durumunda sadece boş icon
+                                                st.write("📚")
                                         
                                         # Güncelleme
                                         if str(new_net) != current_net:
@@ -10544,7 +10562,12 @@ def main():
                                 col1, col2, col3, col4 = st.columns([3, 2, 1, 1])
                                 with col1:
                                     # Soru sayısı bilgisini ekle
-                                    question_count = get_topic_question_count(detail)
+                                    try:
+                                        question_count = get_topic_question_count(detail)
+                                        question_count = int(question_count) if question_count is not None else 0
+                                    except (TypeError, ValueError):
+                                        question_count = 0
+                                    
                                     if question_count > 0:
                                         st.write(f"• {detail} <span style='color: #ff6b6b; font-size: 0.8em;'>({question_count} soru)</span>", unsafe_allow_html=True)
                                     else:
@@ -10562,13 +10585,17 @@ def main():
                                     st.write(calculate_level(new_net))
                                 with col4:
                                     # Soru sıklığı ikonu
-                                    if question_count > 0:
-                                        if question_count >= 15:
-                                            st.write("🔥", help=f"Çok sık çıkan konu: {question_count} soru")
-                                        elif question_count >= 8:
-                                            st.write("⚡", help=f"Orta sıklıkta çıkan konu: {question_count} soru")
-                                        else:
-                                            st.write("📚", help=f"Az sıklıkta çıkan konu: {question_count} soru")
+                                    try:
+                                        if question_count > 0:
+                                            if question_count >= 15:
+                                                st.write("🔥", help=f"Çok sık çıkan konu: {question_count} soru")
+                                            elif question_count >= 8:
+                                                st.write("⚡", help=f"Orta sıklıkta çıkan konu: {question_count} soru")
+                                            else:
+                                                st.write("📚", help=f"Az sıklıkta çıkan konu: {question_count} soru")
+                                    except Exception as e:
+                                        # Hata durumunda sadece boş icon
+                                        st.write("📚")
                                 
                                 # Güncelleme
                                 if str(new_net) != current_net:
