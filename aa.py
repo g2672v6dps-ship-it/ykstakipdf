@@ -5831,23 +5831,20 @@ def show_pomodoro_interface(user_data):
             # Konu seçeneklerini kategorize ederek hazırla
             topic_options = ["🔄 Yeni Konu Seç..."]
             
-            # 1. Haftalık Hedef Konular bölümü
+            # 1. Haftalık Hedef Konular bölümü (sadece konu isimleri)
             if weekly_target_topics:
-                topic_options.append("─── 📚 HAFTALİK HEDEF KONULAR ───")
+                topic_options.append("─── 🎯 HAFTALİK HEDEF KONULAR ───")
                 for topic in weekly_target_topics[:10]:  # Max 10 konu
                     topic_name = topic.get('topic', topic.get('subject', str(topic)))
-                    # Her konu için 3 çalışma türü seçeneği
-                    topic_options.append(f"📖 {topic_name} - Konu Çalışması")
-                    topic_options.append(f"🔄 {topic_name} - Tekrar")
-                    topic_options.append(f"✏️ {topic_name} - Soru Çözüm")
+                    topic_options.append(f"🎯 {topic_name}")
             
             # 2. Tüm Konular bölümü
             if all_topics_raw:
                 topic_options.append("─── 📚 TÜM KONULAR ───")
                 for topic in all_topics_raw[:15]:  # Max 15 konu
                     topic_name = topic.get('topic', topic.get('subject', str(topic)))
-                    # Duplicate kontrolü - haftalık hedeflerde yoksa ekle
-                    if not any(topic_name in opt for opt in topic_options if opt.startswith(("📖", "🔄", "✏️"))):
+                    # Duplicate kontrolü
+                    if f"🎯 {topic_name}" not in topic_options:
                         topic_options.append(f"📚 {topic_name}")
             
             # 3. Deneme Sınavı seçeneği
@@ -5878,7 +5875,7 @@ def show_pomodoro_interface(user_data):
                 manual_topic_input = st.text_input(
                     "Manuel Konu Girişi:",
                     value=st.session_state.current_topic if not any(
-                        st.session_state.current_topic.startswith(prefix) for prefix in ["📖 ", "🔄 ", "✏️ ", "📝 ", "📚 "]
+                        st.session_state.current_topic.startswith(prefix) for prefix in ["🎯 ", "📝 ", "📚 "]
                     ) else "",
                     placeholder="örn: Özet Çıkarma, Formül Tekrarı, Defter Düzenleme",
                     disabled=st.session_state.pomodoro_active,
@@ -5900,27 +5897,37 @@ def show_pomodoro_interface(user_data):
                 if deneme_input:
                     st.session_state.current_topic = f"Deneme: {deneme_input}"
             elif selected_topic_option != "🔄 Yeni Konu Seç...":
-                # Konu listelerinden seçim
-                # Çalışma türünü ve konu adını ayır
-                if any(selected_topic_option.startswith(prefix) for prefix in ["📖 ", "🔄 ", "✏️ "]):
-                    # Haftalık hedef konular - çalışma türü ile
-                    if " - " in selected_topic_option:
-                        parts = selected_topic_option.split(" - ", 1)
-                        if len(parts) == 2:
-                            topic_part = parts[0].replace("📖 ", "").replace("🔄 ", "").replace("✏️ ", "")
-                            study_type = parts[1]
-                            st.session_state.current_topic = f"{topic_part} ({study_type})"
-                        else:
-                            clean_topic = selected_topic_option.replace("📖 ", "").replace("🔄 ", "").replace("✏️ ", "")
-                            st.session_state.current_topic = clean_topic
-                    else:
-                        clean_topic = selected_topic_option.replace("📖 ", "").replace("🔄 ", "").replace("✏️ ", "")
-                        st.session_state.current_topic = clean_topic
+                # Konu listelerinden seçim yapıldı
+                if selected_topic_option.startswith("🎯 "):
+                    # Haftalık hedef konular - çalışma türü seçimi göster
+                    base_topic = selected_topic_option.replace("🎯 ", "")
+                    
+                    # 2. AŞAMA: Çalışma türü seçimi
+                    st.markdown("#### 🎯 Çalışma Türü Seçin:")
+                    
+                    study_type_options = [
+                        "📖 Konu Çalışması - Yeni kavramları öğrenme",
+                        "🔄 Tekrar - Daha önce öğrenilenları pekiştirme", 
+                        "✏️ Soru Çözüm - Pratik yapma ve test etme"
+                    ]
+                    
+                    selected_study_type = st.selectbox(
+                        "Nasıl çalışacaksınız?",
+                        options=study_type_options,
+                        disabled=st.session_state.pomodoro_active,
+                        key="study_type_selection_pomodoro"
+                    )
+                    
+                    if selected_study_type:
+                        # Çalışma türünü parse et
+                        study_type_short = selected_study_type.split(" - ")[0].replace("📖 ", "").replace("🔄 ", "").replace("✏️ ", "")
+                        emoji = selected_study_type.split(" ")[0]
+                        
+                        # Final topic oluştur
+                        st.session_state.current_topic = f"{emoji} {base_topic} ({study_type_short})"
                     
                     # Haftalık hedef konularından detay göster
-                    base_topic = selected_topic_option.split(" - ")[0].replace("📖 ", "").replace("🔄 ", "").replace("✏️ ", "")
                     selected_topic_detail = None
-                    
                     for topic in weekly_target_topics:
                         topic_name = topic.get('topic', topic.get('subject', str(topic)))
                         if base_topic == topic_name:
@@ -5928,16 +5935,6 @@ def show_pomodoro_interface(user_data):
                             break
                     
                     if selected_topic_detail:
-                        # Çalışma türüne göre emoji ve açıklama
-                        study_type_info = {
-                            "Konu Çalışması": {"emoji": "📖", "desc": "Yeni kavramları öğrenme"},
-                            "Tekrar": {"emoji": "🔄", "desc": "Daha önce öğrenilenları pekiştirme"},
-                            "Soru Çözüm": {"emoji": "✏️", "desc": "Pratik yapma ve test etme"}
-                        }
-                        
-                        current_study_type = selected_topic_option.split(" - ")[-1] if " - " in selected_topic_option else "Konu Çalışması"
-                        study_info = study_type_info.get(current_study_type, study_type_info["Konu Çalışması"])
-                        
                         topic_subject = selected_topic_detail.get('subject', 'Bilinmiyor')
                         topic_priority = selected_topic_detail.get('priority', 'NORMAL')
                         topic_reason = selected_topic_detail.get('reason', 'Haftalık plan')
@@ -5954,11 +5951,11 @@ def show_pomodoro_interface(user_data):
                         
                         st.info(f"""
                         **📚 Ders:** {topic_subject}  
-                        **{study_info['emoji']} Çalışma Türü:** {current_study_type} - {study_info['desc']}  
                         **⚡ Öncelik seviyesi:** {priority_data['icon']} {priority_data['name']}  
                         **📋 Neden bu hafta planında:** {topic_reason}
                         """)
-                else:
+                        
+                elif selected_topic_option.startswith("📚 "):
                     # Tüm konular bölümünden seçim
                     clean_topic = selected_topic_option.replace("📚 ", "")
                     st.session_state.current_topic = clean_topic
