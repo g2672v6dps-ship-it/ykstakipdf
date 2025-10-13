@@ -5817,92 +5817,128 @@ def show_pomodoro_interface(user_data):
                         display_topic = selected_topic
                     st.session_state.current_topic = display_topic
         else:
-            # YKS Canlı Takip'ten haftalık hedef konuları al
+            # YKS Canlı Takip'ten haftalık hedef konuları ve tüm konuları al
             student_field = user_data.get('field', '')
-            survey_data = json.loads(user_data.get('survey_data', '{}')) if user_data.get('survey_data') else {}
+            survey_data = json.loads(user_data.get('yks_survey_data', '{}')) if user_data.get('yks_survey_data') else {}
             weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
+            
+            # Haftalık hedef konuları
             weekly_target_topics = weekly_plan.get('new_topics', []) + weekly_plan.get('review_topics', [])
             
-            # Konu seçeneklerini hazırla
-            topic_options = []
+            # Tüm konular (konu takipten)
+            all_topics_raw = weekly_plan.get('all_topics', [])
             
-            # Deneme sınavı için özel durum
-            if st.session_state.current_subject == "📝 Deneme Sınavı":
-                topic_options = ["🔄 Yeni Konu Seç...", "📂 Diğer (Manuel Yazma)"]
-                topic_options.extend([f"📝 {topic.get('topic', topic.get('subject', str(topic)))}" 
-                                    for topic in weekly_target_topics[:10]])  # İlk 10 konu
-            else:
-                # Diğer kategoriler için haftalık hedef konuları
-                topic_options = ["🔄 Yeni Konu Seç...", "📂 Diğer (Manuel Yazma)"]
-                if weekly_target_topics:
-                    topic_options.extend([f"🎯 {topic.get('topic', topic.get('subject', str(topic)))}" 
-                                        for topic in weekly_target_topics[:15]])  # İlk 15 konu
+            # Konu seçeneklerini kategorize ederek hazırla
+            topic_options = ["🔄 Yeni Konu Seç..."]
+            
+            # 1. Haftalık Hedef Konular bölümü
+            if weekly_target_topics:
+                topic_options.append("─── 🎯 HAFTALİK HEDEF KONULAR ───")
+                for topic in weekly_target_topics[:10]:  # Max 10 konu
+                    topic_name = topic.get('topic', topic.get('subject', str(topic)))
+                    topic_options.append(f"🎯 {topic_name}")
+            
+            # 2. Tüm Konular bölümü
+            if all_topics_raw:
+                topic_options.append("─── 📚 TÜM KONULAR ───")
+                for topic in all_topics_raw[:15]:  # Max 15 konu
+                    topic_name = topic.get('topic', topic.get('subject', str(topic)))
+                    if f"🎯 {topic_name}" not in topic_options:  # Duplicate kontrolü
+                        topic_options.append(f"📚 {topic_name}")
+            
+            # 3. Deneme Sınavı seçeneği
+            topic_options.append("─── 📝 ÖZELLEŞTİRİLMİŞ ───")
+            topic_options.append("📝 Deneme Sınavı")
+            
+            # 4. Diğer seçeneği
+            topic_options.append("📂 Diğer (Manuel Yazma)")
             
             # Konu seçimi dropdown
             selected_topic_option = st.selectbox(
                 "Konu/Açıklama:",
                 options=topic_options,
                 index=0 if not st.session_state.current_topic else 
-                      (topic_options.index(f"🎯 {st.session_state.current_topic}") 
-                       if f"🎯 {st.session_state.current_topic}" in topic_options 
-                       else topic_options.index(f"📝 {st.session_state.current_topic}") 
-                       if f"📝 {st.session_state.current_topic}" in topic_options else 1),
+                      next((i for i, opt in enumerate(topic_options) 
+                           if st.session_state.current_topic in opt), 0),
                 disabled=st.session_state.pomodoro_active,
                 key="topic_selection_pomodoro"
             )
             
             # Seçilen konuya göre işlem yap
-            if selected_topic_option == "📂 Diğer (Manuel Yazma)":
+            if selected_topic_option.startswith("───"):
+                # Başlık seçilmişse varsayılana dön
+                st.warning("⚠️ Lütfen bir konu seçin, başlık seçilemez.")
+                st.session_state.current_topic = ""
+            elif selected_topic_option == "📂 Diğer (Manuel Yazma)":
                 # Manuel konu girişi
-                topic_placeholder = {
-                    "📝 Deneme Sınavı": "örn: TYT Deneme 5, AYT Mat Deneme 3",
-                    "📂 Diğer": "örn: Özet Çıkarma, Formül Tekrarı"
-                }.get(st.session_state.current_subject, "örn: Temel Kavramlar - Basamak")
-                
                 manual_topic_input = st.text_input(
                     "Manuel Konu Girişi:",
                     value=st.session_state.current_topic if not any(
-                        st.session_state.current_topic.startswith(prefix) for prefix in ["🎯 ", "📝 "]
+                        st.session_state.current_topic.startswith(prefix) for prefix in ["🎯 ", "📝 ", "📚 "]
                     ) else "",
-                    placeholder=topic_placeholder,
+                    placeholder="örn: Özet Çıkarma, Formül Tekrarı, Defter Düzenleme",
                     disabled=st.session_state.pomodoro_active,
                     key="manual_topic_pomodoro"
                 )
                 
                 if manual_topic_input:
                     st.session_state.current_topic = manual_topic_input
+            elif selected_topic_option == "📝 Deneme Sınavı":
+                # Deneme sınavı için özel alan
+                deneme_input = st.text_input(
+                    "Deneme Sınavı Detayı:",
+                    value=st.session_state.current_topic if "Deneme" in str(st.session_state.current_topic) else "",
+                    placeholder="örn: TYT Deneme 5, AYT Mat Deneme 3, Fizik Konu Deneme",
+                    disabled=st.session_state.pomodoro_active,
+                    key="deneme_topic_pomodoro"
+                )
+                
+                if deneme_input:
+                    st.session_state.current_topic = f"Deneme: {deneme_input}"
             elif selected_topic_option != "🔄 Yeni Konu Seç...":
-                # Haftalık hedef konularından seçim
+                # Konu listelerinden seçim
                 # Emoji prefix'i temizle
-                clean_topic = selected_topic_option.replace("🎯 ", "").replace("📝 ", "")
+                clean_topic = selected_topic_option.replace("🎯 ", "").replace("📝 ", "").replace("📚 ", "")
                 st.session_state.current_topic = clean_topic
                 
                 # Seçilen konunun detaylarını göster
                 selected_topic_detail = None
+                
+                # Önce haftalık hedef konularda ara
                 for topic in weekly_target_topics:
                     topic_name = topic.get('topic', topic.get('subject', str(topic)))
                     if clean_topic == topic_name:
                         selected_topic_detail = topic
                         break
                 
+                # Bulunamazsa tüm konularda ara
+                if not selected_topic_detail and all_topics_raw:
+                    for topic in all_topics_raw:
+                        topic_name = topic.get('topic', topic.get('subject', str(topic)))
+                        if clean_topic == topic_name:
+                            selected_topic_detail = topic
+                            break
+                
                 if selected_topic_detail:
                     # Konu detayı bilgi kutusu
                     topic_subject = selected_topic_detail.get('subject', 'Bilinmiyor')
                     topic_priority = selected_topic_detail.get('priority', 'NORMAL')
-                    topic_reason = selected_topic_detail.get('reason', 'Haftalık plan')
+                    topic_reason = selected_topic_detail.get('reason', 'Konu takip sistemi')
                     
-                    priority_colors = {
-                        'HIGH': '🔴',
-                        'MEDIUM': '🟡', 
-                        'NORMAL': '🟢',
-                        'LOW': '🔵',
-                        'MINIMAL': '⚪'
+                    priority_info = {
+                        'HIGH': {'icon': '🔴', 'name': 'Yüksek'},
+                        'MEDIUM': {'icon': '🟡', 'name': 'Orta'},
+                        'NORMAL': {'icon': '🟢', 'name': 'Normal'},
+                        'LOW': {'icon': '🔵', 'name': 'Düşük'},
+                        'MINIMAL': {'icon': '⚪', 'name': 'Minimal'}
                     }
+                    
+                    priority_data = priority_info.get(topic_priority, priority_info['NORMAL'])
                     
                     st.info(f"""
                     **📚 Ders:** {topic_subject}  
-                    **⚡ Öncelik:** {priority_colors.get(topic_priority, '🟢')} {topic_priority}  
-                    **📋 Sebep:** {topic_reason}
+                    **⚡ Öncelik seviyesi:** {priority_data['icon']} {priority_data['name']}  
+                    **📋 Neden bu hafta planında:** {topic_reason}
                     """)
             
             # Eğer hiçbir konu seçilmemişse varsayılan değer
@@ -6149,7 +6185,68 @@ def complete_pomodoro(user_data):
     # SESLİ UYARI: Mola başladı! 🔔
     play_break_start_sound()
     
+    # YENI ÖZELLİK: Tamamlanan pomodoro'yu haftalık programa ekle
+    add_pomodoro_to_weekly_program(user_data, pomodoro_record)
+    
     st.balloons()
+
+def add_pomodoro_to_weekly_program(user_data, pomodoro_record):
+    """Tamamlanan pomodoro'yu haftalık programa otomatik ekler"""
+    try:
+        # Güncel tarih bilgisini al
+        now = datetime.now()
+        current_day_tr = {
+            'Monday': 'PAZARTESİ',
+            'Tuesday': 'SALI', 
+            'Wednesday': 'ÇARŞAMBA',
+            'Thursday': 'PERŞEMBE',
+            'Friday': 'CUMA',
+            'Saturday': 'CUMARTESİ',
+            'Sunday': 'PAZAR'
+        }
+        
+        current_day = current_day_tr.get(now.strftime('%A'), 'PAZARTESİ')
+        current_time = now.strftime('%H:%M')
+        
+        # Session state'te day_plans yoksa oluştur
+        if 'day_plans' not in st.session_state:
+            days = ["PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ", "PAZAR"]
+            st.session_state.day_plans = {day: [] for day in days}
+        
+        # Pomodoro bilgilerini al
+        subject = pomodoro_record.get('subject', 'Genel')
+        topic = pomodoro_record.get('topic', 'Belirtilmemiş')
+        pomodoro_type = pomodoro_record.get('type', 'Kısa Odak (25dk+5dk)')
+        
+        # Süreyi hesapla
+        duration_map = {
+            'Kısa Odak (25dk+5dk)': '25dk',
+            'Standart Odak (35dk+10dk)': '35dk',
+            'Derin Odak (50dk+15dk)': '50dk',
+            'Tam Konsantrasyon (90dk+25dk)': '90dk'
+        }
+        duration = duration_map.get(pomodoro_type, '25dk')
+        
+        # Haftalık programa eklenecek öğeyi oluştur
+        program_item = {
+            'subject': subject,
+            'topic': f"🍅 {topic}",  # Pomodoro emojisi ile işaretle
+            'detail': f"Pomodoro ({duration}) - {current_time}",
+            'time': f"{current_time} (🍅 {duration})",
+            'priority': 'COMPLETED',  # Tamamlanmış öğe olarak işaretle
+            'auto_added': True  # Otomatik eklendiğini belirt
+        }
+        
+        # Bugünün planına ekle
+        if current_day in st.session_state.day_plans:
+            st.session_state.day_plans[current_day].append(program_item)
+            
+            # Başarı mesajını göster
+            st.success(f"✅ Tamamlanan pomodoro **{current_day}** gününe otomatik eklendi!")
+            st.info(f"📅 **Konu:** {topic} | **Süre:** {duration} | **Saat:** {current_time}")
+        
+    except Exception as e:
+        st.warning(f"⚠️ Haftalık programa ekleme sırasında hata: {e}")
 
 def save_pomodoro_to_user_data(user_data, pomodoro_record):
     """Pomodoro kaydını kullanıcı verisine kaydet"""
@@ -7364,10 +7461,38 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     review_topics = calculate_spaced_repetition_topics(user_data)
     weekly_review_topics = review_topics[:8]  # Max 8 tekrar konusu/hafta
     
-    # 3. TOPLAM PLAN
+    # 4. TÜM KONULARI HESAPLA (Pomodoro Timer için)
+    all_available_topics = []
+    
+    # Konu takipten tüm konuları al
+    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    
+    for subject in filtered_subjects[:10]:  # Max 10 ders
+        try:
+            sequential_topics = get_sequential_topics(subject, 
+                                                    user_data.get('grade', '12'), 
+                                                    topic_progress,
+                                                    user_data.get('field', ''))
+            
+            # İlk 20 konuyu al
+            for topic in sequential_topics[:20]:
+                if topic not in [t.get('topic') for t in weekly_new_topics + weekly_review_topics]:
+                    all_available_topics.append({
+                        'topic': topic['topic'],
+                        'subject': subject,
+                        'detail': topic.get('detail', topic['topic']),
+                        'net': topic.get('net', 0),
+                        'priority': topic.get('priority', 'NORMAL'),
+                        'reason': 'Konu takip sistemi'
+                    })
+        except Exception as e:
+            continue
+    
+    # 5. TOPLAM PLAN
     total_plan = {
         'new_topics': weekly_new_topics[:15],  # Max 15 yeni konu
         'review_topics': weekly_review_topics,
+        'all_topics': all_available_topics[:25],  # Max 25 tüm konu (Pomodoro için)
         'week_target': len(weekly_new_topics[:15]) + len(weekly_review_topics),
         'success_target': 0.8,  # %80 başarı hedefi
         'projections': calculate_completion_projections(user_data, student_field, days_to_yks),
