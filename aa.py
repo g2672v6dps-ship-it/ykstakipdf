@@ -15798,11 +15798,14 @@ def calculate_user_weekly_performance(user_data):
             social_media_str = user_data.get('social_media_daily', '{}')
             social_media_data = json.loads(social_media_str) if social_media_str else {}
             
-            # Bu haftanın günlerini topla
-            for i in range(7):  # Son 7 gün (bu hafta)
+            # Bu haftanın günlerini topla (bugün dahil)
+            current_date = today.date()
+            for i in range(7):  # Son 7 gün 
                 day_date = today - timedelta(days=i)
-                if day_date.date() >= week_start_date:  # Sadece bu haftanın günleri
-                    day_key = day_date.strftime('%Y-%m-%d')
+                day_key = day_date.strftime('%Y-%m-%d')
+                
+                # Bu hafta içindeki günleri kontrol et (bugün dahil)
+                if day_date.date() >= week_start_date and day_date.date() <= current_date:
                     if day_key in social_media_data:
                         social_media_hours += social_media_data[day_key]
                 
