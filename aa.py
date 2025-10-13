@@ -16186,7 +16186,7 @@ def show_simple_leaderboard(user_data):
                     st.session_state.user_data['competition_participating'] = False
                 
                 # Güncel veriyi tekrar al
-                st.session_state.user_data = get_user_data(st.session_state.current_user)
+                st.session_state.user_data = get_user_data()
                 
                 st.success("✅ Rekabetten ayrıldın! Liderboard'dan çıkarıldın.")
                 st.rerun()
@@ -16200,7 +16200,7 @@ def show_simple_leaderboard(user_data):
                     st.session_state.user_data['competition_participating'] = True
                 
                 # Güncel veriyi tekrar al
-                st.session_state.user_data = get_user_data(st.session_state.current_user)
+                st.session_state.user_data = get_user_data()
                 
                 st.success("🏆 Rekabete katıldın! Liderboard'da görünüyorsun.")
                 st.rerun()
