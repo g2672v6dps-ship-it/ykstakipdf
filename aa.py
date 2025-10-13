@@ -6753,7 +6753,84 @@ def show_pomodoro_interface(user_data):
                 st.session_state.current_topic = ""
     
     # Bu haftanın hedef konuları
-    st.markdown("### 🎯 Bu Haftanın Hedef Konularım")
+    st.markdown("### 🎯 HAFTALİK HEDEF KONULAR - TAM MANTIK")
+    
+    # Algoritma açıklaması
+    with st.expander("🤖 Haftalık Hedef Konuların Nasıl Belirleniyor? (Algoritma Mantığı)", expanded=False):
+        st.markdown("""
+        İşte haftalık hedef konuların tam olarak neye göre belirlendiği:
+        
+        ## 🔥 1. ÖNCELIK SIRALAMASI (En Kritik)
+        
+        **A) Ders Önem Puanları:**
+        - 🔢 **TYT Matematik:** 10 puan (En kritik)
+        - 📝 **TYT Türkçe:** 9 puan  
+        - 🎯 **AYT Matematik:** 10 puan
+        - ⚛️ **TYT Fizik/Kimya:** 8 puan
+        - 🧠 **TYT Felsefe/Din:** 4 puan (2-3. hafta sonra başlar)
+        
+        **B) Haftalık Konu Limitleri:**
+        - 📊 **10 puan** → 5 konu/hafta
+        - 📊 **9 puan** → 4 konu/hafta  
+        - 📊 **8 puan** → 3 konu/hafta
+        - 📊 **7 puan** → 2 konu/hafta
+        - 📊 **4 puan** → 1 konu/hafta
+        
+        ## 📊 2. PERFORMANS DEĞERLENDİRMESİ
+        
+        **Öncelik Hesaplama Formülü:**
+        ```
+        Base Puan + Deneme Boost + Anket Etkisi = Final Öncelik
+        ```
+        
+        **Net Seviyesine Göre:**
+        - 🚨 **0-5 net:** 85 puan (ACİL - Çok zayıf)
+        - 🟡 **6-8 net:** 70 puan (ÖNCELİKLİ - Temel)
+        - 🟢 **9-14 net:** 50 puan (NORMAL - Orta)
+        - 🔵 **15-18 net:** 30 puan (DÜŞÜK - İyi)
+        - 💎 **18+ net:** 15 puan (MİNİMAL - Uzman)
+        
+        **Deneme Analizi Boost'u:**
+        - Son 3 denemede %60'ın altında net → **+20 puan boost**
+        
+        ## 🔄 3. YENİ vs TEKRAR KONULAR
+        
+        **Yeni Konular:**
+        - Net değeri 14'ün altında olan konular
+        - Ders önem sırasına göre sıralı seçim
+        - Her dersten limit kadar (1-5 konu)
+        
+        **Tekrar Konular:**
+        - Aralıklı tekrar sistemi (3-7-7-7-7 gün)
+        - Zamanı gelen konular otomatik seçilir
+        - Maksimum 8 tekrar konu/hafta
+        
+        ## 🎮 4. TYT/AYT GEÇİŞ SİSTEMİ
+        
+        **AYT Başlatma Koşulları:**
+        - TYT matematik konularının belirli oranı tamamlanmış olmalı
+        - TYT genel ilerlemesi yeterli seviyede olmalı
+        - Alan seçimine uygun dersler aktif edilir
+        
+        ## 📝 5. ANKET VERİSİ ETKİSİ
+        - 🔥 **Zor Dersler:** +10 puan boost
+        - ❤️ **Sevilen Dersler:** +15 puan boost
+        - 😐 **Sevilmeyen Dersler:** -5 puan (hafif azalma)
+        
+        ## ⏰ 6. DİNAMİK ZAMAN KONTROLÜ
+        - **İlk 2 hafta:** Sadece yüksek öncelikli dersler (8+ puan)
+        - **3. hafta sonrası:** Düşük öncelikli dersler de dahil edilir
+        
+        ## 🤖 ÖZET: HAFTALİK PLANLAMA ALGORİTMASI
+        
+        1. 📋 Tüm dersleri öncelik sırasına göre sırala
+        2. 🎯 Her dersten net 14'ün altındaki konuları al
+        3. ⚖️ Ders önemine göre haftalık limit uygula
+        4. 🔄 Tekrar zamanı gelmiş 8 konuyu ekle
+        5. ✅ Toplam ~15-20 konu haftalık hedef olur
+        
+        **Bu sistem sayesinde:** Zayıf konular öncelenirken, önemli derslerden daha fazla konu alınır ve tekrarlar da unutulmuyor! 🎯
+        """)
     
     # Kullanıcı verilerini al
     student_field = user_data.get('field', '')
