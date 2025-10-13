@@ -15404,6 +15404,15 @@ def show_simple_leaderboard(user_data):
     weekly_leaders = calculate_weekly_leaderboard()
     current_user_stats = calculate_user_weekly_performance(user_data)
     
+    # Debug: Sosyal medya verisini kontrol et
+    sm_debug_data = user_data.get('social_media_daily', '{}')
+    st.write(f"🔍 Debug - User data'daki sosyal medya: {sm_debug_data}")
+    st.write(f"🔍 Debug - Hesaplanan sosyal medya saati: {current_user_stats.get('social_media_hours', 0)}")
+    
+    # Bugünkü tarih key'i de gösterelim
+    today_debug = datetime.now().strftime('%Y-%m-%d')
+    st.write(f"🔍 Debug - Bugünkü tarih key: {today_debug}")
+    
     # Kullanıcının sıralamasını bul
     user_rank = find_user_rank(weekly_leaders, st.session_state.current_user)
     
@@ -15441,8 +15450,15 @@ def show_simple_leaderboard(user_data):
             
             if st.button("💾 Bugünü Kaydet", key="save_sm_time", use_container_width=True):
                 if uploaded_screenshot and total_sm_time > 0:
-                    save_daily_social_media_time(st.session_state.current_user, total_sm_time)
+                    # Veriyi kaydet
+                    result = save_daily_social_media_time(st.session_state.current_user, total_sm_time)
+                    
+                    # Debug: Kaydedilen veriyi kontrol et
+                    user_data_check = load_user_data(st.session_state.current_user)
+                    sm_data_check = user_data_check.get('social_media_daily', '{}')
+                    
                     st.success(f"✅ Bugün kaydedildi: {total_sm_time:.1f}h")
+                    st.info(f"🔍 Debug: Firebase'deki veri: {sm_data_check}")
                     st.rerun()
                 else:
                     st.error("Süre ve SS gerekli!")
