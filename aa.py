@@ -16145,13 +16145,17 @@ def show_simple_leaderboard(user_data):
     """🏆 Basit Rekabet Listesi - İsteğe Bağlı Katılım"""
     
     # Kullanıcının oturum açıp açmadığını kontrol et
-    if not st.session_state.get('current_user'):
+    if not st.session_state.get('current_user') or st.session_state.current_user is None:
         st.warning("🔐 Rekabet sistemine katılmak için önce giriş yapmalısın!")
         return
     
     # Kullanıcının katılım durumunu kontrol et (güncel veriyi al)
-    current_user_data = get_user_data(st.session_state.current_user)  # Güncel veriyi Firebase'den al
-    is_participating = current_user_data.get('competition_participating', False)
+    try:
+        current_user_data = get_user_data(st.session_state.current_user)  # Güncel veriyi Firebase'den al
+        is_participating = current_user_data.get('competition_participating', False)
+    except Exception as e:
+        st.warning("🔐 Rekabet sistemine katılmak için önce giriş yapmalısın!")
+        return
     
     # Katılım kontrolü - Kırmızı tema
     st.markdown("### 🎯 Rekabet Sistemi Katılımı")
