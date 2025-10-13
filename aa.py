@@ -2823,6 +2823,11 @@ def show_weekly_planner(user_data):
     
     st.markdown("---")
     
+    # 🎯 ZAMANSAL STRATEJİ BİLGİLERİNİ GÖSTER
+    if 'time_strategy' in weekly_plan:
+        show_time_strategy_dashboard(weekly_plan)
+        st.markdown("---")
+    
     # Ana haftalık plan
     week_info = get_current_week_info()
     days_to_yks = week_info['days_to_yks']
@@ -3292,6 +3297,773 @@ def calculate_days_to_yks():
     
     days_left = (yks_date - today).days
     return max(0, days_left)  # Geçmişte bir tarih olursa 0 döndür
+
+def get_time_based_strategy(days_to_yks, current_month):
+    """🎯 YKS'ye kalan süreye göre dinamik strateji belirleme sistemi"""
+    
+    # Aylık strateji haritalama
+    if days_to_yks > 210:  # Ekim-Kasım-Aralık (7+ ay kala)
+        return {
+            'period_name': 'TEMELCİ DÖNEM',
+            'focus': 'temel_kavramlar_ve_konu_ogenimi',
+            'priority': 'kavram_ogrenme',
+            'deneme_frequency': 'ayda_1',
+            'new_topics_per_week': 10,  # Yoğun konu öğrenimi
+            'review_ratio': 0.25,  # %25 tekrar, %75 yeni konu
+            'study_intensity': 'normal',
+            'special_notes': 'Temel kavramları sağlam öğrenme dönemi'
+        }
+    elif days_to_yks > 150:  # Ocak-Şubat (5-7 ay kala)
+        return {
+            'period_name': 'KONSOLDASYON DÖNEM',
+            'focus': 'konu_pekistirme_ve_baglanti',
+            'priority': 'konu_baglama',
+            'deneme_frequency': '3_haftada_2',
+            'new_topics_per_week': 8,
+            'review_ratio': 0.35,  # %35 tekrar, %65 yeni konu
+            'study_intensity': 'normal',
+            'special_notes': 'Konular arası bağlantı kurma dönemi'
+        }
+    elif days_to_yks > 120:  # Mart (3-5 ay kala)
+        return {
+            'period_name': 'EKSİK KAPATMA DÖNEM',
+            'focus': 'eksik_konular_ve_zayif_alanlar',
+            'priority': 'eksik_kapama',
+            'deneme_frequency': '2_haftada_1',
+            'new_topics_per_week': 6,
+            'review_ratio': 0.45,  # %45 tekrar, %55 yeni konu
+            'study_intensity': 'artiriyor',
+            'special_notes': 'Zayıf konuları tespit edip kapatma dönemi'
+        }
+    elif days_to_yks > 90:  # Nisan (3 ay kala) - YOĞUNDENEMECİ DÖNEM
+        return {
+            'period_name': 'YOĞUN DENEMECİ DÖNEM',
+            'focus': 'deneme_stratejisi_ve_hizli_cozum',
+            'priority': 'deneme_performansi',
+            'deneme_frequency': 'haftada_2',
+            'new_topics_per_week': 4,  # Denemeye odak, az yeni konu
+            'review_ratio': 0.65,  # %65 tekrar, %35 yeni konu
+            'study_intensity': 'yuksek',
+            'special_notes': 'Deneme stratejileri geliştirme dönemi - NISAN DOLUDUR!'
+        }
+    elif days_to_yks > 60:  # Mayıs (2 ay kala) - DENEMEVEANALİZ DÖNEM
+        return {
+            'period_name': 'DENEME VE ANALİZ DÖNEM',
+            'focus': 'deneme_analiz_odakli_calisma',
+            'priority': 'analiz_tabanlı_gelişim',
+            'deneme_frequency': 'haftada_3',
+            'new_topics_per_week': 2,  # Çok az yeni konu
+            'review_ratio': 0.75,  # %75 tekrar, %25 yeni konu
+            'study_intensity': 'maksimum',
+            'special_notes': 'Her deneme sonrası detaylı analiz dönemi - MAYIS YOĞUN!'
+        }
+    elif days_to_yks > 30:  # Haziran ilk yarı (1 ay kala) - SON SPRINT DÖNEM
+        return {
+            'period_name': 'SON SPRİNT DÖNEM',
+            'focus': 'guncele_odakli_ve_moral_koruma',
+            'priority': 'moral_ve_güven',
+            'deneme_frequency': 'günde_1',
+            'new_topics_per_week': 1,  # Sadece çok kritik eksikler
+            'review_ratio': 0.85,  # %85 tekrar, %15 yeni konu
+            'study_intensity': 'kontrollü_yoğun',
+            'special_notes': 'Güven artırma ve mükemmelleştirme dönemi'
+        }
+    else:  # Son 30 gün - MORAL KORUMA DÖNEM
+        return {
+            'period_name': 'MORAL KORUMA DÖNEM',
+            'focus': 'moral_koruma_ve_hazir_tutma',
+            'priority': 'mental_hazırlık',
+            'deneme_frequency': '2_günde_1',
+            'new_topics_per_week': 0,  # Hiç yeni konu öğrenme
+            'review_ratio': 1.0,  # %100 tekrar
+            'study_intensity': 'sakin',
+            'special_notes': 'Sadece bildiğini pekiştir, stres yapma!'
+        }
+
+def get_deneme_strategy_by_period(strategy):
+    """📊 Dönemlere göre deneme stratejisi"""
+    
+    deneme_strategies = {
+        'TEMELCİ DÖNEM': {
+            'type': 'kavram_deneme',
+            'frequency_description': 'Ayda 1 kere, kavram ölçme amaçlı',
+            'analysis_focus': 'Hangi konuları bilmiyorum?',
+            'recommendation': 'Deneme sonrası eksik konulara ağırlık ver'
+        },
+        'KONSOLDASYON DÖNEM': {
+            'type': 'baglanti_deneme',
+            'frequency_description': '3 haftada 2 kere, konular arası bağlantı ölçme',
+            'analysis_focus': 'Konuları birbirleriyle bağlayabiliyor muyum?',
+            'recommendation': 'Karma sorular çöz, farklı konu karışımları dene'
+        },
+        'EKSİK KAPATMA DÖNEM': {
+            'type': 'eksik_tespit_deneme',
+            'frequency_description': '2 haftada 1 kere, zayıf alanları tespit etme',
+            'analysis_focus': 'En çok puan kaybettiğim konular hangileri?',
+            'recommendation': 'Deneme sonrası 1 hafta o konulara odaklan'
+        },
+        'YOĞUN DENEMECİ DÖNEM': {
+            'type': 'strateji_deneme',
+            'frequency_description': 'Haftada 2 kere, çözüm stratejileri geliştirme',
+            'analysis_focus': 'Hangi soru tiplerinde yavaşım? Zaman yönetimi nasıl?',
+            'recommendation': 'Soru çözme hızını artır, zaman stratejisi geliştir'
+        },
+        'DENEME VE ANALİZ DÖNEM': {
+            'type': 'performans_deneme',
+            'frequency_description': 'Haftada 3 kere, performans maksimize etme',
+            'analysis_focus': 'Net sayımı nasıl artırabilirim?',
+            'recommendation': 'Her deneme sonrası 2 gün analiz, 2 gün eksik çalışma'
+        },
+        'SON SPRİNT DÖNEM': {
+            'type': 'guven_deneme',
+            'frequency_description': 'Günde 1 kere, güven artırma amaçlı',
+            'analysis_focus': 'Bildiklerimi doğru işaretleyebiliyor muyum?',
+            'recommendation': 'Hata minimizasyonu, işaretleme stratejisi'
+        },
+        'MORAL KORUMA DÖNEM': {
+            'type': 'rahatlatici_deneme',
+            'frequency_description': '2 günde 1 kere, stresi azaltma amaçlı',
+            'analysis_focus': 'Rahat ve kendimden eminim',
+            'recommendation': 'Çok analiz yapma, sadece formda kal'
+        }
+    }
+    
+    return deneme_strategies.get(strategy['period_name'], deneme_strategies['TEMELCİ DÖNEM'])
+
+def calculate_dynamic_topic_limits(strategy, subject_importance):
+    """🎯 Dönemlere göre dinamik konu limitleri"""
+    
+    base_limit = strategy['new_topics_per_week']
+    
+    # Ders önemine göre çarpan
+    importance_multiplier = {
+        10: 1.5,  # En önemli dersler (TYT Mat, AYT Mat)
+        9: 1.3,   # Çok önemli 
+        8: 1.1,   # Önemli
+        7: 1.0,   # Normal
+        6: 0.8,   # Az önemli
+        5: 0.6,   # En az önemli
+        4: 0.4,
+        3: 0.3,
+        2: 0.2,
+        1: 0.1
+    }
+    
+    multiplier = importance_multiplier.get(subject_importance, 1.0)
+    calculated_limit = int(base_limit * multiplier)
+    
+    # Minimum 1, maksimum limits
+    return max(1, min(calculated_limit, 15))
+
+def get_time_based_priority_boost(strategy, subject, user_performance):
+    """⚡ Zamansal stratejiye göre öncelik boost'u"""
+    
+    boost = 0
+    period = strategy['period_name']
+    
+    # Dönemlere göre ders öncelik boost'ları
+    if period == 'TEMELCİ DÖNEM':
+        # Temel matematik ve Türkçe'ye boost
+        if 'TYT Matematik' in subject or 'TYT Türkçe' in subject:
+            boost += 2
+    
+    elif period == 'EKSİK KAPATMA DÖNEM':
+        # Düşük performanslı derslere boost
+        if user_performance < 40:  # %40'ın altı zayıf
+            boost += 3
+    
+    elif period in ['YOĞUN DENEMECİ DÖNEM', 'DENEME VE ANALİZ DÖNEM']:
+        # Yüksek puanlı, sınav stratejik derslere boost
+        if any(x in subject for x in ['AYT Matematik', 'AYT Fizik', 'TYT Matematik']):
+            boost += 1.5
+    
+    elif period == 'SON SPRİNT DÖNEM':
+        # Güçlü olunan derslere boost (güven artırma)
+        if user_performance > 70:  # %70'in üstü güçlü
+            boost += 2
+    
+    return boost
+
+def calculate_user_subject_performance(subject, user_data):
+    """📊 Kullanıcının bir dersteki performansını hesaplar (0-100 arası)"""
+    
+    # Deneme verilerinden performans hesapla
+    deneme_data = user_data.get('deneme_analizleri', '[]')
+    try:
+        deneme_list = json.loads(deneme_data) if deneme_data else []
+    except:
+        deneme_list = []
+    
+    # Son 3 deneme ortalaması
+    if deneme_list:
+        recent_exams = deneme_list[-3:] if len(deneme_list) >= 3 else deneme_list
+        
+        total_score = 0
+        count = 0
+        
+        for exam in recent_exams:
+            if subject in ['TYT Matematik', 'TYT Türkçe', 'TYT Fen', 'TYT Sosyal']:
+                net_key = subject.lower().replace('tyt ', '') + '_net'
+                if net_key in exam:
+                    total_score += exam[net_key] * 2.5  # 40 soru üzerinden %100'e çevir
+                    count += 1
+            elif subject.startswith('AYT'):
+                ayt_subject = subject.replace('AYT ', '').lower()
+                net_key = ayt_subject + '_net'
+                if net_key in exam:
+                    # AYT dersleri genelde 40 soru üzerinden
+                    total_score += exam[net_key] * 2.5
+                    count += 1
+        
+        if count > 0:
+            return min(100, total_score / count)
+    
+    # Deneme verisi yoksa konu ilerlemesinden hesapla
+    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    
+    # Bu derse ait konuları bul
+    subject_topics = []
+    for topic_key, progress in topic_progress.items():
+        if subject.lower().replace(' ', '_') in topic_key.lower():
+            subject_topics.append(progress)
+    
+    if subject_topics:
+        # Tamamlanan konu yüzdesi
+        completed = sum(1 for p in subject_topics if p.get('status') == 'completed')
+        return (completed / len(subject_topics)) * 100
+    
+    # Varsayılan: Orta seviye
+    return 50
+
+def should_include_subject_in_period(subject, importance, time_strategy, user_data, week_info):
+    """📅 Bu dersin bu dönemde çalışılıp çalışılmayacağını belirler"""
+    
+    period = time_strategy['period_name']
+    
+    # TEMELCİ DÖNEM: Sadece temel dersler
+    if period == 'TEMELCİ DÖNEM':
+        # Yüksek önem puanlı dersleri (≥7) ve temel TYT derslerini dahil et
+        if importance >= 7 or subject in ['TYT Matematik', 'TYT Türkçe']:
+            return True
+        return False
+    
+    # KONSOLDASYON DÖNEM: Çoğu dersi dahil et
+    elif period == 'KONSOLDASYON DÖNEM':
+        # Orta ve yüksek önemli dersleri dahil et (≥5)
+        return importance >= 5
+    
+    # EKSİK KAPATMA DÖNEM: Performansa dayalı filtreleme
+    elif period == 'EKSİK KAPATMA DÖNEM':
+        user_performance = calculate_user_subject_performance(subject, user_data)
+        # Zayıf performanslı dersleri (<60) ve yüksek önemlileri dahil et
+        return user_performance < 60 or importance >= 8
+    
+    # YOĞUN DENEMECİ DÖNEM: Stratejik dersler
+    elif period == 'YOĞUN DENEMECİ DÖNEM':
+        # Sadece yüksek puanlı, sınav kritik dersleri
+        strategic_subjects = ['TYT Matematik', 'AYT Matematik', 'AYT Fizik', 'TYT Türkçe']
+        return any(s in subject for s in strategic_subjects) or importance >= 9
+    
+    # DENEME VE ANALİZ DÖNEM: Analiz bazlı seçim
+    elif period == 'DENEME VE ANALİZ DÖNEM':
+        # Son deneme sonuçlarına göre zayıf çıkan dersleri dahil et
+        return is_subject_weak_in_recent_exams(subject, user_data) or importance >= 9
+    
+    # SON SPRİNT DÖNEM: Güçlü olunan dersler
+    elif period == 'SON SPRİNT DÖNEM':
+        user_performance = calculate_user_subject_performance(subject, user_data)
+        # Güçlü olunan dersleri dahil et (>70) - güven artırma
+        return user_performance > 70 or importance >= 10
+    
+    # MORAL KORUMA DÖNEM: Sadece en güçlü dersler
+    elif period == 'MORAL KORUMA DÖNEM':
+        user_performance = calculate_user_subject_performance(subject, user_data)
+        # Sadece çok güçlü olunan dersleri (>80)
+        return user_performance > 80
+    
+    # Varsayılan: Dahil et
+    return True
+
+def is_subject_weak_in_recent_exams(subject, user_data):
+    """📉 Son denemelerde bu dersin zayıf olup olmadığını kontrol eder"""
+    
+    deneme_data = user_data.get('deneme_analizleri', '[]')
+    try:
+        deneme_list = json.loads(deneme_data) if deneme_data else []
+    except:
+        return False
+    
+    if not deneme_list:
+        return False
+    
+    # Son 2 denemeyi kontrol et
+    recent_exams = deneme_list[-2:] if len(deneme_list) >= 2 else deneme_list
+    
+    weak_count = 0
+    total_count = 0
+    
+    for exam in recent_exams:
+        if subject in ['TYT Matematik', 'TYT Türkçe', 'TYT Fen', 'TYT Sosyal']:
+            net_key = subject.lower().replace('tyt ', '') + '_net'
+            if net_key in exam:
+                net_score = exam[net_key]
+                total_count += 1
+                # TYT için 20 net altı zayıf kabul et
+                if net_score < 20:
+                    weak_count += 1
+        elif subject.startswith('AYT'):
+            ayt_subject = subject.replace('AYT ', '').lower()
+            net_key = ayt_subject + '_net'
+            if net_key in exam:
+                net_score = exam[net_key]
+                total_count += 1
+                # AYT için 15 net altı zayıf kabul et
+                if net_score < 15:
+                    weak_count += 1
+    
+    # Denemelerin yarısından fazlasında zayıfsa True
+    return total_count > 0 and (weak_count / total_count) > 0.5
+
+def calculate_review_topics_limit_by_period(time_strategy):
+    """🔄 Dönemlere göre tekrar konusu limiti"""
+    
+    period = time_strategy['period_name']
+    review_ratio = time_strategy['review_ratio']
+    total_weekly_topics = time_strategy['new_topics_per_week']
+    
+    # Tekrar oranına göre limite hesapla
+    if period in ['TEMELCİ DÖNEM', 'KONSOLDASYON DÖNEM']:
+        return max(3, int(total_weekly_topics * review_ratio))
+    elif period == 'EKSİK KAPATMA DÖNEM':
+        return max(4, int(total_weekly_topics * review_ratio))
+    elif period == 'YOĞUN DENEMECİ DÖNEM':
+        return max(6, int(total_weekly_topics * review_ratio))
+    elif period == 'DENEME VE ANALİZ DÖNEM':
+        return max(8, int(total_weekly_topics * review_ratio))
+    elif period == 'SON SPRİNT DÖNEM':
+        return max(10, int(total_weekly_topics * review_ratio))
+    else:  # MORAL KORUMA
+        return 12  # Sadece tekrar
+    
+def filter_review_topics_by_strategy(review_topics, time_strategy, user_data):
+    """📋 Zamansal stratejiye göre tekrar konularını filtrele ve öncelikle"""
+    
+    period = time_strategy['period_name']
+    
+    if not review_topics:
+        return []
+    
+    # Her dönem için farklı filtreleme stratejisi
+    if period == 'TEMELCİ DÖNEM':
+        # Temel konuları öncelikle - TYT matematik ve Türkçe
+        priority_subjects = ['TYT Matematik', 'TYT Türkçe']
+        return prioritize_topics_by_subjects(review_topics, priority_subjects)
+    
+    elif period == 'KONSOLDASYON DÖNEM':
+        # Tüm konuları karışık şekilde
+        return review_topics  # Karışık dönem
+    
+    elif period == 'EKSİK KAPATMA DÖNEM':
+        # Zayıf performanslı konuları öncelikle
+        return prioritize_topics_by_weakness(review_topics, user_data)
+    
+    elif period in ['YOĞUN DENEMECİ DÖNEM', 'DENEME VE ANALİZ DÖNEM']:
+        # Yüksek puanlı, sınav kritik konuları öncelikle
+        strategic_subjects = ['TYT Matematik', 'AYT Matematik', 'AYT Fizik']
+        return prioritize_topics_by_subjects(review_topics, strategic_subjects)
+    
+    elif period == 'SON SPRİNT DÖNEM':
+        # Güçlü olunan konuları öncelikle (güven artırma)
+        return prioritize_topics_by_strength(review_topics, user_data)
+    
+    else:  # MORAL KORUMA DÖNEM
+        # En güçlü olunan konuları (stres azaltma)
+        return prioritize_topics_by_strength(review_topics, user_data)[:8]
+
+def prioritize_topics_by_subjects(topics, priority_subjects):
+    """📚 Belirli dersleri öncelikle sıralar"""
+    
+    priority_topics = []
+    other_topics = []
+    
+    for topic in topics:
+        topic_subject = topic.get('subject', '')
+        if any(subj in topic_subject for subj in priority_subjects):
+            priority_topics.append(topic)
+        else:
+            other_topics.append(topic)
+    
+    return priority_topics + other_topics
+
+def prioritize_topics_by_weakness(topics, user_data):
+    """📉 Zayıf performanslı konuları öncelikle sıralar"""
+    
+    # Deneme verilerinden zayıf konuları belirle
+    weak_subjects = get_weak_subjects_from_exams(user_data)
+    
+    weak_topics = []
+    normal_topics = []
+    
+    for topic in topics:
+        topic_subject = topic.get('subject', '')
+        if any(weak_subj in topic_subject for weak_subj in weak_subjects):
+            weak_topics.append(topic)
+        else:
+            normal_topics.append(topic)
+    
+    return weak_topics + normal_topics
+
+def prioritize_topics_by_strength(topics, user_data):
+    """📈 Güçlü olunan konuları öncelikle sıralar"""
+    
+    strong_subjects = get_strong_subjects_from_performance(user_data)
+    
+    strong_topics = []
+    normal_topics = []
+    
+    for topic in topics:
+        topic_subject = topic.get('subject', '')
+        if any(strong_subj in topic_subject for strong_subj in strong_subjects):
+            strong_topics.append(topic)
+        else:
+            normal_topics.append(topic)
+    
+    return strong_topics + normal_topics
+
+def get_weak_subjects_from_exams(user_data):
+    """📉 Deneme sonuçlarından zayıf dersleri belirler"""
+    
+    deneme_data = user_data.get('deneme_analizleri', '[]')
+    try:
+        deneme_list = json.loads(deneme_data) if deneme_data else []
+    except:
+        return []
+    
+    if not deneme_list:
+        return []
+    
+    # Son 2 denemeyi analiz et
+    recent_exams = deneme_list[-2:] if len(deneme_list) >= 2 else deneme_list
+    weak_subjects = []
+    
+    for exam in recent_exams:
+        # TYT dersleri kontrolü
+        if exam.get('matematik_net', 0) < 20:
+            weak_subjects.append('TYT Matematik')
+        if exam.get('turkce_net', 0) < 20:
+            weak_subjects.append('TYT Türkçe')
+        if exam.get('fen_net', 0) < 15:
+            weak_subjects.append('TYT Fen')
+        if exam.get('sosyal_net', 0) < 15:
+            weak_subjects.append('TYT Sosyal')
+        
+        # AYT dersleri kontrolü
+        if exam.get('matematik_net', 0) < 15:
+            weak_subjects.append('AYT Matematik')
+        if exam.get('fizik_net', 0) < 10:
+            weak_subjects.append('AYT Fizik')
+        if exam.get('kimya_net', 0) < 10:
+            weak_subjects.append('AYT Kimya')
+        if exam.get('biyoloji_net', 0) < 10:
+            weak_subjects.append('AYT Biyoloji')
+    
+    # Tekrar eden zayıf dersleri döndür
+    return list(set(weak_subjects))
+
+def get_strong_subjects_from_performance(user_data):
+    """📈 Performans verilerinden güçlü dersleri belirler"""
+    
+    strong_subjects = []
+    
+    # TYT/AYT ortalama net değerlerinden hesapla
+    tyt_avg = user_data.get('tyt_avg_net', 0)
+    ayt_avg = user_data.get('ayt_avg_net', 0)
+    
+    # Deneme verilerinden de kontrol et
+    deneme_data = user_data.get('deneme_analizleri', '[]')
+    try:
+        deneme_list = json.loads(deneme_data) if deneme_data else []
+    except:
+        deneme_list = []
+    
+    if deneme_list:
+        recent_exams = deneme_list[-2:] if len(deneme_list) >= 2 else deneme_list
+        
+        for exam in recent_exams:
+            # TYT güçlü dersleri
+            if exam.get('matematik_net', 0) > 25:
+                strong_subjects.append('TYT Matematik')
+            if exam.get('turkce_net', 0) > 25:
+                strong_subjects.append('TYT Türkçe')
+            if exam.get('fen_net', 0) > 20:
+                strong_subjects.append('TYT Fen')
+            if exam.get('sosyal_net', 0) > 20:
+                strong_subjects.append('TYT Sosyal')
+            
+            # AYT güçlü dersleri
+            if exam.get('matematik_net', 0) > 20:
+                strong_subjects.append('AYT Matematik')
+            if exam.get('fizik_net', 0) > 15:
+                strong_subjects.append('AYT Fizik')
+            if exam.get('kimya_net', 0) > 15:
+                strong_subjects.append('AYT Kimya')
+            if exam.get('biyoloji_net', 0) > 15:
+                strong_subjects.append('AYT Biyoloji')
+    
+    return list(set(strong_subjects))
+
+def get_period_specific_recommendations(time_strategy, user_data):
+    """📋 Dönem bazlı özel öneriler"""
+    
+    period = time_strategy['period_name']
+    days_to_yks = time_strategy.get('days_to_yks', 300)
+    
+    recommendations = {
+        'TEMELCİ DÖNEM': [
+            "🧠 Temel kavramları derinlemesine öğrenmeye odaklan",
+            "📚 Her konu için alt yapı sağlamlaştır",
+            "🎯 Günde 4-5 saat düzenli çalışma temposu kur",
+            "📝 Ayda 1 deneme çöz, eksikleri tespit et",
+            "💡 Konuları sadece ezberlemek yerine anlayarak öğren"
+        ],
+        'KONSOLDASYON DÖNEM': [
+            "🔗 Konular arası bağlantıları güçlendir",
+            "🎓 Karma sorular çözmeye başla",
+            "📊 Deneme sıklığını artır (3 haftada 2)",
+            "💪 Çalışma saatini 5-6'ya çıkar",
+            "🔄 Öğrendiklerini günlük hayatla bağdaştır"
+        ],
+        'EKSİK KAPATMA DÖNEM': [
+            "🎯 Zayıf konuları tespit et ve onlara odaklan",
+            "📈 Deneme analizi yapmayı öğren",
+            "⚡ Çalışma temponu artır (günde 6-7 saat)",
+            "🔍 Detaylı konu tekrarları yap",
+            "💯 Net sayılarını sistematik takip et"
+        ],
+        'YOĞUN DENEMECİ DÖNEM': [
+            "🎲 Haftada 2-3 deneme çöz",
+            "⏱️ Zaman yönetimi stratejileri geliştir",
+            "🚀 Soru çözme hızını artır",
+            "📋 Her deneme sonrası detaylı analiz yap",
+            "🎯 Soru tipleri ve çözüm tekniklerini öğren",
+            "💪 Günde 7-8 saat yoğun tempo"
+        ],
+        'DENEME VE ANALİZ DÖNEM': [
+            "📊 Her deneme sonrası 2 gün analiz ayır",
+            "🔄 Hızlı eksik konu çalışması yap",
+            "🎯 Net sayısı optimizasyonuna odaklan",
+            "⚡ Maksimum performans için 8-9 saat çalış",
+            "🧠 Mental hazırlık ve motivasyonu korur",
+            "📈 Strateji denemelerine başla"
+        ],
+        'SON SPRİNT DÖNEM': [
+            "💎 Güçlü olduğun konuları pekiştir",
+            "🛡️ Hata yapma olasılığını minimize et",
+            "🎯 Günde 1 deneme + analiz",
+            "😊 Kendine güveni artır",
+            "⚖️ Stresi yönet, sakin kal",
+            "🔄 Sadece bildiklerini tekrar et"
+        ],
+        'MORAL KORUMA DÖNEM': [
+            "😌 Stres yapmaktan kaçın, sakin kal",
+            "💪 Özgüveni koruyun",
+            "🎯 Bildiğin konuları hızlı tekrar et",
+            "🚫 Yeni konu öğrenmeye çalışma",
+            "💤 Uyku düzenini koru",
+            "🧘 Rahatlama egzersizleri yap",
+            "🎉 Sınav gününe hazır olduğunu hatırla"
+        ]
+    }
+    
+    base_recommendations = recommendations.get(period, recommendations['TEMELCİ DÖNEM'])
+    
+    # Kalan gün sayısına göre özel mesajlar
+    if days_to_yks <= 7:
+        base_recommendations.append(f"⚡ Sadece {days_to_yks} gün kaldı! Son kontrollerini yap.")
+    elif days_to_yks <= 30:
+        base_recommendations.append(f"🔥 {days_to_yks} gün kaldı! Yoğun tempo devam!")
+    elif days_to_yks <= 90:
+        base_recommendations.append(f"💪 {days_to_yks} gün kaldı! Deneme döneminde son sürat!")
+    
+    return base_recommendations
+
+def get_focus_areas_by_period(time_strategy, user_data):
+    """🎯 Dönem bazlı odaklanma alanları"""
+    
+    period = time_strategy['period_name']
+    
+    focus_areas = {
+        'TEMELCİ DÖNEM': {
+            'primary': ['Temel Matematik', 'Türkçe Okuma Anlama', 'Fen Bilimleri Temeli'],
+            'secondary': ['Sosyal Bilimler', 'Geometri Temelleri'],
+            'avoid': ['İleri AYT Konuları', 'Çok Detaylı Konular']
+        },
+        'KONSOLDASYON DÖNEM': {
+            'primary': ['Tüm TYT Alanları', 'Temel AYT Geçişi', 'Konu Bağlantıları'],
+            'secondary': ['Deneme Teknikleri', 'Hız Geliştirme'],
+            'avoid': ['Çok Gelişmiş Konular', 'Yoğun Deneme']
+        },
+        'EKSİK KAPATMA DÖNEM': {
+            'primary': ['Zayıf Dersler', 'Düşük Net Alanları', 'Kritik Konular'],
+            'secondary': ['Orta Seviye Konular', 'Pekiştirme'],
+            'avoid': ['Güçlü Alanlar', 'Yeni Konular']
+        },
+        'YOĞUN DENEMECİ DÖNEM': {
+            'primary': ['Deneme Stratejileri', 'Zaman Yönetimi', 'Hızlı Çözüm'],
+            'secondary': ['Net Optimizasyonu', 'Soru Tipleri'],
+            'avoid': ['Yeni Konu Öğrenme', 'Temel Tekrarlar']
+        },
+        'DENEME VE ANALİZ DÖNEM': {
+            'primary': ['Deneme Analizi', 'Net Artırma', 'Hata Minimizasyonu'],
+            'secondary': ['Stratejik Konular', 'Hızlı Eksik Kapatma'],
+            'avoid': ['Kapsamlı Yeni Öğrenme', 'Temel Seviye']
+        },
+        'SON SPRİNT DÖNEM': {
+            'primary': ['Güçlü Konular', 'Özgüven Artırma', 'Hızlı Tekrar'],
+            'secondary': ['Sınav Stratejisi', 'Stres Yönetimi'],
+            'avoid': ['Zor Yeni Konular', 'Uzun Çalışma Seansları']
+        },
+        'MORAL KORUMA DÖNEM': {
+            'primary': ['Mental Hazırlık', 'Özgüven', 'Rahatlama'],
+            'secondary': ['Hızlı Tekrarlar', 'Pozitif Düşünce'],
+            'avoid': ['Stresli Çalışma', 'Yeni Konular', 'Çok Analiz']
+        }
+    }
+    
+    return focus_areas.get(period, focus_areas['TEMELCİ DÖNEM'])
+
+def show_time_strategy_dashboard(weekly_plan):
+    """🎯 Zamansal strateji dashboard'u"""
+    
+    time_strategy = weekly_plan.get('time_strategy', {})
+    deneme_strategy = weekly_plan.get('deneme_strategy', {})
+    recommendations = weekly_plan.get('period_recommendations', [])
+    focus_areas = weekly_plan.get('focus_areas', {})
+    
+    st.markdown("### 🎯 DÖNEM STRATEJİNİZ")
+    
+    # Ana strateji bilgileri
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        period_emoji = {
+            'TEMELCİ DÖNEM': '🧠',
+            'KONSOLDASYON DÖNEM': '🔗',
+            'EKSİK KAPATMA DÖNEM': '🎯',
+            'YOĞUN DENEMECİ DÖNEM': '🎲',
+            'DENEME VE ANALİZ DÖNEM': '📊',
+            'SON SPRİNT DÖNEM': '💎',
+            'MORAL KORUMA DÖNEM': '😌'
+        }
+        
+        period_name = time_strategy.get('period_name', 'GENEL')
+        emoji = period_emoji.get(period_name, '📚')
+        
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    padding: 20px; border-radius: 15px; text-align: center; color: white;">
+            <h3 style="margin: 0; color: white;">{emoji} {period_name}</h3>
+            <p style="margin: 5px 0; opacity: 0.9;">{time_strategy.get('special_notes', '')}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        intensity_colors = {
+            'sakin': '#28a745',
+            'normal': '#17a2b8', 
+            'artiriyor': '#ffc107',
+            'yuksek': '#fd7e14',
+            'maksimum': '#dc3545',
+            'kontrollü_yoğun': '#e83e8c'
+        }
+        
+        intensity = time_strategy.get('study_intensity', 'normal')
+        color = intensity_colors.get(intensity, '#17a2b8')
+        
+        st.markdown(f"""
+        <div style="background-color: {color}; padding: 20px; border-radius: 15px; text-align: center; color: white;">
+            <h4 style="margin: 0; color: white;">📈 ÇALIŞMA YoĞUNLUĞU</h4>
+            <h3 style="margin: 5px 0; color: white;">{intensity.upper()}</h3>
+            <p style="margin: 0; opacity: 0.9;">Haftalık {time_strategy.get('new_topics_per_week', 0)} yeni konu</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+                    padding: 20px; border-radius: 15px; text-align: center; color: white;">
+            <h4 style="margin: 0; color: white;">🎲 DENEME STRATEJİSİ</h4>
+            <h3 style="margin: 5px 0; color: white;">{time_strategy.get('deneme_frequency', 'Belirtilmemiş')}</h3>
+            <p style="margin: 0; opacity: 0.9;">{deneme_strategy.get('type', 'Genel deneme').replace('_', ' ').title()}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Detaylı bilgiler
+    col4, col5 = st.columns(2)
+    
+    with col4:
+        st.markdown("#### 💡 DÖNEM ÖNERİLERİ")
+        for i, rec in enumerate(recommendations[:5], 1):
+            st.markdown(f"**{i}.** {rec}")
+        
+        if len(recommendations) > 5:
+            with st.expander("Daha fazla öneri..."):
+                for i, rec in enumerate(recommendations[5:], 6):
+                    st.markdown(f"**{i}.** {rec}")
+    
+    with col5:
+        st.markdown("#### 🎯 ODAK ALANLARI")
+        
+        # Öncelikli alanlar
+        if focus_areas.get('primary'):
+            st.markdown("**🔥 Öncelikli:**")
+            for area in focus_areas['primary']:
+                st.markdown(f"• {area}")
+        
+        # İkincil alanlar
+        if focus_areas.get('secondary'):
+            st.markdown("**⚡ İkincil:**")
+            for area in focus_areas['secondary']:
+                st.markdown(f"• {area}")
+        
+        # Kaçınılacaklar
+        if focus_areas.get('avoid'):
+            st.markdown("**❌ Kaçın:**")
+            for area in focus_areas['avoid']:
+                st.markdown(f"• {area}")
+    
+    # Deneme strateji detayları
+    if deneme_strategy:
+        st.markdown("---")
+        st.markdown("#### 📊 DENEME STRATEJİ DETAYLARI")
+        
+        deneme_col1, deneme_col2 = st.columns(2)
+        
+        with deneme_col1:
+            st.markdown(f"**🎯 Sıklık:** {deneme_strategy.get('frequency_description', 'Belirtilmemiş')}")
+            st.markdown(f"**🔍 Analiz Odağı:** {deneme_strategy.get('analysis_focus', 'Genel analiz')}")
+        
+        with deneme_col2:
+            st.markdown(f"**💡 Önerisi:** {deneme_strategy.get('recommendation', 'Deneme sonrası analiz yapın')}")
+            
+            # Deneme sonrası ne yapacağını net söyle
+            if time_strategy.get('period_name') == 'YOĞUN DENEMECİ DÖNEM':
+                st.success("🎯 Nisan Dönemdesiniz! Deneme stratejilerine odaklanın!")
+            elif time_strategy.get('period_name') == 'DENEME VE ANALİZ DÖNEM':
+                st.warning("📊 Mayıs Dönemdesiniz! Her deneme sonrası detaylı analiz!")
+    
+    # Kalan gün sayısına göre motivasyon mesajı
+    days_to_yks = time_strategy.get('days_to_yks', 300)
+    if days_to_yks <= 30:
+        st.error(f"⚡ Sadece {days_to_yks} gün kaldı! Son sprint zamanı!")
+    elif days_to_yks <= 60:
+        st.warning(f"🔥 {days_to_yks} gün kaldı! Yoğun deneme dönemi!")
+    elif days_to_yks <= 120:
+        st.info(f"💪 {days_to_yks} gün kaldı! Eksikleri kapatma zamanı!")
+    else:
+        st.success(f"📚 {days_to_yks} gün var! Sağlam temel atma dönemi!")
 
 def show_time_based_progress_analysis(user_data, week_info):
     """Günlük/Haftalık/Aylık ilerleme analizi - YKS odaklı"""
@@ -7410,12 +8182,28 @@ def complete_topic_with_mastery_system(user_data, topic_key, net_value):
     return user_data
 
 def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data):
-    """YENİ SİSTEMATİK HAFTALİK PLAN ÜRETİCİSİ - TYT/AYT AKILLI GEÇİŞ SİSTEMİ (DİNAMİK)"""
+    """🎯 YENİ ZAMANSAL STRATEJİ HAFTALIK PLAN ÜRETİCİSİ - DÖNEM BAZLI DİNAMİK SİSTEM"""
     
     # Güncel zaman bilgisi al
     week_info = get_current_week_info()
     current_week = week_info['week_number']
+    current_month = week_info['today'].month
     days_to_yks = week_info['days_to_yks']
+    
+    # 🚀 ZAMANSAL STRATEJİ ALMA - DÖNEMİ BELİRLE
+    time_strategy = get_time_based_strategy(days_to_yks, current_month)
+    deneme_strategy = get_deneme_strategy_by_period(time_strategy)
+    
+    # Strateji bilgilerini debug için kaydet
+    strategy_info = {
+        'period': time_strategy['period_name'],
+        'focus': time_strategy['focus'],
+        'deneme_freq': time_strategy['deneme_frequency'],
+        'new_topics_limit': time_strategy['new_topics_per_week'],
+        'review_ratio': time_strategy['review_ratio'],
+        'intensity': time_strategy['study_intensity'],
+        'days_to_yks': days_to_yks
+    }
     
     # TYT ve AYT ilerlemesini hesapla
     tyt_progress = calculate_tyt_progress(user_data)
@@ -7445,11 +8233,21 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             # TYT konusuysa direkt ekle
             filtered_subjects.append(subject)
     
-    # Her dersin öncelik puanını hesapla (YENİ SİSTEM)
+    # 🎯 ZAMANSAL STRATEJİYE GÖRE DERS ÖNCELİKLERİNİ HESAPLA
     subject_priorities = {}
     for subject in filtered_subjects:
-        priority_score = calculate_subject_priority_new(subject, user_data, survey_data)
-        subject_priorities[subject] = priority_score
+        # Eski öncelik puanını al
+        base_priority_score = calculate_subject_priority_new(subject, user_data, survey_data)
+        
+        # Kullanıcının bu dersteki performansını hesapla (deneme veya konu ilerlemesi bazında)
+        user_performance = calculate_user_subject_performance(subject, user_data)
+        
+        # 🚀 ZAMANSAL STRATEJİYE GÖRE BOOST UYGULA
+        time_based_boost = get_time_based_priority_boost(time_strategy, subject, user_performance)
+        
+        # Final öncelik puanı
+        final_priority = base_priority_score + time_based_boost
+        subject_priorities[subject] = final_priority
     
     # Öncelik sırasına göre sırala
     sorted_subjects = sorted(subject_priorities.items(), key=lambda x: x[1], reverse=True)
@@ -7458,28 +8256,21 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     weekly_new_topics = []
     weekly_review_topics = []
     
-    # 1. KONU ÖNCELIK HESAPLAMA (Backend İşlemi)
+    # 1. 🎯 ZAMANSAL STRATEJİYE GÖRE KONU DAĞILIMI
     for subject, priority_score in sorted_subjects:
-        # Ders önem puanına göre haftalık limit
+        # Ders önem puanını al
         importance = SUBJECT_IMPORTANCE_SCORES.get(subject, 5)
-        weekly_limit = WEEKLY_TOPIC_LIMITS.get(importance, 1)
         
-        # Düşük öncelikli dersleri 2-3. hafta sonra başlat (DİNAMİK KONTROL)
-        if importance <= 4:
-            # Sistem kullanım süresini kontrol et
-            user_creation = user_data.get('created_at', '')
-            if user_creation:
-                try:
-                    creation_date = datetime.fromisoformat(user_creation)
-                    weeks_passed = (week_info['today'] - creation_date).days // 7
-                    if weeks_passed < 2:  # İlk 2 hafta atla
-                        continue
-                except:
-                    continue
-            else:
-                # Eğer kullanıcı oluşturma tarihi yoksa, güvenli olması için sadece yüksek öncelikli dersleri al
-                if current_week <= 2:  # İlk 2 hafta
-                    continue
+        # 🚀 ZAMANSAL STRATEJİYE GÖRE DİNAMİK HAFTALIK LİMİT HESAPLA
+        weekly_limit = calculate_dynamic_topic_limits(time_strategy, importance)
+        
+        # 📅 DÖNEM BAZLI DERS FİLTRELEME (Eski statik sistemin yerine)
+        should_include_subject = should_include_subject_in_period(
+            subject, importance, time_strategy, user_data, week_info
+        )
+        
+        if not should_include_subject:
+            continue
         
         # Sıralı konuları al
         sequential_topics = get_sequential_topics(subject, 
@@ -7492,9 +8283,18 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         
         weekly_new_topics.extend(sequential_topics)
     
-    # 2. TEKRAR KONULARI (Bilimsel Aralıklarla)
-    review_topics = calculate_spaced_repetition_topics(user_data)
-    weekly_review_topics = review_topics[:8]  # Max 8 tekrar konusu/hafta
+    # 2. 🔄 ZAMANSAL STRATEJİYE GÖRE TEKRAR KONULARI
+    all_review_topics = calculate_spaced_repetition_topics(user_data)
+    
+    # 🎯 DÖNEM BAZLI TEKRAR KONUSU LİMİTİ
+    max_review_topics = calculate_review_topics_limit_by_period(time_strategy)
+    
+    # 📊 STRATEJİYE GÖRE TEKRAR KONULARİNİ FİLTRELE VE SIRALA
+    filtered_review_topics = filter_review_topics_by_strategy(
+        all_review_topics, time_strategy, user_data
+    )
+    
+    weekly_review_topics = filtered_review_topics[:max_review_topics]
     
     # 4. TÜM KONULARI HESAPLA (Pomodoro Timer için)
     all_available_topics = []
@@ -7523,17 +8323,24 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         except Exception as e:
             continue
     
-    # 5. TOPLAM PLAN
+    # 5. 🎯 ZAMANSAL STRATEJİ İLE TOPLAM PLAN
     total_plan = {
-        'new_topics': weekly_new_topics[:15],  # Max 15 yeni konu
+        'new_topics': weekly_new_topics[:time_strategy['new_topics_per_week']],  # Strateji bazlı limit
         'review_topics': weekly_review_topics,
         'all_topics': all_available_topics[:25],  # Max 25 tüm konu (Pomodoro için)
-        'week_target': len(weekly_new_topics[:15]) + len(weekly_review_topics),
+        'week_target': len(weekly_new_topics[:time_strategy['new_topics_per_week']]) + len(weekly_review_topics),
         'success_target': 0.8,  # %80 başarı hedefi
         'projections': calculate_completion_projections(user_data, student_field, days_to_yks),
         'tyt_progress': tyt_progress,
         'ayt_enabled': include_ayt,
-        'tyt_math_completed': tyt_math_topics_completed
+        'tyt_math_completed': tyt_math_topics_completed,
+        
+        # 🚀 ZAMANSAL STRATEJİ BİLGİLERİ
+        'time_strategy': time_strategy,
+        'deneme_strategy': deneme_strategy,
+        'strategy_info': strategy_info,
+        'period_recommendations': get_period_specific_recommendations(time_strategy, user_data),
+        'focus_areas': get_focus_areas_by_period(time_strategy, user_data)
     }
     
     return total_plan
