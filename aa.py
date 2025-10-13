@@ -5751,7 +5751,7 @@ def show_pomodoro_interface(user_data):
     st.markdown("---")
     
     # Çalışma konusu seçimi
-    st.markdown("### 📚 Çalışma Konusu")
+    st.markdown("### 📚 Ders:")
     
     col1, col2 = st.columns(2)
     
@@ -5833,25 +5833,29 @@ def show_pomodoro_interface(user_data):
             
             # 1. Haftalık Hedef Konular bölümü
             if weekly_target_topics:
-                topic_options.append("─── 🎯 HAFTALİK HEDEF KONULAR ───")
+                topic_options.append("─── 📚 HAFTALİK HEDEF KONULAR ───")
                 for topic in weekly_target_topics[:10]:  # Max 10 konu
                     topic_name = topic.get('topic', topic.get('subject', str(topic)))
-                    topic_options.append(f"🎯 {topic_name}")
+                    # Her konu için 3 çalışma türü seçeneği
+                    topic_options.append(f"📖 {topic_name} - Konu Çalışması")
+                    topic_options.append(f"🔄 {topic_name} - Tekrar")
+                    topic_options.append(f"✏️ {topic_name} - Soru Çözüm")
             
             # 2. Tüm Konular bölümü
             if all_topics_raw:
                 topic_options.append("─── 📚 TÜM KONULAR ───")
                 for topic in all_topics_raw[:15]:  # Max 15 konu
                     topic_name = topic.get('topic', topic.get('subject', str(topic)))
-                    if f"🎯 {topic_name}" not in topic_options:  # Duplicate kontrolü
+                    # Duplicate kontrolü - haftalık hedeflerde yoksa ekle
+                    if not any(topic_name in opt for opt in topic_options if opt.startswith(("📖", "🔄", "✏️"))):
                         topic_options.append(f"📚 {topic_name}")
             
             # 3. Deneme Sınavı seçeneği
             topic_options.append("─── 📝 ÖZELLEŞTİRİLMİŞ ───")
             topic_options.append("📝 Deneme Sınavı")
             
-            # 4. Diğer seçeneği
-            topic_options.append("📂 Diğer (Manuel Yazma)")
+            # 4. Diğer (Manuel) seçeneği
+            topic_options.append("📂 Diğer")
             
             # Konu seçimi dropdown
             selected_topic_option = st.selectbox(
@@ -5869,12 +5873,12 @@ def show_pomodoro_interface(user_data):
                 # Başlık seçilmişse varsayılana dön
                 st.warning("⚠️ Lütfen bir konu seçin, başlık seçilemez.")
                 st.session_state.current_topic = ""
-            elif selected_topic_option == "📂 Diğer (Manuel Yazma)":
+            elif selected_topic_option == "📂 Diğer":
                 # Manuel konu girişi
                 manual_topic_input = st.text_input(
                     "Manuel Konu Girişi:",
                     value=st.session_state.current_topic if not any(
-                        st.session_state.current_topic.startswith(prefix) for prefix in ["🎯 ", "📝 ", "📚 "]
+                        st.session_state.current_topic.startswith(prefix) for prefix in ["📖 ", "🔄 ", "✏️ ", "📝 ", "📚 "]
                     ) else "",
                     placeholder="örn: Özet Çıkarma, Formül Tekrarı, Defter Düzenleme",
                     disabled=st.session_state.pomodoro_active,
@@ -5897,49 +5901,81 @@ def show_pomodoro_interface(user_data):
                     st.session_state.current_topic = f"Deneme: {deneme_input}"
             elif selected_topic_option != "🔄 Yeni Konu Seç...":
                 # Konu listelerinden seçim
-                # Emoji prefix'i temizle
-                clean_topic = selected_topic_option.replace("🎯 ", "").replace("📝 ", "").replace("📚 ", "")
-                st.session_state.current_topic = clean_topic
-                
-                # Seçilen konunun detaylarını göster
-                selected_topic_detail = None
-                
-                # Önce haftalık hedef konularda ara
-                for topic in weekly_target_topics:
-                    topic_name = topic.get('topic', topic.get('subject', str(topic)))
-                    if clean_topic == topic_name:
-                        selected_topic_detail = topic
-                        break
-                
-                # Bulunamazsa tüm konularda ara
-                if not selected_topic_detail and all_topics_raw:
-                    for topic in all_topics_raw:
+                # Çalışma türünü ve konu adını ayır
+                if any(selected_topic_option.startswith(prefix) for prefix in ["📖 ", "🔄 ", "✏️ "]):
+                    # Haftalık hedef konular - çalışma türü ile
+                    if " - " in selected_topic_option:
+                        parts = selected_topic_option.split(" - ", 1)
+                        if len(parts) == 2:
+                            topic_part = parts[0].replace("📖 ", "").replace("🔄 ", "").replace("✏️ ", "")
+                            study_type = parts[1]
+                            st.session_state.current_topic = f"{topic_part} ({study_type})"
+                        else:
+                            clean_topic = selected_topic_option.replace("📖 ", "").replace("🔄 ", "").replace("✏️ ", "")
+                            st.session_state.current_topic = clean_topic
+                    else:
+                        clean_topic = selected_topic_option.replace("📖 ", "").replace("🔄 ", "").replace("✏️ ", "")
+                        st.session_state.current_topic = clean_topic
+                    
+                    # Haftalık hedef konularından detay göster
+                    base_topic = selected_topic_option.split(" - ")[0].replace("📖 ", "").replace("🔄 ", "").replace("✏️ ", "")
+                    selected_topic_detail = None
+                    
+                    for topic in weekly_target_topics:
                         topic_name = topic.get('topic', topic.get('subject', str(topic)))
-                        if clean_topic == topic_name:
+                        if base_topic == topic_name:
                             selected_topic_detail = topic
                             break
-                
-                if selected_topic_detail:
-                    # Konu detayı bilgi kutusu
-                    topic_subject = selected_topic_detail.get('subject', 'Bilinmiyor')
-                    topic_priority = selected_topic_detail.get('priority', 'NORMAL')
-                    topic_reason = selected_topic_detail.get('reason', 'Konu takip sistemi')
                     
-                    priority_info = {
-                        'HIGH': {'icon': '🔴', 'name': 'Yüksek'},
-                        'MEDIUM': {'icon': '🟡', 'name': 'Orta'},
-                        'NORMAL': {'icon': '🟢', 'name': 'Normal'},
-                        'LOW': {'icon': '🔵', 'name': 'Düşük'},
-                        'MINIMAL': {'icon': '⚪', 'name': 'Minimal'}
-                    }
+                    if selected_topic_detail:
+                        # Çalışma türüne göre emoji ve açıklama
+                        study_type_info = {
+                            "Konu Çalışması": {"emoji": "📖", "desc": "Yeni kavramları öğrenme"},
+                            "Tekrar": {"emoji": "🔄", "desc": "Daha önce öğrenilenları pekiştirme"},
+                            "Soru Çözüm": {"emoji": "✏️", "desc": "Pratik yapma ve test etme"}
+                        }
+                        
+                        current_study_type = selected_topic_option.split(" - ")[-1] if " - " in selected_topic_option else "Konu Çalışması"
+                        study_info = study_type_info.get(current_study_type, study_type_info["Konu Çalışması"])
+                        
+                        topic_subject = selected_topic_detail.get('subject', 'Bilinmiyor')
+                        topic_priority = selected_topic_detail.get('priority', 'NORMAL')
+                        topic_reason = selected_topic_detail.get('reason', 'Haftalık plan')
+                        
+                        priority_info = {
+                            'HIGH': {'icon': '🔴', 'name': 'Yüksek'},
+                            'MEDIUM': {'icon': '🟡', 'name': 'Orta'},
+                            'NORMAL': {'icon': '🟢', 'name': 'Normal'},
+                            'LOW': {'icon': '🔵', 'name': 'Düşük'},
+                            'MINIMAL': {'icon': '⚪', 'name': 'Minimal'}
+                        }
+                        
+                        priority_data = priority_info.get(topic_priority, priority_info['NORMAL'])
+                        
+                        st.info(f"""
+                        **📚 Ders:** {topic_subject}  
+                        **{study_info['emoji']} Çalışma Türü:** {current_study_type} - {study_info['desc']}  
+                        **⚡ Öncelik seviyesi:** {priority_data['icon']} {priority_data['name']}  
+                        **📋 Neden bu hafta planında:** {topic_reason}
+                        """)
+                else:
+                    # Tüm konular bölümünden seçim
+                    clean_topic = selected_topic_option.replace("📚 ", "")
+                    st.session_state.current_topic = clean_topic
                     
-                    priority_data = priority_info.get(topic_priority, priority_info['NORMAL'])
+                    # Tüm konularda ara
+                    selected_topic_detail = None
+                    if all_topics_raw:
+                        for topic in all_topics_raw:
+                            topic_name = topic.get('topic', topic.get('subject', str(topic)))
+                            if clean_topic == topic_name:
+                                selected_topic_detail = topic
+                                break
                     
-                    st.info(f"""
-                    **📚 Ders:** {topic_subject}  
-                    **⚡ Öncelik seviyesi:** {priority_data['icon']} {priority_data['name']}  
-                    **📋 Neden bu hafta planında:** {topic_reason}
-                    """)
+                    if selected_topic_detail:
+                        topic_subject = selected_topic_detail.get('subject', 'Bilinmiyor')
+                        st.info(f"**📚 Ders:** {topic_subject}")
+
             
             # Eğer hiçbir konu seçilmemişse varsayılan değer
             if not st.session_state.current_topic and selected_topic_option == "🔄 Yeni Konu Seç...":
