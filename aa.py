@@ -15338,7 +15338,7 @@ def show_simple_leaderboard(user_data):
     """🏆 Basit Rekabet Listesi - İsteğe Bağlı Katılım"""
     
     # Kullanıcının katılım durumunu kontrol et (güncel veriyi al)
-    current_user_data = get_user_data()  # Güncel veriyi Firebase'den al
+    current_user_data = get_user_data(st.session_state.current_user)  # Güncel veriyi Firebase'den al
     is_participating = current_user_data.get('competition_participating', False)
     
     # Katılım kontrolü - Kırmızı tema
@@ -15373,6 +15373,9 @@ def show_simple_leaderboard(user_data):
                 if 'user_data' in st.session_state:
                     st.session_state.user_data['competition_participating'] = False
                 
+                # Güncel veriyi tekrar al
+                st.session_state.user_data = get_user_data(st.session_state.current_user)
+                
                 st.success("✅ Rekabetten ayrıldın! Liderboard'dan çıkarıldın.")
                 st.rerun()
         else:
@@ -15383,6 +15386,9 @@ def show_simple_leaderboard(user_data):
                 # Session state'i de güncelle
                 if 'user_data' in st.session_state:
                     st.session_state.user_data['competition_participating'] = True
+                
+                # Güncel veriyi tekrar al
+                st.session_state.user_data = get_user_data(st.session_state.current_user)
                 
                 st.success("🏆 Rekabete katıldın! Liderboard'da görünüyorsun.")
                 st.rerun()
