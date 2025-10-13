@@ -15325,19 +15325,79 @@ def show_topic_scheduler_bonus(topic, user_data, index):
 # === 🏆 BASİT REKABET SİSTEMİ ===
 
 def competition_leaderboard_page(user_data):
-    """🏆 Basit ve Hızlı Rekabet Panosu"""
-    st.markdown(f'<div class="main-header"><h1>🏆 Rekabet Panosu</h1><p>Haftalık güncellenen rekabet listesi - Günlük sosyal medya takibi! 📱⬇️</p></div>', unsafe_allow_html=True)
+    """🏆 İsteğe Bağlı Rekabet Panosu"""
+    st.markdown(f'<div class="main-header"><h1>🏆 Rekabet Panosu</h1><p>İsteğe bağlı katılım - Günlük sosyal medya takibi! 📱⬇️</p></div>', unsafe_allow_html=True)
     
     # Günlük temizlik kontrolü
     clean_old_daily_data()
     
-    # Basit rekabet sistemi - herkes otomatik katılıyor
+    # İsteğe bağlı rekabet sistemi
     show_simple_leaderboard(user_data)
 
 def show_simple_leaderboard(user_data):
-    """🏆 Basit Rekabet Listesi - Haftalık Güncellenen"""
+    """🏆 Basit Rekabet Listesi - İsteğe Bağlı Katılım"""
     
-    # Haftalık liderboard hesapla
+    # Kullanıcının katılım durumunu kontrol et
+    is_participating = user_data.get('competition_participating', False)
+    
+    # Katılım kontrolü - Kırmızı tema
+    st.markdown("### 🎯 Rekabet Sistemi Katılımı")
+    
+    col_join1, col_join2 = st.columns([3, 2])
+    
+    with col_join1:
+        if is_participating:
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); 
+                        padding: 15px; border-radius: 10px; color: white; margin: 10px 0;">
+                <h4 style="color: white; margin: 0;">✅ Rekabet sistemine katılıyorsun!</h4>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
+                        padding: 15px; border-radius: 10px; color: white; margin: 10px 0;">
+                <h4 style="color: white; margin: 0;">📢 Rekabet sistemine katılmak istersen butona tıkla</h4>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col_join2:
+        st.markdown("<br>", unsafe_allow_html=True)  # Boşluk için
+        if is_participating:
+            if st.button("🚪 Rekabetten Ayrıl", key="leave_competition", use_container_width=True):
+                user_data['competition_participating'] = False
+                save_user_data(st.session_state.current_user, user_data)
+                st.success("Rekabetten ayrıldın!")
+                st.rerun()
+        else:
+            if st.button("🏆 Rekabete Katıl", key="join_competition", use_container_width=True):
+                user_data['competition_participating'] = True
+                save_user_data(st.session_state.current_user, user_data)
+                st.success("Rekabete katıldın!")
+                st.rerun()
+    
+    # Eğer katılmıyorsa sadece bilgi göster
+    if not is_participating:
+        st.markdown("---")
+        st.markdown("### 📊 Rekabet Sistemine Katılmadın")
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
+                    padding: 20px; border-radius: 15px; color: white; margin: 10px 0; text-align: center;">
+            <h4 style="color: white; margin-bottom: 15px;">🏆 Rekabete Katılmadın</h4>
+            <div style="font-size: 16px; line-height: 1.6;">
+                Rekabete katıldığında:<br>
+                • Haftalık sıralaman görünecek<br>
+                • Diğer öğrencilerle karşılaştırma yapabileceksin<br>
+                • Sosyal medya takibin başlayacak<br>
+                • Puanlama sistemine dahil olacaksın
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        return
+    
+    st.markdown("---")
+    
+    # Haftalık liderboard hesapla (sadece katılanlar)
     weekly_leaders = calculate_weekly_leaderboard()
     current_user_stats = calculate_user_weekly_performance(user_data)
     
@@ -15352,7 +15412,12 @@ def show_simple_leaderboard(user_data):
     user_sm_data = get_user_daily_social_media(st.session_state.current_user)
     
     if today_key in user_sm_data:
-        st.success(f"✅ Bugün sosyal medya süren kaydedildi: {user_sm_data[today_key]:.1f} saat")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); 
+                    padding: 15px; border-radius: 10px; color: white; margin: 10px 0;">
+            <h4 style="color: white; margin: 0;">✅ Bugün sosyal medya süren kaydedildi: {user_sm_data[today_key]:.1f} saat</h4>
+        </div>
+        """, unsafe_allow_html=True)
     else:
         col_sm1, col_sm2 = st.columns([3, 2])
         
@@ -15381,11 +15446,11 @@ def show_simple_leaderboard(user_data):
     
     st.markdown("---")
     
-    # Modern metrik kartları - Büyük ve öne çıkan
+    # Kırmızı tema metrik kartları - Sade ve modern
     st.markdown("""
     <style>
     .metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
         padding: 20px;
         border-radius: 15px;
         text-align: center;
@@ -15397,10 +15462,21 @@ def show_simple_leaderboard(user_data):
         font-size: 28px;
         font-weight: bold;
         margin: 10px 0;
+        color: white;
     }
     .metric-label {
         font-size: 14px;
         opacity: 0.9;
+        color: white;
+    }
+    .metric-card-special {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        color: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        margin: 10px 0;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -15444,7 +15520,7 @@ def show_simple_leaderboard(user_data):
     
     with col5:
         st.markdown(f"""
-        <div class="metric-card" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">
+        <div class="metric-card-special">
             <div class="metric-label">📱 Sosyal Medya</div>
             <div class="metric-value">{current_user_stats['social_media_hours']:.1f}h</div>
         </div>
@@ -15463,32 +15539,32 @@ def show_simple_leaderboard(user_data):
     for i, leader in enumerate(weekly_leaders[:20]):
         rank = i + 1
         
-        # Rozet sistemi - Sosyal medya dahil yeni sıralama
+        # Kırmızı tema rozet sistemi - Sade ve modern
         if rank == 1:
             medal = "🥇"
-            bg_color = "#fff9e6"
+            bg_color = "#e74c3c"
             border_color = "#FFD700"
-            text_color = "#000000"
+            text_color = "#ffffff"
         elif rank == 2:
             medal = "🥈" 
-            bg_color = "#f8f9fa"
+            bg_color = "#c0392b"
             border_color = "#C0C0C0"
-            text_color = "#000000"
+            text_color = "#ffffff"
         elif rank == 3:
             medal = "🥉"
-            bg_color = "#fdf6f0"
+            bg_color = "#a93226"
             border_color = "#CD7F32"
-            text_color = "#000000"
+            text_color = "#ffffff"
         elif rank <= 10:
             medal = f"{rank}️⃣"
-            bg_color = "#f0f9ff"
-            border_color = "#3b82f6"
-            text_color = "#000000"
+            bg_color = "#922b21"
+            border_color = "#e74c3c"
+            text_color = "#ffffff"
         else:
             medal = f"{rank}"
-            bg_color = "#ffffff"
-            border_color = "#e5e7eb"
-            text_color = "#374151"
+            bg_color = "#641e16"
+            border_color = "#c0392b"
+            text_color = "#ffffff"
         
         # İlerleme oranı hesapla
         avg_progress = (leader['tyt_progress'] + leader['ayt_progress']) / 2
@@ -15519,19 +15595,19 @@ def show_simple_leaderboard(user_data):
         st.markdown("---")
         st.markdown(f"### 📍 Sizin Pozisyonunuz: #{user_rank}")
         
-        # Kullanıcının kartını göster - Modern ve büyük
+        # Kullanıcının kartını göster - Kırmızı tema
         avg_progress = (current_user_stats['tyt_progress'] + current_user_stats['ayt_progress']) / 2
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); padding: 20px; border-radius: 15px; 
-                    border-left: 6px solid #e17055; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
-            <div style="font-size: 22px; font-weight: bold; color: #2d3436; margin-bottom: 8px;">
+        <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); padding: 20px; border-radius: 15px; 
+                    border-left: 6px solid #2c3e50; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
+            <div style="font-size: 22px; font-weight: bold; color: #ffffff; margin-bottom: 8px;">
                 {st.session_state.current_user}
             </div>
-            <div style="font-size: 16px; color: #2d3436; font-weight: 500; line-height: 1.4;">
+            <div style="font-size: 16px; color: #ffffff; font-weight: 500; line-height: 1.4;">
                 📝 <span style="font-weight: bold;">{current_user_stats['questions_solved']}</span> soru | 
                 📈 <span style="font-weight: bold;">%{avg_progress:.1f}</span> | 
                 ⏱️ <span style="font-weight: bold;">{current_user_stats['study_hours']:.1f}h</span> | 
-                📱 <span style="color: #e17055; font-weight: bold;">{current_user_stats['social_media_hours']:.1f}h</span>
+                📱 <span style="color: #2c3e50; font-weight: bold;">{current_user_stats['social_media_hours']:.1f}h</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -15544,7 +15620,7 @@ def show_simple_leaderboard(user_data):
     
     with col_info1:
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); 
+        <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
                     padding: 20px; border-radius: 15px; color: white; margin: 10px 0;">
             <h4 style="color: white; margin-bottom: 15px;">🏆 Nasıl Puanlanıyor?</h4>
             <div style="font-size: 16px; line-height: 1.6;">
@@ -15558,7 +15634,7 @@ def show_simple_leaderboard(user_data):
     
     with col_info2:
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #00b894 0%, #00a085 100%); 
+        <div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); 
                     padding: 20px; border-radius: 15px; color: white; margin: 10px 0;">
             <h4 style="color: white; margin-bottom: 15px;">📱 Günlük Sistem</h4>
             <div style="font-size: 16px; line-height: 1.6;">
@@ -15571,14 +15647,14 @@ def show_simple_leaderboard(user_data):
         """, unsafe_allow_html=True)
     
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%); 
+    <div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); 
                 padding: 15px; border-radius: 10px; text-align: center; color: white; margin: 20px 0;">
         <h4 style="color: white; margin: 0;">💡 Sosyal medyayı azalt, çalışma saatini artır!</h4>
     </div>
     """, unsafe_allow_html=True)
 
 def calculate_weekly_leaderboard():
-    """Haftalık liderboard hesaplar - Basit ve hızlı"""
+    """Haftalık liderboard hesaplar - Sadece katılan kullanıcılar"""
     try:
         # Firebase'den tüm kullanıcı verilerini al (3 saniye timeout)
         users_data = load_users_from_firebase()
@@ -15590,6 +15666,10 @@ def calculate_weekly_leaderboard():
         
         for username, user_data in users_data.items():
             try:
+                # Sadece rekabete katılan kullanıcıları dahil et
+                if not user_data.get('competition_participating', False):
+                    continue
+                
                 # Kullanıcının haftalık performansını hesapla
                 performance = calculate_user_weekly_performance(user_data)
                 performance['username'] = username
@@ -15599,7 +15679,7 @@ def calculate_weekly_leaderboard():
                 # Hatalı veri varsa atla
                 continue
         
-        # Toplam skorla sırala (3 kriterin toplamı)
+        # Toplam skorla sırala (4 kriterin toplamı)
         weekly_leaders.sort(key=lambda x: x['total_score'], reverse=True)
         
         return weekly_leaders
