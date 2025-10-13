@@ -15365,14 +15365,12 @@ def show_simple_leaderboard(user_data):
         st.markdown("<br>", unsafe_allow_html=True)  # Boşluk için
         if is_participating:
             if st.button("🚪 Rekabetten Ayrıl", key="leave_competition", use_container_width=True):
-                user_data['competition_participating'] = False
-                save_user_data(st.session_state.current_user, user_data)
+                update_user_in_firebase(st.session_state.current_user, {'competition_participating': False})
                 st.success("Rekabetten ayrıldın!")
                 st.rerun()
         else:
             if st.button("🏆 Rekabete Katıl", key="join_competition", use_container_width=True):
-                user_data['competition_participating'] = True
-                save_user_data(st.session_state.current_user, user_data)
+                update_user_in_firebase(st.session_state.current_user, {'competition_participating': True})
                 st.success("Rekabete katıldın!")
                 st.rerun()
     
@@ -15394,6 +15392,11 @@ def show_simple_leaderboard(user_data):
         </div>
         """, unsafe_allow_html=True)
         return
+    
+    st.markdown("---")
+    
+    # **YENİ**: Kendisiyle yarışma sistemi 
+    show_self_competition_section(user_data)
     
     st.markdown("---")
     
@@ -15854,8 +15857,7 @@ def save_daily_social_media_time(username, total_hours):
         social_media_data[today_key] = total_hours
         
         # Firebase'e kaydet
-        user_data['social_media_daily'] = json.dumps(social_media_data)
-        save_user_data(username, user_data)
+        update_user_in_firebase(username, {'social_media_daily': json.dumps(social_media_data)})
         
         return True
         
@@ -15866,11 +15868,186 @@ def save_daily_social_media_time(username, total_hours):
 def get_user_daily_social_media(username):
     """Kullanıcının günlük sosyal medya verilerini al"""
     try:
-        user_data = load_user_data(username)
+        # Mevcut kullanıcı verilerini al
+        if username == st.session_state.current_user:
+            user_data = get_user_data()
+        else:
+            users_db = load_users_from_firebase()
+            user_data = users_db.get(username, {})
+        
         social_media_str = user_data.get('social_media_daily', '{}')
         return json.loads(social_media_str) if social_media_str else {}
     except:
         return {}
+
+def show_self_competition_section(user_data):
+    """Kendisiyle yarışma bölümü - En büyük zafer dünkü senle bugünkü senin arasındaki farktır"""
+    st.markdown("### 🎯 Kendisiyle Yarışma - En Büyük Zafer!")
+    
+    # Son 7 günün verilerini al
+    personal_progress = get_personal_weekly_progress(st.session_state.current_user)
+    
+    if len(personal_progress) < 2:
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
+                    padding: 15px; border-radius: 10px; color: white; margin: 10px 0; text-align: center;">
+            <h4 style="color: white; margin: 0;">💪 Kendini geçmeye başla!</h4>
+            <p style="margin: 5px 0;">En az 2 gün veri olunca kendi gelişimini görebileceksin</p>
+        </div>
+        """, unsafe_allow_html=True)
+        return
+    
+    # Son gün vs önceki gün karşılaştırması
+    latest_day = personal_progress[-1]
+    previous_day = personal_progress[-2]
+    
+    col_self1, col_self2, col_self3 = st.columns(3)
+    
+    # Sosyal medya karşılaştırması (az olan iyi)
+    sm_diff = latest_day['social_media'] - previous_day['social_media']
+    sm_trend = "📉" if sm_diff < 0 else "📈" if sm_diff > 0 else "➡️"
+    sm_color = "#27ae60" if sm_diff < 0 else "#e74c3c" if sm_diff > 0 else "#f39c12"
+    
+    # Çalışma saati karşılaştırması (çok olan iyi)
+    study_diff = latest_day['study_hours'] - previous_day['study_hours']
+    study_trend = "📈" if study_diff > 0 else "📉" if study_diff < 0 else "➡️"
+    study_color = "#27ae60" if study_diff > 0 else "#e74c3c" if study_diff < 0 else "#f39c12"
+    
+    # Soru karşılaştırması (çok olan iyi)
+    question_diff = latest_day['questions'] - previous_day['questions']
+    question_trend = "📈" if question_diff > 0 else "📉" if question_diff < 0 else "➡️"
+    question_color = "#27ae60" if question_diff > 0 else "#e74c3c" if question_diff < 0 else "#f39c12"
+    
+    with col_self1:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, {sm_color} 0%, {sm_color}AA 100%); 
+                    padding: 15px; border-radius: 10px; color: white; text-align: center;">
+            <div style="font-size: 24px;">{sm_trend}</div>
+            <div style="font-size: 16px; font-weight: bold;">Sosyal Medya</div>
+            <div style="font-size: 14px;">Dün: {previous_day['social_media']:.1f}h</div>
+            <div style="font-size: 14px;">Bugün: {latest_day['social_media']:.1f}h</div>
+            <div style="font-size: 12px;">Fark: {sm_diff:+.1f}h</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_self2:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, {study_color} 0%, {study_color}AA 100%); 
+                    padding: 15px; border-radius: 10px; color: white; text-align: center;">
+            <div style="font-size: 24px;">{study_trend}</div>
+            <div style="font-size: 16px; font-weight: bold;">Çalışma Saati</div>
+            <div style="font-size: 14px;">Dün: {previous_day['study_hours']:.1f}h</div>
+            <div style="font-size: 14px;">Bugün: {latest_day['study_hours']:.1f}h</div>
+            <div style="font-size: 12px;">Fark: {study_diff:+.1f}h</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_self3:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, {question_color} 0%, {question_color}AA 100%); 
+                    padding: 15px; border-radius: 10px; color: white; text-align: center;">
+            <div style="font-size: 24px;">{question_trend}</div>
+            <div style="font-size: 16px; font-weight: bold;">Soru Sayısı</div>
+            <div style="font-size: 14px;">Dün: {previous_day['questions']}</div>
+            <div style="font-size: 14px;">Bugün: {latest_day['questions']}</div>
+            <div style="font-size: 12px;">Fark: {question_diff:+}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Toplam motivasyon skoru
+    motivation_score = 0
+    if sm_diff < 0: motivation_score += 2  # Sosyal medya azalırsa +2
+    if study_diff > 0: motivation_score += 3  # Çalışma artırsa +3
+    if question_diff > 0: motivation_score += 3  # Soru artırsa +3
+    
+    if motivation_score >= 6:
+        motivation_msg = "🏆 MÜTHIŞ GELİŞİM! Kendini geçtin!"
+        motivation_color = "#27ae60"
+    elif motivation_score >= 3:
+        motivation_msg = "💪 İYİ GİDİYOR! Devam et!"
+        motivation_color = "#f39c12"
+    else:
+        motivation_msg = "🔥 DAHA İYİSİNİ YAPABİLİRSİN!"
+        motivation_color = "#e74c3c"
+    
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, {motivation_color} 0%, {motivation_color}AA 100%); 
+                padding: 20px; border-radius: 15px; color: white; text-align: center; margin: 15px 0;">
+        <h3 style="color: white; margin: 0;">{motivation_msg}</h3>
+        <p style="margin: 5px 0;">✨ "En büyük zafer dünkü senle bugünkü senin arasındaki farktır" ✨</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+def get_personal_weekly_progress(username):
+    """Son 7 günün kişisel gelişim verilerini al"""
+    try:
+        # Kullanıcı verilerini al
+        if username == st.session_state.current_user:
+            user_data = get_user_data()
+        else:
+            users_db = load_users_from_firebase()
+            user_data = users_db.get(username, {})
+        
+        # Sosyal medya verileri
+        social_media_str = user_data.get('social_media_daily', '{}')
+        social_media_data = json.loads(social_media_str) if social_media_str else {}
+        
+        # Pomodoro verileri
+        pomodoro_str = user_data.get('pomodoro_history', '[]')
+        pomodoro_data = json.loads(pomodoro_str) if pomodoro_str else []
+        
+        # Deneme verileri
+        deneme_str = user_data.get('deneme_analizleri', '[]')
+        deneme_data = json.loads(deneme_str) if deneme_str else []
+        
+        # Son 7 günün verilerini topla
+        progress_data = []
+        today = datetime.now()
+        
+        for i in range(7):
+            day_date = today - timedelta(days=i)
+            day_key = day_date.strftime('%Y-%m-%d')
+            
+            # O günün sosyal medya süresi
+            daily_sm = social_media_data.get(day_key, 0)
+            
+            # O günün çalışma saati (pomodoro)
+            daily_study = 0
+            for p in pomodoro_data:
+                try:
+                    if datetime.fromisoformat(p['timestamp']).date() == day_date.date():
+                        duration_map = {
+                            'Kısa Odak (25dk+5dk)': 25,
+                            'Standart Odak (35dk+10dk)': 35,
+                            'Derin Odak (50dk+15dk)': 50,
+                            'Tam Konsantrasyon (90dk+25dk)': 90
+                        }
+                        daily_study += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
+                except:
+                    continue
+            daily_study = daily_study / 60  # Dakikadan saate çevir
+            
+            # O günün soru sayısı
+            daily_questions = 0
+            for deneme in deneme_data:
+                try:
+                    if datetime.strptime(deneme.get('tarih', '2025-01-01'), '%Y-%m-%d').date() == day_date.date():
+                        daily_questions += deneme.get('toplam_dogru', 0)
+                except:
+                    continue
+            
+            progress_data.append({
+                'date': day_key,
+                'social_media': daily_sm,
+                'study_hours': daily_study,
+                'questions': daily_questions
+            })
+        
+        # Eski tarihten yeni tarihe sırala
+        return list(reversed(progress_data))
+        
+    except Exception as e:
+        return []
 
 def find_user_rank(weekly_leaders, username):
     """Kullanıcının haftalık sıralamasını bulur"""
@@ -15906,8 +16083,7 @@ def clean_old_daily_data():
                 cleaned_data = {k: v for k, v in social_media_data.items() if k in days_to_keep}
                 
                 if cleaned_data != social_media_data:
-                    user_data['social_media_daily'] = json.dumps(cleaned_data)
-                    save_user_data(username, user_data)
+                    update_user_in_firebase(username, {'social_media_daily': json.dumps(cleaned_data)})
                     
             except Exception:
                 continue
