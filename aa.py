@@ -10096,7 +10096,7 @@ def main():
                         st.session_state.user_music_creations = {}
                 
                 # Sekme sistemi - Müziklerimi Dinle | Yeni Müzik Yarat
-                music_tab1, music_tab2 = st.tabs(["🎧 Müziklerimi Dinle", "🎼 Yeni Müzik Oluştur"])
+                music_tab1, music_tab2 = st.tabs(["🎧 Müziklerimi Dinle", "🎼 Yeni Müzik Yarat"])
                 
                 with music_tab2:
                     # Form temizleme kontrolü
@@ -10617,6 +10617,375 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                         <li><strong>🔄 Tekrar:</strong> Oluşturduğun içerikleri düzenli gözden geçir</li>
                         <li><strong>🎭 Canlandır:</strong> Hikayeleri zihninde canlandır, müzikleri mırıldan</li>
                         <li><strong>🤝 Paylaş:</strong> Arkadaşlarınla oluşturduğun içerikleri paylaş</li>
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # 📚 KİTAP KARAKTERİ ANKETİ - YENİ!
+                st.markdown("---")
+                st.markdown("""
+                <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #4facfe 100%); color: white; padding: 30px; border-radius: 20px; margin: 40px 0; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                    <h1 style="margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">📚 "KİTAP KARAKTERİ" ANKETİ</h1>
+                    <p style="margin: 10px 0 0 0; font-size: 1.3rem; opacity: 0.95;">YKS öğrencisi için özel: Molana hangi kitap eşlik etsin?</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Kullanıcının kitap verilerini saklamak için Firebase entegrasyonu
+                if 'user_book_survey' not in st.session_state:
+                    username = st.session_state.get('current_user', None)
+                    if username:
+                        users_data = load_users_from_firebase()
+                        user_data = users_data.get(username, {})
+                        saved_book_data = user_data.get('book_survey_data', '{}')
+                        try:
+                            if isinstance(saved_book_data, str):
+                                st.session_state.user_book_survey = json.loads(saved_book_data)
+                            else:
+                                st.session_state.user_book_survey = saved_book_data if isinstance(saved_book_data, dict) else {}
+                        except (json.JSONDecodeError, TypeError):
+                            st.session_state.user_book_survey = {}
+                    else:
+                        st.session_state.user_book_survey = {}
+                
+                # Sekme sistemi - Anket Çöz | Okuma Takibim
+                book_tab1, book_tab2 = st.tabs(["📝 Kitap Anketi", "📖 Okuma Takibim"])
+                
+                with book_tab1:
+                    # Anket açıklama
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%); 
+                               border-radius: 15px; padding: 25px; margin: 20px 0;">
+                        <h3 style="color: #2d3748; margin-bottom: 20px; text-align: center;">📖 Merhaba! Bu yoğun YKS maratonunda kısa bir mola verip zihnini dinlendirecek o mükemmel kitabı bulmaya ne dersin?</h3>
+                        <p style="color: #2d3748; text-align: center; font-size: 1.1rem;">Aşağıdaki sorulara seni en iyi yansıtan cevabı seç, bakalım kitap karakterin neymiş!</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Kitap Anketi Soruları
+                    st.markdown("### 📝 Kitap Karakter Anketi")
+                    
+                    # Soru 1
+                    st.markdown("#### 1️⃣ Şu an ders çalışmıyorken zihnin en çok nerede olmak isterdi?")
+                    q1_answer = st.radio(
+                        "",
+                        [
+                            "a) Bambaşka bir evrende, ejderhaların veya uzay gemilerinin olduğu fantastik bir macerada.",
+                            "b) Tarihe yön vermiş bir liderin veya imkansızı başarmış bir bilim insanının yanında, ondan ilham alırken.",
+                            "c) Sakin bir kafede oturmuş, hayatın ve insanların neden böyle olduğunu derin derin düşünürken.",
+                            "d) En yakın arkadaşlarımla birlikte sıcak bir kahve içip dertleştiğim, samimi ve huzurlu bir sohbette."
+                        ],
+                        key="book_q1"
+                    )
+                    
+                    # Soru 2  
+                    st.markdown("#### 2️⃣ Bu aralar bir film izleyecek olsan, hangisini tercih ederdin?")
+                    q2_answer = st.radio(
+                        "",
+                        [
+                            "a) Beni koltuğuma bağlayacak, sonunu asla tahmin edemeyeceğim bir gizem veya macera filmi.",
+                            "b) Gerçek bir hayat hikayesinden uyarlanmış, zorlukların üstesinden gelip zafere ulaşan birini anlatan bir film.",
+                            "c) İzledikten sonra üzerine saatlerce düşüneceğim, 'Acaba ne demek istedi?' diye sorgulatacak sembolik bir film.",
+                            "d) Bolca güleceğim, içimi ısıtacak, bittiğinde yüzümde bir tebessüm bırakacak romantik komedi veya animasyon."
+                        ],
+                        key="book_q2"
+                    )
+                    
+                    # Soru 3
+                    st.markdown("#### 3️⃣ Bir süper gücün olsa, hangisini seçerdin?")
+                    q3_answer = st.radio(
+                        "",
+                        [
+                            "a) Işınlanma! Sınav stresinden anında uzaklaşıp dünyanın bambaşka yerlerini keşfetmek için.",
+                            "b) Süper dayanıklılık ve zihin gücü! Yorulmadan, pes etmeden hedeflerime ulaşmak için.",
+                            "c) Zamanı durdurma! Her şeyin bu kadar hızlı aktığı bir dünyada durup sakince düşünebilmek için.",
+                            "d) İnsanları iyileştirme ve mutlu etme! Etrafımdaki herkesin stresini alıp onlara huzur vermek için."
+                        ],
+                        key="book_q3"
+                    )
+                    
+                    # Soru 4
+                    st.markdown("#### 4️⃣ 'Keşke şu an biri bana şunu söylese...' dediğin cümle hangisi?")
+                    q4_answer = st.radio(
+                        "",
+                        [
+                            "a) 'Hadi gel, her şeyi bırakıp bambaşka bir dünyanın kapısını aralayalım.'",
+                            "b) 'Unutma, bugün döktüğün her damla ter, yarınki zaferinin müjdecisidir.'",
+                            "c) 'Peki sence bütün bu koşturmacanın ardındaki asıl anlam ne?'",
+                            "d) 'Hiçbir şeyi dert etme, her şey yoluna girecek. Sadece anın tadını çıkar.'"
+                        ],
+                        key="book_q4"
+                    )
+                    
+                    # Anket Sonucu Hesaplama
+                    if st.button("📊 Sonucu Öğren!", use_container_width=True, type="primary"):
+                        # Cevapları say
+                        answers = [q1_answer, q2_answer, q3_answer, q4_answer]
+                        a_count = sum(1 for answer in answers if answer.startswith('a)'))
+                        b_count = sum(1 for answer in answers if answer.startswith('b)'))
+                        c_count = sum(1 for answer in answers if answer.startswith('c)'))
+                        d_count = sum(1 for answer in answers if answer.startswith('d)'))
+                        
+                        # En çok seçilen harfi bul
+                        counts = {'A': a_count, 'B': b_count, 'C': c_count, 'D': d_count}
+                        dominant_type = max(counts, key=counts.get)
+                        
+                        # Kitap önerileri
+                        book_recommendations = {
+                            'A': {
+                                'type': '🌟 Kaçış ve Macera Ruhu!',
+                                'need': 'Gerçeklikten uzaklaşmak, zihnini tamamen boşaltmak.',
+                                'books': [
+                                    'Yüzüklerin Efendisi (J.R.R. Tolkien)',
+                                    'Marslı (Andy Weir)',
+                                    'Agatha Christie Polisiye Romanları',
+                                    'Harry Potter Serisi',
+                                    'Dune (Frank Herbert)',
+                                    'Sherlock Holmes Hikayeleri'
+                                ],
+                                'description': 'Sürükleyici Fantastik, Bilim Kurgu veya soluksuz okunan Polisiye türünde kitaplar senin için ideal! Bu kitaplar seni günlük stresinden uzaklaştırıp bambaşka dünyalara götürecek.',
+                                'color': '#8B5CF6'
+                            },
+                            'B': {
+                                'type': '⚡ İlham Arayan Savaşçı!',
+                                'need': 'Motivasyon, umut ve verilen emeklerin değerli olduğunu hissetmek.',
+                                'books': [
+                                    'Simyacı (Paulo Coelho)',
+                                    'Steve Jobs Biyografisi',
+                                    'Başarılı İnsanların 7 Alışkanlığı',
+                                    'Elon Musk Biyografisi',
+                                    'Zoraki Kahraman',
+                                    'İnsanın Anlam Arayışı (Viktor Frankl)'
+                                ],
+                                'description': 'Başarılı insanların Biyografileri, zorlukların aşıldığı Gerçek Hikayeler veya yolculuk temalı romanlar tam sana göre! Bu kitaplar sana güç ve ilham verecek.',
+                                'color': '#10B981'
+                            },
+                            'C': {
+                                'type': '🤔 Derin Düşünür!',
+                                'need': 'Ufkunu genişletmek ve hayatı sorgulamak.',
+                                'books': [
+                                    'Satranç (Stefan Zweig)',
+                                    'Bilinmeyen Bir Kadının Mektubu (Stefan Zweig)',
+                                    'Hayvan Çiftliği (George Orwell)',
+                                    'Yabancı (Albert Camus)',
+                                    '1984 (George Orwell)',
+                                    'Suç ve Ceza (Dostoyevski)'
+                                ],
+                                'description': 'Stefan Zweig\'ın kısa ama etkileyici romanları, George Orwell klasikleri veya Albert Camus gibi düşündürücü eserler senin ruhuyla uyumlu. Bu kitaplar seni derin düşüncelere sevk edecek.',
+                                'color': '#3B82F6'
+                            },
+                            'D': {
+                                'type': '🤗 Huzur Arayan Dost Canlısı!',
+                                'need': 'Stresten arınmak, içini ısıtacak samimi ve sıcak bir hikaye.',
+                                'books': [
+                                    'Ove Adında Bir Adam (Fredrik Backman)',
+                                    'Şeker Portakalı (José Mauro de Vasconcelos)',
+                                    'Sait Faik Abasıyanık Öyküleri',
+                                    'Küçük Prens (Antoine de Saint-Exupéry)',
+                                    'Babamın Adı Kırmızı (Orhan Pamuk)',
+                                    'İnsan İnsana (Baria Alamuddin)'
+                                ],
+                                'description': 'İnsana kendini iyi hissettiren Fredrik Backman kitapları, Şeker Portakalı gibi klasikler veya Sait Faik\'ten sıcak insan öyküleri tam senlik! Bu kitaplar ruhunu dinlendirecek.',
+                                'color': '#F59E0B'
+                            }
+                        }
+                        
+                        result = book_recommendations[dominant_type]
+                        
+                        # Sonucu göster
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, {result['color']} 0%, {result['color']}CC 100%); 
+                                   color: white; padding: 30px; border-radius: 20px; margin: 20px 0; text-align: center;">
+                            <h2 style="margin: 0 0 15px 0;">{result['type']}</h2>
+                            <p style="font-size: 1.2rem; margin: 15px 0;"><strong>İhtiyacın:</strong> {result['need']}</p>
+                            <p style="font-size: 1.1rem; margin: 15px 0;">{result['description']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Kitap önerileri
+                        st.markdown("### 📚 Senin İçin Özel Kitap Önerileri:")
+                        for book in result['books']:
+                            st.markdown(f"📖 **{book}**")
+                        
+                        # Anket sonucunu kaydet
+                        survey_result = {
+                            'answers': {
+                                'q1': q1_answer,
+                                'q2': q2_answer, 
+                                'q3': q3_answer,
+                                'q4': q4_answer
+                            },
+                            'result_type': dominant_type,
+                            'result_name': result['type'],
+                            'recommended_books': result['books'],
+                            'completed_date': datetime.now().strftime("%Y-%m-%d %H:%M")
+                        }
+                        
+                        st.session_state.user_book_survey['last_survey'] = survey_result
+                        
+                        # Firebase'e kaydet
+                        username = st.session_state.get('current_user', None)
+                        if username:
+                            try:
+                                book_data_json = json.dumps(st.session_state.user_book_survey, ensure_ascii=False)
+                                update_user_in_firebase(username, {'book_survey_data': book_data_json})
+                                st.success("📚 Anket sonucun kaydedildi! Artık okuma takibini başlatabilirsin.")
+                            except Exception as e:
+                                st.info("📚 Anket sonucun bu oturum boyunca saklandı.")
+                        else:
+                            st.warning("⚠️ Giriş yapın ki anket sonucunuz kalıcı olarak saklansın!")
+                        
+                        st.balloons()
+                
+                with book_tab2:
+                    # Okuma Takip Sistemi
+                    if 'last_survey' not in st.session_state.user_book_survey:
+                        st.info("📝 Önce anketi çözerek kitap önerilerini alın, sonra okuma takibinizi başlatın!")
+                    else:
+                        last_result = st.session_state.user_book_survey['last_survey']
+                        
+                        # Önce profil kartını göster
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                   color: white; padding: 20px; border-radius: 15px; margin: 20px 0;">
+                            <h3 style="margin: 0 0 10px 0;">📖 Kitap Profilin</h3>
+                            <p style="margin: 5px 0;"><strong>Tip:</strong> {last_result['result_name']}</p>
+                            <p style="margin: 5px 0;"><strong>Anket Tarihi:</strong> {last_result['completed_date'][:10]}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Okuma takibi başlat
+                        if 'reading_progress' not in st.session_state.user_book_survey:
+                            st.session_state.user_book_survey['reading_progress'] = []
+                        
+                        # Yeni okuma kaydı
+                        st.markdown("### 📝 Haftalık Okuma Takibi")
+                        
+                        with st.expander("➕ Yeni Haftalık Kayıt Ekle", expanded=True):
+                            read_col1, read_col2 = st.columns(2)
+                            
+                            with read_col1:
+                                book_name = st.text_input(
+                                    "📚 Okuduğun Kitap",
+                                    placeholder="Kitap adını yaz..."
+                                )
+                                pages_read = st.number_input(
+                                    "📄 Bu hafta kaç sayfa okudun?",
+                                    min_value=0,
+                                    max_value=1000,
+                                    step=1
+                                )
+                            
+                            with read_col2:
+                                week_start = st.date_input("📅 Hafta Başlangıcı")
+                                satisfaction = st.selectbox(
+                                    "😊 Memnuniyet Seviyesi",
+                                    ["⭐ Kötü", "⭐⭐ Orta", "⭐⭐⭐ İyi", "⭐⭐⭐⭐ Çok İyi", "⭐⭐⭐⭐⭐ Mükemmel"]
+                                )
+                            
+                            # Anlama ve notlar
+                            understanding = st.text_area(
+                                "🧠 Bu hafta neler anladın / öğrendin?",
+                                placeholder="Kitaptan etkilendiğin bölümler, öğrendiğin yeni bilgiler, karakterler hakkında düşüncelerin...",
+                                height=100
+                            )
+                            
+                            thoughts = st.text_area(
+                                "💭 Genel düşüncelerin ve yorumların",
+                                placeholder="Kitap hakkında genel görüşlerin, beğendiğin/beğenmediğin yanlar, tavsiye eder misin?",
+                                height=80
+                            )
+                            
+                            if st.button("📖 Haftalık Kaydı Ekle", use_container_width=True, type="primary"):
+                                if book_name and pages_read > 0:
+                                    new_reading_entry = {
+                                        'book_name': book_name,
+                                        'pages_read': pages_read,
+                                        'week_start': str(week_start),
+                                        'satisfaction': satisfaction,
+                                        'understanding': understanding,
+                                        'thoughts': thoughts,
+                                        'entry_date': datetime.now().strftime("%Y-%m-%d %H:%M")
+                                    }
+                                    
+                                    st.session_state.user_book_survey['reading_progress'].append(new_reading_entry)
+                                    
+                                    # Firebase'e kaydet
+                                    username = st.session_state.get('current_user', None)
+                                    if username:
+                                        try:
+                                            book_data_json = json.dumps(st.session_state.user_book_survey, ensure_ascii=False)
+                                            update_user_in_firebase(username, {'book_survey_data': book_data_json})
+                                            st.success(f"📚 '{book_name}' için haftalık okuma kaydın eklendi!")
+                                        except Exception as e:
+                                            st.success(f"📚 '{book_name}' için haftalık okuma kaydın eklendi! (Yerel olarak)")
+                                    else:
+                                        st.warning("⚠️ Giriş yapın ki okuma kayıtlarınız kalıcı olarak saklansın!")
+                                    
+                                    st.balloons()
+                                    time.sleep(1)
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Lütfen kitap adını ve sayfa sayısını giriniz!")
+                        
+                        # Geçmiş okuma kayıtları
+                        if st.session_state.user_book_survey['reading_progress']:
+                            st.markdown("### 📊 Okuma Geçmişin")
+                            
+                            reading_entries = st.session_state.user_book_survey['reading_progress']
+                            
+                            # İstatistikler
+                            total_pages = sum(entry['pages_read'] for entry in reading_entries)
+                            total_weeks = len(reading_entries)
+                            avg_pages = total_pages / total_weeks if total_weeks > 0 else 0
+                            unique_books = len(set(entry['book_name'] for entry in reading_entries))
+                            
+                            stat_col1, stat_col2, stat_col3, stat_col4 = st.columns(4)
+                            with stat_col1:
+                                st.metric("📄 Toplam Sayfa", total_pages)
+                            with stat_col2:
+                                st.metric("📅 Toplam Hafta", total_weeks)
+                            with stat_col3:
+                                st.metric("📈 Haftalık Ort.", f"{avg_pages:.1f}")
+                            with stat_col4:
+                                st.metric("📚 Kitap Sayısı", unique_books)
+                            
+                            # Kayıtları listele
+                            for i, entry in enumerate(reversed(reading_entries)):  # En yeni önce
+                                with st.expander(f"📖 {entry['book_name']} - {entry['week_start']} ({entry['pages_read']} sayfa)", expanded=False):
+                                    entry_col1, entry_col2 = st.columns([3, 1])
+                                    
+                                    with entry_col1:
+                                        st.markdown(f"""
+                                        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                                            <p style="margin: 5px 0;"><strong>🧠 Anladıklarım:</strong></p>
+                                            <p style="margin: 10px 0; font-style: italic;">{entry['understanding'] if entry['understanding'] else 'Belirtilmemiş'}</p>
+                                            <p style="margin: 5px 0;"><strong>💭 Düşüncelerim:</strong></p>
+                                            <p style="margin: 10px 0; font-style: italic;">{entry['thoughts'] if entry['thoughts'] else 'Belirtilmemiş'}</p>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                    
+                                    with entry_col2:
+                                        st.markdown(f"""
+                                        <div style="text-align: center; padding: 10px;">
+                                            <div style="margin: 5px 0;"><strong>📄 Sayfa:</strong> {entry['pages_read']}</div>
+                                            <div style="margin: 5px 0;"><strong>😊 Memnuniyet:</strong> {entry['satisfaction']}</div>
+                                            <div style="margin: 5px 0;"><strong>📅 Hafta:</strong> {entry['week_start']}</div>
+                                            <div style="margin: 5px 0;"><strong>⏰ Eklenme:</strong> {entry['entry_date'][:10]}</div>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                        else:
+                            st.info("📚 Henüz okuma kaydınız yok. Yukarıdan ilk haftalık kaydınızı ekleyin!")
+                
+                # Alt bilgi
+                st.markdown("""
+                <div style="background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%); 
+                           border-radius: 15px; padding: 25px; margin-top: 30px; border-left: 5px solid #28a745;">
+                    <h4 style="color: #2d3748; margin-bottom: 15px;">💡 Kitap Okuma İpuçları</h4>
+                    <ul style="color: #4a5568; margin: 0; padding-left: 20px;">
+                        <li><strong>⏰ Düzenli Okuma:</strong> Her gün 15-30 dakika okuma alışkanlığı edinin</li>
+                        <li><strong>📝 Not Alma:</strong> Etkilendiğiniz bölümleri not alın</li>
+                        <li><strong>🤔 Düşünme:</strong> Okuduklarınız üzerine düşünün ve kendinizle bağlantı kurun</li>
+                        <li><strong>🎯 Hedef Koyma:</strong> Haftalık sayfa hedefleri belirleyin</li>
+                        <li><strong>📚 Çeşitlilik:</strong> Farklı türde kitaplar okuyarak ufkunuzu genişletin</li>
                     </ul>
                 </div>
                 """, unsafe_allow_html=True)
