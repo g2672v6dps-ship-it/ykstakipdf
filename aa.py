@@ -15337,8 +15337,9 @@ def competition_leaderboard_page(user_data):
 def show_simple_leaderboard(user_data):
     """🏆 Basit Rekabet Listesi - İsteğe Bağlı Katılım"""
     
-    # Kullanıcının katılım durumunu kontrol et
-    is_participating = user_data.get('competition_participating', False)
+    # Kullanıcının katılım durumunu kontrol et (güncel veriyi al)
+    current_user_data = get_user_data()  # Güncel veriyi Firebase'den al
+    is_participating = current_user_data.get('competition_participating', False)
     
     # Katılım kontrolü - Kırmızı tema
     st.markdown("### 🎯 Rekabet Sistemi Katılımı")
@@ -15365,13 +15366,25 @@ def show_simple_leaderboard(user_data):
         st.markdown("<br>", unsafe_allow_html=True)  # Boşluk için
         if is_participating:
             if st.button("🚪 Rekabetten Ayrıl", key="leave_competition", use_container_width=True):
+                # Firebase'e kaydet
                 update_user_in_firebase(st.session_state.current_user, {'competition_participating': False})
-                st.success("Rekabetten ayrıldın!")
+                
+                # Session state'i de güncelle
+                if 'user_data' in st.session_state:
+                    st.session_state.user_data['competition_participating'] = False
+                
+                st.success("✅ Rekabetten ayrıldın! Liderboard'dan çıkarıldın.")
                 st.rerun()
         else:
             if st.button("🏆 Rekabete Katıl", key="join_competition", use_container_width=True):
+                # Firebase'e kaydet
                 update_user_in_firebase(st.session_state.current_user, {'competition_participating': True})
-                st.success("Rekabete katıldın!")
+                
+                # Session state'i de güncelle
+                if 'user_data' in st.session_state:
+                    st.session_state.user_data['competition_participating'] = True
+                
+                st.success("🏆 Rekabete katıldın! Liderboard'da görünüyorsun.")
                 st.rerun()
     
     # Eğer katılmıyorsa sadece bilgi göster
@@ -15396,16 +15409,16 @@ def show_simple_leaderboard(user_data):
     st.markdown("---")
     
     # **YENİ**: Kendisiyle yarışma sistemi 
-    show_self_competition_section(user_data)
+    show_self_competition_section(current_user_data)
     
     st.markdown("---")
     
     # Haftalık liderboard hesapla (sadece katılanlar)
     weekly_leaders = calculate_weekly_leaderboard()
-    current_user_stats = calculate_user_weekly_performance(user_data)
+    current_user_stats = calculate_user_weekly_performance(current_user_data)
     
     # Debug: Sosyal medya verisini kontrol et
-    sm_debug_data = user_data.get('social_media_daily', '{}')
+    sm_debug_data = current_user_data.get('social_media_daily', '{}')
     st.write(f"🔍 Debug - User data'daki sosyal medya: {sm_debug_data}")
     st.write(f"🔍 Debug - Hesaplanan sosyal medya saati: {current_user_stats.get('social_media_hours', 0)}")
     
