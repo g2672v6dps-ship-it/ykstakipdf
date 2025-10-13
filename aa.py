@@ -15339,21 +15339,46 @@ def competition_leaderboard_page(user_data):
         show_competition_dashboard(user_data, participation_status)
 
 def get_user_competition_status(user_data):
-    """Kullanıcının rekabet sistemine katılım durumunu kontrol eder"""
-    competition_data = user_data.get('competition_settings', {})
-    
-    return {
-        'participating': competition_data.get('participating', False),
-        'display_name': competition_data.get('display_name', ''),
-        'privacy_level': competition_data.get('privacy_level', 'anonymous'),  # anonymous, nickname, initials
-        'joined_date': competition_data.get('joined_date', ''),
-        'data_sharing': competition_data.get('data_sharing', {
-            'pomodoros': True,
-            'study_hours': True,
-            'topics_studied': True,
-            'questions_solved': False  # Bu özellik henüz yok, gelecek için
-        })
-    }
+    """Kullanıcının rekabet sistemine katılım durumunu kontrol eder - Güvenli JSON parsing"""
+    try:
+        # competition_settings verisini güvenli şekilde parse et
+        competition_settings_str = user_data.get('competition_settings', '{}')
+        
+        # Eğer string ise JSON parse et, değilse direkt kullan
+        if isinstance(competition_settings_str, str):
+            competition_data = json.loads(competition_settings_str) if competition_settings_str else {}
+        elif isinstance(competition_settings_str, dict):
+            competition_data = competition_settings_str
+        else:
+            competition_data = {}
+        
+        return {
+            'participating': competition_data.get('participating', False),
+            'display_name': competition_data.get('display_name', ''),
+            'privacy_level': competition_data.get('privacy_level', 'anonymous'),  # anonymous, nickname, initials
+            'joined_date': competition_data.get('joined_date', ''),
+            'data_sharing': competition_data.get('data_sharing', {
+                'pomodoros': True,
+                'study_hours': True,
+                'topics_studied': True,
+                'questions_solved': False  # Bu özellik henüz yok, gelecek için
+            })
+        }
+    except Exception as e:
+        # Hata durumunda varsayılan değerler döndür
+        st.error(f"⚠️ Rekabet ayarları yüklenirken hata: {e}")
+        return {
+            'participating': False,
+            'display_name': '',
+            'privacy_level': 'anonymous',
+            'joined_date': '',
+            'data_sharing': {
+                'pomodoros': True,
+                'study_hours': True,
+                'topics_studied': True,
+                'questions_solved': False
+            }
+        }
 
 def show_competition_opt_in_interface(user_data):
     """Rekabet sistemine katılım arayüzü - Gizlilik odaklı"""
@@ -15499,10 +15524,15 @@ def show_competition_settings_modal(user_data, participation_status):
     with st.expander("⚙️ Rekabet Ayarları", expanded=True):
         st.markdown("### 🔧 Gizlilik ve Görünüm Ayarları")
         
-        # Mevcut ayarları göster
-        current_privacy = participation_status['privacy_level']
-        current_name = participation_status['display_name']
-        current_sharing = participation_status['data_sharing']
+        # Mevcut ayarları güvenli şekilde al
+        current_privacy = participation_status.get('privacy_level', 'anonymous')
+        current_name = participation_status.get('display_name', '')
+        current_sharing = participation_status.get('data_sharing', {
+            'pomodoros': True,
+            'study_hours': True,
+            'topics_studied': True,
+            'questions_solved': False
+        })
         
         # Yeni ayarlar
         new_privacy = st.radio(
@@ -15557,27 +15587,53 @@ def show_competition_settings_modal(user_data, participation_status):
                 st.rerun()
 
 def update_competition_settings(user_data, new_settings):
-    """Rekabet ayarlarını günceller"""
-    current_settings = json.loads(user_data.get('competition_settings', '{}'))
-    current_settings.update(new_settings)
-    
-    update_user_in_firebase(st.session_state.current_user, {
-        'competition_settings': json.dumps(current_settings)
-    })
-    
-    st.session_state.users_db = load_users_from_firebase()
+    """Rekabet ayarlarını günceller - Güvenli JSON parsing"""
+    try:
+        competition_settings_str = user_data.get('competition_settings', '{}')
+        
+        # Güvenli JSON parsing
+        if isinstance(competition_settings_str, str):
+            current_settings = json.loads(competition_settings_str) if competition_settings_str else {}
+        elif isinstance(competition_settings_str, dict):
+            current_settings = competition_settings_str
+        else:
+            current_settings = {}
+        
+        current_settings.update(new_settings)
+        
+        update_user_in_firebase(st.session_state.current_user, {
+            'competition_settings': json.dumps(current_settings)
+        })
+        
+        st.session_state.users_db = load_users_from_firebase()
+        
+    except Exception as e:
+        st.error(f"⚠️ Ayarlar güncellenirken hata: {e}")
 
 def leave_competition_system(user_data):
-    """Kullanıcıyı rekabet sisteminden çıkarır"""
-    current_settings = json.loads(user_data.get('competition_settings', '{}'))
-    current_settings['participating'] = False
-    current_settings['left_date'] = datetime.now().isoformat()
-    
-    update_user_in_firebase(st.session_state.current_user, {
-        'competition_settings': json.dumps(current_settings)
-    })
-    
-    st.session_state.users_db = load_users_from_firebase()
+    """Kullanıcıyı rekabet sisteminden çıkarır - Güvenli JSON parsing"""
+    try:
+        competition_settings_str = user_data.get('competition_settings', '{}')
+        
+        # Güvenli JSON parsing
+        if isinstance(competition_settings_str, str):
+            current_settings = json.loads(competition_settings_str) if competition_settings_str else {}
+        elif isinstance(competition_settings_str, dict):
+            current_settings = competition_settings_str
+        else:
+            current_settings = {}
+        
+        current_settings['participating'] = False
+        current_settings['left_date'] = datetime.now().isoformat()
+        
+        update_user_in_firebase(st.session_state.current_user, {
+            'competition_settings': json.dumps(current_settings)
+        })
+        
+        st.session_state.users_db = load_users_from_firebase()
+        
+    except Exception as e:
+        st.error(f"⚠️ Rekabet sisteminden çıkarken hata: {e}")
 
 def show_leaderboard_tabs(user_data, participation_status):
     """Leaderboard tab'larını gösterir"""
@@ -15706,17 +15762,30 @@ def get_cached_daily_leaderboard():
             today = datetime.now().date().isoformat()
             
             for username, user_data in users_data.items():
-                # Sadece rekabet sistemine katılan kullanıcılar
-                competition_settings = json.loads(user_data.get('competition_settings', '{}'))
-                if not competition_settings.get('participating', False):
+                try:
+                    # Sadece rekabet sistemine katılan kullanıcılar - Güvenli JSON parsing
+                    competition_settings_str = user_data.get('competition_settings', '{}')
+                    
+                    if isinstance(competition_settings_str, str):
+                        competition_settings = json.loads(competition_settings_str) if competition_settings_str else {}
+                    elif isinstance(competition_settings_str, dict):
+                        competition_settings = competition_settings_str
+                    else:
+                        competition_settings = {}
+                    
+                    if not competition_settings.get('participating', False):
+                        continue
+                    
+                    # Kullanıcının günlük istatistiklerini hesapla
+                    user_daily_stats = calculate_user_daily_stats(user_data)
+                    user_daily_stats['username'] = username
+                    user_daily_stats['display_name'] = competition_settings.get('display_name', 'Anonim')
+                    
+                    daily_stats.append(user_daily_stats)
+                    
+                except Exception as e:
+                    # Hatalı veri olan kullanıcıları atla
                     continue
-                
-                # Kullanıcının günlük istatistiklerini hesapla
-                user_daily_stats = calculate_user_daily_stats(user_data)
-                user_daily_stats['username'] = username
-                user_daily_stats['display_name'] = competition_settings.get('display_name', 'Anonim')
-                
-                daily_stats.append(user_daily_stats)
             
             # Cache'e kaydet
             st.session_state.__dict__[cache_key] = {
@@ -15731,41 +15800,61 @@ def get_cached_daily_leaderboard():
             return []
 
 def calculate_user_daily_stats(user_data):
-    """Kullanıcının günlük istatistiklerini hesaplar"""
-    today = datetime.now().date()
-    
-    # Pomodoro sayısı
-    pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
-    daily_pomodoros = [
-        p for p in pomodoro_history 
-        if datetime.fromisoformat(p['timestamp']).date() == today
-    ]
-    
-    # Çalışma saati hesapla (Pomodoro türüne göre)
-    total_minutes = 0
-    for p in daily_pomodoros:
-        duration_map = {
-            'Kısa Odak (25dk+5dk)': 25,
-            'Standart Odak (35dk+10dk)': 35,
-            'Derin Odak (50dk+15dk)': 50,
-            'Tam Konsantrasyon (90dk+25dk)': 90
+    """Kullanıcının günlük istatistiklerini hesaplar - Güvenli JSON parsing"""
+    try:
+        today = datetime.now().date()
+        
+        # Pomodoro sayısı - Güvenli JSON parsing
+        pomodoro_history_str = user_data.get('pomodoro_history', '[]')
+        
+        if isinstance(pomodoro_history_str, str):
+            pomodoro_history = json.loads(pomodoro_history_str) if pomodoro_history_str else []
+        elif isinstance(pomodoro_history_str, list):
+            pomodoro_history = pomodoro_history_str
+        else:
+            pomodoro_history = []
+        
+        daily_pomodoros = [
+            p for p in pomodoro_history 
+            if datetime.fromisoformat(p['timestamp']).date() == today
+        ]
+        
+        # Çalışma saati hesapla (Pomodoro türüne göre)
+        total_minutes = 0
+        for p in daily_pomodoros:
+            duration_map = {
+                'Kısa Odak (25dk+5dk)': 25,
+                'Standart Odak (35dk+10dk)': 35,
+                'Derin Odak (50dk+15dk)': 50,
+                'Tam Konsantrasyon (90dk+25dk)': 90
+            }
+            total_minutes += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
+        
+        # Benzersiz konu sayısı
+        topics_today = set()
+        for p in daily_pomodoros:
+            if p.get('topic'):
+                topics_today.add(p['topic'])
+        
+        return {
+            'pomodoros': len(daily_pomodoros),
+            'study_hours': total_minutes / 60,
+            'topics_studied': len(topics_today),
+            'pomodoro_rank': None,  # Hesaplanacak
+            'hours_rank': None,     # Hesaplanacak  
+            'topics_rank': None     # Hesaplanacak
         }
-        total_minutes += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
-    
-    # Benzersiz konu sayısı
-    topics_today = set()
-    for p in daily_pomodoros:
-        if p.get('topic'):
-            topics_today.add(p['topic'])
-    
-    return {
-        'pomodoros': len(daily_pomodoros),
-        'study_hours': total_minutes / 60,
-        'topics_studied': len(topics_today),
-        'pomodoro_rank': None,  # Hesaplanacak
-        'hours_rank': None,     # Hesaplanacak  
-        'topics_rank': None     # Hesaplanacak
-    }
+        
+    except Exception as e:
+        # Hata durumunda sıfır değerler döndür
+        return {
+            'pomodoros': 0,
+            'study_hours': 0.0,
+            'topics_studied': 0,
+            'pomodoro_rank': None,
+            'hours_rank': None,
+            'topics_rank': None
+        }
 
 def show_weekly_leaderboard(user_data, participation_status):
     """Haftalık liderlik tablosunu gösterir"""
@@ -15785,37 +15874,55 @@ def show_weekly_leaderboard(user_data, participation_status):
         st.metric("📚 Bu Hafta Konu", user_week_stats['topics_studied'])
 
 def calculate_user_weekly_stats(user_data, week_start_date):
-    """Kullanıcının haftalık istatistiklerini hesaplar"""
-    week_end = week_start_date + timedelta(days=7)
-    
-    pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
-    weekly_pomodoros = [
-        p for p in pomodoro_history 
-        if week_start_date <= datetime.fromisoformat(p['timestamp']).date() < week_end
-    ]
-    
-    # Çalışma saati hesapla
-    total_minutes = 0
-    for p in weekly_pomodoros:
-        duration_map = {
-            'Kısa Odak (25dk+5dk)': 25,
-            'Standart Odak (35dk+10dk)': 35,
-            'Derin Odak (50dk+15dk)': 50,
-            'Tam Konsantrasyon (90dk+25dk)': 90
+    """Kullanıcının haftalık istatistiklerini hesaplar - Güvenli JSON parsing"""
+    try:
+        week_end = week_start_date + timedelta(days=7)
+        
+        # Güvenli JSON parsing
+        pomodoro_history_str = user_data.get('pomodoro_history', '[]')
+        
+        if isinstance(pomodoro_history_str, str):
+            pomodoro_history = json.loads(pomodoro_history_str) if pomodoro_history_str else []
+        elif isinstance(pomodoro_history_str, list):
+            pomodoro_history = pomodoro_history_str
+        else:
+            pomodoro_history = []
+        
+        weekly_pomodoros = [
+            p for p in pomodoro_history 
+            if week_start_date <= datetime.fromisoformat(p['timestamp']).date() < week_end
+        ]
+        
+        # Çalışma saati hesapla
+        total_minutes = 0
+        for p in weekly_pomodoros:
+            duration_map = {
+                'Kısa Odak (25dk+5dk)': 25,
+                'Standart Odak (35dk+10dk)': 35,
+                'Derin Odak (50dk+15dk)': 50,
+                'Tam Konsantrasyon (90dk+25dk)': 90
+            }
+            total_minutes += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
+        
+        # Benzersiz konu sayısı
+        topics_week = set()
+        for p in weekly_pomodoros:
+            if p.get('topic'):
+                topics_week.add(p['topic'])
+        
+        return {
+            'pomodoros': len(weekly_pomodoros),
+            'study_hours': total_minutes / 60,
+            'topics_studied': len(topics_week)
         }
-        total_minutes += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
-    
-    # Benzersiz konu sayısı
-    topics_week = set()
-    for p in weekly_pomodoros:
-        if p.get('topic'):
-            topics_week.add(p['topic'])
-    
-    return {
-        'pomodoros': len(weekly_pomodoros),
-        'study_hours': total_minutes / 60,
-        'topics_studied': len(topics_week)
-    }
+        
+    except Exception as e:
+        # Hata durumunda sıfır değerler döndür
+        return {
+            'pomodoros': 0,
+            'study_hours': 0.0,
+            'topics_studied': 0
+        }
 
 def show_personal_competition_stats(user_data, participation_status):
     """Kişisel rekabet istatistiklerini gösterir"""
@@ -15876,63 +15983,95 @@ def show_personal_competition_stats(user_data, participation_status):
         st.metric("📅 Aktif Gün", total_stats['active_days'])
 
 def calculate_user_daily_stats_for_date(user_data, target_date):
-    """Belirli bir tarih için kullanıcının günlük istatistiklerini hesaplar"""
-    
-    pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
-    daily_pomodoros = [
-        p for p in pomodoro_history 
-        if datetime.fromisoformat(p['timestamp']).date() == target_date
-    ]
-    
-    # Çalışma saati hesapla
-    total_minutes = 0
-    for p in daily_pomodoros:
-        duration_map = {
-            'Kısa Odak (25dk+5dk)': 25,
-            'Standart Odak (35dk+10dk)': 35,
-            'Derin Odak (50dk+15dk)': 50,
-            'Tam Konsantrasyon (90dk+25dk)': 90
+    """Belirli bir tarih için kullanıcının günlük istatistiklerini hesaplar - Güvenli JSON parsing"""
+    try:
+        # Güvenli JSON parsing
+        pomodoro_history_str = user_data.get('pomodoro_history', '[]')
+        
+        if isinstance(pomodoro_history_str, str):
+            pomodoro_history = json.loads(pomodoro_history_str) if pomodoro_history_str else []
+        elif isinstance(pomodoro_history_str, list):
+            pomodoro_history = pomodoro_history_str
+        else:
+            pomodoro_history = []
+        
+        daily_pomodoros = [
+            p for p in pomodoro_history 
+            if datetime.fromisoformat(p['timestamp']).date() == target_date
+        ]
+        
+        # Çalışma saati hesapla
+        total_minutes = 0
+        for p in daily_pomodoros:
+            duration_map = {
+                'Kısa Odak (25dk+5dk)': 25,
+                'Standart Odak (35dk+10dk)': 35,
+                'Derin Odak (50dk+15dk)': 50,
+                'Tam Konsantrasyon (90dk+25dk)': 90
+            }
+            total_minutes += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
+        
+        return {
+            'pomodoros': len(daily_pomodoros),
+            'study_hours': total_minutes / 60
         }
-        total_minutes += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
-    
-    return {
-        'pomodoros': len(daily_pomodoros),
-        'study_hours': total_minutes / 60
-    }
+        
+    except Exception as e:
+        return {
+            'pomodoros': 0,
+            'study_hours': 0.0
+        }
 
 def calculate_user_total_stats(user_data):
-    """Kullanıcının toplam istatistiklerini hesaplar"""
-    
-    pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
-    
-    # Toplam çalışma saati
-    total_minutes = 0
-    for p in pomodoro_history:
-        duration_map = {
-            'Kısa Odak (25dk+5dk)': 25,
-            'Standart Odak (35dk+10dk)': 35,
-            'Derin Odak (50dk+15dk)': 50,
-            'Tam Konsantrasyon (90dk+25dk)': 90
+    """Kullanıcının toplam istatistiklerini hesaplar - Güvenli JSON parsing"""
+    try:
+        # Güvenli JSON parsing
+        pomodoro_history_str = user_data.get('pomodoro_history', '[]')
+        
+        if isinstance(pomodoro_history_str, str):
+            pomodoro_history = json.loads(pomodoro_history_str) if pomodoro_history_str else []
+        elif isinstance(pomodoro_history_str, list):
+            pomodoro_history = pomodoro_history_str
+        else:
+            pomodoro_history = []
+        
+        # Toplam çalışma saati
+        total_minutes = 0
+        for p in pomodoro_history:
+            duration_map = {
+                'Kısa Odak (25dk+5dk)': 25,
+                'Standart Odak (35dk+10dk)': 35,
+                'Derin Odak (50dk+15dk)': 50,
+                'Tam Konsantrasyon (90dk+25dk)': 90
+            }
+            total_minutes += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
+        
+        # Benzersiz konular
+        unique_topics = set()
+        for p in pomodoro_history:
+            if p.get('topic'):
+                unique_topics.add(p['topic'])
+        
+        # Aktif günler
+        active_dates = set()
+        for p in pomodoro_history:
+            active_dates.add(datetime.fromisoformat(p['timestamp']).date())
+        
+        return {
+            'total_pomodoros': len(pomodoro_history),
+            'total_hours': total_minutes / 60,
+            'unique_topics': len(unique_topics),
+            'active_days': len(active_dates)
         }
-        total_minutes += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
-    
-    # Benzersiz konular
-    unique_topics = set()
-    for p in pomodoro_history:
-        if p.get('topic'):
-            unique_topics.add(p['topic'])
-    
-    # Aktif günler
-    active_dates = set()
-    for p in pomodoro_history:
-        active_dates.add(datetime.fromisoformat(p['timestamp']).date())
-    
-    return {
-        'total_pomodoros': len(pomodoro_history),
-        'total_hours': total_minutes / 60,
-        'unique_topics': len(unique_topics),
-        'active_days': len(active_dates)
-    }
+        
+    except Exception as e:
+        # Hata durumunda sıfır değerler döndür
+        return {
+            'total_pomodoros': 0,
+            'total_hours': 0.0,
+            'unique_topics': 0,
+            'active_days': 0
+        }
 
 def show_goal_based_competition(user_data, participation_status):
     """Hedef odaklı rekabet gösterir"""
