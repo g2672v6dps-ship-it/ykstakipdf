@@ -15454,7 +15454,7 @@ def show_simple_leaderboard(user_data):
                     result = save_daily_social_media_time(st.session_state.current_user, total_sm_time)
                     
                     # Debug: Kaydedilen veriyi kontrol et
-                    user_data_check = load_user_data(st.session_state.current_user)
+                    user_data_check = get_user_data()
                     sm_data_check = user_data_check.get('social_media_daily', '{}')
                     
                     st.success(f"✅ Bugün kaydedildi: {total_sm_time:.1f}h")
@@ -15863,7 +15863,7 @@ def save_daily_social_media_time(username, total_hours):
         today_key = datetime.now().strftime('%Y-%m-%d')
         
         # Kullanıcı verilerini al
-        user_data = load_user_data(username)
+        user_data = get_user_data()
         
         # Sosyal medya verilerini al veya oluştur
         social_media_data_str = user_data.get('social_media_daily', '{}')
