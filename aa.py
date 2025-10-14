@@ -652,9 +652,7 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
             ],
             "TYT Coğrafya": [
                 "Doğa ve İnsan",
-                "Dünya'nın Şekli ve Hareketleri - Günlük Hareket",
-                "Dünya'nın Şekli ve Hareketleri - Yıllık Hareket",
-                "Dünya'nın Şekli ve Hareketleri - Sonuçları"
+                "Dünya'nın Şekli ve Hareketleri (Günlük ve Yıllık Hareketler, Sonuçları)"
             ],
             "TYT Tarih": [
                 "İnsanlığın İlk Dönemleri",
@@ -818,16 +816,14 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
     },
     7: {
         "week": 7,
-        "focus": "Fiilimsiler ve fonksiyonlar",
+        "focus": "Fiilimsi ve AYT başlangıç",
         "topics": {
             "TYT Türkçe": [
                 "Fiilimsi",
                 "Fiilde Çatı"
             ],
             "AYT Matematik": [
-                "Fonksiyonlar"
-            ],
-            "TYT Matematik": [
+                "Fonksiyonlar",
                 "Problemler - Tablo-Grafik Problemleri",
                 "Problemler - Rutin Olmayan Problemler"
             ],
@@ -837,21 +833,12 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
             ],
             "TYT Coğrafya": [
                 "Ekonomik Faaliyetler",
-                "Bölgeler Uluslararası Ulaşım Hatları",
-                "Çevre ve Toplum",
+                "Bölgeler, Uluslararası Ulaşım Hatları, Çevre ve Toplum",
                 "Doğal Afetler"
             ],
             "TYT Tarih": [
                 "20. YY Osmanlı Devleti",
                 "1. Dünya Savaşı"
-            ],
-            "TYT Felsefe": [
-                "Bilim Felsefesi",
-                "İlk Çağ Felsefesi"
-            ],
-            "TYT Din Kültürü": [
-                "Hz. Muhammed'in Hayatı",
-                "Temel Dini Kavramlar"
             ]
         }
     },
@@ -10990,7 +10977,7 @@ def main():
                         st.success("✅ Session state temizlendi!")
             
             page = st.sidebar.selectbox("🌐 Sayfa Seçin", 
-                                      ["🏠 Ana Sayfa", "📚 Konu Takip", "🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🏆 Rekabet Panosu", "🎮 Başarı ve Rozetler", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
+                                      ["🏠 Ana Sayfa", "📚 Konu Takip", "🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🏆 Rekabet Panosu", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
             
             if page == "🏠 Ana Sayfa":
                 # Eski session verilerini temizle - her gün güncel sistem!
@@ -13711,51 +13698,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
             elif page == "🏆 Rekabet Panosu":
                 competition_leaderboard_page(user_data)
             
-            elif page == "🎮 Başarı ve Rozetler":
-                # Gamification sistemini başlat
-                init_gamification_system()
-                
-                st.markdown(f'<div class="main-header"><h1>🎮 Başarı ve Rozetler</h1><p>Çalışma motivasyonunu artıran oyunlaştırma sistemi</p></div>', unsafe_allow_html=True)
-                
-                # Dashboard
-                show_gamification_dashboard()
-                
-                # Sekmeler
-                tab1, tab2, tab3 = st.tabs(["🏆 Rozetlerim", "🎯 Günlük Görevler", "📊 İstatistikler"])
-                
-                with tab1:
-                    show_achievements_section()
-                
-                with tab2:
-                    show_daily_challenges()
-                
-                with tab3:
-                    st.subheader("📊 Detaylı İstatistikler")
-                    
-                    stats = st.session_state.gamification['stats']
-                    
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("📚 Tamamlanan Konu", stats['topics_completed'])
-                        st.metric("🔄 Tekrar Edilen Konu", stats['topics_reviewed'])
-                    
-                    with col2:
-                        st.metric("📝 Çözülen Deneme", stats['exams_taken'])
-                        st.metric("📅 Çalışma Günü", stats['study_days'])
-                    
-                    with col3:
-                        st.metric("⏰ Toplam Çalışma (dk)", stats.get('total_study_time', 0))
-                        st.metric("🎯 Ortalama Başarı", f"%{stats.get('average_success', 0):.1f}")
-                    
-                    # Konu bazlı ilerleme
-                    st.subheader("📚 Konu Bazlı İlerleme")
-                    subject_progress = stats.get('subject_progress', {})
-                    if subject_progress:
-                        for subject, count in subject_progress.items():
-                            st.write(f"**{subject}:** {count} konu")
-                    else:
-                        st.info("Henüz konu tamamlanmadı. İlk konunu tamamlayarak başla!")
-            
+
             elif page == "🧠 Psikolojim":
                 run_psychology_page()
             elif page == "🔬Detaylı Deneme Analiz Takibi":
