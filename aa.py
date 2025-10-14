@@ -1489,6 +1489,10 @@ def get_user_pending_topics(user_data):
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
     
     for topic_key, topic_data in topic_progress.items():
+        # topic_data'nın dictionary olduğundan emin ol
+        if not isinstance(topic_data, dict):
+            continue
+            
         if topic_data.get('net', 0) < 14:  # Tamamlanmamış sayılır
             pending_topics.append({
                 'subject': topic_data.get('subject', 'Bilinmiyor'),
