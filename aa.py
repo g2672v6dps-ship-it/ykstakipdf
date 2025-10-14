@@ -1126,6 +1126,7 @@ def get_grade_based_strategy(grade, target_department):
     # Stratejiyi zorluğa göre ayarla
     adjusted_strategy = base_strategy.copy()
     adjusted_strategy['weekly_topic_base'] = int(base_strategy['weekly_topic_base'] * dept_difficulty['weekly_topic_multiplier'])
+    adjusted_strategy['weekly_topic_multiplier'] = dept_difficulty['weekly_topic_multiplier']
     adjusted_strategy['difficulty_level'] = dept_difficulty['difficulty_level']
     adjusted_strategy['target_nets'] = dept_difficulty['required_nets']
     
