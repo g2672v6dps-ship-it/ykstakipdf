@@ -502,6 +502,1003 @@ BACKGROUND_STYLES = {
     }
 }
 
+# 🎯 Hedef Bölüm Zorluk Sistemi (Net Aralığına Göre)
+TARGET_DEPARTMENT_DIFFICULTY = {
+    "Tıp": {
+        "difficulty_level": 5,  # En zor
+        "required_nets": {"TYT": 115, "AYT": 75},
+        "study_intensity": "maksimum",
+        "weekly_topic_multiplier": 1.5
+    },
+    "Diş Hekimliği": {
+        "difficulty_level": 5,
+        "required_nets": {"TYT": 110, "AYT": 70},
+        "study_intensity": "maksimum", 
+        "weekly_topic_multiplier": 1.4
+    },
+    "Mühendislik": {
+        "difficulty_level": 4,
+        "required_nets": {"TYT": 105, "AYT": 65},
+        "study_intensity": "yüksek",
+        "weekly_topic_multiplier": 1.3
+    },
+    "Hukuk": {
+        "difficulty_level": 4,
+        "required_nets": {"TYT": 100, "AYT": 60},
+        "study_intensity": "yüksek",
+        "weekly_topic_multiplier": 1.2
+    },
+    "Mimarlık": {
+        "difficulty_level": 3,
+        "required_nets": {"TYT": 95, "AYT": 55},
+        "study_intensity": "orta-yüksek",
+        "weekly_topic_multiplier": 1.1
+    },
+    "Psikoloji": {
+        "difficulty_level": 3,
+        "required_nets": {"TYT": 90, "AYT": 50},
+        "study_intensity": "orta-yüksek",
+        "weekly_topic_multiplier": 1.1
+    },
+    "İktisat": {
+        "difficulty_level": 2,
+        "required_nets": {"TYT": 85, "AYT": 45},
+        "study_intensity": "orta",
+        "weekly_topic_multiplier": 1.0
+    },
+    "Öğretmenlik": {
+        "difficulty_level": 2,
+        "required_nets": {"TYT": 80, "AYT": 40},
+        "study_intensity": "orta",
+        "weekly_topic_multiplier": 1.0
+    },
+    "Varsayılan": {
+        "difficulty_level": 1,
+        "required_nets": {"TYT": 75, "AYT": 35},
+        "study_intensity": "normal",
+        "weekly_topic_multiplier": 0.9
+    }
+}
+
+# 📚 Sınıf Bazlı Program Sistemi
+GRADE_BASED_PROGRAMS = {
+    "11. Sınıf": {
+        "focus": "temel_kavramlar_ve_konu_ogrenme",
+        "study_pace": "normal",
+        "weekly_topic_base": 12,  # 11. sınıf için daha fazla konu
+        "review_ratio": 0.2,  # %20 tekrar, %80 yeni konu
+        "exam_frequency": "ayda_1",
+        "special_notes": "Temel kavramları sağlam öğrenme dönemi"
+    },
+    "12. Sınıf": {
+        "focus": "konu_tamamlama_ve_deneme_odak",
+        "study_pace": "hızlandırılmış", 
+        "weekly_topic_base": 10,  # Standart
+        "review_ratio": 0.3,  # %30 tekrar, %70 yeni konu
+        "exam_frequency": "2_haftada_1",
+        "special_notes": "Konu tamamlama ve deneme stratejileri dönemi"
+    },
+    "Mezun": {
+        "focus": "eksik_kapama_ve_performans_artırma",
+        "study_pace": "maksimum",
+        "weekly_topic_base": 8,  # Daha az yeni konu, daha fazla tekrar
+        "review_ratio": 0.4,  # %40 tekrar, %60 yeni konu  
+        "exam_frequency": "haftada_1",
+        "special_notes": "Eksikleri kapatma ve performans maksimizasyonu dönemi"
+    }
+}
+
+# 🎯 Konu Zorluk Puanlama Sistemi (1-5 arası)
+TOPIC_DIFFICULTY_SYSTEM = {
+    1: {"name": "Çok Kolay", "color": "#27ae60", "icon": "😊", "study_time": "15-20 dk"},
+    2: {"name": "Kolay", "color": "#2ecc71", "icon": "🙂", "study_time": "20-30 dk"},
+    3: {"name": "Orta", "color": "#f39c12", "icon": "😐", "study_time": "30-45 dk"},
+    4: {"name": "Zor", "color": "#e67e22", "icon": "😰", "study_time": "45-60 dk"},
+    5: {"name": "Çok Zor", "color": "#e74c3c", "icon": "😱", "study_time": "60+ dk"}
+}
+
+# 📚 16 Haftalık Eşit Ağırlık Detay Planı
+EQUAL_WEIGHT_WEEKLY_PLAN = {
+    1: {
+        "week": 1,
+        "focus": "Temel kavramlar ve başlangıç",
+        "topics": {
+            "TYT Türkçe": [
+                "Sözcükte Anlam - Gerçek Anlam",
+                "Sözcükte Anlam - Mecaz Anlam", 
+                "Sözcükte Anlam - Terim Anlam",
+                "Cümlede Anlam - Cümle Yorumlama",
+                "Cümlede Anlam - Kesin Yargı",
+                "Cümlede Anlam - Anlatım Biçimleri",
+                "Cümlede Anlam - Neden-Sonuç",
+                "Paragraf - Ana Fikir",
+                "Paragraf - Yardımcı Fikir",
+                "Paragraf - Paragraf Yapısı",
+                "Paragraf - Anlatım Teknikleri",
+                "Paragraf - Düşünceyi Geliştirme"
+            ],
+            "TYT Matematik": [
+                "Temel Kavramlar",
+                "Sayı Basamakları"
+            ],
+            "TYT Tarih": [
+                "Tarih ve Zaman"
+            ],
+            "TYT Geometri": [
+                "Açılar - Doğruda Açılar",
+                "Açılar - Üçgende Açılar"
+            ],
+            "TYT Coğrafya": [
+                "Dünya Haritaları"
+            ]
+        }
+    },
+    2: {
+        "week": 2,
+        "focus": "Temel işlemler ve kavramlar",
+        "topics": {
+            "TYT Türkçe": [
+                "Ses Bilgisi"
+            ],
+            "TYT Matematik": [
+                "Bölme ve Bölünebilme",
+                "EBOB-EKOK",
+                "Rasyonel Sayılar"
+            ],
+            "TYT Geometri": [
+                "Özel Üçgenler - Dik Üçgen",
+                "Özel Üçgenler - Eşkenar Üçgen", 
+                "Özel Üçgenler - İkizkenar Üçgen"
+            ],
+            "TYT Coğrafya": [
+                "Doğa ve İnsan",
+                "Dünya'nın Şekli ve Hareketleri - Günlük Hareket",
+                "Dünya'nın Şekli ve Hareketleri - Yıllık Hareket",
+                "Dünya'nın Şekli ve Hareketleri - Sonuçları"
+            ],
+            "TYT Tarih": [
+                "İnsanlığın İlk Dönemleri",
+                "Ortaçağda Dünya"
+            ]
+        }
+    },
+    3: {
+        "week": 3,
+        "focus": "Yazım kuralları ve problem çözme",
+        "topics": {
+            "TYT Türkçe": [
+                "Yazım Kuralları"
+            ],
+            "TYT Matematik": [
+                "Ondalıklı Sayılar",
+                "Oran Orantı",
+                "Denklem Çözme",
+                "Problemler - Sayı Problemleri",
+                "Problemler - Kesir Problemleri"
+            ],
+            "TYT Geometri": [
+                "Açıortay",
+                "Kenarortay"
+            ],
+            "TYT Coğrafya": [
+                "Coğrafi Konum",
+                "Harita Bilgisi", 
+                "Atmosfer ve Sıcaklık"
+            ],
+            "TYT Tarih": [
+                "İlk ve Orta Çağlarda Türk Dünyası",
+                "İslam Medeniyetinin Doğuşu"
+            ],
+            "TYT Felsefe": [
+                "Felsefenin Konusu",
+                "Bilgi Felsefesi (Epistemoloji)"
+            ],
+            "TYT Din Kültürü": [
+                "İnsan ve Din (İnanç)",
+                "Ahlak"
+            ]
+        }
+    },
+    4: {
+        "week": 4,
+        "focus": "Noktalama ve problem çeşitleri",
+        "topics": {
+            "TYT Türkçe": [
+                "Noktalama İşaretleri",
+                "Sözcükte Yapı"
+            ],
+            "TYT Matematik": [
+                "Basit Eşitsizlikler",
+                "Mutlak Değer",
+                "Problemler - Yaş Problemleri",
+                "Problemler - Yüzde Problemleri", 
+                "Problemler - Kar-Zarar Problemleri"
+            ],
+            "TYT Geometri": [
+                "Eşlik ve Benzerlik",
+                "Üçgende Alan"
+            ],
+            "TYT Coğrafya": [
+                "İklim",
+                "Basınç ve Rüzgarlar",
+                "Nem, Yağış ve Buharlaşma"
+            ],
+            "TYT Tarih": [
+                "İlk Türk İslam Devletleri",
+                "Yerleşme ve Devletleşme Sürecinde Selçuklu Türkiyesi",
+                "Beylikten Devlete Osmanlı Siyaseti (1300-1453)"
+            ],
+            "TYT Felsefe": [
+                "Varlık Felsefesi (Ontoloji)",
+                "Din, Kültür ve Medeniyet"
+            ],
+            "TYT Din Kültürü": [
+                "İbadet",
+                "Peygamberlik"
+            ]
+        }
+    },
+    5: {
+        "week": 5,
+        "focus": "Sözcük türleri ve üslü sayılar",
+        "topics": {
+            "TYT Türkçe": [
+                "Sözcük Türleri - İsimler",
+                "Sözcük Türleri - Zamirler", 
+                "Sözcük Türleri - Sıfatlar",
+                "Sözcük Türleri - Zarf",
+                "Sözcük Türleri - Edat"
+            ],
+            "TYT Matematik": [
+                "Üslü Sayılar",
+                "Köklü Sayılar",
+                "Problemler - Karışım Problemleri"
+            ],
+            "TYT Geometri": [
+                "Açı Kenar Bağıntıları",
+                "Çokgenler"
+            ],
+            "TYT Coğrafya": [
+                "İç Kuvvetler/Dış Kuvvetler",
+                "Su-Toprak ve Bitkiler",
+                "Nüfus"
+            ],
+            "TYT Tarih": [
+                "Dünya Gücü Osmanlı (1453-1600)",
+                "Yeni Çağ Avrupa Tarihi"
+            ],
+            "TYT Felsefe": [
+                "Ahlak Felsefesi",
+                "Sanat Felsefesi"
+            ],
+            "TYT Din Kültürü": [
+                "Kutsal Kitaplar",
+                "Ahiret İnancı"
+            ]
+        }
+    },
+    6: {
+        "week": 6,
+        "focus": "Fiil konuları ve çarpanlara ayırma",
+        "topics": {
+            "TYT Türkçe": [
+                "Fiilde Anlam",
+                "Ek Fiil"
+            ],
+            "TYT Matematik": [
+                "Çarpanlara Ayırma",
+                "Problemler - Hareket Problemleri",
+                "Problemler - İşçi Problemleri"
+            ],
+            "TYT Geometri": [
+                "Özel Dörtgenler - Deltoid",
+                "Özel Dörtgenler - Paralelkenar"
+            ],
+            "TYT Coğrafya": [
+                "Göç",
+                "Yerleşme",
+                "Türkiye'nin Yer Şekilleri"
+            ],
+            "TYT Tarih": [
+                "Osmanlı Devletinde Arayış Yılları",
+                "Osmanlı Avrupa İlişkileri",
+                "18. YY Değişim ve Diplomasi",
+                "En Uzun Yüzyıl",
+                "Osmanlı Kültür ve Medeniyeti"
+            ],
+            "TYT Felsefe": [
+                "Din Felsefesi",
+                "Siyaset Felsefesi"
+            ],
+            "TYT Din Kültürü": [
+                "Dinler Tarihi",
+                "İslam Tarihi"
+            ]
+        }
+    },
+    7: {
+        "week": 7,
+        "focus": "Fiilimsiler ve fonksiyonlar",
+        "topics": {
+            "TYT Türkçe": [
+                "Fiilimsi",
+                "Fiilde Çatı"
+            ],
+            "AYT Matematik": [
+                "Fonksiyonlar"
+            ],
+            "TYT Matematik": [
+                "Problemler - Tablo-Grafik Problemleri",
+                "Problemler - Rutin Olmayan Problemler"
+            ],
+            "TYT Geometri": [
+                "Eşkenar Dörtgen",
+                "Dikdörtgen"
+            ],
+            "TYT Coğrafya": [
+                "Ekonomik Faaliyetler",
+                "Bölgeler Uluslararası Ulaşım Hatları",
+                "Çevre ve Toplum",
+                "Doğal Afetler"
+            ],
+            "TYT Tarih": [
+                "20. YY Osmanlı Devleti",
+                "1. Dünya Savaşı"
+            ],
+            "TYT Felsefe": [
+                "Bilim Felsefesi",
+                "İlk Çağ Felsefesi"
+            ],
+            "TYT Din Kültürü": [
+                "Hz. Muhammed'in Hayatı",
+                "Temel Dini Kavramlar"
+            ]
+        }
+    },
+    8: {
+        "week": 8,
+        "focus": "Cümle bilgisi ve mantık",
+        "topics": {
+            "TYT Türkçe": [
+                "Cümlenin Öğeleri",
+                "Cümle Türleri",
+                "Anlatım Bozukluğu"
+            ],
+            "TYT Matematik": [
+                "Mantık",
+                "Kümeler"
+            ],
+            "AYT Matematik": [
+                "Polinom"
+            ],
+            "TYT Geometri": [
+                "Kare",
+                "Yamuk"
+            ],
+            "TYT Tarih": [
+                "Mondros Ateşkesi, İşgaller ve Cemiyetler",
+                "Kurtuluş Savaşına Hazırlık Dönemi",
+                "1. TBMM Dönemi",
+                "Kurtuluş Savaşı ve Anlaşmalar"
+            ]
+        }
+    },
+    9: {
+        "week": 9,
+        "focus": "Olasılık ve 2. derece denklemler",
+        "topics": {
+            "TYT Matematik": [
+                "Olasılık"
+            ],
+            "AYT Matematik": [
+                "2. Derece Denklemler"
+            ],
+            "TYT Geometri": [
+                "Çemberde Açı",
+                "Çemberde Uzunluk"
+            ],
+            "TYT Tarih": [
+                "II. TBMM Dönemi ve Çok Partili Hayata Geçiş",
+                "Türk İnkılabı"
+            ],
+            "AYT Edebiyat": [
+                "Güzel Sanatlar ve Edebiyat ile İlişkisi",
+                "Metinlerin Sınıflandırılması"
+            ],
+            "AYT Coğrafya": [
+                "Ekosistem"
+            ]
+        }
+    },
+    10: {
+        "week": 10,
+        "focus": "Edebiyat sanatları ve karmaşık sayılar",
+        "topics": {
+            "AYT Edebiyat": [
+                "Edebi Sanatlar",
+                "Edebiyat Akımları"
+            ],
+            "AYT Coğrafya": [
+                "Biyoçeşitlilik",
+                "Biyomlar",
+                "Ekosistem Unsurları"
+            ],
+            "AYT Matematik": [
+                "Karmaşık Sayılar",
+                "2. Derece Denklem ve Eşitsizlikler"
+            ],
+            "TYT Tarih": [
+                "Atatürk İlkeleri",
+                "Atatürk Dönemi Türk Dış Politikası"
+            ],
+            "TYT Geometri": [
+                "Dairede Çevre ve Alan",
+                "Noktanın Analitiği"
+            ]
+        }
+    },
+    11: {
+        "week": 11,
+        "focus": "Dünya edebiyatı ve logaritma",
+        "topics": {
+            "AYT Edebiyat": [
+                "Dünya Edebiyatı",
+                "Anlam Bilgisi (Tekrar)",
+                "Dil Bilgisi (Tekrar)",
+                "Şiir Bilgisi"
+            ],
+            "AYT Matematik": [
+                "Parabol",
+                "Logaritma"
+            ],
+            "TYT Geometri": [
+                "Doğrunun Analitiği",
+                "Prizmalar"
+            ],
+            "AYT Coğrafya": [
+                "Enerji Akışı ve Madde Döngüsü",
+                "Nüfus Politikaları",
+                "Türkiye'de Nüfus ve Yerleşme",
+                "Göç ve Şehirleşme"
+            ],
+            "AYT Tarih": [
+                "Tarih ve Zaman (Temel Kavramlar)",
+                "İnsanlığın İlk Dönemleri",
+                "Ortaçağda Dünya"
+            ]
+        }
+    },
+    12: {
+        "week": 12,
+        "focus": "Türk edebiyatı dönemleri ve diziler",
+        "topics": {
+            "AYT Edebiyat": [
+                "Türk Edebiyatı Dönemleri (Genel Özellikler)",
+                "İslamiyet Öncesi Türk Edebiyatı (Sözlü ve Yazılı)",
+                "İslamiyet Etkisindeki Geçiş Dönemi Edebiyatı"
+            ],
+            "AYT Matematik": [
+                "Diziler",
+                "Limit"
+            ],
+            "TYT Geometri": [
+                "Küp",
+                "Silindir"
+            ],
+            "AYT Coğrafya": [
+                "Ekonomik Faaliyetler ve Doğal Kaynaklar",
+                "Türkiye Ekonomisi",
+                "Türkiye'nin Ekonomik Politikaları",
+                "Türkiye Ekonomisinin Sektörel Dağılımı"
+            ],
+            "AYT Tarih": [
+                "İlk ve Orta Çağlarda Türk Dünyası",
+                "İslam Medeniyetinin Doğuşu",
+                "Türklerin İslamiyeti Kabulü ve İlk Türk İslam Devletleri",
+                "Yerleşme ve Devletleşme Sürecindeki Selçuklu Türkiyesi"
+            ]
+        }
+    },
+    13: {
+        "week": 13,
+        "focus": "Halk ve divan edebiyatı, türev",
+        "topics": {
+            "AYT Edebiyat": [
+                "Halk Edebiyatı",
+                "Divan Edebiyatı"
+            ],
+            "AYT Matematik": [
+                "Türev"
+            ],
+            "AYT Coğrafya": [
+                "Türkiye'de Tarım",
+                "Türkiye'de Ulaşım",
+                "Türkiye'de Ticaret ve Turizm",
+                "Geçmişten Geleceğe Şehir ve Ekonomi",
+                "Türkiye'nin İşlevsel Bölgeleri ve Kalkınma Projeleri",
+                "Hizmet Sektörünün Ekonomideki Yeri"
+            ],
+            "AYT Tarih": [
+                "Beylikten Devlete Osmanlı Siyaseti",
+                "Devletleşme Sürecindeki Savaşçılar ve Askerler",
+                "Beylikten Devlete Osmanlı Medeniyeti", 
+                "Dünya Gücü Osmanlı",
+                "Sultan ve Osmanlı ve Merkez Teşkilatı",
+                "Klasik Çağda Osmanlı Toplum Düzeni"
+            ],
+            "TYT Geometri": [
+                "Piramit",
+                "Koni",
+                "Küre"
+            ]
+        }
+    },
+    14: {
+        "week": 14,
+        "focus": "Tanzimat dönemi ve küresel coğrafya",
+        "topics": {
+            "AYT Edebiyat": [
+                "Tanzimat Dönemi Edebiyatı (1. ve 2. Kuşak)",
+                "Servet-i Fünun Edebiyatı (Edebiyat-ı Cedide)",
+                "Fecr-i Ati Edebiyatı"
+            ],
+            "AYT Coğrafya": [
+                "Küresel Ticaret",
+                "Bölgeler ve Ülkeler",
+                "İlk Uygarlıklar",
+                "Kültür Bölgeleri ve Türk Kültürü",
+                "Sanayileşme Süreci: Almanya",
+                "Tarih ve Ekonomi İlişkisi Fransa-Somali",
+                "Ülkeler Arası Etkileşim",
+                "Jeopolitik Konum",
+                "Çatışma Bölgeleri",
+                "Küresel ve Bölgesel Örgütler"
+            ],
+            "AYT Tarih": [
+                "Değişen Dünya Dengeleri Karşısında Osmanlı Siyaseti",
+                "Değişim Çağında Avrupa ve Osmanlı",
+                "Uluslararası İlişkilerde Denge Stratejisi",
+                "Devrimler Çağında ve Değişen Devlet Toplum İlişkileri",
+                "Sermaye ve Emek",
+                "XIX. ve XX. YY Değişen Gündelik Hayat"
+            ]
+        }
+    },
+    15: {
+        "week": 15,
+        "focus": "Milli edebiyat ve çevre konuları",
+        "topics": {
+            "AYT Edebiyat": [
+                "Milli Edebiyat"
+            ],
+            "AYT Coğrafya": [
+                "Ekstrem Doğa Olayları",
+                "Küresel İklim Değişimi",
+                "Çevre ve Toplum",
+                "Çevre Sorunları ve Türleri",
+                "Madenler ve Enerji Kaynaklarının Çevreye Etkisi",
+                "Doğal Kaynakların Sürdürülebilir Kullanımı",
+                "Ekolojik Ayak İzi",
+                "Doğal Çevrenin Sınırlılığı",
+                "Çevre Politikaları",
+                "Çevresel Örgütler",
+                "Çevre Anlaşmaları",
+                "Doğal Afetler"
+            ],
+            "AYT Tarih": [
+                "XX. YY Başlarında Osmanlı Devleti ve Dünya",
+                "Milli Mücadele",
+                "Atatürkçülük ve Türk İnkılabı"
+            ]
+        }
+    },
+    16: {
+        "week": 16,
+        "focus": "Cumhuriyet dönemi ve integral",
+        "topics": {
+            "AYT Edebiyat": [
+                "Cumhuriyet Dönemi Edebiyatı",
+                "Edebi Akımlar"
+            ],
+            "AYT Tarih": [
+                "İlk Savaş Arasındaki Dönemde Türkiye ve Dünya",
+                "II. Dünya Savaşı Sürecinde Türkiye ve Dünya",
+                "II. Dünya Savaşı Sonrasında Türkiye ve Dünya",
+                "Toplumsal Devrim Çağında Dünya ve Türkiye",
+                "XXI. YY Eşiğinde Türkiye ve Dünya"
+            ],
+            "AYT Matematik": [
+                "İntegral",
+                "Olasılık, Binom, Permütasyon, Kombinasyon"
+            ]
+        }
+    }
+}
+
+# 🎯 Sınıf Bazlı Program Yönetimi
+def get_grade_based_strategy(grade, target_department):
+    """Sınıf ve hedef bölüme göre strateji döndürür"""
+    base_strategy = GRADE_BASED_PROGRAMS.get(grade, GRADE_BASED_PROGRAMS["12. Sınıf"])
+    
+    # Hedef bölüm zorluğunu al
+    dept_difficulty = TARGET_DEPARTMENT_DIFFICULTY.get(target_department, TARGET_DEPARTMENT_DIFFICULTY["Varsayılan"])
+    
+    # Stratejiyi zorluğa göre ayarla
+    adjusted_strategy = base_strategy.copy()
+    adjusted_strategy['weekly_topic_base'] = int(base_strategy['weekly_topic_base'] * dept_difficulty['weekly_topic_multiplier'])
+    adjusted_strategy['difficulty_level'] = dept_difficulty['difficulty_level']
+    adjusted_strategy['target_nets'] = dept_difficulty['required_nets']
+    
+    return adjusted_strategy
+
+def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics):
+    """Eşit Ağırlık için haftalık konuları getirir"""
+    if week_number > 16:
+        week_number = 16  # Max 16 hafta
+    
+    week_plan = EQUAL_WEIGHT_WEEKLY_PLAN.get(week_number, {})
+    weekly_topics = []
+    
+    # Bu haftanın planlanmış konularını al
+    planned_topics = week_plan.get('topics', {})
+    
+    # Önceki haftalardan kalan öncelikli konuları ekle
+    priority_topics = get_priority_topics_from_previous_weeks(pending_topics)
+    
+    # Konuları birleştir
+    for subject, topic_list in planned_topics.items():
+        for topic in topic_list:
+            weekly_topics.append({
+                'subject': subject,
+                'topic': topic,
+                'week': week_number,
+                'priority': 'normal',
+                'difficulty': get_topic_difficulty_by_name(topic),
+                'status': 'planned'
+            })
+    
+    # Öncelikli konuları başa ekle
+    for topic in priority_topics:
+        topic['priority'] = 'high'
+        weekly_topics.insert(0, topic)
+    
+    return weekly_topics
+
+def get_priority_topics_from_previous_weeks(pending_topics):
+    """Önceki haftalardan kalan öncelikli konuları döndürür"""
+    priority_topics = []
+    
+    for topic in pending_topics:
+        if topic.get('status') == 'incomplete' and topic.get('week', 0) < get_current_week_number():
+            priority_topics.append(topic)
+    
+    return priority_topics
+
+def get_topic_difficulty_by_name(topic_name):
+    """Konu adına göre zorluk seviyesi döndürür"""
+    # Konu adına göre zorluk belirle (basit heuristic)
+    if any(keyword in topic_name.lower() for keyword in ['temel', 'giriş', 'tanım', 'kavram']):
+        return 2  # Kolay
+    elif any(keyword in topic_name.lower() for keyword in ['problem', 'analiz', 'uygulama', 'çözüm']):
+        return 4  # Zor
+    elif any(keyword in topic_name.lower() for keyword in ['ileri', 'karmaşık', 'detay', 'derinlemesine']):
+        return 5  # Çok Zor
+    else:
+        return 3  # Orta
+
+def calculate_weekly_progress_percentage(completed_topics, total_planned_topics):
+    """Haftalık ilerleme yüzdesini hesaplar"""
+    if total_planned_topics == 0:
+        return 0
+    
+    return min(100, (completed_topics / total_planned_topics) * 100)
+
+def get_flexible_topic_recommendations(user_data, current_week_progress, target_percentage=80):
+    """Esnek hedef sistemi - %80 hedef ve esnek konu önerileri"""
+    
+    # Mevcut hafta ilerleme durumu
+    if current_week_progress >= target_percentage:
+        # Hedef aşıldı, bir sonraki haftanın konularını öner
+        next_week_topics = get_next_week_topics(user_data)
+        return {
+            'status': 'ahead',
+            'message': f'🎉 Bu haftanın hedefini %{current_week_progress:.1f} ile aştınız!',
+            'recommendation': 'Bir sonraki haftanın konularına başlayabilirsiniz.',
+            'suggested_topics': next_week_topics[:3],  # İlk 3 konu
+            'action': 'advance'
+        }
+    elif current_week_progress >= 60:
+        # İyi durumda, biraz daha çalışarak hedefe ulaşabilir
+        return {
+            'status': 'on_track',
+            'message': f'👍 İyi gidiyorsunuz! Hedefin %{current_week_progress:.1f}ındasınız.',
+            'recommendation': f'%{target_percentage} hedefe ulaşmak için biraz daha çalışın.',
+            'action': 'continue'
+        }
+    else:
+        # Geride, öncelikli konulara odaklanmalı
+        return {
+            'status': 'behind',
+            'message': f'⚠️ Bu hafta %{current_week_progress:.1f} ilerleme sağladınız.',
+            'recommendation': 'Öncelikli konulara odaklanın, tüm konuları bitirmeye çalışmayın.',
+            'action': 'focus_priority'
+        }
+
+def get_next_week_topics(user_data):
+    """Bir sonraki haftanın konularını döndürür"""
+    current_week = get_current_week_number()
+    student_field = user_data.get('field', '')
+    
+    if student_field == 'Eşit Ağırlık':
+        next_week_plan = EQUAL_WEIGHT_WEEKLY_PLAN.get(current_week + 1, {})
+        topics = []
+        
+        planned_topics = next_week_plan.get('topics', {})
+        for subject, topic_list in planned_topics.items():
+            for topic in topic_list[:2]:  # Her dersten ilk 2 konu
+                topics.append({
+                    'subject': subject,
+                    'topic': topic,
+                    'week': current_week + 1,
+                    'priority': 'next_week'
+                })
+        
+        return topics
+    
+    return []
+
+def get_current_week_number():
+    """Mevcut hafta numarasını döndürür"""
+    week_info = get_current_week_info()
+    return week_info.get('week_number', 1)
+
+def get_weekly_din_felsefe_topics(week_number):
+    """3. haftadan itibaren TYT Din ve Felsefe konularını haftalık 2-3 konu olarak döndürür"""
+    topics = []
+    
+    if week_number < 3:
+        return topics
+    
+    # Her hafta için Din ve Felsefe konularını belirle
+    week_offset = week_number - 3  # 3. haftadan başladığı için
+    
+    # TYT Felsefe konuları
+    felsefe_topics = [
+        "Felsefenin Konusu", "Bilgi Felsefesi (Epistemoloji)", "Varlık Felsefesi (Ontoloji)",
+        "Din, Kültür ve Medeniyet", "Ahlak Felsefesi", "Sanat Felsefesi",
+        "Din Felsefesi", "Siyaset Felsefesi", "Bilim Felsefesi", "İlk Çağ Felsefesi",
+        "Sokrates ve Felsefesi", "Platon ve Felsefesi", "Aristoteles ve Felsefesi",
+        "Orta Çağ Felsefesi", "İslam Felsefesi (Farabi, İbn Sina)"
+    ]
+    
+    # TYT Din Kültürü konuları 
+    din_topics = [
+        "İnsan ve Din (İnanç)", "Ahlak", "İbadet", "Peygamberlik",
+        "Kutsal Kitaplar", "Ahiret İnancı", "Dinler Tarihi", "İslam Tarihi",
+        "Hz. Muhammed'in Hayatı", "Temel Dini Kavramlar"
+    ]
+    
+    # Bu hafta için konuları seç (hafta başına 2-3 konu)
+    felsefe_start = (week_offset * 2) % len(felsefe_topics)
+    din_start = (week_offset * 2) % len(din_topics)
+    
+    # Felsefe'den 1-2 konu
+    for i in range(2):
+        idx = (felsefe_start + i) % len(felsefe_topics)
+        topics.append({
+            'subject': 'TYT Felsefe',
+            'topic': felsefe_topics[idx],
+            'week': week_number,
+            'priority': 'normal',
+            'difficulty': 3,
+            'status': 'planned'
+        })
+    
+    # Din'den 1 konu
+    din_idx = din_start % len(din_topics)
+    topics.append({
+        'subject': 'TYT Din Kültürü',
+        'topic': din_topics[din_idx],
+        'week': week_number,
+        'priority': 'normal', 
+        'difficulty': 2,
+        'status': 'planned'
+    })
+    
+    return topics
+
+def get_review_topics_for_equal_weight(user_data):
+    """Eşit Ağırlık öğrencileri için tekrar konularını döndürür"""
+    review_topics = []
+    
+    # Mastery sisteminden tekrar zamanı gelen konuları al
+    mastery_topics = get_pending_review_topics(user_data)
+    
+    # Eşit Ağırlık için maksimum 8 tekrar konu
+    review_topics = mastery_topics[:8]
+    
+    return review_topics
+
+def show_grade_and_target_dashboard(weekly_plan, user_data):
+    """Sınıf ve hedef bölüm bazlı strateji dashboard'u"""
+    grade_strategy = weekly_plan.get('grade_strategy', {})
+    student_grade = user_data.get('grade', '12. Sınıf')
+    target_department = user_data.get('target', 'Varsayılan')
+    
+    st.markdown("### 🎯 KİŞİSEL STRATEJİ BİLGİLERİNİZ")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            "🎓 Sınıfınız",
+            student_grade,
+            help="Sınıfınıza özel strateji uygulanıyor"
+        )
+    
+    with col2:
+        st.metric(
+            "🎯 Hedef Bölüm",
+            target_department,
+            help=f"Zorluk Seviyesi: {grade_strategy.get('difficulty_level', 1)}/5"
+        )
+    
+    with col3:
+        target_nets = grade_strategy.get('target_nets', {})
+        st.metric(
+            "🎯 Hedef TYT Net",
+            f"{target_nets.get('TYT', 75)}",
+            help="Bu bölüm için gerekli TYT net"
+        )
+    
+    with col4:
+        st.metric(
+            "🎯 Hedef AYT Net", 
+            f"{target_nets.get('AYT', 35)}",
+            help="Bu bölüm için gerekli AYT net"
+        )
+    
+    # Strateji detayları
+    st.info(f"""
+    **📋 {student_grade} Strateji Detayları:**
+    • **Odak:** {grade_strategy.get('focus', 'Konu tamamlama')}
+    • **Çalışma Hızı:** {grade_strategy.get('study_pace', 'Normal')}
+    • **Haftalık Konu Bazı:** {grade_strategy.get('weekly_topic_base', 10)} konu
+    • **Tekrar Oranı:** %{int(grade_strategy.get('review_ratio', 0.3) * 100)} tekrar
+    • **Özel Notlar:** {grade_strategy.get('special_notes', 'Standart program')}
+    """)
+
+def show_equal_weight_special_dashboard(weekly_plan, user_data):
+    """Eşit Ağırlık özel planı dashboard'u"""
+    current_week = weekly_plan.get('current_week', 1)
+    total_weeks = weekly_plan.get('total_weeks', 16)
+    flexible_rec = weekly_plan.get('flexible_recommendation', {})
+    
+    st.markdown("### 📚 EŞİT AĞIRLIK ÖZEL PLANI")
+    
+    # İlerleme çubuğu
+    progress = min(100, (current_week / total_weeks) * 100)
+    st.progress(progress / 100)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            "📅 Mevcut Hafta",
+            f"{current_week}/16",
+            help="16 haftalık detay planının hangi haftasındasınız"
+        )
+    
+    with col2:
+        week_plan = EQUAL_WEIGHT_WEEKLY_PLAN.get(current_week, {})
+        st.metric(
+            "🎯 Bu Hafta Odak",
+            week_plan.get('focus', 'Belirlenmedi')[:20] + "..." if len(week_plan.get('focus', '')) > 20 else week_plan.get('focus', 'Belirlenmedi'),
+            help=week_plan.get('focus', 'Bu haftanın odak konusu')
+        )
+    
+    with col3:
+        weekly_topics = weekly_plan.get('new_topics', [])
+        st.metric(
+            "📚 Bu Hafta Konu",
+            len(weekly_topics),
+            help="Bu hafta planlanmış toplam konu sayısı"
+        )
+    
+    with col4:
+        target_percentage = 80
+        st.metric(
+            "🎯 Hedef Başarı",
+            f"%{target_percentage}",
+            help="Haftalık başarı hedefi"
+        )
+    
+    # Esnek hedef sistemi önerileri
+    if flexible_rec:
+        status = flexible_rec.get('status', 'on_track')
+        message = flexible_rec.get('message', '')
+        recommendation = flexible_rec.get('recommendation', '')
+        
+        if status == 'ahead':
+            st.success(f"🎉 {message}")
+            st.info(f"💡 **Öneri:** {recommendation}")
+            
+            # Bir sonraki haftanın konularını göster
+            suggested_topics = flexible_rec.get('suggested_topics', [])
+            if suggested_topics:
+                st.markdown("**🔥 Bir Sonraki Haftadan Başlayabileceğiniz Konular:**")
+                for topic in suggested_topics:
+                    st.write(f"• **{topic['subject']}:** {topic['topic']}")
+                    
+        elif status == 'on_track':
+            st.info(f"👍 {message}")
+            st.write(f"💡 **Öneri:** {recommendation}")
+            
+        else:  # behind
+            st.warning(f"⚠️ {message}")
+            st.write(f"💡 **Öneri:** {recommendation}")
+    
+    # Bu haftanın detay planını göster
+    if current_week <= 16:
+        with st.expander(f"📋 {current_week}. Hafta Detay Planı", expanded=False):
+            week_detail = EQUAL_WEIGHT_WEEKLY_PLAN.get(current_week, {})
+            topics_by_subject = week_detail.get('topics', {})
+            
+            for subject, topics in topics_by_subject.items():
+                st.markdown(f"**🔸 {subject}:**")
+                for topic in topics:
+                    difficulty = get_topic_difficulty_by_name(topic)
+                    difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
+                    st.write(f"• {topic} {difficulty_info['icon']}")
+                st.write("")
+
+def update_weekly_plan_with_pending_topics(user_data, weekly_plan):
+    """Haftalık planı kalan konularla günceller"""
+    
+    # Kullanıcının tamamlanmamış konularını al
+    pending_topics = get_user_pending_topics(user_data)
+    
+    # Bu hafta için planlanan konuları al
+    current_week_topics = weekly_plan.get('new_topics', [])
+    
+    # Önceki haftalardan kalan konuları öncelikli olarak ekle
+    priority_topics = []
+    for topic in pending_topics:
+        if topic.get('week', 0) < get_current_week_number():
+            topic['priority'] = 'high'
+            topic['reason'] = 'Önceki haftadan kalan'
+            priority_topics.append(topic)
+    
+    # Öncelikli konuları başa ekle
+    updated_topics = priority_topics + current_week_topics
+    
+    # Güncellenen planı döndür
+    weekly_plan['new_topics'] = updated_topics
+    weekly_plan['priority_topics_count'] = len(priority_topics)
+    
+    return weekly_plan
+
+def get_user_pending_topics(user_data):
+    """Kullanıcının tamamlanmamış konularını döndürür"""
+    # Bu fonksiyon kullanıcının geçmiş haftalardaki tamamlanmamış konularını bulur
+    # Şimdilik basit bir implementasyon
+    pending_topics = []
+    
+    # Kullanıcı verilerinden tamamlanmamış konuları al
+    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    
+    for topic_key, topic_data in topic_progress.items():
+        if topic_data.get('net', 0) < 14:  # Tamamlanmamış sayılır
+            pending_topics.append({
+                'subject': topic_data.get('subject', 'Bilinmiyor'),
+                'topic': topic_key,
+                'net': topic_data.get('net', 0),
+                'week': topic_data.get('planned_week', 1),
+                'status': 'incomplete'
+            })
+    
+    return pending_topics
+
 # Kitap önerileri
 BOOK_RECOMMENDATIONS = {
     "Bilim Kurgu": [
@@ -2826,6 +3823,16 @@ def show_weekly_planner(user_data):
     # 🎯 ZAMANSAL STRATEJİ BİLGİLERİNİ GÖSTER
     if 'time_strategy' in weekly_plan:
         show_time_strategy_dashboard(weekly_plan)
+        st.markdown("---")
+    
+    # 🎯 YENİ: SINIF VE HEDEF BÖLÜM BİLGİLERİNİ GÖSTER
+    if 'grade_strategy' in weekly_plan:
+        show_grade_and_target_dashboard(weekly_plan, user_data)
+        st.markdown("---")
+    
+    # 🎯 YENİ: EŞİT AĞIRLIK ÖZEL PLANI DASHBOARD'U
+    if weekly_plan.get('equal_weight_special', False):
+        show_equal_weight_special_dashboard(weekly_plan, user_data)
         st.markdown("---")
     
     # Ana haftalık plan
@@ -7689,6 +8696,9 @@ def get_subjects_by_field_yks(field):
     elif field == "Eşit Ağırlık":
         return ["TYT Matematik", "TYT Geometri", "TYT Türkçe", "TYT Tarih", "TYT Coğrafya",
                 "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
+    elif field == "MSÜ AST.&TYT":
+        return ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", 
+                "TYT Biyoloji", "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "TYT Din Kültürü"]
     else:
         return list(YKS_TOPICS.keys())
 
@@ -8271,6 +9281,17 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     time_strategy = get_time_based_strategy(days_to_yks, current_month)
     deneme_strategy = get_deneme_strategy_by_period(time_strategy)
     
+    # 🎯 SINIF VE HEDEF BÖLÜM BAZLI STRATEJİ ENTEGRASYONU
+    student_grade = user_data.get('grade', '12. Sınıf')
+    target_department = user_data.get('target', 'Varsayılan')
+    grade_strategy = get_grade_based_strategy(student_grade, target_department)
+    
+    # Zamansal strateji ile sınıf bazlı stratejiyi birleştir
+    time_strategy['weekly_topic_base'] = grade_strategy['weekly_topic_base']
+    time_strategy['grade_multiplier'] = grade_strategy['weekly_topic_multiplier']
+    time_strategy['difficulty_level'] = grade_strategy['difficulty_level']
+    time_strategy['target_nets'] = grade_strategy['target_nets']
+    
     # Strateji bilgilerini debug için kaydet
     strategy_info = {
         'period': time_strategy['period_name'],
@@ -8292,7 +9313,43 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     # AYT başlatma koşullarını kontrol et
     include_ayt = should_include_ayt(tyt_progress, tyt_math_topics_completed)
     
-    # Konuların TYT/AYT durumuna göre filtrele
+    # 🎯 EŞİT AĞIRLIK ÖZEL PLANı KONTROLÜ
+    if student_field == "Eşit Ağırlık":
+        # Eşit Ağırlık için 16 haftalık detay planı kullan
+        completed_topics = get_user_pending_topics(user_data)
+        pending_topics = [t for t in completed_topics if t.get('status') == 'incomplete']
+        
+        equal_weight_topics = get_equal_weight_weekly_topics(current_week, completed_topics, pending_topics)
+        
+        # Esnek hedef sistemi uygula
+        current_week_progress = calculate_weekly_progress_percentage(
+            len([t for t in completed_topics if t.get('week') == current_week and t.get('status') == 'completed']),
+            len([t for t in equal_weight_topics if t.get('week') == current_week])
+        )
+        
+        flexible_recommendation = get_flexible_topic_recommendations(user_data, current_week_progress)
+        
+        # TYT Din ve Felsefe 3. haftadan sonra eklenir
+        if current_week >= 3:
+            # Din ve Felsefe konularını sistematik olarak ekle
+            din_felsefe_topics = get_weekly_din_felsefe_topics(current_week)
+            equal_weight_topics.extend(din_felsefe_topics)
+        
+        # Eşit Ağırlık için özel plan döndür
+        return {
+            'new_topics': equal_weight_topics[:time_strategy.get('new_topics_per_week', 10)],
+            'review_topics': get_review_topics_for_equal_weight(user_data),
+            'week_target': len(equal_weight_topics),
+            'success_target': 0.8,  # %80 hedef
+            'flexible_recommendation': flexible_recommendation,
+            'time_strategy': time_strategy,
+            'grade_strategy': grade_strategy,
+            'equal_weight_special': True,
+            'current_week': current_week,
+            'total_weeks': 16
+        }
+    
+    # Konuların TYT/AYT durumuna göre filtrele (diğer alanlar için)
     filtered_subjects = []
     for subject in available_subjects:
         if subject.startswith('AYT'):
@@ -9016,7 +10073,7 @@ def main():
                 name = st.text_input("Adınız", key="name_input")
                 surname = st.text_input("Soyadınız", key="surname_input")
                 grade = st.selectbox("Sınıfınız", ["11. Sınıf", "12. Sınıf", "Mezun"], key="grade_input")
-                field = st.selectbox("Alanınız", ["Sayısal", "Sözel", "Eşit Ağırlık"], key="field_input")
+                field = st.selectbox("Alanınız", ["Sayısal", "Sözel", "Eşit Ağırlık", "MSÜ AST.&TYT"], key="field_input")
                 target = st.selectbox("Hedef Bölümünüz", list(BACKGROUND_STYLES.keys())[:-1], key="target_input")
             
             with col2:
@@ -10499,6 +11556,8 @@ def main():
                     available_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Tarih", "TYT Coğrafya", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
                 elif user_field == "Sözel":
                     available_subjects = ["TYT Türkçe", "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "TYT Din Kültürü", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya", "AYT Felsefe", "AYT Din Kültürü ve Ahlak Bilgisi"]
+                elif user_field == "MSÜ AST.&TYT":
+                    available_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "TYT Din Kültürü"]
                 else:
                     available_subjects = list(YKS_TOPICS.keys())
                 
@@ -10529,7 +11588,7 @@ def main():
                                         st.write(f"**📋 {sub_topic}**")
                                         for detail in details:
                                             topic_key = f"{selected_subject} | {main_topic} | {sub_topic} | {detail}"
-                                            col1, col2, col3, col4 = st.columns([3, 2, 1, 1])
+                                            col1, col2, col3, col4, col5 = st.columns([3, 2, 1, 1, 1])
                                             with col1:
                                                 # Soru sayısı bilgisini ekle
                                                 try:
@@ -10554,6 +11613,30 @@ def main():
                                             with col3:
                                                 st.write(calculate_level(new_net))
                                             with col4:
+                                                # Konu Zorluk Puanlama (1-5 arası)
+                                                difficulty_key = f"difficulty_{hash(topic_key)}_{selected_subject}_{main_topic}_{sub_topic}_{detail}"
+                                                current_difficulty = topic_progress.get(f"{topic_key}_difficulty", 3)  # Varsayılan: orta
+                                                try:
+                                                    current_difficulty_int = int(current_difficulty)
+                                                except (ValueError, TypeError):
+                                                    current_difficulty_int = 3
+                                                
+                                                difficulty_rating = st.selectbox(
+                                                    "Zorluk",
+                                                    options=[1, 2, 3, 4, 5],
+                                                    index=current_difficulty_int - 1,
+                                                    format_func=lambda x: f"{TOPIC_DIFFICULTY_SYSTEM[x]['icon']} {x}",
+                                                    key=difficulty_key,
+                                                    label_visibility="collapsed",
+                                                    help=f"Zorluk: {TOPIC_DIFFICULTY_SYSTEM[current_difficulty_int]['name']} - {TOPIC_DIFFICULTY_SYSTEM[current_difficulty_int]['study_time']}"
+                                                )
+                                                
+                                                # Zorluk güncellemesi
+                                                if difficulty_rating != current_difficulty_int:
+                                                    topic_progress[f"{topic_key}_difficulty"] = difficulty_rating
+                                                    update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
+                                                    
+                                            with col5:
                                                 # Soru sıklığı ikonu
                                                 try:
                                                     if question_count > 0:
@@ -10582,7 +11665,7 @@ def main():
                                     # Alt konular liste
                                     for detail in sub_topics:
                                         topic_key = f"{selected_subject} | {main_topic} | None | {detail}"
-                                        col1, col2, col3, col4 = st.columns([3, 2, 1, 1])
+                                        col1, col2, col3, col4, col5 = st.columns([3, 2, 1, 1, 1])
                                         with col1:
                                             # Soru sayısı bilgisini ekle
                                             try:
@@ -10607,6 +11690,30 @@ def main():
                                         with col3:
                                             st.write(calculate_level(new_net))
                                         with col4:
+                                            # Konu Zorluk Puanlama (1-5 arası)
+                                            difficulty_key = f"difficulty_{hash(topic_key)}_{selected_subject}_{main_topic}_{detail}"
+                                            current_difficulty = topic_progress.get(f"{topic_key}_difficulty", 3)  # Varsayılan: orta
+                                            try:
+                                                current_difficulty_int = int(current_difficulty)
+                                            except (ValueError, TypeError):
+                                                current_difficulty_int = 3
+                                            
+                                            difficulty_rating = st.selectbox(
+                                                "Zorluk",
+                                                options=[1, 2, 3, 4, 5],
+                                                index=current_difficulty_int - 1,
+                                                format_func=lambda x: f"{TOPIC_DIFFICULTY_SYSTEM[x]['icon']} {x}",
+                                                key=difficulty_key,
+                                                label_visibility="collapsed",
+                                                help=f"Zorluk: {TOPIC_DIFFICULTY_SYSTEM[current_difficulty_int]['name']} - {TOPIC_DIFFICULTY_SYSTEM[current_difficulty_int]['study_time']}"
+                                            )
+                                            
+                                            # Zorluk güncellemesi
+                                            if difficulty_rating != current_difficulty_int:
+                                                topic_progress[f"{topic_key}_difficulty"] = difficulty_rating
+                                                update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
+                                                
+                                        with col5:
                                             # Soru sıklığı ikonu
                                             try:
                                                 if question_count > 0:
@@ -10636,7 +11743,7 @@ def main():
                         with st.expander(f"📂 {selected_subject} Konuları", expanded=True):
                             for detail in subject_content:
                                 topic_key = f"{selected_subject} | None | None | {detail}"
-                                col1, col2, col3, col4 = st.columns([3, 2, 1, 1])
+                                col1, col2, col3, col4, col5 = st.columns([3, 2, 1, 1, 1])
                                 with col1:
                                     # Soru sayısı bilgisini ekle
                                     try:
@@ -10661,6 +11768,30 @@ def main():
                                 with col3:
                                     st.write(calculate_level(new_net))
                                 with col4:
+                                    # Konu Zorluk Puanlama (1-5 arası)
+                                    difficulty_key = f"difficulty_{hash(topic_key)}_{selected_subject}_{detail}"
+                                    current_difficulty = topic_progress.get(f"{topic_key}_difficulty", 3)  # Varsayılan: orta
+                                    try:
+                                        current_difficulty_int = int(current_difficulty)
+                                    except (ValueError, TypeError):
+                                        current_difficulty_int = 3
+                                    
+                                    difficulty_rating = st.selectbox(
+                                        "Zorluk",
+                                        options=[1, 2, 3, 4, 5],
+                                        index=current_difficulty_int - 1,
+                                        format_func=lambda x: f"{TOPIC_DIFFICULTY_SYSTEM[x]['icon']} {x}",
+                                        key=difficulty_key,
+                                        label_visibility="collapsed",
+                                        help=f"Zorluk: {TOPIC_DIFFICULTY_SYSTEM[current_difficulty_int]['name']} - {TOPIC_DIFFICULTY_SYSTEM[current_difficulty_int]['study_time']}"
+                                    )
+                                    
+                                    # Zorluk güncellemesi
+                                    if difficulty_rating != current_difficulty_int:
+                                        topic_progress[f"{topic_key}_difficulty"] = difficulty_rating
+                                        update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
+                                        
+                                with col5:
                                     # Soru sıklığı ikonu
                                     try:
                                         if question_count > 0:
