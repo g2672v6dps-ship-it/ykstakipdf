@@ -1115,6 +1115,388 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
     }
 }
 
+# 🎮 GAMİFİCATİON SİSTEMİ - BAŞARILAR VE ROZET SİSTEMİ
+
+# 🏆 Rozet Sistemi - Başarı Rozetleri
+ACHIEVEMENT_BADGES = {
+    "topic_milestones": {
+        "first_topic": {
+            "name": "İlk Adım", 
+            "icon": "🚀", 
+            "description": "İlk konunu tamamladın! Yolculuğa başladın!",
+            "points": 25,
+            "requirement": 1
+        },
+        "topic_10": {
+            "name": "Başlangıç", 
+            "icon": "⭐", 
+            "description": "10 konu tamamlandı - İyi bir başlangıç!",
+            "points": 50,
+            "requirement": 10
+        },
+        "topic_25": {
+            "name": "Momentum", 
+            "icon": "🌟", 
+            "description": "25 konu tamamlandı - Momentum kazandın!",
+            "points": 100,
+            "requirement": 25
+        },
+        "topic_50": {
+            "name": "İlerliyor", 
+            "icon": "🌟", 
+            "description": "50 konu tamamlandı - Harika ilerleme!",
+            "points": 200,
+            "requirement": 50
+        },
+        "topic_100": {
+            "name": "Yüzlük Kulüp", 
+            "icon": "💯", 
+            "description": "100 konu tamamlandı - Sen bir şampiyonsun!",
+            "points": 500,
+            "requirement": 100
+        },
+        "topic_250": {
+            "name": "Konuların Efendisi", 
+            "icon": "👑", 
+            "description": "250 konu tamamlandı - Artık bir uzmanısın!",
+            "points": 1000,
+            "requirement": 250
+        },
+        "topic_500": {
+            "name": "Konu Makinesi", 
+            "icon": "🔥", 
+            "description": "500 konu tamamlandı - İnanılmaz bir başarı!",
+            "points": 2000,
+            "requirement": 500
+        }
+    },
+    "subject_expertise": {
+        "math_expert": {
+            "name": "Matematik Uzmanı", 
+            "icon": "📐", 
+            "description": "Matematik konularında uzmanlaştın!",
+            "points": 300,
+            "criteria": {"TYT Matematik": 30, "AYT Matematik": 20}
+        },
+        "turkish_expert": {
+            "name": "Türkçe Uzmanı", 
+            "icon": "📝", 
+            "description": "Türkçe konularında uzmanlaştın!",
+            "points": 250,
+            "criteria": {"TYT Türkçe": 40}
+        },
+        "science_expert": {
+            "name": "Fen Uzmanı", 
+            "icon": "🔬", 
+            "description": "Fen konularında uzmanlaştın!",
+            "points": 400,
+            "criteria": {"TYT Fizik": 15, "TYT Kimya": 15, "TYT Biyoloji": 15}
+        },
+        "social_expert": {
+            "name": "Sosyal Uzmanı", 
+            "icon": "🏛️", 
+            "description": "Sosyal bilimler uzmanısın!",
+            "points": 300,
+            "criteria": {"TYT Tarih": 20, "TYT Coğrafya": 15}
+        }
+    },
+    "streak_badges": {
+        "week_streak": {
+            "name": "Haftalık Kahraman", 
+            "icon": "⚡", 
+            "description": "1 hafta boyunca her gün çalıştın!",
+            "points": 150,
+            "requirement": 7
+        },
+        "month_streak": {
+            "name": "Aylık Şampiyon", 
+            "icon": "🏅", 
+            "description": "1 ay boyunca düzenli çalıştın!",
+            "points": 500,
+            "requirement": 30
+        },
+        "perfect_week": {
+            "name": "Mükemmel Hafta", 
+            "icon": "💎", 
+            "description": "Haftalık hedefini %100 tamamladın!",
+            "points": 200,
+            "requirement": 100
+        }
+    }
+}
+
+# ⭐ Puan Sistemi
+POINT_SYSTEM = {
+    "topic_completion": {
+        "easy": 10,      # Zorluk 1-2
+        "medium": 15,    # Zorluk 3
+        "hard": 20,      # Zorluk 4
+        "very_hard": 25  # Zorluk 5
+    },
+    "topic_review": 5,
+    "exam_analysis": 30,
+    "daily_goal_complete": 20,
+    "weekly_goal_complete": 100,
+    "streak_bonus": {
+        "daily": 5,
+        "weekly": 50
+    },
+    "milestone_bonus": {
+        "net_improvement": 10  # Net artışı başına bonus
+    }
+}
+
+# 🎯 Challenge Sistemi
+DAILY_CHALLENGES = [
+    {
+        "id": "daily_3_topics", 
+        "name": "Günlük Üçlü", 
+        "description": "Bugün 3 konu tamamla", 
+        "points": 30, 
+        "target": 3,
+        "type": "topic_count"
+    },
+    {
+        "id": "daily_math_focus", 
+        "name": "Matematik Odağı", 
+        "description": "Bugün sadece matematik çalış", 
+        "points": 25,
+        "type": "subject_focus",
+        "target_subject": "Matematik"
+    },
+    {
+        "id": "daily_review", 
+        "name": "Tekrar Günü", 
+        "description": "Bugün 5 konu tekrarı yap", 
+        "points": 20, 
+        "target": 5,
+        "type": "review_count"
+    },
+    {
+        "id": "daily_streak", 
+        "name": "Süreklilik", 
+        "description": "Günlük hedefini tamamla", 
+        "points": 15,
+        "type": "daily_goal"
+    }
+]
+
+WEEKLY_CHALLENGES = [
+    {
+        "id": "weekly_exam", 
+        "name": "Haftalık Deneme", 
+        "description": "Bu hafta 1 deneme çöz", 
+        "points": 100, 
+        "target": 1,
+        "type": "exam_count"
+    },
+    {
+        "id": "weekly_15_topics", 
+        "name": "Haftalık Maraton", 
+        "description": "Bu hafta 15 konu tamamla", 
+        "points": 150, 
+        "target": 15,
+        "type": "topic_count"
+    },
+    {
+        "id": "weekly_perfect", 
+        "name": "Mükemmel Hafta", 
+        "description": "Haftalık hedefini %100 tamamla", 
+        "points": 200,
+        "target": 100,
+        "type": "weekly_goal_percentage"
+    }
+]
+
+# 🏆 Seviye Sistemi
+LEVEL_SYSTEM = {
+    "level_thresholds": [0, 100, 300, 600, 1000, 1500, 2200, 3000, 4000, 5200, 6600, 8200, 10000, 12000, 14500, 17500, 21000, 25000, 30000, 36000],
+    "level_rewards": {
+        5: {"name": "YKS Yolcusu", "icon": "🎒", "reward": "Özel tema açıldı"},
+        10: {"name": "Kararlı Öğrenci", "icon": "💪", "reward": "İlerleme grafiği açıldı"},
+        15: {"name": "YKS Uzmanı", "icon": "🎓", "reward": "Detaylı analiz açıldı"},
+        20: {"name": "Çalışma Makinesi", "icon": "🤖", "reward": "Tüm özellikler açıldı"}
+    }
+}
+
+# 🎮 GAMİFİCATİON SİSTEMİ FONKSİYONLARI
+
+def init_gamification_system():
+    """Kullanıcı için gamification verilerini başlat"""
+    if 'gamification' not in st.session_state:
+        st.session_state.gamification = {
+            'total_points': 0,
+            'level': 1,
+            'badges': [],
+            'achievements': {},
+            'daily_streak': 0,
+            'weekly_streak': 0,
+            'last_activity_date': None,
+            'completed_challenges': {
+                'daily': {},
+                'weekly': {}
+            },
+            'current_challenges': {
+                'daily': generate_daily_challenges(),
+                'weekly': generate_weekly_challenges()
+            },
+            'stats': {
+                'topics_completed': 0,
+                'topics_reviewed': 0,
+                'exams_taken': 0,
+                'study_days': 0,
+                'total_study_time': 0,
+                'subject_progress': {}
+            },
+            'milestone_progress': {},
+            'last_level_up': None
+        }
+
+def calculate_user_level(total_points):
+    """Puana göre seviye hesapla"""
+    thresholds = LEVEL_SYSTEM["level_thresholds"]
+    for i, threshold in enumerate(thresholds):
+        if total_points < threshold:
+            return i
+    return len(thresholds)
+
+def award_points(activity_type, difficulty_level=None, subject=None):
+    """Aktivite tipine göre puan ver"""
+    if 'gamification' not in st.session_state:
+        init_gamification_system()
+    
+    points = 0
+    
+    if activity_type == "topic_completion":
+        if difficulty_level in [1, 2]:
+            points = POINT_SYSTEM["topic_completion"]["easy"]
+        elif difficulty_level == 3:
+            points = POINT_SYSTEM["topic_completion"]["medium"]
+        elif difficulty_level == 4:
+            points = POINT_SYSTEM["topic_completion"]["hard"]
+        elif difficulty_level == 5:
+            points = POINT_SYSTEM["topic_completion"]["very_hard"]
+    elif activity_type == "topic_review":
+        points = POINT_SYSTEM["topic_review"]
+    elif activity_type == "exam_analysis":
+        points = POINT_SYSTEM["exam_analysis"]
+    elif activity_type == "daily_goal_complete":
+        points = POINT_SYSTEM["daily_goal_complete"]
+    elif activity_type == "weekly_goal_complete":
+        points = POINT_SYSTEM["weekly_goal_complete"]
+    
+    # Streak bonusu ekle
+    if st.session_state.gamification['daily_streak'] >= 7:
+        points += POINT_SYSTEM["streak_bonus"]["weekly"]
+    elif st.session_state.gamification['daily_streak'] >= 1:
+        points += POINT_SYSTEM["streak_bonus"]["daily"]
+    
+    # Puanı ekle
+    old_level = st.session_state.gamification['level']
+    st.session_state.gamification['total_points'] += points
+    new_level = calculate_user_level(st.session_state.gamification['total_points'])
+    st.session_state.gamification['level'] = new_level
+    
+    # Seviye atlama kontrolü
+    if new_level > old_level:
+        st.session_state.gamification['last_level_up'] = new_level
+        show_level_up_notification(new_level)
+    
+    return points
+
+def check_achievements():
+    """Başarı rozetlerini kontrol et"""
+    if 'gamification' not in st.session_state:
+        init_gamification_system()
+    
+    stats = st.session_state.gamification['stats']
+    new_badges = []
+    
+    # Konu milestone'ları kontrol et
+    topic_count = stats['topics_completed']
+    for milestone_id, badge in ACHIEVEMENT_BADGES["topic_milestones"].items():
+        if milestone_id not in st.session_state.gamification['badges']:
+            if topic_count >= badge['requirement']:
+                st.session_state.gamification['badges'].append(milestone_id)
+                st.session_state.gamification['total_points'] += badge['points']
+                new_badges.append(badge)
+    
+    # Uzmanlık rozetlerini kontrol et
+    subject_progress = stats.get('subject_progress', {})
+    for expertise_id, badge in ACHIEVEMENT_BADGES["subject_expertise"].items():
+        if expertise_id not in st.session_state.gamification['badges']:
+            criteria_met = True
+            for subject, required_count in badge['criteria'].items():
+                if subject_progress.get(subject, 0) < required_count:
+                    criteria_met = False
+                    break
+            
+            if criteria_met:
+                st.session_state.gamification['badges'].append(expertise_id)
+                st.session_state.gamification['total_points'] += badge['points']
+                new_badges.append(badge)
+    
+    return new_badges
+
+def update_topic_completion(subject, topic_name, difficulty_level):
+    """Konu tamamlandığında gamification verilerini güncelle"""
+    if 'gamification' not in st.session_state:
+        init_gamification_system()
+    
+    # İstatistikleri güncelle
+    st.session_state.gamification['stats']['topics_completed'] += 1
+    
+    # Konu bazlı ilerlemeyi güncelle
+    if 'subject_progress' not in st.session_state.gamification['stats']:
+        st.session_state.gamification['stats']['subject_progress'] = {}
+    
+    subject_key = subject.replace(' ', '_').lower()
+    st.session_state.gamification['stats']['subject_progress'][subject] = \
+        st.session_state.gamification['stats']['subject_progress'].get(subject, 0) + 1
+    
+    # Puan ver
+    points = award_points("topic_completion", difficulty_level, subject)
+    
+    # Başarı kontrolü
+    new_badges = check_achievements()
+    
+    # Challenge'ları güncelle
+    update_challenge_progress("topic_completion", subject)
+    
+    return points, new_badges
+
+def generate_daily_challenges():
+    """Günlük challenge'lar üret"""
+    import random
+    return random.sample(DAILY_CHALLENGES, 2)  # Her gün 2 challenge
+
+def generate_weekly_challenges():
+    """Haftalık challenge'lar üret"""
+    import random
+    return random.sample(WEEKLY_CHALLENGES, 1)  # Her hafta 1 challenge
+
+def update_challenge_progress(activity_type, subject=None):
+    """Challenge ilerlemesini güncelle"""
+    if 'gamification' not in st.session_state:
+        return
+    
+    today = datetime.now().strftime("%Y-%m-%d")
+    current_week = datetime.now().strftime("%Y-W%U")
+    
+    # Günlük challenge'ları kontrol et
+    for challenge in st.session_state.gamification['current_challenges']['daily']:
+        challenge_progress = st.session_state.gamification['completed_challenges']['daily'].get(challenge['id'], {})
+        
+        if challenge['type'] == 'topic_count' and activity_type == 'topic_completion':
+            current_count = challenge_progress.get(today, 0)
+            challenge_progress[today] = current_count + 1
+            st.session_state.gamification['completed_challenges']['daily'][challenge['id']] = challenge_progress
+            
+            # Challenge tamamlandı mı?
+            if challenge_progress[today] >= challenge['target']:
+                award_points("daily_goal_complete")
+                st.success(f"🎯 Günlük görev tamamlandı: {challenge['name']} (+{challenge['points']} puan)")
+
 # 🎯 Sınıf Bazlı Program Yönetimi
 def get_grade_based_strategy(grade, target_department):
     """Sınıf ve hedef bölüme göre strateji döndürür"""
@@ -4103,9 +4485,9 @@ def show_topic_card(topic, priority_type):
             <div style='margin-left: 26px;'>
                 <div><strong>📖 {topic['topic']}</strong></div>
                 <div style='font-size: 14px; color: #666; margin-top: 4px;'>
-                    └ {topic['detail']} 
+                    └ {topic.get('detail', '')} 
                     <span style='background: #f0f0f0; padding: 2px 6px; border-radius: 10px; margin-left: 8px;'>
-                        Mevcut: {topic['net']} net
+                        Mevcut: {topic.get('net', 0)} net
                     </span>
                 </div>
             </div>
@@ -4128,9 +4510,9 @@ def show_review_card(topic, priority_type):
             <div style='margin-left: 24px;'>
                 <div><strong>📖 {topic['topic']}</strong></div>
                 <div style='font-size: 14px; color: #666; margin-top: 4px;'>
-                    └ {topic['detail']} 
+                    └ {topic.get('detail', '')} 
                     <span style='background: #e8f5e8; padding: 2px 6px; border-radius: 10px; margin-left: 8px;'>
-                        {topic['net']} net • {topic['days_passed']} gün önce
+                        {topic.get('net', 0)} net • {topic.get('days_passed', 0)} gün önce
                     </span>
                 </div>
             </div>
@@ -4152,9 +4534,9 @@ def show_pending_reviews_section(pending_topics):
             with col1:
                 st.markdown(f"""
                 **📚 Konu:** {topic['topic']}  
-                **📝 Detay:** {topic['detail']}  
-                **📅 İlk Öğrenme:** {topic['days_since_last']} gün önce  
-                **🔢 Tekrar Sayısı:** {topic['review_count']}
+                **📝 Detay:** {topic.get('detail', '')}  
+                **📅 İlk Öğrenme:** {topic.get('days_since_last', 0)} gün önce  
+                **🔢 Tekrar Sayısı:** {topic.get('review_count', 0)}
                 """)
             
             with col2:
@@ -5542,8 +5924,8 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
                     st.markdown(f"<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px; border-radius: 8px; margin-bottom: 5px; color: white;'>"
                               f"<strong>📚 {topic['subject']}</strong><br>"
                               f"{topic['topic']}<br>"
-                              f"<small>{topic['detail']}</small><br>"
-                              f"<small>🎯 {topic['net']} net</small>"
+                              f"<small>{topic.get('detail', '')}</small><br>"
+                              f"<small>🎯 {topic.get('net', 0)} net</small>"
                               f"</div>", unsafe_allow_html=True)
                     
                     # Öncelik bilgisi kutunun altında
@@ -5572,7 +5954,7 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
                                 new_plan_item = {
                                     'subject': topic['subject'],
                                     'topic': topic['topic'],
-                                    'detail': topic['detail'],
+                                    'detail': topic.get('detail', ''),
                                     'time': time_slot,
                                     'priority': topic.get('priority', 'NORMAL')
                                 }
@@ -7901,21 +8283,21 @@ def show_pomodoro_interface(user_data):
             cols = st.columns([3, 1, 1, 1])
             
             # Konu adını kısalt
-            topic_display = f"{topic['subject']} - {topic['detail']}"
+            topic_display = f"{topic['subject']} - {topic.get('detail', '')}"
             if len(topic_display) > 40:
                 topic_display = topic_display[:37] + "..."
             
             # Bu konuda bu hafta kaç pomodoro yapıldı
-            pomodoros_this_week = topic_progress_in_pomodoros.get(topic['detail'], 0)
+            pomodoros_this_week = topic_progress_in_pomodoros.get(topic.get('detail', ''), 0)
             
             # Net değerine göre renk
-            if topic['net'] < 5:
+            if topic.get('net', 0) < 5:
                 status_color = "🔴"
                 status_text = "Zayıf"
-            elif topic['net'] < 10:
+            elif topic.get('net', 0) < 10:
                 status_color = "🟡"
                 status_text = "Orta"
-            elif topic['net'] < 14:
+            elif topic.get('net', 0) < 14:
                 status_color = "🟠"
                 status_text = "İyi"
             else:
@@ -8077,6 +8459,23 @@ def complete_pomodoro(user_data):
     
     current_break = break_duration.get(st.session_state.pomodoro_type, 5)
     st.success(f"🎉 {st.session_state.pomodoro_type} tamamlandı! Şimdi {current_break} dakika mola zamanı! 💨")
+    
+    # Gamification: Pomodoro tamamlama puanı
+    try:
+        pomodoro_points = {
+            'Hızlı Odak (25dk+5dk)': 15,
+            'Standart Odak (35dk+10dk)': 20,
+            'Derin Odak (50dk+15dk)': 30,
+            'Tam Konsantrasyon (90dk+25dk)': 50
+        }
+        points = award_points("topic_completion", 3)  # Orta zorluk
+        st.info(f"⭐ Pomodoro ödülü: +{points} puan kazandın!")
+        
+        # İstatistikleri güncelle
+        if 'gamification' in st.session_state:
+            st.session_state.gamification['stats']['total_study_time'] += int(st.session_state.pomodoro_type.split('(')[1].split('dk')[0])
+    except:
+        pass
     
     # SESLİ UYARI: Mola başladı! 🔔
     play_break_start_sound()
@@ -8716,19 +9115,19 @@ def determine_topic_priority_by_performance(topic, user_data):
     possible_keys = []
     
     # Format 1: subject | main_topic | topic | detail
-    key1 = f"{topic['subject']} | {topic['main_topic']} | {topic['topic']} | {topic['detail']}"
+    key1 = f"{topic['subject']} | {topic.get('main_topic', '')} | {topic['topic']} | {topic.get('detail', '')}"
     possible_keys.append(key1)
     
     # Format 2: subject | main_topic | None | detail  
-    key2 = f"{topic['subject']} | {topic['main_topic']} | None | {topic['detail']}"
+    key2 = f"{topic['subject']} | {topic.get('main_topic', '')} | None | {topic.get('detail', '')}"
     possible_keys.append(key2)
     
     # Format 3: subject | None | None | detail
-    key3 = f"{topic['subject']} | None | None | {topic['detail']}"
+    key3 = f"{topic['subject']} | None | None | {topic.get('detail', '')}"
     possible_keys.append(key3)
     
     # Format 4: subject | topic | None | detail
-    key4 = f"{topic['subject']} | {topic['topic']} | None | {topic['detail']}"
+    key4 = f"{topic['subject']} | {topic['topic']} | None | {topic.get('detail', '')}"
     possible_keys.append(key4)
     
     # DEBUG: Konu key'lerini kontrol et
@@ -8751,7 +9150,7 @@ def determine_topic_priority_by_performance(topic, user_data):
                 continue
     
     print(f"DEBUG: Found key: {found_key}")
-    print(f"DEBUG: Found net_value: {net_value} for topic: {topic['detail']}")
+    print(f"DEBUG: Found net_value: {net_value} for topic: {topic.get('detail', '')}")
     
     # Net seviyesine göre öncelik belirle
     base_priority = get_priority_by_net_level(net_value)
@@ -10591,7 +10990,7 @@ def main():
                         st.success("✅ Session state temizlendi!")
             
             page = st.sidebar.selectbox("🌐 Sayfa Seçin", 
-                                      ["🏠 Ana Sayfa", "📚 Konu Takip", "🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🏆 Rekabet Panosu", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
+                                      ["🏠 Ana Sayfa", "📚 Konu Takip", "🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🏆 Rekabet Panosu", "🎮 Başarı ve Rozetler", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
             
             if page == "🏠 Ana Sayfa":
                 # Eski session verilerini temizle - her gün güncel sistem!
@@ -10623,6 +11022,36 @@ def main():
                     st.metric("📈 Ders Ortalaması", f"%{avg_per_subject:.1f}")
                 with col4:
                     st.metric("🎯 Hedef Bölüm", user_data.get('target_department', 'Belirlenmedi'), delta_color="off")
+                
+                # 🎮 Gamification Özeti
+                st.markdown("### 🎮 Başarı Durumun")
+                
+                # Gamification sistemini başlat
+                init_gamification_system()
+                
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    level = st.session_state.gamification['level']
+                    st.metric("👤 Seviye", level)
+                
+                with col2:
+                    total_points = st.session_state.gamification['total_points']
+                    st.metric("⭐ Puan", f"{total_points:,}")
+                
+                with col3:
+                    badge_count = len(st.session_state.gamification['badges'])
+                    st.metric("🏆 Rozet", badge_count)
+                
+                with col4:
+                    topics_completed = st.session_state.gamification['stats']['topics_completed']
+                    st.metric("🎯 Tamamlanan", topics_completed)
+                
+                # Son kazanılan rozet
+                if st.session_state.gamification['badges']:
+                    last_badge_id = st.session_state.gamification['badges'][-1]
+                    if last_badge_id in ACHIEVEMENT_BADGES["topic_milestones"]:
+                        last_badge = ACHIEVEMENT_BADGES["topic_milestones"][last_badge_id]
+                        st.info(f"🏆 Son rozet: {last_badge['icon']} **{last_badge['name']}** - {last_badge['description']}")
                 
                 # 🎯 GÜNLÜK MOTİVASYON VE ÇALIŞMA TAKİBİ SİSTEMİ - YENİ!
                 st.markdown("---")
@@ -13281,6 +13710,51 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
             
             elif page == "🏆 Rekabet Panosu":
                 competition_leaderboard_page(user_data)
+            
+            elif page == "🎮 Başarı ve Rozetler":
+                # Gamification sistemini başlat
+                init_gamification_system()
+                
+                st.markdown(f'<div class="main-header"><h1>🎮 Başarı ve Rozetler</h1><p>Çalışma motivasyonunu artıran oyunlaştırma sistemi</p></div>', unsafe_allow_html=True)
+                
+                # Dashboard
+                show_gamification_dashboard()
+                
+                # Sekmeler
+                tab1, tab2, tab3 = st.tabs(["🏆 Rozetlerim", "🎯 Günlük Görevler", "📊 İstatistikler"])
+                
+                with tab1:
+                    show_achievements_section()
+                
+                with tab2:
+                    show_daily_challenges()
+                
+                with tab3:
+                    st.subheader("📊 Detaylı İstatistikler")
+                    
+                    stats = st.session_state.gamification['stats']
+                    
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("📚 Tamamlanan Konu", stats['topics_completed'])
+                        st.metric("🔄 Tekrar Edilen Konu", stats['topics_reviewed'])
+                    
+                    with col2:
+                        st.metric("📝 Çözülen Deneme", stats['exams_taken'])
+                        st.metric("📅 Çalışma Günü", stats['study_days'])
+                    
+                    with col3:
+                        st.metric("⏰ Toplam Çalışma (dk)", stats.get('total_study_time', 0))
+                        st.metric("🎯 Ortalama Başarı", f"%{stats.get('average_success', 0):.1f}")
+                    
+                    # Konu bazlı ilerleme
+                    st.subheader("📚 Konu Bazlı İlerleme")
+                    subject_progress = stats.get('subject_progress', {})
+                    if subject_progress:
+                        for subject, count in subject_progress.items():
+                            st.write(f"**{subject}:** {count} konu")
+                    else:
+                        st.info("Henüz konu tamamlanmadı. İlk konunu tamamlayarak başla!")
             
             elif page == "🧠 Psikolojim":
                 run_psychology_page()
@@ -17315,7 +17789,21 @@ def show_next_week_bonus_topics(next_week_topics, user_data):
                 if not is_completed:
                     if st.button(f"✅", key=f"complete_bonus_{i}", help="Konuyu tamamladım"):
                         st.session_state[f"completed_{topic_key}"] = True
-                        st.success(f"🎉 {topic.get('topic', 'Konu')} tamamlandı!")
+                        
+                        # Gamification entegrasyonu
+                        try:
+                            subject = topic.get('subject', 'Bilinmiyor')
+                            topic_name = topic.get('topic', 'Konu')
+                            difficulty = topic.get('difficulty', 3)
+                            
+                            points, new_badges = update_topic_completion(subject, topic_name, difficulty)
+                            st.success(f"🎉 {topic_name} tamamlandı! +{points} puan kazandın!")
+                            
+                            if new_badges:
+                                show_achievement_notification(new_badges)
+                        except:
+                            st.success(f"🎉 {topic.get('topic', 'Konu')} tamamlandı!")
+                        
                         st.rerun()
                 else:
                     if st.button(f"↩️", key=f"uncomplete_bonus_{i}", help="Tamamlanmadı olarak işaretle"):
@@ -18180,6 +18668,177 @@ def clean_old_daily_data():
                 
     except Exception as e:
         print(f"Günlük temizlik hatası: {e}")
+
+# 🎮 GAMİFİCATİON UI BİLEŞENLERİ
+
+def show_gamification_dashboard():
+    """Gamification dashboard'unu göster"""
+    if 'gamification' not in st.session_state:
+        init_gamification_system()
+    
+    st.markdown("### 🎮 Başarı ve İlerleme Paneli")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        level = st.session_state.gamification['level']
+        level_info = LEVEL_SYSTEM["level_rewards"].get(level, {"name": f"Seviye {level}", "icon": "🎯"})
+        st.metric("👤 Seviye", f"{level} - {level_info['name']}")
+    
+    with col2:
+        total_points = st.session_state.gamification['total_points']
+        next_level_threshold = LEVEL_SYSTEM["level_thresholds"][min(level, len(LEVEL_SYSTEM["level_thresholds"])-1)]
+        remaining = max(0, next_level_threshold - total_points)
+        st.metric("⭐ Toplam Puan", f"{total_points:,}", delta=f"Sonraki seviyeye: {remaining}")
+    
+    with col3:
+        daily_streak = st.session_state.gamification['daily_streak']
+        st.metric("🔥 Günlük Seri", f"{daily_streak} gün")
+    
+    with col4:
+        badge_count = len(st.session_state.gamification['badges'])
+        st.metric("🏆 Rozetler", badge_count)
+    
+    # İlerleme çubuğu
+    if level < len(LEVEL_SYSTEM["level_thresholds"])-1:
+        current_threshold = LEVEL_SYSTEM["level_thresholds"][level-1] if level > 0 else 0
+        next_threshold = LEVEL_SYSTEM["level_thresholds"][level]
+        progress = (total_points - current_threshold) / (next_threshold - current_threshold)
+        st.progress(min(1.0, progress))
+        st.caption(f"Seviye {level+1} için {next_threshold - total_points} puan kaldı")
+
+def show_achievements_section():
+    """Başarı rozetleri bölümünü göster"""
+    if 'gamification' not in st.session_state:
+        init_gamification_system()
+    
+    st.subheader("🏆 Başarı Rozetlerin")
+    
+    if st.session_state.gamification['badges']:
+        # Rozetleri kategorilere ayır
+        topic_badges = []
+        subject_badges = []
+        streak_badges = []
+        
+        for badge_id in st.session_state.gamification['badges']:
+            if badge_id in ACHIEVEMENT_BADGES["topic_milestones"]:
+                topic_badges.append(ACHIEVEMENT_BADGES["topic_milestones"][badge_id])
+            elif badge_id in ACHIEVEMENT_BADGES["subject_expertise"]:
+                subject_badges.append(ACHIEVEMENT_BADGES["subject_expertise"][badge_id])
+            elif badge_id in ACHIEVEMENT_BADGES["streak_badges"]:
+                streak_badges.append(ACHIEVEMENT_BADGES["streak_badges"][badge_id])
+        
+        # Kategoriler halinde göster
+        if topic_badges:
+            st.markdown("**🎯 Konu Başarıları**")
+            cols = st.columns(min(4, len(topic_badges)))
+            for i, badge in enumerate(topic_badges):
+                with cols[i % 4]:
+                    st.markdown(f"""
+                    <div style="text-align: center; padding: 15px; border: 2px solid #gold; 
+                               border-radius: 10px; margin: 5px; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);">
+                        <div style="font-size: 2em;">{badge['icon']}</div>
+                        <div style="font-weight: bold; color: #8B4513;">{badge['name']}</div>
+                        <div style="font-size: 0.8em; color: #8B4513;">{badge['description']}</div>
+                        <div style="font-size: 0.7em; color: #8B4513;">+{badge['points']} puan</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        
+        if subject_badges:
+            st.markdown("**📚 Uzmanlık Rozetleri**")
+            cols = st.columns(min(4, len(subject_badges)))
+            for i, badge in enumerate(subject_badges):
+                with cols[i % 4]:
+                    st.markdown(f"""
+                    <div style="text-align: center; padding: 15px; border: 2px solid #silver; 
+                               border-radius: 10px; margin: 5px; background: linear-gradient(135deg, #C0C0C0 0%, #708090 100%);">
+                        <div style="font-size: 2em;">{badge['icon']}</div>
+                        <div style="font-weight: bold; color: white;">{badge['name']}</div>
+                        <div style="font-size: 0.8em; color: white;">{badge['description']}</div>
+                        <div style="font-size: 0.7em; color: white;">+{badge['points']} puan</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        
+        if streak_badges:
+            st.markdown("**⚡ Süreklilik Rozetleri**")
+            cols = st.columns(min(4, len(streak_badges)))
+            for i, badge in enumerate(streak_badges):
+                with cols[i % 4]:
+                    st.markdown(f"""
+                    <div style="text-align: center; padding: 15px; border: 2px solid #bronze; 
+                               border-radius: 10px; margin: 5px; background: linear-gradient(135deg, #CD7F32 0%, #A0522D 100%);">
+                        <div style="font-size: 2em;">{badge['icon']}</div>
+                        <div style="font-weight: bold; color: white;">{badge['name']}</div>
+                        <div style="font-size: 0.8em; color: white;">{badge['description']}</div>
+                        <div style="font-size: 0.7em; color: white;">+{badge['points']} puan</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+    else:
+        st.info("🚀 Henüz rozet kazanmadın! İlk konunu tamamlayarak başla!")
+
+def show_daily_challenges():
+    """Günlük challenge'ları göster"""
+    if 'gamification' not in st.session_state:
+        init_gamification_system()
+    
+    st.subheader("🎯 Günlük Görevler")
+    
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    for challenge in st.session_state.gamification['current_challenges']['daily']:
+        progress = get_challenge_progress(challenge, today)
+        completion_percentage = min(100, (progress / challenge.get('target', 1)) * 100)
+        
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.markdown(f"**{challenge['name']}** - {challenge['description']}")
+            if 'target' in challenge:
+                st.progress(completion_percentage / 100)
+                st.caption(f"İlerleme: {progress}/{challenge['target']}")
+        with col2:
+            if completion_percentage >= 100:
+                st.success(f"✅ +{challenge['points']} puan")
+            else:
+                st.info(f"🎯 {challenge['points']} puan")
+
+def get_challenge_progress(challenge, date_key):
+    """Challenge ilerlemesini al"""
+    if 'gamification' not in st.session_state:
+        return 0
+    
+    challenge_data = st.session_state.gamification['completed_challenges']['daily'].get(challenge['id'], {})
+    return challenge_data.get(date_key, 0)
+
+def show_achievement_notification(new_badges):
+    """Yeni rozet bildirimi göster"""
+    for badge in new_badges:
+        st.balloons()
+        st.success(f"🎉 Yeni rozet kazandın: {badge['icon']} **{badge['name']}** - {badge['description']}")
+
+def show_level_up_notification(new_level):
+    """Seviye atlama bildirimi göster"""
+    st.balloons()
+    st.success(f"🎊 Tebrikler! Seviye {new_level}'e yükseldin!")
+    
+    # Seviye ödülü varsa göster
+    if new_level in LEVEL_SYSTEM["level_rewards"]:
+        reward = LEVEL_SYSTEM["level_rewards"][new_level]
+        st.info(f"🎁 Seviye ödülü: {reward['reward']}")
+
+def complete_topic_with_gamification(subject, topic_name, difficulty_level):
+    """Gamification ile konu tamamlama"""
+    # Mevcut konu tamamlama işlemi...
+    
+    # Gamification ekle
+    points, new_badges = update_topic_completion(subject, topic_name, difficulty_level)
+    
+    # Bildirimler
+    st.success(f"🎉 Konu tamamlandı! +{points} puan kazandın!")
+    
+    if new_badges:
+        show_achievement_notification(new_badges)
+    
+    return points, new_badges
 
 # Karmaşık fonksiyonlar kaldırıldı - Basit sistem artık tamamen hazır!
 
