@@ -1397,6 +1397,476 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
     }
 }
 
+# 📚 18 Haftalık Sayısal Detay Planı
+NUMERICAL_WEEKLY_PLAN = {
+    1: {
+        "week": 1,
+        "focus": "Temel kavramlar ve başlangıç",
+        "topics": {
+            "TYT Türkçe": [
+                "Sözcükte Anlam",
+                "Cümlede Anlam", 
+                "Paragraf"
+            ],
+            "TYT Matematik": [
+                "Temel Kavramlar",
+                "Sayılar"
+            ],
+            "TYT Geometri": [
+                "Açılar - Doğruda Açılar",
+                "Açılar - Üçgende Açılar"
+            ],
+            "TYT Fizik": [
+                "Fizik Bilimine Giriş"
+            ],
+            "TYT Kimya": [
+                "Kimya Bilimine Giriş",
+                "Atom ve Periyodik Sistem"
+            ]
+        }
+    },
+    2: {
+        "week": 2,
+        "focus": "Ses bilgisi ve temel matemtik",
+        "topics": {
+            "TYT Türkçe": [
+                "Ses Bilgisi"
+            ],
+            "TYT Matematik": [
+                "Bölme ve Bölünebilme",
+                "EBOB-EKOK",
+                "Rasyonel Sayılar"
+            ],
+            "TYT Geometri": [
+                "Özel Üçgenler - Dik Üçgen",
+                "Özel Üçgenler - Eşkenar Üçgen",
+                "Özel Üçgenler - İkizkenar Üçgen"
+            ],
+            "TYT Kimya": [
+                "Kimyasal Türler Arası Etkileşimler"
+            ],
+            "TYT Fizik": [
+                "Madde ve Özellikleri"
+            ],
+            "TYT Biyoloji": [
+                "Canlıların Ortak Özellikleri"
+            ]
+        }
+    },
+    3: {
+        "week": 3,
+        "focus": "Yazım kuralları ve oranlar",
+        "topics": {
+            "TYT Türkçe": [
+                "Yazım Kuralları"
+            ],
+            "TYT Matematik": [
+                "Ondalıklı Sayılar",
+                "Oran Orantı",
+                "Denklem Çözme",
+                "Problemler - Sayı Problemleri",
+                "Problemler - Kesir Problemleri"
+            ],
+            "TYT Geometri": [
+                "Açıortay",
+                "Kenarortay"
+            ],
+            "TYT Fizik": [
+                "Hareket ve Kuvvet"
+            ],
+            "TYT Kimya": [
+                "Maddenin Halleri ve Çevre Kimyası"
+            ],
+            "TYT Biyoloji": [
+                "Canlıların Yapısında Bulunan İnorganik Bileşikler",
+                "Canlıların Yapısında Bulunan Organik Bileşikler"
+            ]
+        }
+    },
+    4: {
+        "week": 4,
+        "focus": "Noktalama ve eşitsizlikler",
+        "topics": {
+            "TYT Türkçe": [
+                "Noktalama İşaretleri",
+                "Sözcükte Yapı"
+            ],
+            "TYT Matematik": [
+                "Basit Eşitsizlikler",
+                "Mutlak Değer",
+                "Problemler - Yaş Problemleri",
+                "Problemler - Yüzde Problemleri",
+                "Problemler - Kar-Zarar Problemleri"
+            ],
+            "TYT Geometri": [
+                "Eşlik ve Benzerlik",
+                "Üçgende Alan"
+            ],
+            "TYT Fizik": [
+                "İş Güç ve Enerji"
+            ],
+            "TYT Kimya": [
+                "Kimyanın Temel Kanunları ve Hesaplamalar"
+            ],
+            "TYT Biyoloji": [
+                "Hücresel Yapılar ve Görevleri",
+                "Hücre Zarından Madde Geçişleri"
+            ]
+        }
+    },
+    5: {
+        "week": 5,
+        "focus": "Sözcük türleri ve üslü sayılar",
+        "topics": {
+            "TYT Türkçe": [
+                "Sözcük Türleri - İsimler",
+                "Sözcük Türleri - Zamirler",
+                "Sözcük Türleri - Sıfatlar",
+                "Sözcük Türleri - Zarf",
+                "Sözcük Türleri - Edat"
+            ],
+            "TYT Matematik": [
+                "Üslü Sayılar",
+                "Köklü Sayılar",
+                "Problemler - Karışım Problemleri"
+            ],
+            "TYT Geometri": [
+                "Açı Kenar Bağıntıları",
+                "Çokgenler"
+            ],
+            "TYT Fizik": [
+                "Isı ve Sıcaklık"
+            ],
+            "TYT Kimya": [
+                "Karışımlar"
+            ],
+            "TYT Biyoloji": [
+                "Canlıların Sınıflandırılması",
+                "Canlı Âlemleri"
+            ]
+        }
+    },
+    6: {
+        "week": 6,
+        "focus": "Fiilde anlam ve çarpanlara ayırma",
+        "topics": {
+            "TYT Türkçe": [
+                "Fiilde Anlam",
+                "Ek Fiil"
+            ],
+            "TYT Matematik": [
+                "Çarpanlara Ayırma",
+                "Problemler - Hareket Problemleri",
+                "Problemler - İşçi Problemleri"
+            ],
+            "TYT Geometri": [
+                "Özel Dörtgenler - Deltoid",
+                "Özel Dörtgenler - Paralelkenar"
+            ],
+            "TYT Fizik": [
+                "Basınç ve Kaldırma Kuvveti"
+            ],
+            "TYT Kimya": [
+                "Asitler Bazlar ve Tuzlar"
+            ],
+            "TYT Biyoloji": [
+                "Hücre Döngüsü ve Mitoz",
+                "Eşeysiz Üreme"
+            ]
+        }
+    },
+    7: {
+        "week": 7,
+        "focus": "Fiilimsi ve AYT başlangıç",
+        "topics": {
+            "TYT Türkçe": [
+                "Fiilimsi",
+                "Fiilde Çatı"
+            ],
+            "AYT Matematik": [
+                "Fonksiyonlar",
+                "Problemler - Tablo-Grafik Problemleri",
+                "Problemler - Rutin Olmayan Problemler"
+            ],
+            "TYT Geometri": [
+                "Eşkenar Dörtgen",
+                "Diktortgen"
+            ],
+            "TYT Fizik": [
+                "Dalgalar",
+                "Optik"
+            ],
+            "TYT Kimya": [
+                "Kimya Her Yerde"
+            ],
+            "TYT Biyoloji": [
+                "Mayoz",
+                "Eşeyli Üreme"
+            ]
+        }
+    },
+    8: {
+        "week": 8,
+        "focus": "Cümle öğeleri ve mantık",
+        "topics": {
+            "TYT Türkçe": [
+                "Cümlenin Öğeleri",
+                "Cümle Türleri",
+                "Anlatım Bozukluğu"
+            ],
+            "TYT Matematik": [
+                "Mantık",
+                "Kümeler"
+            ],
+            "AYT Matematik": [
+                "Polinom"
+            ],
+            "TYT Geometri": [
+                "Kare",
+                "Yamuk"
+            ],
+            "TYT Fizik": [
+                "Elektrik ve Manyetizma"
+            ],
+            "TYT Biyoloji": [
+                "Kalıtım Konusu",
+                "Genetik Varyasyonlar"
+            ]
+        }
+    },
+    9: {
+        "week": 9,
+        "focus": "Olasılık ve AYT başlangıç",
+        "topics": {
+            "TYT Matematik": [
+                "Olasılık"
+            ],
+            "AYT Matematik": [
+                "2. Derece Denklemler"
+            ],
+            "TYT Geometri": [
+                "Çemberde Açı",
+                "Çemberde Uzunluk"
+            ],
+            "AYT Kimya": [
+                "Modern Atom Teorisi"
+            ],
+            "AYT Fizik": [
+                "Kuvvet ve Hareket - Vektörler",
+                "Kuvvet ve Hareket - Bağıl",
+                "Kuvvet ve Hareket - Newton Yasaları",
+                "İş - Güç - Enerji - Korunum",
+                "İş - Güç - Enerji - Verim",
+                "Atışlar - Yatay",
+                "Atışlar - Eğik",
+                "Atışlar - Düşey"
+            ],
+            "TYT Biyoloji": [
+                "Ekosistem Ekolojisi",
+                "Güncel Çevre Sorunları",
+                "Doğal Kaynakların Sürdürülebilirliği",
+                "Biyolojik Çeşitliliğin Korunması"
+            ]
+        }
+    },
+    10: {
+        "week": 10,
+        "focus": "Karmaşık sayılar ve AYT yoğunlaşma",
+        "topics": {
+            "AYT Matematik": [
+                "Karmaşık Sayılar",
+                "2. Derece Denklem ve Eşitsizlikler"
+            ],
+            "TYT Geometri": [
+                "Dairede Çevre ve Alan",
+                "Noktanın Analitiği"
+            ],
+            "AYT Fizik": [
+                "Basit Makineler",
+                "Kütle Merkezi - Tork - Denge"
+            ],
+            "AYT Kimya": [
+                "Gazlar"
+            ],
+            "AYT Biyoloji": [
+                "Sinir Sistemi",
+                "Endokrin Sistem ve Hormonlar"
+            ]
+        }
+    },
+    11: {
+        "week": 11,
+        "focus": "Parabol ve logaritma",
+        "topics": {
+            "AYT Matematik": [
+                "Parabol",
+                "Logaritma"
+            ],
+            "TYT Geometri": [
+                "Doğrunun Analitiği",
+                "Prizmalar"
+            ],
+            "AYT Kimya": [
+                "Sıvı Çözeltiler ve Çözünürlük"
+            ],
+            "AYT Fizik": [
+                "Elektrostatik - Alan",
+                "Elektrostatik - Potansiyel",
+                "Elektrik ve Manyetizma - Akım",
+                "Elektrik ve Manyetizma - Direnç",
+                "Elektrik ve Manyetizma - Manyetik Alan",
+                "Elektrik ve Manyetizma - Kuvvet",
+                "Elektrik ve Manyetizma - İndüksiyon"
+            ],
+            "AYT Biyoloji": [
+                "Duyu Organları",
+                "Destek ve Hareket Sistemi"
+            ]
+        }
+    },
+    12: {
+        "week": 12,
+        "focus": "Diziler ve limit",
+        "topics": {
+            "AYT Matematik": [
+                "Diziler",
+                "Limit"
+            ],
+            "TYT Geometri": [
+                "Küp",
+                "Silindir"
+            ],
+            "AYT Fizik": [
+                "Madde ve Özellikleri - Katı",
+                "Madde ve Özellikleri - Sıvı",
+                "Madde ve Özellikleri - Gaz",
+                "Basınç - Kaldırma Kuvveti",
+                "Isı - Sıcaklık - Genleşme",
+                "Termodinamik Yasaları Temelleri"
+            ],
+            "AYT Kimya": [
+                "Kimyasal Tepkimelerde Enerji",
+                "Kimyasal Tepkimelerde Hız"
+            ],
+            "AYT Biyoloji": [
+                "Sindirim Sistemi",
+                "Dolaşım ve Bağışıklık Sistemi"
+            ]
+        }
+    },
+    13: {
+        "week": 13,
+        "focus": "Türev ve dalga optiği",
+        "topics": {
+            "AYT Matematik": [
+                "Türev"
+            ],
+            "TYT Geometri": [
+                "Piramit",
+                "Koni",
+                "Küre"
+            ],
+            "AYT Fizik": [
+                "Dalgalar - Yay",
+                "Dalgalar - Su",
+                "Dalgalar - Ses",
+                "Dalgalar - Deprem",
+                "Optik - Yansıma",
+                "Optik - Kırılma",
+                "Optik - Ayna",
+                "Optik - Mercek"
+            ],
+            "AYT Kimya": [
+                "Kimyasal Tepkimelerde Denge"
+            ],
+            "AYT Biyoloji": [
+                "Solunum Sistemi",
+                "Üriner Sistem - Boşaltım Sistemi"
+            ]
+        }
+    },
+    14: {
+        "week": 14,
+        "focus": "Çembersel hareket ve elektrik",
+        "topics": {
+            "AYT Fizik": [
+                "Düzgün Çembersel Hareket",
+                "Basit Harmonik Hareket"
+            ],
+            "AYT Kimya": [
+                "Kimya ve Elektrik"
+            ]
+        }
+    },
+    15: {
+        "week": 15,
+        "focus": "İntegral ve organik kimya",
+        "topics": {
+            "AYT Matematik": [
+                "İntegral"
+            ],
+            "AYT Kimya": [
+                "Organik Kimya"
+            ],
+            "AYT Fizik": [
+                "Modern Fizik ve Uygulamaları",
+                "Fizik Bilimine Giriş - Temeller",
+                "Atom Fiziğine Giriş ve Radyoaktivite",
+                "Modern Fizik - Özel Görelilik",
+                "Modern Fizik - Kuantum",
+                "Modern Fizik - Fotoelektrik Olay"
+            ],
+            "AYT Biyoloji": [
+                "Üreme Sistemi ve Embriyonik Gelişim",
+                "Nükleik Asitler",
+                "Genden Proteine"
+            ]
+        }
+    },
+    16: {
+        "week": 16,
+        "focus": "Protein sentezi ve enerji",
+        "topics": {
+            "AYT Biyoloji": [
+                "Genetik Şifre ve Protein Sentezi",
+                "Canlılık ve Enerji",
+                "Canlılarda Enerji Dönüşümleri - ATP",
+                "Canlılarda Enerji Dönüşümleri - Enzim"
+            ]
+        }
+    },
+    17: {
+        "week": 17,
+        "focus": "Olasılık ve fotosentez",
+        "topics": {
+            "AYT Matematik": [
+                "Olasılık",
+                "Binom",
+                "Permütasyon",
+                "Kombinasyon"
+            ],
+            "AYT Biyoloji": [
+                "Fotosentez",
+                "Kemosentez",
+                "Hücresel Solunum"
+            ]
+        }
+    },
+    18: {
+        "week": 18,
+        "focus": "Bitki biyolojisi ve ekoloji",
+        "topics": {
+            "AYT Biyoloji": [
+                "Bitki Biyolojisi - Yapı",
+                "Bitki Biyolojisi - Taşıma",
+                "Bitki Biyolojisi - Beslenme",
+                "Bitkisel Hormonlar ve Hareketler",
+                "Ekoloji ve Çevre"
+            ]
+        }
+    }
+}
+
 # 🎮 GAMİFİCATİON SİSTEMİ - BAŞARILAR VE ROZET SİSTEMİ
 
 # 🏆 Rozet Sistemi - Başarı Rozetleri
@@ -1832,6 +2302,42 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
     
     return weekly_topics
 
+def get_numerical_weekly_topics(week_number, completed_topics, pending_topics):
+    """Sayısal için haftalık konuları getirir"""
+    if week_number > 18:
+        week_number = 18  # Max 18 hafta
+    
+    week_plan = NUMERICAL_WEEKLY_PLAN.get(week_number, {})
+    weekly_topics = []
+    
+    # Bu haftanın planlanmış konularını al
+    planned_topics = week_plan.get('topics', {})
+    
+    # Konuları birleştir
+    for subject, topic_list in planned_topics.items():
+        for topic in topic_list:
+            weekly_topics.append({
+                'subject': subject,
+                'topic': topic,
+                'week': week_number,
+                'priority': 'normal',
+                'difficulty': get_topic_difficulty_by_name(topic),
+                'status': 'planned',
+                'net': 0,  # Varsayılan net sayısı
+                'detail': ''  # Varsayılan detay
+            })
+    
+    # Sadece 2. hafta ve sonrasında önceki haftalardan kalan konuları ekle
+    if week_number > 1:
+        priority_topics = get_priority_topics_from_previous_weeks(pending_topics)
+        
+        # Öncelikli konuları başa ekle
+        for topic in priority_topics:
+            topic['priority'] = 'high'
+            weekly_topics.insert(0, topic)
+    
+    return weekly_topics
+
 def get_priority_topics_from_previous_weeks(pending_topics):
     """Önceki haftalardan kalan öncelikli konuları döndürür"""
     priority_topics = []
@@ -2152,6 +2658,111 @@ def show_equal_weight_special_dashboard(weekly_plan, user_data):
     # DEBUG: Mevcut haftalık planı göster
     with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
         st.write(f"**User Data equal_weight_current_week:** {user_data.get('equal_weight_current_week', 'YOK')}")
+        st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
+        st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
+        
+        new_topics = weekly_plan.get('new_topics', [])
+        if new_topics:
+            st.write("**Bu haftanın konuları:**")
+            for topic in new_topics[:5]:  # İlk 5 konu
+                st.write(f"• {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
+            if len(new_topics) > 5:
+                st.write(f"... ve {len(new_topics) - 5} konu daha")
+        else:
+            st.error("Hiç konu bulunamadı!")
+
+def show_numerical_special_dashboard(weekly_plan, user_data):
+    """Sayısal özel planı dashboard'u"""
+    current_week = weekly_plan.get('current_week', 1)
+    total_weeks = weekly_plan.get('total_weeks', 18)
+    flexible_rec = weekly_plan.get('flexible_recommendation', {})
+    
+    # Sayısal hafta verisini garantile
+    if 'numerical_current_week' not in user_data:
+        user_data['numerical_current_week'] = 1
+        update_user_in_firebase(st.session_state.current_user, {'numerical_current_week': 1})
+    
+    st.markdown("### 🔬 SAYISAL ÖZEL PLANI")
+    
+    # İlerleme çubuğu
+    progress = min(100, (current_week / total_weeks) * 100)
+    st.progress(progress / 100)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            "📅 Mevcut Hafta",
+            f"{current_week}/18",
+            help="18 haftalık detay planının hangi haftasındasınız"
+        )
+    
+    with col2:
+        week_plan = NUMERICAL_WEEKLY_PLAN.get(current_week, {})
+        st.metric(
+            "🎯 Bu Hafta Odak",
+            week_plan.get('focus', 'Belirlenmedi')[:20] + "..." if len(week_plan.get('focus', '')) > 20 else week_plan.get('focus', 'Belirlenmedi'),
+            help=week_plan.get('focus', 'Bu haftanın odak konusu')
+        )
+    
+    with col3:
+        weekly_topics = weekly_plan.get('new_topics', [])
+        st.metric(
+            "📚 Bu Hafta Konu",
+            len(weekly_topics),
+            help="Bu hafta planlanmış toplam konu sayısı"
+        )
+    
+    with col4:
+        target_percentage = 80
+        st.metric(
+            "🎯 Hedef Başarı",
+            f"%{target_percentage}",
+            help="Haftalık başarı hedefi"
+        )
+    
+    # Esnek hedef sistemi önerileri
+    if flexible_rec:
+        status = flexible_rec.get('status', 'on_track')
+        message = flexible_rec.get('message', '')
+        recommendation = flexible_rec.get('recommendation', '')
+        
+        if status == 'ahead':
+            st.success(f"🎉 {message}")
+            st.info(f"💡 **Öneri:** {recommendation}")
+            
+            # Bir sonraki haftanın konularını göster
+            suggested_topics = flexible_rec.get('suggested_topics', [])
+            if suggested_topics:
+                st.markdown("**🔥 Bir Sonraki Haftadan Başlayabileceğiniz Konular:**")
+                for topic in suggested_topics:
+                    st.write(f"• **{topic['subject']}:** {topic['topic']}")
+                    
+        elif status == 'on_track':
+            st.info(f"👍 {message}")
+            st.write(f"💡 **Öneri:** {recommendation}")
+            
+        else:  # behind
+            st.warning(f"⚠️ {message}")
+            st.write(f"💡 **Öneri:** {recommendation}")
+    
+    # Bu haftanın detay planını göster
+    if current_week <= 18:
+        with st.expander(f"📋 {current_week}. Hafta Detay Planı", expanded=False):
+            week_detail = NUMERICAL_WEEKLY_PLAN.get(current_week, {})
+            topics_by_subject = week_detail.get('topics', {})
+            
+            for subject, topics in topics_by_subject.items():
+                st.markdown(f"**🔸 {subject}:**")
+                for topic in topics:
+                    difficulty = get_topic_difficulty_by_name(topic)
+                    difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
+                    st.write(f"• {topic} {difficulty_info['icon']}")
+                st.write("")
+    
+    # DEBUG: Mevcut haftalık planı göster
+    with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
+        st.write(f"**User Data numerical_current_week:** {user_data.get('numerical_current_week', 'YOK')}")
         st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
         st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
         
@@ -4562,6 +5173,11 @@ def show_weekly_planner(user_data):
     # 🎯 YENİ: EŞİT AĞIRLIK ÖZEL PLANI DASHBOARD'U
     if weekly_plan.get('equal_weight_special', False):
         show_equal_weight_special_dashboard(weekly_plan, user_data)
+        st.markdown("---")
+    
+    # 🎯 YENİ: SAYISAL ÖZEL PLANI DASHBOARD'U
+    if weekly_plan.get('numerical_special', False):
+        show_numerical_special_dashboard(weekly_plan, user_data)
         st.markdown("---")
     
     # Ana haftalık plan
@@ -10101,6 +10717,44 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             'equal_weight_special': True,
             'current_week': equal_weight_week,  # Eşit ağırlık haftası
             'total_weeks': 16
+        }
+    
+    # 🎯 SAYISAL ÖZEL PLANı KONTROLÜ  
+    if student_field == "Sayısal":
+        # Sayısal için özel hafta sistemi (1-18 hafta)
+        numerical_week = user_data.get('numerical_current_week', 1)
+        
+        # Eğer hafta numarası user_data'da yoksa, 1. haftadan başlat
+        if numerical_week < 1 or numerical_week > 18:
+            numerical_week = 1
+        
+        # Sayısal için 18 haftalık detay planı kullan
+        completed_topics = get_user_pending_topics(user_data)
+        pending_topics = [t for t in completed_topics if t.get('status') == 'incomplete']
+        
+        numerical_topics = get_numerical_weekly_topics(numerical_week, completed_topics, pending_topics)
+        
+        # Esnek hedef sistemi uygula
+        current_week_progress = calculate_weekly_progress_percentage(
+            len([t for t in completed_topics if t.get('week') == numerical_week and t.get('status') == 'completed']),
+            len([t for t in numerical_topics if t.get('week') == numerical_week])
+        )
+        
+        flexible_recommendation = get_flexible_topic_recommendations(user_data, current_week_progress)
+        
+        # Sayısal için özel plan döndür
+        return {
+            'new_topics': numerical_topics,  # TÜM KONULAR - LİMİT KALDIRILDI
+            'review_topics': get_review_topics_for_equal_weight(user_data),  # Şimdilik aynı review sistemi
+            'all_topics': numerical_topics,  # TÜM KONULAR - Haftalık hedef konular listesi için
+            'week_target': len(numerical_topics),
+            'success_target': 0.8,  # %80 hedef
+            'flexible_recommendation': flexible_recommendation,
+            'time_strategy': time_strategy,
+            'grade_strategy': grade_strategy,
+            'numerical_special': True,
+            'current_week': numerical_week,  # Sayısal haftası
+            'total_weeks': 18
         }
     
     # Konuların TYT/AYT durumuna göre filtrele (diğer alanlar için)
