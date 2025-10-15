@@ -1816,7 +1816,9 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
                 'week': week_number,
                 'priority': 'normal',
                 'difficulty': get_topic_difficulty_by_name(topic),
-                'status': 'planned'
+                'status': 'planned',
+                'net': 0,  # Varsayılan net sayısı
+                'detail': ''  # Varsayılan detay
             })
     
     # Sadece 2. hafta ve sonrasında önceki haftalardan kalan konuları ekle
@@ -8647,7 +8649,7 @@ def show_pomodoro_interface(user_data):
             with cols[0]:
                 st.write(f"**{topic_display}**")
             with cols[1]:
-                st.write(f"{topic['net']}")
+                st.write(f"{topic.get('net', 0)}")
             with cols[2]:
                 if pomodoros_this_week > 0:
                     st.write(f"**{pomodoros_this_week}** 🍅")
