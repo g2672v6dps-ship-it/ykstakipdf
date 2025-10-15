@@ -10090,6 +10090,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         return {
             'new_topics': equal_weight_topics[:time_strategy.get('new_topics_per_week', 10)],
             'review_topics': get_review_topics_for_equal_weight(user_data),
+            'all_topics': equal_weight_topics,  # TÜM KONULAR - Haftalık hedef konular listesi için
             'week_target': len(equal_weight_topics),
             'success_target': 0.8,  # %80 hedef
             'flexible_recommendation': flexible_recommendation,
