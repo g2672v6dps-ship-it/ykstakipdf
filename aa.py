@@ -686,14 +686,6 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
             "TYT Tarih": [
                 "İlk ve Orta Çağlarda Türk Dünyası",
                 "İslam Medeniyetinin Doğuşu"
-            ],
-            "TYT Felsefe": [
-                "Felsefenin Konusu",
-                "Bilgi Felsefesi (Epistemoloji)"
-            ],
-            "TYT Din Kültürü": [
-                "İnsan ve Din (İnanç)",
-                "Ahlak"
             ]
         }
     },
@@ -725,14 +717,6 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
                 "İlk Türk İslam Devletleri",
                 "Yerleşme ve Devletleşme Sürecinde Selçuklu Türkiyesi",
                 "Beylikten Devlete Osmanlı Siyaseti (1300-1453)"
-            ],
-            "TYT Felsefe": [
-                "Varlık Felsefesi (Ontoloji)",
-                "Din, Kültür ve Medeniyet"
-            ],
-            "TYT Din Kültürü": [
-                "İbadet",
-                "Peygamberlik"
             ]
         }
     },
@@ -749,6 +733,345 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
             ],
             "TYT Matematik": [
                 "Üslü Sayılar",
+                "Köklü Sayılar",
+                "Problemler - Karışım Problemleri"
+            ],
+            "TYT Geometri": [
+                "Açı Kenar Bağıntıları",
+                "Çokgenler"
+            ],
+            "TYT Coğrafya": [
+                "İç Kuvvetler/Dış Kuvvetler",
+                "Su-Toprak ve Bitkiler",
+                "Nüfus"
+            ],
+            "TYT Tarih": [
+                "Dünya Gücü Osmanlı (1453-1600)",
+                "Yeni Çağ Avrupa Tarihi"
+            ]
+        }
+    },
+    6: {
+        "week": 6,
+        "focus": "Fiil anlam ve çarpanlar",
+        "topics": {
+            "TYT Türkçe": [
+                "Fiilde Anlam",
+                "Ek Fiil"
+            ],
+            "TYT Matematik": [
+                "Çarpanlara Ayırma",
+                "Problemler - Hareket Problemleri",
+                "Problemler - İşçi Problemleri"
+            ],
+            "TYT Geometri": [
+                "Özel Dörtgenler - Deltoid",
+                "Özel Dörtgenler - Paralelkenar"
+            ],
+            "TYT Coğrafya": [
+                "Göç",
+                "Yerleşme",
+                "Türkiye'nin Yer Şekilleri"
+            ],
+            "TYT Tarih": [
+                "Osmanlı Devletinde Arayış Yılları",
+                "Osmanlı Avrupa İlişkileri",
+                "18. YY Değişim ve Diplomasi",
+                "En Uzun Yüzyıl",
+                "Osmanlı Kültür ve Medeniyeti"
+            ]
+        }
+    },
+    7: {
+        "week": 7,
+        "focus": "Fiilimsi ve fonksiyonlar",
+        "topics": {
+            "TYT Türkçe": [
+                "Fiilimsi",
+                "Fiilde Çatı"
+            ],
+            "AYT Matematik": [
+                "Fonksiyonlar"
+            ],
+            "TYT Matematik": [
+                "Problemler - Tablo-Grafik Problemleri",
+                "Problemler - Rutin Olmayan Problemler"
+            ],
+            "TYT Geometri": [
+                "Eşkenar Dörtgen",
+                "Dikdörtgen"
+            ],
+            "TYT Coğrafya": [
+                "Ekonomik Faaliyetler",
+                "Bölgeler Uluslararası Ulaşım Hatları, Çevre ve Toplum",
+                "Doğal Afetler"
+            ],
+            "TYT Tarih": [
+                "20. YY Osmanlı Devleti",
+                "1. Dünya Savaşı"
+            ]
+        }
+    },
+    8: {
+        "week": 8,
+        "focus": "Cümle öğeleri ve mantık",
+        "topics": {
+            "TYT Türkçe": [
+                "Cümlenin Öğeleri",
+                "Cümle Türleri",
+                "Anlatım Bozukluğu"
+            ],
+            "TYT Matematik": [
+                "Mantık",
+                "Kümeler"
+            ],
+            "AYT Matematik": [
+                "Polinom"
+            ],
+            "TYT Geometri": [
+                "Kare",
+                "Yamuk"
+            ],
+            "TYT Tarih": [
+                "Mondros Ateşkesi, İşgaller ve Cemiyetler",
+                "Kurtuluş Savaşına Hazırlık Dönemi",
+                "1. TBMM Dönemi",
+                "Kurtuluş Savaşı ve Anlaşmalar"
+            ]
+        }
+    },
+    9: {
+        "week": 9,
+        "focus": "Olasılık ve 2. derece denklemler",
+        "topics": {
+            "TYT Matematik": [
+                "Olasılık"
+            ],
+            "AYT Matematik": [
+                "2. Derece Denklemler"
+            ],
+            "TYT Geometri": [
+                "Çemberde Açı",
+                "Çemberde Uzunluk"
+            ],
+            "TYT Tarih": [
+                "II. TBMM Dönemi ve Çok Partili Hayata Geçiş",
+                "Türk İnkılabı"
+            ],
+            "AYT Edebiyat": [
+                "Güzel Sanatlar ve Edebiyat ile İlişkisi",
+                "Metinlerin Sınıflandırılması"
+            ],
+            "AYT Coğrafya": [
+                "Ekosistem"
+            ]
+        }
+    },
+    10: {
+        "week": 10,
+        "focus": "Edebiyat başlangıç ve biyoçeşitlilik",
+        "topics": {
+            "AYT Edebiyat": [
+                "Edebi Sanatlar",
+                "Edebiyat Akımları"
+            ],
+            "AYT Coğrafya": [
+                "Biyoçeşitlilik",
+                "Biyomlar",
+                "Ekosistem Unsurları"
+            ],
+            "AYT Matematik": [
+                "Karmaşık Sayılar",
+                "2. Derece Denklem ve Eşitsizlikler"
+            ],
+            "TYT Tarih": [
+                "Atatürk İlkeleri",
+                "Atatürk Dönemi Türk Dış Politikası"
+            ],
+            "TYT Geometri": [
+                "Dairede Çevre ve Alan",
+                "Noktanın Analitiği"
+            ]
+        }
+    },
+    11: {
+        "week": 11,
+        "focus": "Dünya edebiyatı ve logaritma",
+        "topics": {
+            "AYT Edebiyat": [
+                "Dünya Edebiyatı",
+                "Anlam Bilgisi (Tekrar)",
+                "Dil Bilgisi (Tekrar)",
+                "Şiir Bilgisi"
+            ],
+            "AYT Matematik": [
+                "Parabol",
+                "Logaritma"
+            ],
+            "TYT Geometri": [
+                "Doğrunun Analitiği",
+                "Prizmalar"
+            ],
+            "AYT Coğrafya": [
+                "Enerji Akışı ve Madde Döngüsü",
+                "Nüfus Politikaları",
+                "Türkiye'de Nüfus ve Yerleşme",
+                "Göç ve Şehirleşme"
+            ],
+            "AYT Tarih": [
+                "Tarih ve Zaman (Temel Kavramlar)",
+                "İnsanlığın İlk Dönemleri",
+                "Ortaçağda Dünya"
+            ]
+        }
+    },
+    12: {
+        "week": 12,
+        "focus": "Türk edebiyatı dönemleri ve geometrik cisimler",
+        "topics": {
+            "AYT Edebiyat": [
+                "Türk Edebiyatı Dönemleri (Genel Özellikler)",
+                "İslamiyet Öncesi Türk Edebiyatı (Sözlü ve Yazılı)",
+                "İslamiyet Etkisindeki Geçiş Dönemi Edebiyatı"
+            ],
+            "AYT Matematik": [
+                "Diziler",
+                "Limit"
+            ],
+            "TYT Geometri": [
+                "Küp",
+                "Silindir"
+            ],
+            "AYT Coğrafya": [
+                "Ekonomik Faaliyetler ve Doğal Kaynaklar",
+                "Türkiye Ekonomisi",
+                "Türkiye'nin Ekonomik Politikaları",
+                "Türkiye Ekonomisinin Sektörel Dağılımı"
+            ],
+            "AYT Tarih": [
+                "İlk ve Orta Çağlarda Türk Dünyası",
+                "İslam Medeniyetinin Doğuşu",
+                "Türklerin İslamiyeti Kabulü ve İlk Türk İslam Devletleri",
+                "Yerleşme ve Devletleşme Sürecindeki Selçuklu Türkiyesi"
+            ]
+        }
+    },
+    13: {
+        "week": 13,
+        "focus": "Halk ve divan edebiyatı",
+        "topics": {
+            "AYT Edebiyat": [
+                "Halk Edebiyatı",
+                "Divan Edebiyatı"
+            ],
+            "AYT Matematik": [
+                "Türev"
+            ],
+            "AYT Coğrafya": [
+                "Türkiye'de Tarım",
+                "Türkiye'de Ulaşım",
+                "Türkiye'de Ticaret ve Turizm",
+                "Geçmişten Geleceğe Şehir ve Ekonomi",
+                "Türkiye'nin İşlevsel Bölgeleri ve Kalkınma Projeleri",
+                "Hizmet Sektörünün Ekonomideki Yeri"
+            ],
+            "AYT Tarih": [
+                "Beylikten Devlete Osmanlı Siyaseti",
+                "Devletleşme Sürecindeki Savaşçılar ve Askerler",
+                "Beylikten Devlete Osmanlı Medeniyeti",
+                "Dünya Gücü Osmanlı",
+                "Sultan ve Osmanlı ve Merkez Teşkilatı",
+                "Klasik Çağda Osmanlı Toplum Düzeni"
+            ],
+            "TYT Geometri": [
+                "Piramit",
+                "Koni",
+                "Küre"
+            ]
+        }
+    },
+    14: {
+        "week": 14,
+        "focus": "Tanzimat dönemi ve küresel ticaret",
+        "topics": {
+            "AYT Edebiyat": [
+                "Tanzimat Dönemi Edebiyatı (1. ve 2. Kuşak)",
+                "Servet-i Fünun Edebiyatı (Edebiyat-ı Cedide)",
+                "Fecr-i Ati Edebiyatı"
+            ],
+            "AYT Coğrafya": [
+                "Küresel Ticaret",
+                "Bölgeler ve Ülkeler",
+                "İlk Uygarlıklar",
+                "Kültür Bölgeleri ve Türk Kültürü",
+                "Sanayileşme Süreci: Almanya",
+                "Tarih ve Ekonomi İlişkisi Fransa-Somali",
+                "Ülkeler Arası Etkileşim",
+                "Jeopolitik Konum",
+                "Çatışma Bölgeleri",
+                "Küresel ve Bölgesel Örgütler"
+            ],
+            "AYT Tarih": [
+                "Değişen Dünya Dengeleri Karşısında Osmanlı Siyaseti",
+                "Değişim Çağında Avrupa ve Osmanlı",
+                "Uluslararası İlişkilerde Denge Stratejisi",
+                "Devrimler Çağında ve Değişen Devlet Toplum İlişkileri",
+                "Sermaye ve Emek",
+                "XIX. ve XX. YY Değişen Gündelik Hayat"
+            ]
+        }
+    },
+    15: {
+        "week": 15,
+        "focus": "Milli edebiyat ve çevre sorunları",
+        "topics": {
+            "AYT Edebiyat": [
+                "Milli Edebiyat"
+            ],
+            "AYT Coğrafya": [
+                "Ekstrem Doğa Olayları",
+                "Küresel İklim Değişimi",
+                "Çevre ve Toplum",
+                "Çevre Sorunları ve Türleri",
+                "Madenler ve Enerji Kaynaklarının Çevreye Etkisi",
+                "Doğal Kaynakların Sürdürülebilir Kullanımı",
+                "Ekolojik Ayak İzi",
+                "Doğal Çevrenin Sınırlılığı",
+                "Çevre Politikaları",
+                "Çevresel Örgütler",
+                "Çevre Anlaşmaları",
+                "Doğal Afetler"
+            ],
+            "AYT Tarih": [
+                "XX. YY Başlarında Osmanlı Devleti ve Dünya",
+                "Milli Mücadele",
+                "Atatürkçülük ve Türk İnkılabı"
+            ]
+        }
+    },
+    16: {
+        "week": 16,
+        "focus": "Cumhuriyet dönemi ve integral",
+        "topics": {
+            "AYT Edebiyat": [
+                "Cumhuriyet Dönemi Edebiyatı",
+                "Edebi Akımlar"
+            ],
+            "AYT Tarih": [
+                "İlk Savaş Arasındaki Dönemde Türkiye ve Dünya",
+                "II. Dünya Savaşı Sürecinde Türkiye ve Dünya",
+                "II. Dünya Savaşı Sonrasında Türkiye ve Dünya",
+                "Toplumsal Devrim Çağında Dünya ve Türkiye",
+                "XXI. YY Eşiğinde Türkiye ve Dünya"
+            ],
+            "AYT Matematik": [
+                "İntegral",
+                "Olasılık, Binom, Permütasyon, Kombinasyon"
+            ]
+        }
+    }
+
+# 🎮 GAMİFİCATİON SİSTEMİ - BAŞARILAR VE ROZET SİSTEMİ
                 "Köklü Sayılar",
                 "Problemler - Karışım Problemleri"
             ],
@@ -1769,6 +2092,11 @@ def show_equal_weight_special_dashboard(weekly_plan, user_data):
     total_weeks = weekly_plan.get('total_weeks', 16)
     flexible_rec = weekly_plan.get('flexible_recommendation', {})
     
+    # Eşit ağırlık hafta verisini garantile
+    if 'equal_weight_current_week' not in user_data:
+        user_data['equal_weight_current_week'] = 1
+        update_user_in_firebase(st.session_state.current_user, {'equal_weight_current_week': 1})
+    
     st.markdown("### 📚 EŞİT AĞIRLIK ÖZEL PLANI")
     
     # İlerleme çubuğu
@@ -1846,6 +2174,22 @@ def show_equal_weight_special_dashboard(weekly_plan, user_data):
                     difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
                     st.write(f"• {topic} {difficulty_info['icon']}")
                 st.write("")
+    
+    # DEBUG: Mevcut haftalık planı göster
+    with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
+        st.write(f"**User Data equal_weight_current_week:** {user_data.get('equal_weight_current_week', 'YOK')}")
+        st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
+        st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
+        
+        new_topics = weekly_plan.get('new_topics', [])
+        if new_topics:
+            st.write("**Bu haftanın konuları:**")
+            for topic in new_topics[:5]:  # İlk 5 konu
+                st.write(f"• {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
+            if len(new_topics) > 5:
+                st.write(f"... ve {len(new_topics) - 5} konu daha")
+        else:
+            st.error("Hiç konu bulunamadı!")
 
 def update_weekly_plan_with_pending_topics(user_data, weekly_plan):
     """Haftalık planı kalan konularla günceller"""
