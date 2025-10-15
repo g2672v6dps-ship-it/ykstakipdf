@@ -1069,34 +1069,6 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
                 "Olasılık, Binom, Permütasyon, Kombinasyon"
             ]
         }
-    }
-
-# 🎮 GAMİFİCATİON SİSTEMİ - BAŞARILAR VE ROZET SİSTEMİ
-                "Köklü Sayılar",
-                "Problemler - Karışım Problemleri"
-            ],
-            "TYT Geometri": [
-                "Açı Kenar Bağıntıları",
-                "Çokgenler"
-            ],
-            "TYT Coğrafya": [
-                "İç Kuvvetler/Dış Kuvvetler",
-                "Su-Toprak ve Bitkiler",
-                "Nüfus"
-            ],
-            "TYT Tarih": [
-                "Dünya Gücü Osmanlı (1453-1600)",
-                "Yeni Çağ Avrupa Tarihi"
-            ],
-            "TYT Felsefe": [
-                "Ahlak Felsefesi",
-                "Sanat Felsefesi"
-            ],
-            "TYT Din Kültürü": [
-                "Kutsal Kitaplar",
-                "Ahiret İnancı"
-            ]
-        }
     },
     6: {
         "week": 6,
