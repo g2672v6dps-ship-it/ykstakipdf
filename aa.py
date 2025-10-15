@@ -2667,7 +2667,7 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics):
     
     return weekly_topics
 
-def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics):
+def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, user_data=None):
     """TYT & MSÜ için haftalık konuları getirir"""
     if week_number > 9:
         week_number = 9  # Max 9 hafta
@@ -2675,22 +2675,54 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics):
     week_plan = TYT_MSU_WEEKLY_PLAN.get(week_number, {})
     weekly_topics = []
     
+    # Alt kategori bilgisini al
+    sub_category = user_data.get('tyt_msu_sub_category', '') if user_data else ''
+    
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
     
-    # Konuları birleştir
+    # Alt kategoriye göre konu önceliklendirmesi
+    priority_subjects = []
+    if sub_category.startswith('MSÜ'):
+        # MSÜ öğrencileri için matematik ve fen bilimleri öncelikli
+        priority_subjects = ['TYT Matematik', 'TYT Fizik', 'TYT Kimya']
+    elif 'Bilgisayar' in sub_category or 'Teknoloji' in sub_category:
+        # Teknoloji alanı için matematik ve fizik öncelikli  
+        priority_subjects = ['TYT Matematik', 'TYT Fizik']
+    elif 'Tıbbi' in sub_category or 'Sağlık' in sub_category or 'Anestezi' in sub_category or 'ATT' in sub_category:
+        # Sağlık alanı için biyoloji ve kimya öncelikli
+        priority_subjects = ['TYT Biyoloji', 'TYT Kimya']
+    
+    # Önce öncelikli dersleri ekle
+    for subject in priority_subjects:
+        if subject in planned_topics:
+            topic_list = planned_topics[subject]
+            for topic in topic_list:
+                weekly_topics.append({
+                    'subject': subject,
+                    'topic': topic,
+                    'week': week_number,
+                    'priority': 'high',  # Yüksek öncelik
+                    'difficulty': get_topic_difficulty_by_name(topic),
+                    'status': 'planned',
+                    'net': 0,
+                    'detail': f'⭐ {sub_category} için öncelikli'
+                })
+    
+    # Sonra diğer dersleri ekle
     for subject, topic_list in planned_topics.items():
-        for topic in topic_list:
-            weekly_topics.append({
-                'subject': subject,
-                'topic': topic,
-                'week': week_number,
-                'priority': 'normal',
-                'difficulty': get_topic_difficulty_by_name(topic),
-                'status': 'planned',
-                'net': 0,  # Varsayılan net sayısı
-                'detail': ''  # Varsayılan detay
-            })
+        if subject not in priority_subjects:  # Öncelikli olmayanlar
+            for topic in topic_list:
+                weekly_topics.append({
+                    'subject': subject,
+                    'topic': topic,
+                    'week': week_number,
+                    'priority': 'normal',
+                    'difficulty': get_topic_difficulty_by_name(topic),
+                    'status': 'planned',
+                    'net': 0,
+                    'detail': ''
+                })
     
     # Sadece 2. hafta ve sonrasında önceki haftalardan kalan konuları ekle
     if week_number > 1:
@@ -3189,12 +3221,27 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
     total_weeks = weekly_plan.get('total_weeks', 9)
     flexible_rec = weekly_plan.get('flexible_recommendation', {})
     
+    # Alt kategori bilgisini al
+    sub_category = user_data.get('tyt_msu_sub_category', 'Belirtilmemiş')
+    
     # TYT & MSÜ hafta verisini garantile
     if 'tyt_msu_current_week' not in user_data:
         user_data['tyt_msu_current_week'] = 1
         update_user_in_firebase(st.session_state.current_user, {'tyt_msu_current_week': 1})
     
-    st.markdown("### 🎨 TYT & MSÜ ÖZEL PLANI")
+    # Alt kategoriye göre başlık rengi ve ikonu
+    if sub_category.startswith('MSÜ'):
+        category_icon = "🎖️"  # MSÜ için madalya
+        category_color = "#1f77b4"  # Mavi
+    else:
+        category_icon = "🎓"  # TYT bölümleri için mezuniyet şapkası
+        category_color = "#2ca02c"  # Yeşil
+    
+    st.markdown(f"### {category_icon} TYT & MSÜ ÖZEL PLANI")
+    
+    # Alt kategori bilgisini göster
+    if sub_category != 'Belirtilmemiş':
+        st.markdown(f"**🎯 Hedef Alan:** `{sub_category}`")
     
     # İlerleme çubuğu
     progress = min(100, (current_week / total_weeks) * 100)
@@ -3293,17 +3340,33 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
                     st.write(f"• {topic} {difficulty_info['icon']}")
                 st.write("")
     
+    # Alt kategoriye göre özel tavsiyeler
+    if sub_category.startswith('MSÜ'):
+        st.info("🎖️ **MSÜ Tavsiyeleri:** Matematik, Fizik ve Kimya konularına öncelik verin. Üniform disiplini gibi üniversiteye hazırlık sürecinde düzeni koruyun.")
+    elif 'Bilgisayar' in sub_category or 'Teknoloji' in sub_category:
+        st.info("💻 **Teknoloji Alanı Tavsiyeleri:** Matematik ve Fizik temeli güçlü olmalı. Mesleki alanınızla ilgili temel programlama eğitimine de zaman ayırın.")
+    elif 'Tıbbi' in sub_category or 'Sağlık' in sub_category or 'Anestezi' in sub_category or 'ATT' in sub_category:
+        st.info("🎥 **Sağlık Alanı Tavsiyeleri:** Biyoloji ve Kimya konuları mesleki başarınız için kritik. Temel sağlık terminolojisini de araştırın.")
+    elif 'Çocuk Gelişimi' in sub_category:
+        st.info("👶 **Çocuk Gelişimi Tavsiyeleri:** Psikoloji ve eğitim temelleri önemli. Çocuk gelişimi ile ilgili temel bilgileri araştırın.")
+    
     # DEBUG: Mevcut haftalık planı göster
     with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
         st.write(f"**User Data tyt_msu_current_week:** {user_data.get('tyt_msu_current_week', 'YOK')}")
+        st.write(f"**Sub Category:** {sub_category}")
         st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
         st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
         
         new_topics = weekly_plan.get('new_topics', [])
         if new_topics:
             st.write("**Bu haftanın konuları:**")
+            priority_count = len([t for t in new_topics if t.get('priority') == 'high'])
+            if priority_count > 0:
+                st.write(f"**⭐ Öncelikli Konular:** {priority_count} adet")
+            
             for topic in new_topics[:5]:  # İlk 5 konu
-                st.write(f"• {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
+                priority_icon = "⭐" if topic.get('priority') == 'high' else "•"
+                st.write(f"{priority_icon} {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
             if len(new_topics) > 5:
                 st.write(f"... ve {len(new_topics) - 5} konu daha")
         else:
@@ -9500,7 +9563,11 @@ def show_pomodoro_interface(user_data):
                 topic_options.append("─── 🎯 HAFTALİK HEDEF KONULAR ───")
                 for topic in weekly_target_topics[:10]:  # Max 10 konu
                     topic_name = topic.get('topic', topic.get('subject', str(topic)))
-                    topic_options.append(f"🎯 {topic_name}")
+                    # Öncelikli konuları ⭐ ile vurgula
+                    if topic.get('priority') == 'high':
+                        topic_options.append(f"⭐ {topic_name} (Öncelikli)")
+                    else:
+                        topic_options.append(f"🎯 {topic_name}")
             
             # 2. Tüm Konular bölümü
             if all_topics_raw:
@@ -11308,7 +11375,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         completed_topics = get_user_pending_topics(user_data)
         pending_topics = [t for t in completed_topics if t.get('status') == 'incomplete']
         
-        tyt_msu_topics = get_tyt_msu_weekly_topics(tyt_msu_week, completed_topics, pending_topics)
+        tyt_msu_topics = get_tyt_msu_weekly_topics(tyt_msu_week, completed_topics, pending_topics, user_data)
         
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
@@ -12058,6 +12125,37 @@ def main():
                 surname = st.text_input("Soyadınız", key="surname_input")
                 grade = st.selectbox("Sınıfınız", ["11. Sınıf", "12. Sınıf", "Mezun"], key="grade_input")
                 field = st.selectbox("Alanınız", ["Sayısal", "Sözel", "Eşit Ağırlık", "TYT & MSÜ", "MSÜ AST.&TYT"], key="field_input")
+                
+                # 🎯 TYT & MSÜ için alt kategori seçimi
+                sub_category = None
+                if field == "TYT & MSÜ":
+                    st.markdown("**🎯 Alt Kategori Seçiniz:**")
+                    sub_category = st.selectbox(
+                        "Hedeflediğiniz alan", 
+                        [
+                            "MSÜ - Kara Astsubay Meslek Yüksekokulu",
+                            "MSÜ - Deniz Astsubay Yüksekokulu", 
+                            "MSÜ - Hava Astsubay Yüksekokulu",
+                            "TYT - Bilgisayar Programcılığı",
+                            "TYT - Anestezi Teknisyenliği",
+                            "TYT - Acil Tıp Teknisyenliği (ATT)",
+                            "TYT - Çocuk Gelişimi",
+                            "TYT - Ebe",
+                            "TYT - Hemato terapilişi",
+                            "TYT - Tıbbi Laboratuvar Teknikleri",
+                            "TYT - Tıbbi Görüntüleme Teknikleri",
+                            "TYT - Radyoterapi",
+                            "TYT - Diyaliz",
+                            "TYT - Diş Protés Teknisyenliği",
+                            "TYT - Otomotiv Teknolojisi",
+                            "TYT - Elektrik-Elektronik Teknolojisi",
+                            "TYT - Makine Teknolojisi",
+                            "TYT - İnşaat Teknolojisi",
+                            "TYT - Diğer Meslek Yüksekokulu"
+                        ], 
+                        key="sub_category_input"
+                    )
+                
                 target = st.selectbox("Hedef Bölümünüz", list(BACKGROUND_STYLES.keys())[:-1], key="target_input")
             
             with col2:
@@ -12071,8 +12169,15 @@ def main():
                 ayt_avg = st.number_input("Genel AYT Ortalaması", min_value=0.0, max_value=80.0, step=0.25, key="ayt_avg_input")
             
             if st.button("💾 Bilgileri Kaydet", type="primary", use_container_width=True):
-                if name and surname and target and tyt_last is not None and tyt_avg is not None and ayt_last is not None and ayt_avg is not None:
-                    update_user_in_firebase(st.session_state.current_user, {
+                # TYT & MSÜ seçilmişse sub_category zorunlu
+                validation_error = False
+                if field == "TYT & MSÜ" and not sub_category:
+                    st.error("🚨 TYT & MSÜ alanı için alt kategori seçimi zorunludur!")
+                    validation_error = True
+                
+                if not validation_error and name and surname and target and tyt_last is not None and tyt_avg is not None and ayt_last is not None and ayt_avg is not None:
+                    # Kaydedilecek veri yapısı
+                    user_data_to_save = {
                         'name': name,
                         'surname': surname,
                         'grade': grade,
@@ -12082,9 +12187,14 @@ def main():
                         'tyt_avg_net': str(tyt_avg),
                         'ayt_last_net': str(ayt_last),
                         'ayt_avg_net': str(ayt_avg),
-                        'is_profile_complete': 'True' 
-                           
-                    })
+                        'is_profile_complete': 'True'
+                    }
+                    
+                    # TYT & MSÜ ise alt kategoriyi de kaydet
+                    if field == "TYT & MSÜ" and sub_category:
+                        user_data_to_save['tyt_msu_sub_category'] = sub_category
+                    
+                    update_user_in_firebase(st.session_state.current_user, user_data_to_save)
                     
                     st.session_state.users_db = load_users_from_firebase()
                     st.session_state.is_profile_complete = True 
