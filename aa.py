@@ -495,96 +495,96 @@ BACKGROUND_STYLES = {
         "gradient": "linear-gradient(135deg, #ff5e62 0%, #ff9966 100%)",
         "icon": "🦷"
     },
-    # 🎖️ MSÜ (Askeri) Alt Kategorileri
+    # 🎖️ MSÜ (Askeri) Alt Kategorileri - Gerçek Meslek Görselleri
     "MSÜ - Kara Astsubay Meslek Yüksekokulu": {
-        "image": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1610979467704-b5ad9b9c2a3c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #2d5016 0%, #4a7c59 50%, #5e8b3a 100%)",
         "icon": "🎖️"
     },
     "MSÜ - Deniz Astsubay Yüksekokulu": {
-        "image": "https://images.unsplash.com/photo-1505142468610-359e7d316be0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80", 
+        "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80", 
         "gradient": "linear-gradient(135deg, #0c4a6e 0%, #0ea5e9 50%, #075985 100%)",
         "icon": "⚓"
     },
     "MSÜ - Hava Astsubay Yüksekokulu": {
-        "image": "https://images.unsplash.com/photo-1446776877081-d282a0f896e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #1e40af 0%, #60a5fa 50%, #2563eb 100%)",
         "icon": "✈️"
     },
     
-    # 🎓 TYT (Meslek Yüksekokulu) Alt Kategorileri
+    # 🎓 TYT (Meslek Yüksekokulu) Alt Kategorileri - Gerçek Meslek Görselleri
     "TYT - Bilgisayar Programcılığı": {
-        "image": "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #1e1b4b 0%, #5b21b6 50%, #7c3aed 100%)",
         "icon": "💻"
     },
     "TYT - Anestezi Teknisyenliği": {
-        "image": "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%)",
         "icon": "🏥"
     },
     "TYT - Acil Tıp Teknisyenliği (ATT)": {
-        "image": "https://images.unsplash.com/photo-1638202993928-7267aad84c31?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #991b1b 0%, #dc2626 50%, #ef4444 100%)",
         "icon": "🚑"
     },
     "TYT - Çocuk Gelişimi": {
-        "image": "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #fbbf24 100%)",
         "icon": "👶"
     },
     "TYT - Ebe": {
-        "image": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #be185d 0%, #ec4899 50%, #f9a8d4 100%)",
         "icon": "🤱"
     },
     "TYT - Hemato terapilişi": {
-        "image": "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1615461066159-fea0960485d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #fecaca 100%)",
         "icon": "🩸"
     },
     "TYT - Tıbbi Laboratuvar Teknikleri": {
-        "image": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #065f46 0%, #059669 50%, #a7f3d0 100%)",
         "icon": "🔬"
     },
     "TYT - Tıbbi Görüntüleme Teknikleri": {
-        "image": "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #374151 0%, #6b7280 50%, #d1d5db 100%)",
         "icon": "📱"
     },
     "TYT - Radyoterapi": {
-        "image": "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1538108149393-fbbd81895907?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #c4b5fd 100%)",
         "icon": "⚡"
     },
     "TYT - Diyaliz": {
-        "image": "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1594824363642-eaaab4d19621?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #99f6e4 100%)",
         "icon": "💧"
     },
     "TYT - Diş Protés Teknisyenliği": {
-        "image": "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1609840114035-3c981960e79f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #0369a1 0%, #0ea5e9 50%, #bae6fd 100%)",
         "icon": "🦷"
     },
     "TYT - Otomotiv Teknolojisi": {
-        "image": "https://images.unsplash.com/photo-1486496572940-2bb2341fdbdf?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #374151 0%, #4b5563 50%, #9ca3af 100%)",
         "icon": "🚗"
     },
     "TYT - Elektrik-Elektronik Teknolojisi": {
-        "image": "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
         "icon": "⚡"
     },
     "TYT - Makine Teknolojisi": {
-        "image": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #1f2937 0%, #374151 50%, #6b7280 100%)",
         "icon": "⚙️"
     },
     "TYT - İnşaat Teknolojisi": {
-        "image": "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "image": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #a16207 0%, #d97706 50%, #fbbf24 100%)",
         "icon": "🏗️"
     },
