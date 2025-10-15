@@ -15813,365 +15813,325 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # 🔍 YAZIM KURALLARI DEDEKTİFİ - YENİ!
+                # 📝 YAZIM KURALLARI NOT DEFTERİM - YENİ!
                 st.markdown("---")
                 st.markdown("""
                 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #a8edea 100%); color: white; padding: 30px; border-radius: 20px; margin: 40px 0; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-                    <h1 style="margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🔍 YAZIM KURALLARI DEDEKTİFİ</h1>
-                    <p style="margin: 10px 0 0 0; font-size: 1.3rem; opacity: 0.95;">TYT Türkçe'nin en karışık konusunu eğlenceli oyunlarla hallet!</p>
+                    <h1 style="margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">📝 YAZIM KURALLARI NOT DEFTERİM</h1>
+                    <p style="margin: 10px 0 0 0; font-size: 1.3rem; opacity: 0.95;">Zorlandığın kelimeleri kaydet, sonra geri dön ve çalış!</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Kullanıcının yazım kuralları skorlarını saklamak için Firebase entegrasyonu
-                if 'user_spelling_scores' not in st.session_state:
+                # Kullanıcının yazım kuralları notlarını saklamak için Firebase entegrasyonu
+                if 'user_spelling_notes' not in st.session_state:
                     username = st.session_state.get('current_user', None)
                     if username:
                         users_data = load_users_from_firebase()
                         user_data = users_data.get(username, {})
-                        saved_scores = user_data.get('spelling_game_scores', '{}')
+                        saved_notes = user_data.get('spelling_notes', '{}')
                         try:
-                            if isinstance(saved_scores, str):
-                                st.session_state.user_spelling_scores = json.loads(saved_scores)
+                            if isinstance(saved_notes, str):
+                                st.session_state.user_spelling_notes = json.loads(saved_notes)
                             else:
-                                st.session_state.user_spelling_scores = saved_scores if isinstance(saved_scores, dict) else {}
+                                st.session_state.user_spelling_notes = saved_notes if isinstance(saved_notes, dict) else {}
                         except (json.JSONDecodeError, TypeError):
-                            st.session_state.user_spelling_scores = {}
+                            st.session_state.user_spelling_notes = {}
                     else:
-                        st.session_state.user_spelling_scores = {}
+                        st.session_state.user_spelling_notes = {}
                 
-                # Oyun veritabanı - TYT Türkçe Yazım Kuralları
-                SPELLING_GAMES = {
-                    "Birleşik vs Ayrı": {
-                        "description": "Kelimelerin birleşik mi ayrı mı yazılacağına karar ver!",
-                        "icon": "🔗",
-                        "questions": [
-                            {"word": "her zaman", "correct": "ayrı", "rule": "'Her' edatı ayrı yazılır", "wrong_form": "herzaman"},
-                            {"word": "hiç bir", "correct": "ayrı", "rule": "'Hiç' kelimesi ayrı yazılır", "wrong_form": "hiçbir"},
-                            {"word": "bugün", "correct": "birleşik", "rule": "Zaman zarfları birleşik yazılır", "wrong_form": "bu gün"},
-                            {"word": "yarın", "correct": "birleşik", "rule": "Zaman zarfları birleşik yazılır", "wrong_form": "yarı n"},
-                            {"word": "daha da", "correct": "ayrı", "rule": "'Da/de' edatları ayrı yazılır", "wrong_form": "dahada"},
-                            {"word": "acaba", "correct": "birleşik", "rule": "Soru edatı birleşik yazılır", "wrong_form": "aca ba"},
-                            {"word": "kaç tane", "correct": "ayrı", "rule": "Soru kelimesi ayrı yazılır", "wrong_form": "kaçtane"},
-                            {"word": "hemen", "correct": "birleşik", "rule": "Zaman zarfı birleşik yazılır", "wrong_form": "he men"},
-                            {"word": "şu an", "correct": "ayrı", "rule": "İşaret sıfatı ayrı yazılır", "wrong_form": "şuan"},
-                            {"word": "her ne", "correct": "ayrı", "rule": "'Her' edatı ayrı yazılır", "wrong_form": "herne"}
-                        ]
-                    },
-                    "Büyük vs Küçük Harf": {
-                        "description": "Hangi harflerin büyük yazılacağını bul!",
-                        "icon": "🔤",
-                        "questions": [
-                            {"word": "türkiye", "correct": "büyük", "rule": "Ülke adları büyük harfle başlar", "correct_form": "Türkiye"},
-                            {"word": "Pazartesi", "correct": "küçük", "rule": "Gün adları küçük harfle yazılır", "correct_form": "pazartesi"},
-                            {"word": "istanbul", "correct": "büyük", "rule": "Şehir adları büyük harfle başlar", "correct_form": "İstanbul"},
-                            {"word": "Mayıs", "correct": "küçük", "rule": "Ay adları küçük harfle yazılır", "correct_form": "mayıs"},
-                            {"word": "türkçe", "correct": "büyük", "rule": "Dil adları büyük harfle başlar", "correct_form": "Türkçe"},
-                            {"word": "Kış", "correct": "küçük", "rule": "Mevsim adları küçük harfle yazılır", "correct_form": "kış"},
-                            {"word": "matematik", "correct": "küçük", "rule": "Ders adları küçük harfle yazılır", "correct_form": "matematik"},
-                            {"word": "atatürk", "correct": "büyük", "rule": "Kişi adları büyük harfle başlar", "correct_form": "Atatürk"},
-                            {"word": "Doğu", "correct": "küçük", "rule": "Yön adları küçük harfle yazılır (genel kullanımda)", "correct_form": "doğu"},
-                            {"word": "müslüman", "correct": "büyük", "rule": "Din adları büyük harfle başlar", "correct_form": "Müslüman"}
-                        ]
-                    },
-                    "Noktalama İşaretleri": {
-                        "description": "Doğru noktalama işaretini seç!",
-                        "icon": "📝",
-                        "questions": [
-                            {"sentence": "Ne kadar güzel bir gün", "correct": "!", "rule": "Ünlem cümlelerinde ünlem işareti kullanılır"},
-                            {"sentence": "Yarın okula gideceğim", "correct": ".", "rule": "Olumlu cümlelerde nokta kullanılır"},
-                            {"sentence": "Sen okula gidiyor musun", "correct": "?", "rule": "Soru cümlelerinde soru işareti kullanılır"},
-                            {"sentence": "Kitap, kalem, defter aldım", "correct": ".", "rule": "Sıralama virgüllerinden sonra nokta"},
-                            {"sentence": "Evet, geleceğim", "correct": ".", "rule": "Evet/hayır'dan sonra virgül, cümle sonunda nokta"},
-                            {"sentence": "Ne güzel", "correct": "!", "rule": "Kısa ünlem cümleleri ünlem işaretiyle biter"},
-                            {"sentence": "Hangi film izleyeceğiz", "correct": "?", "rule": "Hangi sorusu soru işareti ister"},
-                            {"sentence": "Lütfen gel", "correct": ".", "rule": "Rica cümleleri nokta ile biter"},
-                            {"sentence": "Çok teşekkürler", "correct": "!", "rule": "Minnettarlık ünlem işaretiyle ifade edilir"},
-                            {"sentence": "Nereye gidiyorsun", "correct": "?", "rule": "Nereye sorusu soru işareti ister"}
-                        ]
-                    }
-                }
+                # Sekme sistemi - Notlarımı Çalış | Yeni Not Ekle
+                spelling_tab1, spelling_tab2 = st.tabs(["🔄 Notlarımı Çalış", "➕ Yeni Not Ekle"])
                 
-                # Sekme sistemi - Oyun Seç | Skor Durumum
-                spelling_tab1, spelling_tab2 = st.tabs(["🎮 Oyunlar", "🏆 Skor Durumum"])
-                
-                with spelling_tab1:
-                    # Oyun seçimi
+                with spelling_tab2:
+                    # Form temizleme kontrolü
+                    if 'spelling_form_counter' not in st.session_state:
+                        st.session_state.spelling_form_counter = 0
+                    
+                    # Yeni yazım kuralı notu ekleme formu
                     st.markdown("""
                     <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); 
                                border-radius: 15px; padding: 25px; margin: 20px 0;">
-                        <h3 style="color: #2d3748; margin-bottom: 20px; text-align: center;">🎯 Hangi Oyunu Oynamak İstiyorsun?</h3>
+                        <h3 style="color: #2d3748; margin-bottom: 20px; text-align: center;">📚 Zorlandığın Kelimeleri Kaydet</h3>
+                        <p style="color: #4a5568; text-align: center; margin: 0;">Sınavda, denemede veya çalışırken yanlış yaptığın kelimeleri buraya not et!</p>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # Oyun butonları
-                    col_game1, col_game2, col_game3 = st.columns(3)
+                    # Form alanları - unique key'ler
+                    spelling_form_key = st.session_state.spelling_form_counter
+                    spelling_col1, spelling_col2 = st.columns(2)
                     
-                    with col_game1:
-                        if st.button("🔗 Birleşik vs Ayrı\n(Kelime Yazımı)", use_container_width=True, key="game_birlesik"):
-                            st.session_state.selected_spelling_game = "Birleşik vs Ayrı"
-                            st.session_state.spelling_game_active = True
-                            st.session_state.current_question = 0
-                            st.session_state.game_score = 0
-                            st.rerun()
-                    
-                    with col_game2:
-                        if st.button("🔤 Büyük vs Küçük Harf\n(Harf Büyüklüğü)", use_container_width=True, key="game_buyuk"):
-                            st.session_state.selected_spelling_game = "Büyük vs Küçük Harf"
-                            st.session_state.spelling_game_active = True
-                            st.session_state.current_question = 0
-                            st.session_state.game_score = 0
-                            st.rerun()
-                    
-                    with col_game3:
-                        if st.button("📝 Noktalama İşaretleri\n(Cümle Sonu)", use_container_width=True, key="game_noktalama"):
-                            st.session_state.selected_spelling_game = "Noktalama İşaretleri"
-                            st.session_state.spelling_game_active = True
-                            st.session_state.current_question = 0
-                            st.session_state.game_score = 0
-                            st.rerun()
-                    
-                    # Aktif oyun varsa oyunu göster
-                    if st.session_state.get('spelling_game_active', False):
-                        game_name = st.session_state.get('selected_spelling_game', '')
-                        if game_name in SPELLING_GAMES:
-                            current_q = st.session_state.get('current_question', 0)
-                            questions = SPELLING_GAMES[game_name]['questions']
-                            
-                            if current_q < len(questions):
-                                # Oyun başlığı
-                                st.markdown(f"""
-                                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                                           color: white; padding: 20px; border-radius: 15px; margin: 20px 0; text-align: center;">
-                                    <h3>{SPELLING_GAMES[game_name]['icon']} {game_name} Oyunu</h3>
-                                    <p>Soru {current_q + 1}/{len(questions)} | Puan: {st.session_state.get('game_score', 0)}</p>
-                                </div>
-                                """, unsafe_allow_html=True)
-                                
-                                # Soruyu göster
-                                question = questions[current_q]
-                                
-                                if game_name == "Noktalama İşaretleri":
-                                    st.markdown(f"""
-                                    <div style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin: 20px 0; text-align: center; border: 2px solid #667eea;">
-                                        <h2 style="color: #2d3748; margin-bottom: 20px;">Bu cümleyi nasıl bitirirsin?</h2>
-                                        <div style="font-size: 1.8rem; color: #667eea; font-weight: bold; margin: 20px 0;">
-                                            "{question['sentence']}"
-                                        </div>
-                                    </div>
-                                    """, unsafe_allow_html=True)
-                                    
-                                    # Noktalama seçenekleri
-                                    col1, col2, col3 = st.columns(3)
-                                    with col1:
-                                        if st.button("❓ Soru İşareti (?)", use_container_width=True, key="punct_question"):
-                                            st.session_state.player_answer = "?"
-                                            st.session_state.show_result = True
-                                            st.rerun()
-                                    with col2:
-                                        if st.button("❗ Ünlem İşareti (!)", use_container_width=True, key="punct_exclamation"):
-                                            st.session_state.player_answer = "!"
-                                            st.session_state.show_result = True
-                                            st.rerun()
-                                    with col3:
-                                        if st.button("⚫ Nokta (.)", use_container_width=True, key="punct_period"):
-                                            st.session_state.player_answer = "."
-                                            st.session_state.show_result = True
-                                            st.rerun()
-                                
-                                elif game_name == "Büyük vs Küçük Harf":
-                                    st.markdown(f"""
-                                    <div style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin: 20px 0; text-align: center; border: 2px solid #667eea;">
-                                        <h2 style="color: #2d3748; margin-bottom: 20px;">Bu kelime nasıl yazılır?</h2>
-                                        <div style="font-size: 2.5rem; color: #667eea; font-weight: bold; margin: 20px 0;">
-                                            "{question['word']}"
-                                        </div>
-                                    </div>
-                                    """, unsafe_allow_html=True)
-                                    
-                                    # Büyük/küçük seçenekleri
-                                    col1, col2 = st.columns(2)
-                                    with col1:
-                                        if st.button("🔤 BÜYÜK harfle başlar", use_container_width=True, key="case_upper"):
-                                            st.session_state.player_answer = "büyük"
-                                            st.session_state.show_result = True
-                                            st.rerun()
-                                    with col2:
-                                        if st.button("🔡 küçük harfle başlar", use_container_width=True, key="case_lower"):
-                                            st.session_state.player_answer = "küçük"
-                                            st.session_state.show_result = True
-                                            st.rerun()
-                                
-                                else:  # Birleşik vs Ayrı
-                                    st.markdown(f"""
-                                    <div style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin: 20px 0; text-align: center; border: 2px solid #667eea;">
-                                        <h2 style="color: #2d3748; margin-bottom: 20px;">Bu kelime nasıl yazılır?</h2>
-                                        <div style="font-size: 2.5rem; color: #667eea; font-weight: bold; margin: 20px 0;">
-                                            "{question['word']}"
-                                        </div>
-                                    </div>
-                                    """, unsafe_allow_html=True)
-                                    
-                                    # Birleşik/ayrı seçenekleri
-                                    col1, col2 = st.columns(2)
-                                    with col1:
-                                        if st.button("🔗 BİRLEŞİK yazılır", use_container_width=True, key="join_together"):
-                                            st.session_state.player_answer = "birleşik"
-                                            st.session_state.show_result = True
-                                            st.rerun()
-                                    with col2:
-                                        if st.button("↔️ AYRI yazılır", use_container_width=True, key="join_separate"):
-                                            st.session_state.player_answer = "ayrı"
-                                            st.session_state.show_result = True
-                                            st.rerun()
-                                
-                                # Cevap sonucu göster
-                                if st.session_state.get('show_result', False):
-                                    player_answer = st.session_state.get('player_answer', '')
-                                    correct_answer = question['correct']
-                                    
-                                    if player_answer == correct_answer:
-                                        st.session_state.game_score += 10
-                                        st.success(f"✅ Doğru! +10 puan")
-                                        st.info(f"📝 Kural: {question['rule']}")
-                                        if game_name == "Büyük vs Küçük Harf":
-                                            st.info(f"✍️ Doğru yazım: **{question['correct_form']}**")
-                                        elif game_name == "Birleşik vs Ayrı":
-                                            st.info(f"❌ Yanlış yazım örneği: {question['wrong_form']}")
-                                    else:
-                                        st.error(f"❌ Yanlış cevap!")
-                                        st.info(f"✅ Doğru cevap: **{correct_answer}**")
-                                        st.info(f"📝 Kural: {question['rule']}")
-                                        if game_name == "Büyük vs Küçük Harf":
-                                            st.info(f"✍️ Doğru yazım: **{question['correct_form']}**")
-                                        elif game_name == "Birleşik vs Ayrı":
-                                            st.info(f"❌ Yanlış yazım örneği: {question['wrong_form']}")
-                                    
-                                    # Sonraki soru butonu
-                                    if st.button("➡️ Sonraki Soru", use_container_width=True, key="next_question"):
-                                        st.session_state.current_question += 1
-                                        st.session_state.show_result = False
-                                        st.session_state.player_answer = ""
-                                        st.rerun()
-                            
-                            else:
-                                # Oyun bitti
-                                final_score = st.session_state.get('game_score', 0)
-                                max_score = len(questions) * 10
-                                success_rate = (final_score / max_score) * 100
-                                
-                                st.markdown(f"""
-                                <div style="background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%); 
-                                           color: white; padding: 30px; border-radius: 15px; margin: 20px 0; text-align: center;">
-                                    <h2>🎉 {game_name} Oyunu Tamamlandı!</h2>
-                                    <div style="font-size: 2rem; margin: 20px 0;">
-                                        Skorun: {final_score}/{max_score} 
-                                    </div>
-                                    <div style="font-size: 1.5rem;">
-                                        Başarı Oranın: %{success_rate:.1f}
-                                    </div>
-                                </div>
-                                """, unsafe_allow_html=True)
-                                
-                                # Başarı seviyesine göre mesaj
-                                if success_rate >= 80:
-                                    st.balloons()
-                                    st.success("🏆 Mükemmel! Yazım kurallarında çok başarılısın!")
-                                elif success_rate >= 60:
-                                    st.success("👍 İyi! Biraz daha pratikle ustası olacaksın!")
-                                else:
-                                    st.info("💪 Devam et! Yazım kuralları pratikle gelişir!")
-                                
-                                # Skoru kaydet
-                                username = st.session_state.get('current_user', None)
-                                if username:
-                                    if game_name not in st.session_state.user_spelling_scores:
-                                        st.session_state.user_spelling_scores[game_name] = []
-                                    
-                                    score_record = {
-                                        'score': final_score,
-                                        'max_score': max_score,
-                                        'success_rate': success_rate,
-                                        'date': datetime.now().strftime("%Y-%m-%d %H:%M")
-                                    }
-                                    st.session_state.user_spelling_scores[game_name].append(score_record)
-                                    
-                                    # Firebase'e kaydet
-                                    try:
-                                        scores_json = json.dumps(st.session_state.user_spelling_scores, ensure_ascii=False)
-                                        update_user_in_firebase(username, {'spelling_game_scores': scores_json})
-                                        st.success("📊 Skorun kaydedildi!")
-                                    except:
-                                        st.info("📊 Skorun bu oturum için kaydedildi.")
-                                
-                                # Yeni oyun butonları
-                                if st.button("🔄 Bu Oyunu Tekrar Oyna", use_container_width=True, key="replay_game"):
-                                    st.session_state.current_question = 0
-                                    st.session_state.game_score = 0
-                                    st.session_state.show_result = False
-                                    st.rerun()
-                                
-                                if st.button("🎮 Ana Menüye Dön", use_container_width=True, key="back_to_menu"):
-                                    st.session_state.spelling_game_active = False
-                                    st.session_state.selected_spelling_game = ""
-                                    st.rerun()
-                    
-                    else:
-                        # Oyun açıklamaları
-                        st.markdown("### 🎯 Oyun Açıklamaları")
-                        for game_name, game_info in SPELLING_GAMES.items():
-                            st.markdown(f"""
-                            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #667eea;">
-                                <h4>{game_info['icon']} {game_name}</h4>
-                                <p>{game_info['description']}</p>
-                            </div>
-                            """, unsafe_allow_html=True)
-                
-                with spelling_tab2:
-                    # Skor takibi
-                    if st.session_state.user_spelling_scores:
-                        st.markdown("### 🏆 Oyun Skorlarım")
+                    with spelling_col1:
+                        # Yazım kuralı kategorisi
+                        rule_category = st.selectbox(
+                            "📂 Hangi konu/kural?",
+                            [
+                                "Birleşik/Ayrı Yazım",
+                                "Büyük/Küçük Harf",
+                                "Noktalama İşaretleri", 
+                                "Ünlü Daralması/Düşmesi",
+                                "Ek Yazımı",
+                                "Yabancı Kelimeler",
+                                "Kısaltmalar",
+                                "Diğer"
+                            ],
+                            key=f"rule_category_{spelling_form_key}"
+                        )
                         
-                        for game_name, scores in st.session_state.user_spelling_scores.items():
-                            if scores:
-                                st.markdown(f"#### {SPELLING_GAMES[game_name]['icon']} {game_name}")
-                                
-                                # En son 5 skoru göster
-                                recent_scores = scores[-5:]
-                                for i, score in enumerate(reversed(recent_scores)):
-                                    col1, col2, col3, col4 = st.columns(4)
-                                    with col1:
-                                        st.metric("Puan", f"{score['score']}/{score['max_score']}")
-                                    with col2:
-                                        st.metric("Başarı", f"%{score['success_rate']:.1f}")
-                                    with col3:
-                                        st.metric("Tarih", score['date'][:10])
-                                    with col4:
-                                        # Başarı düzeyine göre emoji
-                                        if score['success_rate'] >= 80:
-                                            st.metric("Durum", "🏆 Mükemmel")
-                                        elif score['success_rate'] >= 60:
-                                            st.metric("Durum", "👍 İyi")
-                                        else:
-                                            st.metric("Durum", "💪 Gelişim")
-                                
-                                # En iyi skor
-                                best_score = max(scores, key=lambda x: x['success_rate'])
-                                st.success(f"🎯 En İyi Performansın: %{best_score['success_rate']:.1f} ({best_score['date'][:10]})")
-                                st.markdown("---")
-                    else:
-                        st.info("🎮 Henüz oyun oynamamışsın! Yukarıdaki oyunlardan birini seçerek başla!")
+                        # Yanlış yazdığı kelime/cümle
+                        wrong_writing = st.text_input(
+                            "❌ Nasıl yanlış yazmıştın?",
+                            placeholder="Örnek: herzaman, türkiye, Ne güzel bir gün, vs...",
+                            key=f"wrong_writing_{spelling_form_key}"
+                        )
+                    
+                    with spelling_col2:
+                        # Doğru yazım
+                        correct_writing = st.text_input(
+                            "✅ Doğru yazımı nedir?",
+                            placeholder="Örnek: her zaman, Türkiye, Ne güzel bir gün!, vs...",
+                            key=f"correct_writing_{spelling_form_key}"
+                        )
+                        
+                        # Hangi durumda hata yaptı
+                        error_source = st.selectbox(
+                            "📍 Nerede hata yaptın?",
+                            [
+                                "Deneme Sınavında",
+                                "Ders Çalışırken", 
+                                "Ödevde",
+                                "Günlük Yazımda",
+                                "Online Testte",
+                                "Öğretmen Sorusunda",
+                                "Diğer"
+                            ],
+                            key=f"error_source_{spelling_form_key}"
+                        )
+                    
+                    # Kural açıklaması
+                    st.markdown("### 📝 Kural ve Notların")
+                    rule_explanation = st.text_area(
+                        "🔍 Bu kuralı nasıl hatırlayacaksın?",
+                        placeholder="""Örnek:
+- "her zaman" ayrı yazılır çünkü "her" bir edat
+- Ülke adları büyük harfle başlar: Türkiye, Almanya, Fransa
+- Ünlem cümleleri ! ile biter: Ne güzel!, Çok teşekkürler!
+- Kendi hatırlama yöntemini yaz...""",
+                        height=120,
+                        key=f"rule_explanation_{spelling_form_key}"
+                    )
+                    
+                    # Notlama seviyesi
+                    difficulty_level = st.selectbox(
+                        "⭐ Ne kadar zor buluyorsun?",
+                        ["😊 Kolay - Tekrar etmek yeter", "😐 Orta - Biraz çalışmalıyım", "😰 Zor - Çok pratik yapmalıyım"],
+                        key=f"difficulty_level_{spelling_form_key}"
+                    )
+                    
+                    # Notu kaydetme butonu
+                    if st.button("💾 Notu Kaydet", use_container_width=True, type="primary", key=f"save_spelling_note_{spelling_form_key}"):
+                        if wrong_writing.strip() and correct_writing.strip():
+                            # Kategoriye ekle
+                            if rule_category not in st.session_state.user_spelling_notes:
+                                st.session_state.user_spelling_notes[rule_category] = []
+                            
+                            new_note = {
+                                'wrong_writing': wrong_writing.strip(),
+                                'correct_writing': correct_writing.strip(),
+                                'rule_explanation': rule_explanation.strip() if rule_explanation.strip() else "Açıklama eklenmedi",
+                                'error_source': error_source,
+                                'difficulty_level': difficulty_level,
+                                'created_date': datetime.now().strftime("%Y-%m-%d %H:%M"),
+                                'study_count': 0,
+                                'mastered': False
+                            }
+                            
+                            st.session_state.user_spelling_notes[rule_category].append(new_note)
+                            
+                            # Firebase'e kaydet
+                            username = st.session_state.get('current_user', None)
+                            if username:
+                                try:
+                                    notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
+                                    update_user_in_firebase(username, {'spelling_notes': notes_json})
+                                    st.success(f"🎉 '{wrong_writing}' notu '{rule_category}' kategorisine eklendi ve Firebase'e kaydedildi!")
+                                except Exception as e:
+                                    st.success(f"🎉 '{wrong_writing}' notu '{rule_category}' kategorisine eklendi! (Yerel olarak)")
+                                    st.info("💾 Notlarınız bu oturum boyunca saklanacak.")
+                            else:
+                                st.success(f"🎉 '{wrong_writing}' notu '{rule_category}' kategorisine eklendi! (Geçici)")
+                                st.warning("⚠️ Giriş yapın ki notlarınız kalıcı olarak saklansın!")
+                            
+                            st.balloons()
+                            
+                            # Form counter'ı artır ve yenile
+                            st.session_state.spelling_form_counter += 1
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            st.error("❌ Lütfen hem yanlış hem de doğru yazımı girin!")
                 
-                # Yazım kuralları ipuçları
+                with spelling_tab1:
+                    # Notları çalışma bölümü
+                    if not st.session_state.user_spelling_notes:
+                        st.info("📝 Henüz hiç notun yok. 'Yeni Not Ekle' sekmesinden zorlandığın kelimeleri kaydet!")
+                    else:
+                        # Kategori seçimi
+                        available_categories = list(st.session_state.user_spelling_notes.keys())
+                        selected_category = st.selectbox(
+                            "📂 Hangi kategoriyi çalışmak istiyorsun?",
+                            available_categories,
+                            key="study_category_select"
+                        )
+                        
+                        if selected_category and st.session_state.user_spelling_notes[selected_category]:
+                            notes = st.session_state.user_spelling_notes[selected_category]
+                            
+                            # İstatistikler
+                            notes_col_stat1, notes_col_stat2, notes_col_stat3 = st.columns(3)
+                            with notes_col_stat1:
+                                st.metric("📝 Toplam Not", len(notes))
+                            with notes_col_stat2:
+                                mastered_notes = sum(1 for note in notes if note.get('mastered', False))
+                                st.metric("✅ Öğrendiğim", mastered_notes)
+                            with notes_col_stat3:
+                                progress_percent = (mastered_notes / len(notes) * 100) if len(notes) > 0 else 0
+                                st.metric("🎯 İlerleme", f"%{progress_percent:.1f}")
+                            
+                            # Notları listele
+                            for i, note in enumerate(notes):
+                                # Zorluk seviyesine göre renk
+                                if "😊 Kolay" in note['difficulty_level']:
+                                    card_color = "#2ecc71"
+                                elif "😐 Orta" in note['difficulty_level']:
+                                    card_color = "#f39c12"
+                                else:
+                                    card_color = "#e74c3c"
+                                
+                                # Öğrenildi mi kontrolü
+                                mastery_status = "✅ ÖĞRENDİM" if note.get('mastered', False) else "📚 ÇALIŞIYORUM"
+                                mastery_color = "#27ae60" if note.get('mastered', False) else "#3498db"
+                                
+                                with st.expander(f"{'✅' if note.get('mastered', False) else '📝'} {note['wrong_writing']} → {note['correct_writing']}", expanded=False):
+                                    note_display_col1, note_display_col2 = st.columns([3, 1])
+                                    
+                                    with note_display_col1:
+                                        st.markdown(f"""
+                                        <div style="background: linear-gradient(135deg, {card_color} 0%, {card_color}CC 100%); 
+                                                   color: white; padding: 20px; border-radius: 15px; margin: 10px 0;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                                <h4 style="margin: 0;">📝 Yazım Hatam</h4>
+                                                <span style="background: {mastery_color}; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: bold;">
+                                                    {mastery_status}
+                                                </span>
+                                            </div>
+                                            
+                                            <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 10px; margin: 10px 0;">
+                                                <div style="margin: 10px 0;"><strong>❌ Yanlış Yazdığım:</strong> {note['wrong_writing']}</div>
+                                                <div style="margin: 10px 0;"><strong>✅ Doğru Yazımı:</strong> {note['correct_writing']}</div>
+                                                <div style="margin: 10px 0;"><strong>🔍 Kuralı/Notum:</strong></div>
+                                                <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; font-style: italic; line-height: 1.6;">
+                                                    {note['rule_explanation']}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                    
+                                    with note_display_col2:
+                                        st.markdown(f"""
+                                        <div style="text-align: center; padding: 10px;">
+                                            <div style="margin: 5px 0;"><strong>📍 Hata Yeri:</strong> {note['error_source']}</div>
+                                            <div style="margin: 5px 0;"><strong>⭐ Zorluk:</strong> {note['difficulty_level'][:2]}</div>
+                                            <div style="margin: 5px 0;"><strong>🔄 Çalışma:</strong> {note.get('study_count', 0)} kez</div>
+                                            <div style="margin: 5px 0;"><strong>📅 Tarih:</strong> {note['created_date'][:10]}</div>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                        
+                                        # Çalışma butonu
+                                        if st.button(f"📖 Çalıştım", key=f"study_note_{i}", use_container_width=True):
+                                            note['study_count'] = note.get('study_count', 0) + 1
+                                            
+                                            # Firebase'e kaydet
+                                            username = st.session_state.get('current_user', None)
+                                            if username:
+                                                try:
+                                                    notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
+                                                    update_user_in_firebase(username, {'spelling_notes': notes_json})
+                                                except:
+                                                    pass  # Sessiz hata yönetimi
+                                            
+                                            st.success("📚 Harika! Çalışma sayacını artırdık!")
+                                            time.sleep(1)
+                                            st.rerun()
+                                        
+                                        # Öğrendim butonu
+                                        if note.get('mastered', False):
+                                            if st.button(f"↩️ Tekrar Çalış", key=f"unmaster_note_{i}", use_container_width=True):
+                                                note['mastered'] = False
+                                                
+                                                # Firebase'e kaydet
+                                                username = st.session_state.get('current_user', None)
+                                                if username:
+                                                    try:
+                                                        notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
+                                                        update_user_in_firebase(username, {'spelling_notes': notes_json})
+                                                    except:
+                                                        pass  # Sessiz hata yönetimi
+                                                
+                                                st.info("🔄 Tekrar çalışma listesine eklendi!")
+                                                time.sleep(1)
+                                                st.rerun()
+                                        else:
+                                            if st.button(f"✅ Öğrendim", key=f"master_note_{i}", use_container_width=True):
+                                                note['mastered'] = True
+                                                
+                                                # Firebase'e kaydet
+                                                username = st.session_state.get('current_user', None)
+                                                if username:
+                                                    try:
+                                                        notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
+                                                        update_user_in_firebase(username, {'spelling_notes': notes_json})
+                                                    except:
+                                                        pass  # Sessiz hata yönetimi
+                                                
+                                                st.success("🎉 Tebrikler! Bu kuralı öğrendin!")
+                                                time.sleep(1)
+                                                st.rerun()
+                                        
+                                        # Silme butonu
+                                        if st.button(f"🗑️ Sil", key=f"delete_note_{i}", use_container_width=True):
+                                            if st.button(f"⚠️ Evet, Sil!", key=f"confirm_delete_note_{i}"):
+                                                notes.pop(i)
+                                                
+                                                # Firebase'e kaydet
+                                                username = st.session_state.get('current_user', None)
+                                                if username:
+                                                    try:
+                                                        notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
+                                                        update_user_in_firebase(username, {'spelling_notes': notes_json})
+                                                    except:
+                                                        pass  # Sessiz hata yönetimi
+                                                
+                                                st.success("🗑️ Not silindi!")
+                                                st.rerun()
+                            
+                            # İlerleme çubuğu
+                            st.progress(progress_percent / 100)
+                            st.markdown(f"**📈 İlerleme Durumun:** {mastered_notes}/{len(notes)} kural tamamlandı (%{progress_percent:.1f})")
+                        else:
+                            st.info(f"📝 '{selected_category}' kategorisinde henüz not yok. Yeni not ekleyin!")
+                
+                # Kullanım önerileri ve motivasyon
                 st.markdown("""
                 <div style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); 
                            border-radius: 15px; padding: 20px; margin-top: 30px;">
-                    <h4 style="color: #2d3748; margin-bottom: 15px;">💡 Yazım Kuralları İpuçları</h4>
+                    <h4 style="color: #2d3748; margin-bottom: 15px;">💡 Nasıl Daha Etkili Kullanırım?</h4>
                     <ul style="color: #4a5568; margin: 0; padding-left: 20px;">
-                        <li><strong>🔗 Birleşik/Ayrı:</strong> Zaman zarfları (bugün, yarın) birleşik, edatlar (her zaman) ayrı yazılır</li>
-                        <li><strong>🔤 Büyük Harf:</strong> Özel isimler büyük, cins isimler küçük harfle başlar</li>
-                        <li><strong>📝 Noktalama:</strong> Soru (?) ünlem (!) haber cümlesi (.) dikkat et!</li>
-                        <li><strong>🎯 Pratik:</strong> Bu oyunları düzenli oynayarak kuralları pekiştir</li>
-                        <li><strong>📚 Tekrar:</strong> Yanlış yaptığın kuralları not alıp tekrar et</li>
+                        <li><strong>📝 Hemen Kaydet:</strong> Deneme/sınavda yanlış yapar yapmaz not et</li>
+                        <li><strong>🔄 Düzenli Tekrar:</strong> Her gün 5-10 dakika eskilerini gözden geçir</li>
+                        <li><strong>📚 Kuralını Yaz:</strong> Her kelimenin kuralını kendi cümlelerinle açıkla</li>
+                        <li><strong>✅ İlerleme Takibi:</strong> Öğrendiğin kuralları işaretle</li>
+                        <li><strong>🎯 Kategorize Et:</strong> Benzer hataları grupla</li>
+                        <li><strong>🧠 Hatırlama Tüyosu:</strong> Komik cümleler/kısaltmalar kullan</li>
                     </ul>
                 </div>
                 """, unsafe_allow_html=True)
