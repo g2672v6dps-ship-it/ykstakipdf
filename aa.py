@@ -1512,9 +1512,6 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
     
-    # Önceki haftalardan kalan öncelikli konuları ekle
-    priority_topics = get_priority_topics_from_previous_weeks(pending_topics)
-    
     # Konuları birleştir
     for subject, topic_list in planned_topics.items():
         for topic in topic_list:
@@ -1527,19 +1524,31 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
                 'status': 'planned'
             })
     
-    # Öncelikli konuları başa ekle
-    for topic in priority_topics:
-        topic['priority'] = 'high'
-        weekly_topics.insert(0, topic)
+    # Sadece 2. hafta ve sonrasında önceki haftalardan kalan konuları ekle
+    if week_number > 1:
+        priority_topics = get_priority_topics_from_previous_weeks(pending_topics)
+        
+        # Öncelikli konuları başa ekle
+        for topic in priority_topics:
+            topic['priority'] = 'high'
+            weekly_topics.insert(0, topic)
     
     return weekly_topics
 
 def get_priority_topics_from_previous_weeks(pending_topics):
     """Önceki haftalardan kalan öncelikli konuları döndürür"""
     priority_topics = []
+    current_week = get_current_week_number()
     
     for topic in pending_topics:
-        if topic.get('status') == 'incomplete' and topic.get('week', 0) < get_current_week_number():
+        topic_week = topic.get('week', 0)
+        topic_subject = topic.get('subject', '')
+        
+        # Sadece gerçekten önceki haftalardan kalan TYT konularını al
+        # AYT konuları zamanı gelmeden önceki hafta sayılmasın
+        if (topic.get('status') == 'incomplete' and 
+            topic_week > 0 and topic_week < current_week and
+            topic_subject.startswith('TYT')):
             priority_topics.append(topic)
     
     return priority_topics
@@ -1617,8 +1626,24 @@ def get_next_week_topics(user_data):
     
     return []
 
+def advance_equal_weight_week(user_data):
+    """Eşit ağırlık öğrencisinin haftasını bir ileri alır"""
+    if user_data.get('field') == 'Eşit Ağırlık':
+        current_week = user_data.get('equal_weight_current_week', 1)
+        if current_week < 16:
+            user_data['equal_weight_current_week'] = current_week + 1
+            return True
+    return False
+
 def get_current_week_number():
     """Mevcut hafta numarasını döndürür"""
+    # Eğer session state'te kullanıcı verileri varsa ve eşit ağırlık öğrencisiyse
+    if 'user_data' in st.session_state:
+        user_data = st.session_state.user_data
+        if user_data.get('field') == 'Eşit Ağırlık':
+            return user_data.get('equal_weight_current_week', 1)
+    
+    # Diğer öğrenciler için normal takvim haftası
     week_info = get_current_week_info()
     return week_info.get('week_number', 1)
 
@@ -1851,8 +1876,8 @@ def update_weekly_plan_with_pending_topics(user_data, weekly_plan):
 def get_user_pending_topics(user_data):
     """Kullanıcının tamamlanmamış konularını döndürür"""
     # Bu fonksiyon kullanıcının geçmiş haftalardaki tamamlanmamış konularını bulur
-    # Şimdilik basit bir implementasyon
     pending_topics = []
+    current_week = get_current_week_number()
     
     # Kullanıcı verilerinden tamamlanmamış konuları al
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
@@ -1861,13 +1886,25 @@ def get_user_pending_topics(user_data):
         # topic_data'nın dictionary olduğundan emin ol
         if not isinstance(topic_data, dict):
             continue
-            
-        if topic_data.get('net', 0) < 14:  # Tamamlanmamış sayılır
+        
+        # Sadece gerçekten başlanmış konuları pending olarak say
+        topic_net = topic_data.get('net', 0)
+        topic_week = topic_data.get('planned_week', 999)  # Varsayılan olarak çok ileri hafta
+        topic_subject = topic_data.get('subject', '')
+        
+        # Koşullar:
+        # 1. Net sayısı 0'dan büyük olmalı (başlanmış olmalı)
+        # 2. Net sayısı 14'ten az olmalı (tamamlanmamış olmalı)  
+        # 3. Konu haftası mevcut haftadan küçük olmalı (geçmiş hafta olmalı)
+        # 4. TYT konusu olmalı (AYT konuları zamanı gelmeden pending sayılmasın)
+        if (topic_net > 0 and topic_net < 14 and 
+            topic_week < current_week and
+            topic_subject.startswith('TYT')):
             pending_topics.append({
-                'subject': topic_data.get('subject', 'Bilinmiyor'),
+                'subject': topic_subject,
                 'topic': topic_key,
-                'net': topic_data.get('net', 0),
-                'week': topic_data.get('planned_week', 1),
+                'net': topic_net,
+                'week': topic_week,
                 'status': 'incomplete'
             })
     
@@ -9706,24 +9743,31 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     
     # 🎯 EŞİT AĞIRLIK ÖZEL PLANı KONTROLÜ
     if student_field == "Eşit Ağırlık":
+        # Eşit Ağırlık için özel hafta sistemi (1-16 hafta)
+        equal_weight_week = user_data.get('equal_weight_current_week', 1)
+        
+        # Eğer hafta numarası user_data'da yoksa, 1. haftadan başlat
+        if equal_weight_week < 1 or equal_weight_week > 16:
+            equal_weight_week = 1
+        
         # Eşit Ağırlık için 16 haftalık detay planı kullan
         completed_topics = get_user_pending_topics(user_data)
         pending_topics = [t for t in completed_topics if t.get('status') == 'incomplete']
         
-        equal_weight_topics = get_equal_weight_weekly_topics(current_week, completed_topics, pending_topics)
+        equal_weight_topics = get_equal_weight_weekly_topics(equal_weight_week, completed_topics, pending_topics)
         
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
-            len([t for t in completed_topics if t.get('week') == current_week and t.get('status') == 'completed']),
-            len([t for t in equal_weight_topics if t.get('week') == current_week])
+            len([t for t in completed_topics if t.get('week') == equal_weight_week and t.get('status') == 'completed']),
+            len([t for t in equal_weight_topics if t.get('week') == equal_weight_week])
         )
         
         flexible_recommendation = get_flexible_topic_recommendations(user_data, current_week_progress)
         
         # TYT Din ve Felsefe 3. haftadan sonra eklenir
-        if current_week >= 3:
+        if equal_weight_week >= 3:
             # Din ve Felsefe konularını sistematik olarak ekle
-            din_felsefe_topics = get_weekly_din_felsefe_topics(current_week)
+            din_felsefe_topics = get_weekly_din_felsefe_topics(equal_weight_week)
             equal_weight_topics.extend(din_felsefe_topics)
         
         # Eşit Ağırlık için özel plan döndür
@@ -9736,7 +9780,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             'time_strategy': time_strategy,
             'grade_strategy': grade_strategy,
             'equal_weight_special': True,
-            'current_week': current_week,
+            'current_week': equal_weight_week,  # Eşit ağırlık haftası
             'total_weeks': 16
         }
     
