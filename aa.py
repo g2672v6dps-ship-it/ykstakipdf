@@ -2295,6 +2295,460 @@ TYT_MSU_WEEKLY_PLAN = {
     }
 }
 
+# 📚 SÖZEL HAFTALIK PLAN - 14 HAFTALIK DETAY PLAN
+
+VERBAL_WEEKLY_PLAN = {
+    1: {
+        "week": 1,
+        "focus": "Felsefe ve Din giriş - Temel Türkçe",
+        "topics": {
+            "TYT Felsefe": [
+                "Felsefenin Konusu",
+                "Bilgi Felsefesi - Epistemoloji",
+                "Varlık Felsefesi (Ontoloji)"
+            ],
+            "TYT Din": [
+                "İnsan ve Din (İnanç)"
+            ],
+            "TYT Türkçe": [
+                "Sözcükte Anlam - Gerçek Anlam",
+                "Sözcükte Anlam - Mecaz Anlam", 
+                "Sözcükte Anlam - Terim Anlam",
+                "Cümlede Anlam - Cümle Yorumlama",
+                "Paragraf - Ana Fikir"
+            ],
+            "TYT Matematik": [
+                "Temel Kavramlar",
+                "Sayı Basamakları"
+            ],
+            "TYT Tarih": [
+                "Tarih ve Zaman"
+            ],
+            "TYT Coğrafya": [
+                "Dünya Haritaları"
+            ]
+        }
+    },
+    2: {
+        "week": 2,
+        "focus": "Felsefe dalları ve Din konuları",
+        "topics": {
+            "TYT Felsefe": [
+                "Din, Kültür ve Medeniyet",
+                "Ahlak felsefesi",
+                "Sanat Felsefesi",
+                "Din Felsefesi"
+            ],
+            "TYT Din": [
+                "Vahiy ve akıl",
+                "İbadet"
+            ],
+            "TYT Türkçe": [
+                "Ses Bilgisi",
+                "Cümlede Anlam - Kesin Yargı",
+                "Cümlede Anlam - Anlatım Biçimleri"
+            ],
+            "TYT Matematik": [
+                "Bölme ve Bölünebilme",
+                "EBOB-EKOK",
+                "Rasyonel Sayılar"
+            ],
+            "TYT Coğrafya": [
+                "Doğa ve İnsan",
+                "Dünya'nın Şekli ve Hareketleri"
+            ],
+            "TYT Tarih": [
+                "İnsanlığın İlk Dönemleri",
+                "Ortaçağda Dünya"
+            ]
+        }
+    },
+    3: {
+        "week": 3,
+        "focus": "Siyaset ve Bilim Felsefesi",
+        "topics": {
+            "TYT Felsefe": [
+                "Siyaset Felsefesi",
+                "Bilim Felsefesi"
+            ],
+            "TYT Din": [
+                "Hz. Muhammed'in Hayatı ve Örnekliği",
+                "Allah'ın varlığı ve birliği (Tevhid)"
+            ],
+            "TYT Türkçe": [
+                "Yazım Kuralları",
+                "Cümlede Anlam - Neden-Sonuç",
+                "Paragraf - Yardımcı Fikir"
+            ],
+            "TYT Matematik": [
+                "Ondalıklı Sayılar",
+                "Oran Orantı",
+                "Denklem Çözme"
+            ],
+            "TYT Coğrafya": [
+                "Coğrafi Konum",
+                "Harita Bilgisi", 
+                "Atmosfer ve Sıcaklık"
+            ],
+            "TYT Tarih": [
+                "İlk ve Orta Çağlarda Türk Dünyası",
+                "İslam Medeniyetinin Doğuşu"
+            ]
+        }
+    },
+    4: {
+        "week": 4,
+        "focus": "İlkçağ Felsefesi ve Allah'ın Sıfatları",
+        "topics": {
+            "TYT Felsefe": [
+                "İlk çağ felsefesi",
+                "Sokrates ve felsefesi",
+                "Platon ve felsefesi"
+            ],
+            "TYT Din": [
+                "Allah'ın İsim ve Sıfatları (Esma-ül Hüsna)",
+                "Kur'an-ı Kerim'de İnsan ve Özellikleri"
+            ],
+            "TYT Türkçe": [
+                "Noktalama İşaretleri",
+                "Sözcükte Yapı",
+                "Paragraf - Paragraf Yapısı"
+            ],
+            "TYT Matematik": [
+                "Basit Eşitsizlikler",
+                "Problemler - Sayı Problemleri"
+            ],
+            "TYT Coğrafya": [
+                "Basınç ve Rüzgarlar",
+                "Nem, Yağış ve Buharlaşma"
+            ],
+            "TYT Tarih": [
+                "Türk-İslam Devletleri",
+                "Anadolu'da İlk Türk Beylikleri"
+            ]
+        }
+    },
+    5: {
+        "week": 5,
+        "focus": "Aristoteles ve İnsan-Allah ilişkisi",
+        "topics": {
+            "TYT Felsefe": [
+                "Aristoteles ve felsefesi",
+                "Orta çağ felsefesi"
+            ],
+            "TYT Din": [
+                "İnsanın Allah İle İrtibatı (Dua, Tövbe, İbadet)",
+                "Kur'an-ı Kerim'de Gençler"
+            ],
+            "TYT Türkçe": [
+                "Sözcük Yapısı - Ek Bilgisi",
+                "Paragraf - Anlatım Teknikleri",
+                "Edebiyat - Edebi Türler"
+            ],
+            "TYT Matematik": [
+                "Problemler - Kesir Problemleri",
+                "Problemler - Yüzde Problemleri"
+            ],
+            "TYT Coğrafya": [
+                "İklim Elemanları ve İklim Tipleri",
+                "Türkiye'nin İklimi"
+            ],
+            "TYT Tarih": [
+                "Osmanlı Devleti'nin Kuruluşu",
+                "Osmanlı Klasik Çağı"
+            ]
+        }
+    },
+    6: {
+        "week": 6,
+        "focus": "İslam ve Hristiyan Felsefesi",
+        "topics": {
+            "TYT Felsefe": [
+                "İslam Felsefesi (Farabi, İbn Sina)",
+                "Hristiyan Felsefesi (Augustinus, Aquinalı Thomas)"
+            ],
+            "TYT Din": [
+                "Bir genç olarak Hz.Muhammed",
+                "Hz.Muhammed ve gençler"
+            ],
+            "TYT Türkçe": [
+                "Edebiyat - Nazım-Nesir",
+                "Edebiyat - Masal, Fabl",
+                "Cümle Bilgisi - Öge Bilgisi"
+            ],
+            "TYT Matematik": [
+                "Problemler - Yaş Problemleri",
+                "Problemler - Karışım Problemleri"
+            ],
+            "TYT Coğrafya": [
+                "Bitki Örtüsü",
+                "Toprak Oluşumu ve Türleri"
+            ],
+            "TYT Tarih": [
+                "Osmanlı Duraklama Dönemi",
+                "Osmanlı Gerileme Dönemi"
+            ]
+        }
+    },
+    7: {
+        "week": 7,
+        "focus": "AYT Felsefe başlangıç ve genç sahabiler",
+        "topics": {
+            "AYT Felsefe": [
+                "Bilgi felsefesi",
+                "Varlık felsefesi",
+                "Ahlak felsefesi"
+            ],
+            "TYT Din": [
+                "Bazı genç sahabiler",
+                "Din ve aile",
+                "Din, Kültür ve Sanat"
+            ],
+            "TYT Türkçe": [
+                "Cümle Bilgisi - Cümle Türleri",
+                "Edebiyat - Hikaye, Roman",
+                "Paragraf - Düşünceyi Geliştirme"
+            ],
+            "TYT Matematik": [
+                "Problemler - Hareket Problemleri",
+                "Problemler - İşçi Problemleri"
+            ],
+            "TYT Coğrafya": [
+                "Hidrografya",
+                "Göller, Akarsular"
+            ],
+            "TYT Tarih": [
+                "Osmanlı Islahat Hareketleri",
+                "Tanzimat Dönemi"
+            ]
+        }
+    },
+    8: {
+        "week": 8,
+        "focus": "AYT Felsefe dalları ve Din-Toplum",
+        "topics": {
+            "TYT Din": [
+                "Din ve çevre",
+                "Din ve sosyal değişim",
+                "Din ve ekonomi"
+            ],
+            "AYT Felsefe": [
+                "Sanat Felsefesi",
+                "Din Felsefesi",
+                "Siyaset felsefesi",
+                "Bilim Felsefesi"
+            ],
+            "TYT Türkçe": [
+                "Edebiyat - Tiyatro",
+                "Edebiyat - Şiir Türleri",
+                "Anlam Bilgisi - Eş Anlam"
+            ],
+            "TYT Matematik": [
+                "Problemler - Faiz Problemleri",
+                "Üslü Sayılar"
+            ],
+            "AYT Coğrafya": [
+                "Nüfus Coğrafyası",
+                "Nüfusun Yapısı ve Özellikleri"
+            ],
+            "AYT Tarih": [
+                "1. Meşrutiyet",
+                "2. Abdülhamit Dönemi"
+            ]
+        }
+    },
+    9: {
+        "week": 9,
+        "focus": "İslam ahlakı ve İlkçağ AYT Felsefe",
+        "topics": {
+            "TYT Din": [
+                "Din ve sosyal adalet",
+                "İslam ahlakının temel ilkeleri, iyi ve kötü davranışlar",
+                "İslam Düşüncesinde İtikadi, Siyasi ve Fıkhi Yorumlar (Mezhepler)"
+            ],
+            "AYT Felsefe": [
+                "İlk çağ felsefesi",
+                "MÖ 6. Yüzyıl – MS 2. Yüzyıl Felsefesi",
+                "MS 2. Yüzyıl – MS 15. Yüzyıl Felsefesi"
+            ],
+            "TYT Türkçe": [
+                "Anlam Bilgisi - Zıt Anlam",
+                "Anlam Bilgisi - Eş Sesli Kelimeler",
+                "Edebiyat - Mektup, Anı"
+            ],
+            "TYT Matematik": [
+                "Köklü Sayılar",
+                "Çarpanlara Ayırma"
+            ],
+            "AYT Coğrafya": [
+                "Yerleşme Coğrafyası",
+                "Kırsal ve Kentsel Yerleşmeler"
+            ],
+            "AYT Tarih": [
+                "2. Meşrutiyet Dönemi",
+                "Balkan Savaşları"
+            ]
+        }
+    },
+    10: {
+        "week": 10,
+        "focus": "AYT Din başlangıç ve Yeniçağ Felsefe",
+        "topics": {
+            "AYT Din": [
+                "Dünya ve ahiret",
+                "Kurana göre Hz Muhammed",
+                "Kuran'da bazı kavramlar"
+            ],
+            "AYT Felsefe": [
+                "15. Yüzyıl – 17. Yüzyıl Felsefesi",
+                "18. Yüzyıl – 19. Yüzyıl Felsefesi"
+            ],
+            "TYT Türkçe": [
+                "Edebiyat - Deneme, Fıkra",
+                "Dil Bilgisi - Fiil Çatısı",
+                "Dil Bilgisi - Fiil Zamanları"
+            ],
+            "TYT Matematik": [
+                "Birinci Dereceden Denklemler",
+                "Birinci Dereceden Eşitsizlikler"
+            ],
+            "AYT Coğrafya": [
+                "Ekonomik Faaliyetler",
+                "Tarım ve Hayvancılık"
+            ],
+            "AYT Tarih": [
+                "1. Dünya Savaşı",
+                "Mondros Ateşkes Antlaşması"
+            ]
+        }
+    },
+    11: {
+        "week": 11,
+        "focus": "İslam bilim tarihi ve 20.YY Felsefe",
+        "topics": {
+            "AYT Din": [
+                "Kurandan mesajlar",
+                "İnançla ilgili meseleler",
+                "İslam ve Bilim",
+                "Anadolu'da İslam"
+            ],
+            "AYT Felsefe": [
+                "20.YY felsefesi",
+                "Mantığa giriş",
+                "Klasik mantık",
+                "Mantık ve dil"
+            ],
+            "TYT Türkçe": [
+                "Dil Bilgisi - Fiil Kipleri",
+                "Edebiyat - Köşe Yazısı",
+                "Edebiyat - Eleştiri"
+            ],
+            "TYT Matematik": [
+                "İkinci Dereceden Denklemler",
+                "Fonksiyonlar - Kavram"
+            ],
+            "AYT Coğrafya": [
+                "Sanayi",
+                "Ulaştırma ve Ticaret"
+            ],
+            "AYT Tarih": [
+                "İşgal ve Direnişin Başlaması",
+                "Kuva-yı Milliye"
+            ]
+        }
+    },
+    12: {
+        "week": 12,
+        "focus": "Tasavvuf ve Sembolik mantık",
+        "topics": {
+            "AYT Din": [
+                "İslam Düşüncesinde Tasavvufi Yorumlar ve Mezhepler",
+                "Güncel dini meseleler",
+                "Yaşayan dinler"
+            ],
+            "AYT Felsefe": [
+                "Sembolik mantık",
+                "Psikojinin temel süreçleri",
+                "Öğrenme bellek düşünme"
+            ],
+            "TYT Türkçe": [
+                "Edebiyat - Biyografi",
+                "Edebiyat - Söylev",
+                "Dil Bilgisi - Sıfat Türleri"
+            ],
+            "TYT Matematik": [
+                "Fonksiyonlar - Grafik",
+                "Fonksiyonlar - İşlemler"
+            ],
+            "AYT Coğrafya": [
+                "Çevre Sorunları",
+                "Doğal Afetler"
+            ],
+            "AYT Tarih": [
+                "TBMM'nin Açılması",
+                "Milli Mücadele Dönemi"
+            ]
+        }
+    },
+    13: {
+        "week": 13,
+        "focus": "Ruh sağlığı ve Toplum yapısı",
+        "topics": {
+            "AYT Felsefe": [
+                "Ruh sağlığının temelleri",
+                "Birey ve toplum",
+                "Toplumsal yapı"
+            ],
+            "TYT Türkçe": [
+                "Dil Bilgisi - Zarf Türleri",
+                "Edebiyat - Gezi Yazısı",
+                "Anlam Bilgisi - Kelime Türetme"
+            ],
+            "TYT Matematik": [
+                "Logaritma",
+                "Diziler - Aritmetik"
+            ],
+            "AYT Coğrafya": [
+                "Türkiye'nin Coğrafi Bölgeleri",
+                "Marmara Bölgesi"
+            ],
+            "AYT Tarih": [
+                "Lozan Barış Antlaşması",
+                "Atatürk İlkeleri"
+            ]
+        }
+    },
+    14: {
+        "week": 14,
+        "focus": "Toplumsal değişim ve Son konular",
+        "topics": {
+            "AYT Felsefe": [
+                "Toplumsal değişme ve gelişme",
+                "Toplum ve kültür",
+                "Toplumsal kurumlar"
+            ],
+            "TYT Türkçe": [
+                "Edebiyat - Röportaj",
+                "Dil Bilgisi - Edat ve Bağlaç",
+                "Anlam Bilgisi - Deyimler ve Atasözleri"
+            ],
+            "TYT Matematik": [
+                "Diziler - Geometrik",
+                "Polinomlar"
+            ],
+            "AYT Coğrafya": [
+                "Ege Bölgesi",
+                "Akdeniz Bölgesi",
+                "İç Anadolu Bölgesi"
+            ],
+            "AYT Tarih": [
+                "Atatürk Dönemi İç Politika",
+                "Atatürk Dönemi Dış Politika"
+            ]
+        }
+    }
+}
+
 # 🎮 GAMİFİCATİON SİSTEMİ - BAŞARILAR VE ROZET SİSTEMİ
 
 # 🏆 Rozet Sistemi - Başarı Rozetleri
@@ -2822,6 +3276,42 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
                     'net': 0,
                     'detail': ''
                 })
+    
+    # Sadece 2. hafta ve sonrasında önceki haftalardan kalan konuları ekle
+    if week_number > 1:
+        priority_topics = get_priority_topics_from_previous_weeks(pending_topics)
+        
+        # Öncelikli konuları başa ekle
+        for topic in priority_topics:
+            topic['priority'] = 'high'
+            weekly_topics.insert(0, topic)
+    
+    return weekly_topics
+
+def get_verbal_weekly_topics(week_number, completed_topics, pending_topics):
+    """Sözel için haftalık konuları getirir"""
+    if week_number > 14:
+        week_number = 14  # Max 14 hafta
+    
+    week_plan = VERBAL_WEEKLY_PLAN.get(week_number, {})
+    weekly_topics = []
+    
+    # Bu haftanın planlanmış konularını al
+    planned_topics = week_plan.get('topics', {})
+    
+    # Konuları birleştir
+    for subject, topic_list in planned_topics.items():
+        for topic in topic_list:
+            weekly_topics.append({
+                'subject': subject,
+                'topic': topic,
+                'week': week_number,
+                'priority': 'normal',
+                'difficulty': get_topic_difficulty_by_name(topic),
+                'status': 'planned',
+                'net': 0,
+                'detail': ''
+            })
     
     # Sadece 2. hafta ve sonrasında önceki haftalardan kalan konuları ekle
     if week_number > 1:
@@ -3476,6 +3966,120 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
             for topic in new_topics[:5]:  # İlk 5 konu
                 priority_icon = "⭐" if topic.get('priority') == 'high' else "•"
                 st.write(f"{priority_icon} {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
+            if len(new_topics) > 5:
+                st.write(f"... ve {len(new_topics) - 5} konu daha")
+        else:
+            st.error("Hiç konu bulunamadı!")
+
+def show_verbal_special_dashboard(weekly_plan, user_data):
+    """Sözel özel planı dashboard'u"""
+    current_week = weekly_plan.get('current_week', 1)
+    total_weeks = weekly_plan.get('total_weeks', 14)
+    flexible_rec = weekly_plan.get('flexible_recommendation', {})
+    
+    # 🎨 Sözel için özel arka plan stili
+    st.markdown(get_custom_css("Öğretmenlik"), unsafe_allow_html=True)
+    
+    # Sözel alan başlığı
+    st.markdown(f"""
+    <div class="main-header">
+        <h1>📚 SÖZEL ÖZEL PLANI</h1>
+        <p style="font-size: 1.2em; margin: 0;">🎯 <strong>Felsefe, Din, Türkçe, Tarih, Coğrafya</strong></p>
+        <p style="opacity: 0.9; margin: 0.5rem 0 0 0;">Hafta {current_week}/{total_weeks} • Düşünce Dünyanda Derinleş!</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # TYT & MSÜ hafta verisini garantile
+    if 'verbal_current_week' not in user_data:
+        user_data['verbal_current_week'] = 1
+        update_user_in_firebase(st.session_state.current_user, {'verbal_current_week': 1})
+    
+    # İlerleme çubuğu
+    progress = min(100, (current_week / total_weeks) * 100)
+    st.progress(progress / 100)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            "📅 Mevcut Hafta",
+            f"{current_week}/14",
+            help="14 haftalık detay planının hangi haftasındasınız"
+        )
+    
+    with col2:
+        week_plan = VERBAL_WEEKLY_PLAN.get(current_week, {})
+        st.metric(
+            "🎯 Bu Hafta Odak",
+            week_plan.get('focus', 'Belirlenmedi')[:20] + "..." if len(week_plan.get('focus', '')) > 20 else week_plan.get('focus', 'Belirlenmedi'),
+            help=week_plan.get('focus', 'Bu haftanın odak konusu')
+        )
+    
+    with col3:
+        weekly_topics = weekly_plan.get('new_topics', [])
+        st.metric(
+            "📚 Bu Hafta Konu",
+            len(weekly_topics),
+            help="Bu hafta planlanmış toplam konu sayısı"
+        )
+    
+    with col4:
+        target_percentage = 80
+        st.metric(
+            "🎯 Hedef Başarı",
+            f"%{target_percentage}",
+            help="Haftalık başarı hedefi"
+        )
+    
+    # 🚀 HAFTA İLERLEME BUTONU
+    st.markdown("")
+    col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+    
+    with col_btn2:
+        if current_week < total_weeks:
+            if st.button(f"✅ Haftayı Bitir ve {current_week + 1}. Haftaya Geç", 
+                        key="advance_verbal", 
+                        help=f"Mevcut hafta ({current_week}) tamamlandı, bir sonraki haftaya geç",
+                        use_container_width=True):
+                # Haftayı ileri al
+                new_week = current_week + 1
+                user_data['verbal_current_week'] = new_week
+                update_user_in_firebase(st.session_state.current_user, {'verbal_current_week': new_week})
+                st.success(f"🎉 {new_week}. haftaya geçildi!")
+                st.rerun()
+        else:
+            st.success("🏆 14 haftalık Sözel planını tamamladınız! Tebrikler!")
+    
+    st.markdown("")
+    
+    # Bu haftanın detay planını göster
+    if current_week <= 14:
+        with st.expander(f"📋 {current_week}. Hafta Detay Planı", expanded=False):
+            week_detail = VERBAL_WEEKLY_PLAN.get(current_week, {})
+            topics_by_subject = week_detail.get('topics', {})
+            
+            for subject, topics in topics_by_subject.items():
+                st.markdown(f"**🔸 {subject}:**")
+                for topic in topics:
+                    difficulty = get_topic_difficulty_by_name(topic)
+                    difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
+                    st.write(f"• {topic} {difficulty_info['icon']}")
+                st.write("")
+    
+    # Sözel için özel tavsiyeler
+    st.info("📚 **Sözel Alan Tavsiyeleri:** Felsefe ve Din dersleri kritik önceliğe sahip. Türkçe, Tarih ve Coğrafya ile bütünleşik çalışın. Analitik düşünce ve yorumlama becerilerinizi geliştirin.")
+    
+    # DEBUG: Mevcut haftalık planı göster
+    with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
+        st.write(f"**User Data verbal_current_week:** {user_data.get('verbal_current_week', 'YOK')}")
+        st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
+        st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
+        
+        new_topics = weekly_plan.get('new_topics', [])
+        if new_topics:
+            st.write("**Bu haftanın konuları:**")
+            for topic in new_topics[:5]:  # İlk 5 konu
+                st.write(f"• {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
             if len(new_topics) > 5:
                 st.write(f"... ve {len(new_topics) - 5} konu daha")
         else:
@@ -5888,6 +6492,11 @@ def show_weekly_planner(user_data):
     # 🎯 YENİ: TYT & MSÜ ÖZEL PLANI DASHBOARD'U
     if weekly_plan.get('tyt_msu_special', False):
         show_tyt_msu_special_dashboard(weekly_plan, user_data)
+        st.markdown("---")
+    
+    # 🎯 YENİ: SÖZEL ÖZEL PLANI DASHBOARD'U
+    if weekly_plan.get('verbal_special', False):
+        show_verbal_special_dashboard(weekly_plan, user_data)
         st.markdown("---")
     
     # Ana haftalık plan
@@ -11509,6 +12118,44 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             'total_weeks': 9
         }
     
+    # 🎯 SÖZEL ÖZEL PLANI KONTROLÜ
+    if student_field == "Sözel":
+        # Sözel için özel hafta sistemi (1-14 hafta)
+        verbal_week = user_data.get('verbal_current_week', 1)
+        
+        # Eğer hafta numarası user_data'da yoksa, 1. haftadan başlat
+        if verbal_week < 1 or verbal_week > 14:
+            verbal_week = 1
+        
+        # Sözel için 14 haftalık detay planı kullan
+        completed_topics = get_user_pending_topics(user_data)
+        pending_topics = [t for t in completed_topics if t.get('status') == 'incomplete']
+        
+        verbal_topics = get_verbal_weekly_topics(verbal_week, completed_topics, pending_topics)
+        
+        # Esnek hedef sistemi uygula
+        current_week_progress = calculate_weekly_progress_percentage(
+            len([t for t in completed_topics if t.get('week') == verbal_week and t.get('status') == 'completed']),
+            len([t for t in verbal_topics if t.get('week') == verbal_week])
+        )
+        
+        flexible_recommendation = get_flexible_topic_recommendations(user_data, current_week_progress)
+        
+        # Sözel için özel plan döndür
+        return {
+            'new_topics': verbal_topics,  # TÜM KONULAR - LİMİT KALDIRILDI
+            'review_topics': get_review_topics_for_equal_weight(user_data),  # Şimdilik aynı review sistemi
+            'all_topics': verbal_topics,  # TÜM KONULAR - Haftalık hedef konular listesi için
+            'week_target': len(verbal_topics),
+            'success_target': 0.8,  # %80 hedef
+            'flexible_recommendation': flexible_recommendation,
+            'time_strategy': time_strategy,
+            'grade_strategy': grade_strategy,
+            'verbal_special': True,
+            'current_week': verbal_week,  # Sözel haftası
+            'total_weeks': 14
+        }
+    
     # Konuların TYT/AYT durumuna göre filtrele (diğer alanlar için)
     filtered_subjects = []
     for subject in available_subjects:
@@ -12267,7 +12914,17 @@ def main():
                 
                 # ⚠️ TYT & MSÜ seçildiğinde alt kategori zaten hedef bölümü belirliyor
                 if field != "TYT & MSÜ":
-                    target = st.selectbox("Hedef Bölümünüz", list(BACKGROUND_STYLES.keys())[:-1], key="target_input")
+                    # 🎯 Alan bazında bölüm filtrelemesi
+                    if field == "Sayısal":
+                        allowed_departments = ["Tıp", "Diş Hekimliği", "Mühendislik", "Varsayılan"]
+                    elif field == "Sözel":
+                        allowed_departments = ["Hukuk", "Öğretmenlik", "Psikoloji", "İktisat", "Varsayılan"]
+                    elif field == "Eşit Ağırlık":
+                        allowed_departments = ["İktisat", "Öğretmenlik", "Mimarlık", "Hukuk", "Psikoloji", "Varsayılan"]
+                    else:
+                        allowed_departments = list(BACKGROUND_STYLES.keys())[:-1]  # Tüm bölümler
+                    
+                    target = st.selectbox("Hedef Bölümünüz", allowed_departments, key="target_input")
                 else:
                     # TYT & MSÜ için alt kategori hedef bölüm olarak kullanılacak
                     target = sub_category if sub_category else "Genel"
