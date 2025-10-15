@@ -3971,11 +3971,35 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
         else:
             st.error("Hiç konu bulunamadı!")
 
+def get_verbal_weekly_topics(week_number, include_math=False):
+    """Sözel planı için haftalık konuları al (isteğe bağlı matematik ile)"""
+    week_plan = VERBAL_WEEKLY_PLAN.get(week_number, {})
+    topics_by_subject = week_plan.get('topics', {})
+    
+    # Tüm konuları tek liste halinde topla
+    all_topics = []
+    for subject, topics in topics_by_subject.items():
+        if subject == "TYT Matematik" and not include_math:
+            continue  # Matematik istenmiyorsa atla
+        
+        for topic in topics:
+            all_topics.append(f"{subject}: {topic}")
+    
+    return all_topics
+
 def show_verbal_special_dashboard(weekly_plan, user_data):
     """Sözel özel planı dashboard'u"""
-    current_week = weekly_plan.get('current_week', 1)
-    total_weeks = weekly_plan.get('total_weeks', 14)
-    flexible_rec = weekly_plan.get('flexible_recommendation', {})
+    # TYT & MSÜ hafta verisini garantile
+    if 'verbal_current_week' not in user_data:
+        user_data['verbal_current_week'] = 1
+        update_user_in_firebase(st.session_state.current_user, {'verbal_current_week': 1})
+    
+    # TYT Matematik seçeneği için session state
+    if 'verbal_include_math' not in st.session_state:
+        st.session_state.verbal_include_math = False
+    
+    current_week = user_data.get('verbal_current_week', 1)
+    total_weeks = 14
     
     # 🎨 Sözel için özel arka plan stili
     st.markdown(get_custom_css("Öğretmenlik"), unsafe_allow_html=True)
@@ -3988,11 +4012,6 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
         <p style="opacity: 0.9; margin: 0.5rem 0 0 0;">Hafta {current_week}/{total_weeks} • Düşünce Dünyanda Derinleş!</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    # TYT & MSÜ hafta verisini garantile
-    if 'verbal_current_week' not in user_data:
-        user_data['verbal_current_week'] = 1
-        update_user_in_firebase(st.session_state.current_user, {'verbal_current_week': 1})
     
     # İlerleme çubuğu
     progress = min(100, (current_week / total_weeks) * 100)
@@ -4016,7 +4035,7 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
         )
     
     with col3:
-        weekly_topics = weekly_plan.get('new_topics', [])
+        weekly_topics = get_verbal_weekly_topics(current_week, st.session_state.verbal_include_math)
         st.metric(
             "📚 Bu Hafta Konu",
             len(weekly_topics),
@@ -4031,8 +4050,36 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
             help="Haftalık başarı hedefi"
         )
     
+    # TYT Matematik seçeneği
+    st.markdown("---")
+    include_math = st.checkbox(
+        "🔢 TYT Matematik konularını da programa eklemek ister misiniz?", 
+        value=st.session_state.verbal_include_math,
+        help="İsteğe bağlı: Sözel öğrenciler için TYT Matematik desteği"
+    )
+    
+    # Seçenek değişirse session state güncelle
+    if include_math != st.session_state.verbal_include_math:
+        st.session_state.verbal_include_math = include_math
+        st.rerun()
+    
+    st.markdown("---")
+    
+    # Bu haftanın konularını göster
+    weekly_topics = get_verbal_weekly_topics(current_week, st.session_state.verbal_include_math)
+    
+    if weekly_topics:
+        st.subheader(f"📋 Bu Haftanın Konuları")
+        
+        for topic in weekly_topics:
+            with st.expander(f"📚 {topic}"):
+                st.write("🎯 0 net")
+                st.write("🎯 Normal - Orta Konu") 
+                if st.button(f"📅 Programa Ekle", key=f"add_{topic}"):
+                    st.success(f"✅ {topic} programa eklendi!")
+    
     # 🚀 HAFTA İLERLEME BUTONU
-    st.markdown("")
+    st.markdown("---")
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
     
     with col_btn2:
@@ -4049,6 +4096,10 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
                 st.rerun()
         else:
             st.success("🏆 14 haftalık Sözel planını tamamladınız! Tebrikler!")
+            if st.button("🔄 Planı Yeniden Başlat", use_container_width=True):
+                user_data['verbal_current_week'] = 1
+                update_user_in_firebase(st.session_state.current_user, {'verbal_current_week': 1})
+                st.rerun()
     
     st.markdown("")
     
@@ -4059,6 +4110,9 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
             topics_by_subject = week_detail.get('topics', {})
             
             for subject, topics in topics_by_subject.items():
+                if subject == "TYT Matematik" and not st.session_state.verbal_include_math:
+                    continue  # Matematik seçili değilse atla
+                    
                 st.markdown(f"**🔸 {subject}:**")
                 for topic in topics:
                     difficulty = get_topic_difficulty_by_name(topic)
@@ -4072,6 +4126,7 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
     # DEBUG: Mevcut haftalık planı göster
     with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
         st.write(f"**User Data verbal_current_week:** {user_data.get('verbal_current_week', 'YOK')}")
+        st.write(f"**Matematik Dahil:** {st.session_state.verbal_include_math}")
         st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
         st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
         
