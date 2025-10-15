@@ -12156,7 +12156,12 @@ def main():
                         key="sub_category_input"
                     )
                 
-                target = st.selectbox("Hedef Bölümünüz", list(BACKGROUND_STYLES.keys())[:-1], key="target_input")
+                # ⚠️ TYT & MSÜ seçildiğinde alt kategori zaten hedef bölümü belirliyor
+                if field != "TYT & MSÜ":
+                    target = st.selectbox("Hedef Bölümünüz", list(BACKGROUND_STYLES.keys())[:-1], key="target_input")
+                else:
+                    # TYT & MSÜ için alt kategori hedef bölüm olarak kullanılacak
+                    target = sub_category if sub_category else "Genel"
             
             with col2:
                 st.subheader("📊 Net Bilgileri")
@@ -12175,7 +12180,10 @@ def main():
                     st.error("🚨 TYT & MSÜ alanı için alt kategori seçimi zorunludur!")
                     validation_error = True
                 
-                if not validation_error and name and surname and target and tyt_last is not None and tyt_avg is not None and ayt_last is not None and ayt_avg is not None:
+                # TYT & MSÜ için target kontrolünü özel olarak yap
+                target_valid = target if field != "TYT & MSÜ" else sub_category
+                
+                if not validation_error and name and surname and target_valid and tyt_last is not None and tyt_avg is not None and ayt_last is not None and ayt_avg is not None:
                     # Kaydedilecek veri yapısı
                     user_data_to_save = {
                         'name': name,
