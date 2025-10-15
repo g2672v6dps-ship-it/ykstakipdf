@@ -4065,21 +4065,7 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
     
     st.markdown("---")
     
-    # Bu haftanın konularını göster
-    weekly_topics = get_verbal_simple_topics(current_week, st.session_state.verbal_include_math)
-    
-    if weekly_topics:
-        st.subheader(f"📋 Bu Haftanın Konuları")
-        
-        for topic in weekly_topics:
-            with st.expander(f"📚 {topic}"):
-                st.write("🎯 0 net")
-                st.write("🎯 Normal - Orta Konu") 
-                if st.button(f"📅 Programa Ekle", key=f"add_{topic}"):
-                    st.success(f"✅ {topic} programa eklendi!")
-    
     # 🚀 HAFTA İLERLEME BUTONU
-    st.markdown("---")
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
     
     with col_btn2:
@@ -12187,6 +12173,13 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         pending_topics = [t for t in completed_topics if t.get('status') == 'incomplete']
         
         verbal_topics = get_verbal_weekly_topics(verbal_week, completed_topics, pending_topics)
+        
+        # TYT Matematik seçeneğini kontrol et
+        include_math = st.session_state.get('verbal_include_math', False)
+        if not include_math:
+            # Matematik konularını filtrele
+            verbal_topics = [topic for topic in verbal_topics 
+                           if not (topic.get('subject', '') == 'TYT Matematik')]
         
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
