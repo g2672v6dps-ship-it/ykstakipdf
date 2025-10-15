@@ -1867,6 +1867,335 @@ NUMERICAL_WEEKLY_PLAN = {
     }
 }
 
+# 🎨 TYT & MSÜ HAFTALIK PLAN - 9 HAFTALIK DETAY PLAN
+
+TYT_MSU_WEEKLY_PLAN = {
+    1: {
+        "week": 1,
+        "focus": "Temel kavramlar ve giriş konuları",
+        "topics": {
+            "TYT Türkçe": [
+                "Sözcükte anlam",
+                "Cümlede anlam",
+                "Paragraf"
+            ],
+            "TYT Matematik": [
+                "Temel kavramlar, sayılar"
+            ],
+            "TYT Geometri": [
+                "Açılar - Doğruda açılar",
+                "Açılar - Üçgende açılar"
+            ],
+            "TYT Fizik": [
+                "Fizik bilimine giriş"
+            ],
+            "TYT Kimya": [
+                "Kimya bilimine giriş"
+            ],
+            "TYT Biyoloji": [
+                "Canlıların Ortak Özellikleri"
+            ],
+            "TYT Coğrafya": [
+                "Dünya haritalırı-1"
+            ]
+        }
+    },
+    2: {
+        "week": 2,
+        "focus": "Temel matematik ve bilim konuları",
+        "topics": {
+            "TYT Türkçe": [
+                "Ses Bilgisi"
+            ],
+            "TYT Matematik": [
+                "Bölme ve Bölünebilme",
+                "EBOB-EKOK",
+                "Rasyonel Sayılar"
+            ],
+            "TYT Geometri": [
+                "Dik üçgen",
+                "Eşkenar üçgen",
+                "İkizkenar üçgen"
+            ],
+            "TYT Coğrafya": [
+                "Doğa ve insan"
+            ],
+            "TYT Tarih": [
+                "İnsanlığın ilk dönemleri",
+                "Ortaçağda dünya"
+            ],
+            "TYT Biyoloji": [
+                "Canlıların Yapısında Bulunan İnorganik Bileşikler",
+                "Canlıların Yapısında Bulunan Organik Bileşikler"
+            ],
+            "TYT Kimya": [
+                "Atom ve periyodik sistem"
+            ],
+            "TYT Fizik": [
+                "Madde ve özellikleri"
+            ]
+        }
+    },
+    3: {
+        "week": 3,
+        "focus": "Yazım kuralları ve matematik problemleri",
+        "topics": {
+            "TYT Türkçe": [
+                "Yazım Kuralları"
+            ],
+            "TYT Matematik": [
+                "Ondalıklı Sayılar",
+                "Oran Oranti",
+                "Denklem çözme",
+                "Sayı Problemleri",
+                "Kesir Problemleri"
+            ],
+            "TYT Geometri": [
+                "Açıortay",
+                "Kenarortay"
+            ],
+            "TYT Coğrafya": [
+                "Dünyanın şekli ve hareketleri",
+                "Çoğrafi konum"
+            ],
+            "TYT Tarih": [
+                "ilk ve orta çağlarda türk dünyası",
+                "İslam medeniyetinin doğuşu"
+            ],
+            "TYT Fizik": [
+                "Hareket ve Kuvvet"
+            ],
+            "TYT Kimya": [
+                "Kimyasal türler arası etkileşimler"
+            ],
+            "TYT Biyoloji": [
+                "Hücresel Yapılar ve Görevleri",
+                "Hücre Zarından Madde Geçişleri"
+            ]
+        }
+    },
+    4: {
+        "week": 4,
+        "focus": "Noktalama işaretleri ve matematik problemleri",
+        "topics": {
+            "TYT Türkçe": [
+                "Noktalama İşaretleri"
+            ],
+            "TYT Matematik": [
+                "Basit eşitsizlikler",
+                "Mutlak Değer",
+                "Yaş problemleri",
+                "Yüzde problemleri",
+                "Kar-zarar problemleri"
+            ],
+            "TYT Geometri": [
+                "Eşlik ve benzerlik"
+            ],
+            "TYT Fizik": [
+                "İş güç ve enerji"
+            ],
+            "TYT Biyoloji": [
+                "Canlıların Sınıflandırılması",
+                "Canlı Âlemleri"
+            ],
+            "TYT Tarih": [
+                "ilk türk İslam devletleri",
+                "Yerleşme ve devletleşme sürecinde Selçuklu Türkiyesi",
+                "Beylikten devlete Osmanlı Siyaseti(1300-1453)"
+            ],
+            "TYT Coğrafya": [
+                "Harita bilgisi",
+                "Atmosfer ve sıcaklık"
+            ]
+        }
+    },
+    5: {
+        "week": 5,
+        "focus": "Sözcük yapısı ve üslü sayılar",
+        "topics": {
+            "TYT Türkçe": [
+                "Sözcükte Yapı",
+                "Sözcük Türleri"
+            ],
+            "TYT Matematik": [
+                "Üslü sayılar",
+                "Köklü Sayılar",
+                "Karışım Problemleri"
+            ],
+            "TYT Geometri": [
+                "Üçgende alan"
+            ],
+            "TYT Tarih": [
+                "Dünya gücü Osmanlı (1453-1600)",
+                "Yeni Çağ Avrupa Tarihi"
+            ],
+            "TYT Coğrafya": [
+                "iklim",
+                "basınç ve rüzgarlar"
+            ],
+            "TYT Fizik": [
+                "ısı ve sıcaklık"
+            ],
+            "TYT Kimya": [
+                "maddenin halleri"
+            ],
+            "TYT Biyoloji": [
+                "Hücre Döngüsü ve Mitoz",
+                "Eşeysiz Üreme"
+            ]
+        }
+    },
+    6: {
+        "week": 6,
+        "focus": "Fiilimsi ve çarpanlara ayırma",
+        "topics": {
+            "TYT Türkçe": [
+                "Fiilimsi",
+                "Fiilde Çati"
+            ],
+            "TYT Matematik": [
+                "Çarpanlara Ayırma",
+                "Hareket Problemleri",
+                "İşçi problemleri"
+            ],
+            "TYT Geometri": [
+                "Açı kenar bağlantıları",
+                "Çokgenler"
+            ],
+            "TYT Tarih": [
+                "Osmanlı devletine arayış yılları",
+                "Osmanlı Avrupa ilişkileri",
+                "18.YY değişim ve diplomasi",
+                "En uzun yüzyıl",
+                "Osmanlı kültür ve medeniyeti"
+            ],
+            "TYT Coğrafya": [
+                "Nem yağış ve Buharlaşma",
+                "İç kuvvetler/dış kuvvetler",
+                "Su-Toprak ve Bitkiler"
+            ],
+            "TYT Fizik": [
+                "Basınç ve Kaldırma Kuvveti"
+            ],
+            "TYT Kimya": [
+                "Kimyanın Temel Kanunları ve Hesaplamalar"
+            ],
+            "TYT Biyoloji": [
+                "Mayoz",
+                "Eşeyli Üreme"
+            ]
+        }
+    },
+    7: {
+        "week": 7,
+        "focus": "Cümle analizi ve grafik problemleri",
+        "topics": {
+            "TYT Türkçe": [
+                "Cümlenin öğeleri",
+                "Cümle türleri"
+            ],
+            "TYT Matematik": [
+                "Tablo-Grafik problemleri",
+                "Rutin olmayan problemler"
+            ],
+            "TYT Geometri": [
+                "Özel dörtgenler",
+                "Deltoid",
+                "Paralelkenar"
+            ],
+            "TYT Tarih": [
+                "20.YY Osmanlı devleti",
+                "1.Dünya savaşı"
+            ],
+            "TYT Coğrafya": [
+                "Nüfus",
+                "Ekonomik faaliyetler"
+            ],
+            "TYT Fizik": [
+                "Dalgalar",
+                "Optik"
+            ],
+            "TYT Kimya": [
+                "Karışımlar"
+            ],
+            "TYT Biyoloji": [
+                "Kalıtım Konusu",
+                "Genetik Varyasyonlar"
+            ]
+        }
+    },
+    8: {
+        "week": 8,
+        "focus": "Anlatım bozukluğu ve mantık",
+        "topics": {
+            "TYT Türkçe": [
+                "Anlatım bozukluğu"
+            ],
+            "TYT Matematik": [
+                "Mantık",
+                "Kümeler"
+            ],
+            "TYT Tarih": [
+                "Mondros ateşkesi, işgaller ve cemiyetler",
+                "Kurtuluş savaşına hazırlık dönemi",
+                "1.Tbmm dönemi",
+                "Kurtuluş savaşı ve anlaşmalar"
+            ],
+            "TYT Coğrafya": [
+                "Bölgeler Uluslararası Ulaşım Hatları, Çevre ve toplum",
+                "Doğal Afetler"
+            ],
+            "TYT Fizik": [
+                "Elektrik ve Manyetizma"
+            ],
+            "TYT Kimya": [
+                "Asitler bazlar ve tuzlar"
+            ],
+            "TYT Geometri": [
+                "Eşkenar dörtgen",
+                "Diktortgen",
+                "Kare"
+            ],
+            "TYT Biyoloji": [
+                "Ekosistem Ekolojisi",
+                "Güncel Çevre Sorunları",
+                "Doğal Kaynakların Sürdürülebilirliği",
+                "Biyolojik Çeşitliliğin Korunması"
+            ]
+        }
+    },
+    9: {
+        "week": 9,
+        "focus": "Kombinasyon-permütasyon ve geometri tamamlama",
+        "topics": {
+            "TYT Matematik": [
+                "Kombinasyon-Permütasyon",
+                "Olasilik"
+            ],
+            "TYT Tarih": [
+                "II.TBMM Dönemi ve çok partili hayata geçiş",
+                "Türk İnkılabı",
+                "Atatürk ilkeleri",
+                "Atatürk dönemi türk dış politikası"
+            ],
+            "TYT Kimya": [
+                "Kimya her yerde"
+            ],
+            "TYT Geometri": [
+                "Yamuk",
+                "Çemberde açı",
+                "Çemberde uzunluk",
+                "Dairede çevre ve alan",
+                "Noktanın Analitiği",
+                "Doğrunun Analitiği",
+                "Prizmalar",
+                "Küp-silindir",
+                "Piramit-koni-küre"
+            ]
+        }
+    }
+}
+
 # 🎮 GAMİFİCATİON SİSTEMİ - BAŞARILAR VE ROZET SİSTEMİ
 
 # 🏆 Rozet Sistemi - Başarı Rozetleri
@@ -2338,6 +2667,42 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics):
     
     return weekly_topics
 
+def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics):
+    """TYT & MSÜ için haftalık konuları getirir"""
+    if week_number > 9:
+        week_number = 9  # Max 9 hafta
+    
+    week_plan = TYT_MSU_WEEKLY_PLAN.get(week_number, {})
+    weekly_topics = []
+    
+    # Bu haftanın planlanmış konularını al
+    planned_topics = week_plan.get('topics', {})
+    
+    # Konuları birleştir
+    for subject, topic_list in planned_topics.items():
+        for topic in topic_list:
+            weekly_topics.append({
+                'subject': subject,
+                'topic': topic,
+                'week': week_number,
+                'priority': 'normal',
+                'difficulty': get_topic_difficulty_by_name(topic),
+                'status': 'planned',
+                'net': 0,  # Varsayılan net sayısı
+                'detail': ''  # Varsayılan detay
+            })
+    
+    # Sadece 2. hafta ve sonrasında önceki haftalardan kalan konuları ekle
+    if week_number > 1:
+        priority_topics = get_priority_topics_from_previous_weeks(pending_topics)
+        
+        # Öncelikli konuları başa ekle
+        for topic in priority_topics:
+            topic['priority'] = 'high'
+            weekly_topics.insert(0, topic)
+    
+    return weekly_topics
+
 def get_priority_topics_from_previous_weeks(pending_topics):
     """Önceki haftalardan kalan öncelikli konuları döndürür"""
     priority_topics = []
@@ -2616,6 +2981,27 @@ def show_equal_weight_special_dashboard(weekly_plan, user_data):
             help="Haftalık başarı hedefi"
         )
     
+    # 🚀 HAFTA İLERLEME BUTONU
+    st.markdown("")
+    col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+    
+    with col_btn2:
+        if current_week < total_weeks:
+            if st.button(f"✅ Haftayı Bitir ve {current_week + 1}. Haftaya Geç", 
+                        key="advance_equal_weight", 
+                        help=f"Mevcut hafta ({current_week}) tamamlandı, bir sonraki haftaya geç",
+                        use_container_width=True):
+                # Haftayı ileri al
+                new_week = current_week + 1
+                user_data['equal_weight_current_week'] = new_week
+                update_user_in_firebase(st.session_state.current_user, {'equal_weight_current_week': new_week})
+                st.success(f"🎉 {new_week}. haftaya geçildi!")
+                st.rerun()
+        else:
+            st.success("🏆 16 haftalık Eşit Ağırlık planını tamamladınız! Tebrikler!")
+    
+    st.markdown("")
+    
     # Esnek hedef sistemi önerileri
     if flexible_rec:
         status = flexible_rec.get('status', 'on_track')
@@ -2721,6 +3107,27 @@ def show_numerical_special_dashboard(weekly_plan, user_data):
             help="Haftalık başarı hedefi"
         )
     
+    # 🚀 HAFTA İLERLEME BUTONU
+    st.markdown("")
+    col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+    
+    with col_btn2:
+        if current_week < total_weeks:
+            if st.button(f"✅ Haftayı Bitir ve {current_week + 1}. Haftaya Geç", 
+                        key="advance_numerical", 
+                        help=f"Mevcut hafta ({current_week}) tamamlandı, bir sonraki haftaya geç",
+                        use_container_width=True):
+                # Haftayı ileri al
+                new_week = current_week + 1
+                user_data['numerical_current_week'] = new_week
+                update_user_in_firebase(st.session_state.current_user, {'numerical_current_week': new_week})
+                st.success(f"🎉 {new_week}. haftaya geçildi!")
+                st.rerun()
+        else:
+            st.success("🏆 18 haftalık Sayısal planını tamamladınız! Tebrikler!")
+    
+    st.markdown("")
+    
     # Esnek hedef sistemi önerileri
     if flexible_rec:
         status = flexible_rec.get('status', 'on_track')
@@ -2763,6 +3170,132 @@ def show_numerical_special_dashboard(weekly_plan, user_data):
     # DEBUG: Mevcut haftalık planı göster
     with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
         st.write(f"**User Data numerical_current_week:** {user_data.get('numerical_current_week', 'YOK')}")
+        st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
+        st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
+        
+        new_topics = weekly_plan.get('new_topics', [])
+        if new_topics:
+            st.write("**Bu haftanın konuları:**")
+            for topic in new_topics[:5]:  # İlk 5 konu
+                st.write(f"• {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
+            if len(new_topics) > 5:
+                st.write(f"... ve {len(new_topics) - 5} konu daha")
+        else:
+            st.error("Hiç konu bulunamadı!")
+
+def show_tyt_msu_special_dashboard(weekly_plan, user_data):
+    """TYT & MSÜ özel planı dashboard'u"""
+    current_week = weekly_plan.get('current_week', 1)
+    total_weeks = weekly_plan.get('total_weeks', 9)
+    flexible_rec = weekly_plan.get('flexible_recommendation', {})
+    
+    # TYT & MSÜ hafta verisini garantile
+    if 'tyt_msu_current_week' not in user_data:
+        user_data['tyt_msu_current_week'] = 1
+        update_user_in_firebase(st.session_state.current_user, {'tyt_msu_current_week': 1})
+    
+    st.markdown("### 🎨 TYT & MSÜ ÖZEL PLANI")
+    
+    # İlerleme çubuğu
+    progress = min(100, (current_week / total_weeks) * 100)
+    st.progress(progress / 100)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            "📅 Mevcut Hafta",
+            f"{current_week}/9",
+            help="9 haftalık detay planının hangi haftasındasınız"
+        )
+    
+    with col2:
+        week_plan = TYT_MSU_WEEKLY_PLAN.get(current_week, {})
+        st.metric(
+            "🎯 Bu Hafta Odak",
+            week_plan.get('focus', 'Belirlenmedi')[:20] + "..." if len(week_plan.get('focus', '')) > 20 else week_plan.get('focus', 'Belirlenmedi'),
+            help=week_plan.get('focus', 'Bu haftanın odak konusu')
+        )
+    
+    with col3:
+        weekly_topics = weekly_plan.get('new_topics', [])
+        st.metric(
+            "📚 Bu Hafta Konu",
+            len(weekly_topics),
+            help="Bu hafta planlanmış toplam konu sayısı"
+        )
+    
+    with col4:
+        target_percentage = 80
+        st.metric(
+            "🎯 Hedef Başarı",
+            f"%{target_percentage}",
+            help="Haftalık başarı hedefi"
+        )
+    
+    # 🚀 HAFTA İLERLEME BUTONU
+    st.markdown("")
+    col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+    
+    with col_btn2:
+        if current_week < total_weeks:
+            if st.button(f"✅ Haftayı Bitir ve {current_week + 1}. Haftaya Geç", 
+                        key="advance_tyt_msu", 
+                        help=f"Mevcut hafta ({current_week}) tamamlandı, bir sonraki haftaya geç",
+                        use_container_width=True):
+                # Haftayı ileri al
+                new_week = current_week + 1
+                user_data['tyt_msu_current_week'] = new_week
+                update_user_in_firebase(st.session_state.current_user, {'tyt_msu_current_week': new_week})
+                st.success(f"🎉 {new_week}. haftaya geçildi!")
+                st.rerun()
+        else:
+            st.success("🏆 9 haftalık TYT & MSÜ planını tamamladınız! Tebrikler!")
+    
+    st.markdown("")
+    
+    # Esnek hedef sistemi önerileri
+    if flexible_rec:
+        status = flexible_rec.get('status', 'on_track')
+        message = flexible_rec.get('message', '')
+        recommendation = flexible_rec.get('recommendation', '')
+        
+        if status == 'ahead':
+            st.success(f"🎉 {message}")
+            st.info(f"💡 **Öneri:** {recommendation}")
+            
+            # Bir sonraki haftanın konularını göster
+            suggested_topics = flexible_rec.get('suggested_topics', [])
+            if suggested_topics:
+                st.markdown("**🔥 Bir Sonraki Haftadan Başlayabileceğiniz Konular:**")
+                for topic in suggested_topics:
+                    st.write(f"• **{topic['subject']}:** {topic['topic']}")
+                    
+        elif status == 'on_track':
+            st.info(f"👍 {message}")
+            st.write(f"💡 **Öneri:** {recommendation}")
+            
+        else:  # behind
+            st.warning(f"⚠️ {message}")
+            st.write(f"💡 **Öneri:** {recommendation}")
+    
+    # Bu haftanın detay planını göster
+    if current_week <= 9:
+        with st.expander(f"📋 {current_week}. Hafta Detay Planı", expanded=False):
+            week_detail = TYT_MSU_WEEKLY_PLAN.get(current_week, {})
+            topics_by_subject = week_detail.get('topics', {})
+            
+            for subject, topics in topics_by_subject.items():
+                st.markdown(f"**🔸 {subject}:**")
+                for topic in topics:
+                    difficulty = get_topic_difficulty_by_name(topic)
+                    difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
+                    st.write(f"• {topic} {difficulty_info['icon']}")
+                st.write("")
+    
+    # DEBUG: Mevcut haftalık planı göster
+    with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
+        st.write(f"**User Data tyt_msu_current_week:** {user_data.get('tyt_msu_current_week', 'YOK')}")
         st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
         st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
         
@@ -5178,6 +5711,11 @@ def show_weekly_planner(user_data):
     # 🎯 YENİ: SAYISAL ÖZEL PLANI DASHBOARD'U
     if weekly_plan.get('numerical_special', False):
         show_numerical_special_dashboard(weekly_plan, user_data)
+        st.markdown("---")
+    
+    # 🎯 YENİ: TYT & MSÜ ÖZEL PLANI DASHBOARD'U
+    if weekly_plan.get('tyt_msu_special', False):
+        show_tyt_msu_special_dashboard(weekly_plan, user_data)
         st.markdown("---")
     
     # Ana haftalık plan
@@ -10757,6 +11295,44 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             'total_weeks': 18
         }
     
+    # 🎯 TYT & MSÜ ÖZEL PLANI KONTROLÜ
+    if student_field == "TYT & MSÜ":
+        # TYT & MSÜ için özel hafta sistemi (1-9 hafta)
+        tyt_msu_week = user_data.get('tyt_msu_current_week', 1)
+        
+        # Eğer hafta numarası user_data'da yoksa, 1. haftadan başlat
+        if tyt_msu_week < 1 or tyt_msu_week > 9:
+            tyt_msu_week = 1
+        
+        # TYT & MSÜ için 9 haftalık detay planı kullan
+        completed_topics = get_user_pending_topics(user_data)
+        pending_topics = [t for t in completed_topics if t.get('status') == 'incomplete']
+        
+        tyt_msu_topics = get_tyt_msu_weekly_topics(tyt_msu_week, completed_topics, pending_topics)
+        
+        # Esnek hedef sistemi uygula
+        current_week_progress = calculate_weekly_progress_percentage(
+            len([t for t in completed_topics if t.get('week') == tyt_msu_week and t.get('status') == 'completed']),
+            len([t for t in tyt_msu_topics if t.get('week') == tyt_msu_week])
+        )
+        
+        flexible_recommendation = get_flexible_topic_recommendations(user_data, current_week_progress)
+        
+        # TYT & MSÜ için özel plan döndür
+        return {
+            'new_topics': tyt_msu_topics,  # TÜM KONULAR - LİMİT KALDIRILDI
+            'review_topics': get_review_topics_for_equal_weight(user_data),  # Şimdilik aynı review sistemi
+            'all_topics': tyt_msu_topics,  # TÜM KONULAR - Haftalık hedef konular listesi için
+            'week_target': len(tyt_msu_topics),
+            'success_target': 0.8,  # %80 hedef
+            'flexible_recommendation': flexible_recommendation,
+            'time_strategy': time_strategy,
+            'grade_strategy': grade_strategy,
+            'tyt_msu_special': True,
+            'current_week': tyt_msu_week,  # TYT & MSÜ haftası
+            'total_weeks': 9
+        }
+    
     # Konuların TYT/AYT durumuna göre filtrele (diğer alanlar için)
     filtered_subjects = []
     for subject in available_subjects:
@@ -11481,7 +12057,7 @@ def main():
                 name = st.text_input("Adınız", key="name_input")
                 surname = st.text_input("Soyadınız", key="surname_input")
                 grade = st.selectbox("Sınıfınız", ["11. Sınıf", "12. Sınıf", "Mezun"], key="grade_input")
-                field = st.selectbox("Alanınız", ["Sayısal", "Sözel", "Eşit Ağırlık", "MSÜ AST.&TYT"], key="field_input")
+                field = st.selectbox("Alanınız", ["Sayısal", "Sözel", "Eşit Ağırlık", "TYT & MSÜ", "MSÜ AST.&TYT"], key="field_input")
                 target = st.selectbox("Hedef Bölümünüz", list(BACKGROUND_STYLES.keys())[:-1], key="target_input")
             
             with col2:
