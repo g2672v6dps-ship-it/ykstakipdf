@@ -495,6 +495,105 @@ BACKGROUND_STYLES = {
         "gradient": "linear-gradient(135deg, #ff5e62 0%, #ff9966 100%)",
         "icon": "🦷"
     },
+    # 🎖️ MSÜ (Askeri) Alt Kategorileri
+    "MSÜ - Kara Astsubay Meslek Yüksekokulu": {
+        "image": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #2d5016 0%, #4a7c59 50%, #5e8b3a 100%)",
+        "icon": "🎖️"
+    },
+    "MSÜ - Deniz Astsubay Yüksekokulu": {
+        "image": "https://images.unsplash.com/photo-1505142468610-359e7d316be0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80", 
+        "gradient": "linear-gradient(135deg, #0c4a6e 0%, #0ea5e9 50%, #075985 100%)",
+        "icon": "⚓"
+    },
+    "MSÜ - Hava Astsubay Yüksekokulu": {
+        "image": "https://images.unsplash.com/photo-1446776877081-d282a0f896e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #1e40af 0%, #60a5fa 50%, #2563eb 100%)",
+        "icon": "✈️"
+    },
+    
+    # 🎓 TYT (Meslek Yüksekokulu) Alt Kategorileri
+    "TYT - Bilgisayar Programcılığı": {
+        "image": "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #1e1b4b 0%, #5b21b6 50%, #7c3aed 100%)",
+        "icon": "💻"
+    },
+    "TYT - Anestezi Teknisyenliği": {
+        "image": "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%)",
+        "icon": "🏥"
+    },
+    "TYT - Acil Tıp Teknisyenliği (ATT)": {
+        "image": "https://images.unsplash.com/photo-1638202993928-7267aad84c31?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #991b1b 0%, #dc2626 50%, #ef4444 100%)",
+        "icon": "🚑"
+    },
+    "TYT - Çocuk Gelişimi": {
+        "image": "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #fbbf24 100%)",
+        "icon": "👶"
+    },
+    "TYT - Ebe": {
+        "image": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #be185d 0%, #ec4899 50%, #f9a8d4 100%)",
+        "icon": "🤱"
+    },
+    "TYT - Hemato terapilişi": {
+        "image": "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #fecaca 100%)",
+        "icon": "🩸"
+    },
+    "TYT - Tıbbi Laboratuvar Teknikleri": {
+        "image": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #065f46 0%, #059669 50%, #a7f3d0 100%)",
+        "icon": "🔬"
+    },
+    "TYT - Tıbbi Görüntüleme Teknikleri": {
+        "image": "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #374151 0%, #6b7280 50%, #d1d5db 100%)",
+        "icon": "📱"
+    },
+    "TYT - Radyoterapi": {
+        "image": "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #c4b5fd 100%)",
+        "icon": "⚡"
+    },
+    "TYT - Diyaliz": {
+        "image": "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #99f6e4 100%)",
+        "icon": "💧"
+    },
+    "TYT - Diş Protés Teknisyenliği": {
+        "image": "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #0369a1 0%, #0ea5e9 50%, #bae6fd 100%)",
+        "icon": "🦷"
+    },
+    "TYT - Otomotiv Teknolojisi": {
+        "image": "https://images.unsplash.com/photo-1486496572940-2bb2341fdbdf?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #374151 0%, #4b5563 50%, #9ca3af 100%)",
+        "icon": "🚗"
+    },
+    "TYT - Elektrik-Elektronik Teknolojisi": {
+        "image": "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
+        "icon": "⚡"
+    },
+    "TYT - Makine Teknolojisi": {
+        "image": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #1f2937 0%, #374151 50%, #6b7280 100%)",
+        "icon": "⚙️"
+    },
+    "TYT - İnşaat Teknolojisi": {
+        "image": "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #a16207 0%, #d97706 50%, #fbbf24 100%)",
+        "icon": "🏗️"
+    },
+    "TYT - Diğer Meslek Yüksekokulu": {
+        "image": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
+        "gradient": "linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #a5b4fc 100%)",
+        "icon": "🎓"
+    },
+    
     "Varsayılan": {
         "image": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
@@ -3224,24 +3323,34 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
     # Alt kategori bilgisini al
     sub_category = user_data.get('tyt_msu_sub_category', 'Belirtilmemiş')
     
+    # 🎨 Alt kategoriye göre özel arka plan stilini yükle
+    if sub_category != 'Belirtilmemiş':
+        # Alt kategori için özel CSS yükle
+        st.markdown(get_custom_css(sub_category), unsafe_allow_html=True)
+        
+        # Alt kategoriye özel başlık arka planı
+        bg_style = BACKGROUND_STYLES.get(sub_category, BACKGROUND_STYLES["Varsayılan"])
+        category_icon = bg_style.get('icon', '🎓')
+        
+        st.markdown(f"""
+        <div class="main-header">
+            <h1>{category_icon} TYT & MSÜ ÖZEL PLANI</h1>
+            <p style="font-size: 1.2em; margin: 0;">🎯 <strong>{sub_category}</strong></p>
+            <p style="opacity: 0.9; margin: 0.5rem 0 0 0;">Hafta {current_week}/{total_weeks} • Hedefine Doğru İlerle!</p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Varsayılan başlık
+        st.markdown(f"### 🎓 TYT & MSÜ ÖZEL PLANI")
+    
     # TYT & MSÜ hafta verisini garantile
     if 'tyt_msu_current_week' not in user_data:
         user_data['tyt_msu_current_week'] = 1
         update_user_in_firebase(st.session_state.current_user, {'tyt_msu_current_week': 1})
     
-    # Alt kategoriye göre başlık rengi ve ikonu
-    if sub_category.startswith('MSÜ'):
-        category_icon = "🎖️"  # MSÜ için madalya
-        category_color = "#1f77b4"  # Mavi
-    else:
-        category_icon = "🎓"  # TYT bölümleri için mezuniyet şapkası
-        category_color = "#2ca02c"  # Yeşil
-    
-    st.markdown(f"### {category_icon} TYT & MSÜ ÖZEL PLANI")
-    
-    # Alt kategori bilgisini göster
-    if sub_category != 'Belirtilmemiş':
-        st.markdown(f"**🎯 Hedef Alan:** `{sub_category}`")
+    # Alt kategori belirtilmemişse bilgi mesajı göster
+    if sub_category == 'Belirtilmemiş':
+        st.info("ℹ️ Alt kategori seçimi için profil ayarlarınızı güncelleyin.")
     
     # İlerleme çubuğu
     progress = min(100, (current_week / total_weeks) * 100)
