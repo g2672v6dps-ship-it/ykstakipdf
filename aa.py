@@ -3971,7 +3971,7 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
         else:
             st.error("Hiç konu bulunamadı!")
 
-def get_verbal_weekly_topics(week_number, include_math=False):
+def get_verbal_simple_topics(week_number, include_math=False):
     """Sözel planı için haftalık konuları al (isteğe bağlı matematik ile)"""
     week_plan = VERBAL_WEEKLY_PLAN.get(week_number, {})
     topics_by_subject = week_plan.get('topics', {})
@@ -4035,7 +4035,7 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
         )
     
     with col3:
-        weekly_topics = get_verbal_weekly_topics(current_week, st.session_state.verbal_include_math)
+        weekly_topics = get_verbal_simple_topics(current_week, st.session_state.verbal_include_math)
         st.metric(
             "📚 Bu Hafta Konu",
             len(weekly_topics),
@@ -4066,7 +4066,7 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
     st.markdown("---")
     
     # Bu haftanın konularını göster
-    weekly_topics = get_verbal_weekly_topics(current_week, st.session_state.verbal_include_math)
+    weekly_topics = get_verbal_simple_topics(current_week, st.session_state.verbal_include_math)
     
     if weekly_topics:
         st.subheader(f"📋 Bu Haftanın Konuları")
