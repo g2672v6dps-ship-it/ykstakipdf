@@ -10088,7 +10088,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         
         # Eşit Ağırlık için özel plan döndür
         return {
-            'new_topics': equal_weight_topics[:time_strategy.get('new_topics_per_week', 10)],
+            'new_topics': equal_weight_topics,  # TÜM KONULAR - LİMİT KALDIRILDI
             'review_topics': get_review_topics_for_equal_weight(user_data),
             'all_topics': equal_weight_topics,  # TÜM KONULAR - Haftalık hedef konular listesi için
             'week_target': len(equal_weight_topics),
