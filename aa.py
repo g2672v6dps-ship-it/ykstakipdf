@@ -6620,6 +6620,11 @@ def show_weekly_planner(user_data):
     
     # Akıllı öneriler - YENİ GELİŞTİRİLMİŞ
     show_enhanced_smart_recommendations(weekly_plan, survey_data, student_field, user_data)
+    
+    st.markdown("---")
+    
+    # YENİ: Ders Ustalık Seviyeleri Dashboard'u
+    show_subject_mastery_levels(user_data)
 
 # Bu fonksiyon artık kullanılmıyor - sadeleştirme için kaldırıldı
 # def show_target_analysis_dashboard(survey_data, user_data):
@@ -6781,7 +6786,7 @@ def show_smart_period_strategy_dashboard(strategy, survey_data, days_left):
         difficult_subjects = survey_data.get('difficult_subjects', [])
         st.info(f"""
         💡 **DÖNEM ÖNERİLERİ**
-        • {days_left} gün var, sağlam temel atma zamanı!
+        • {days_left} gün kaldı, hedefine odaklan!
         • En zor dersin **{difficult_subjects[0] if difficult_subjects else 'Matematik'}**'e ekstra odaklan
         • Haftada 2-3 deneme çöz, analiz yapmayı unutma
         """)
@@ -8288,7 +8293,7 @@ def show_time_strategy_dashboard(weekly_plan):
     elif days_to_yks <= 120:
         st.info(f"💪 {days_to_yks} gün kaldı! Eksikleri kapatma zamanı!")
     else:
-        st.success(f"📚 {days_to_yks} gün var! Sağlam temel atma dönemi!")
+        st.success(f"📚 {days_to_yks} gün kaldı! Hedefine odaklan!")
 
 def show_time_based_progress_analysis(user_data, week_info):
     """Günlük/Haftalık/Aylık ilerleme analizi - YKS odaklı"""
@@ -12341,6 +12346,23 @@ def initialize_mastery_system(user_data):
         user_data['topic_mastery_status'] = '{}'
     if 'pending_review_topics' not in user_data:
         user_data['pending_review_topics'] = '{}'
+    
+    # YENİ: Ders ustalık seviyesi sistemi
+    if 'subject_mastery_levels' not in user_data:
+        # Başlangıçta tüm dersler 'zayıf' seviyesinde (0)
+        tyt_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri",
+                       "TYT Fizik", "TYT Kimya", "TYT Biyoloji",
+                       "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "TYT Din Kültürü"]
+        ayt_subjects = ["AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji", 
+                       "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
+        
+        mastery_levels = {}
+        for subject in tyt_subjects + ayt_subjects:
+            mastery_levels[subject] = 0  # 0=zayıf, 1=temel, 2=orta, 3=iyi, 4=uzman
+        
+        import json
+        user_data['subject_mastery_levels'] = json.dumps(mastery_levels)
+    
     return user_data
 
 def add_topic_to_mastery_system(user_data, topic_key, initial_level="iyi"):
@@ -12513,7 +12535,119 @@ def complete_topic_with_mastery_system(user_data, topic_key, net_value):
     if int(net_value) >= 14:
         user_data = add_topic_to_mastery_system(user_data, topic_key, "iyi")
     
+    # YENİ: Konunun dersini tespit et ve ustalık seviyesini artır
+    subject_name = get_subject_from_topic_key(topic_key)
+    if subject_name:
+        user_data = increase_subject_mastery_level(user_data, subject_name)
+    
     return user_data
+
+def increase_subject_mastery_level(user_data, subject_name):
+    """Bir dersin ustalık seviyesini bir kademe artırır (zayıf->temel->orta->iyi->uzman)"""
+    import json
+    
+    mastery_levels = json.loads(user_data.get('subject_mastery_levels', '{}'))
+    
+    if subject_name in mastery_levels:
+        current_level = mastery_levels[subject_name]
+        if current_level < 4:  # Maksimum seviye uzman (4)
+            mastery_levels[subject_name] = current_level + 1
+        
+        user_data['subject_mastery_levels'] = json.dumps(mastery_levels)
+    
+    return user_data
+
+def get_mastery_level_name(level):
+    """Ustalık seviyesi sayısını isime dönüştürür"""
+    level_names = {
+        0: "Zayıf",
+        1: "Temel", 
+        2: "Orta",
+        3: "İyi",
+        4: "Uzman"
+    }
+    return level_names.get(level, "Bilinmeyen")
+
+def get_subject_from_topic_key(topic_key):
+    """Konu anahtarından ders adını çıkarır"""
+    parts = topic_key.split(' | ')
+    if len(parts) >= 1:
+        return parts[0]  # İlk kısım ders adı
+    return None
+
+def show_subject_mastery_levels(user_data):
+    """Öğrencinin ders ustalık seviyelerini gösterir"""
+    import json
+    import streamlit as st
+    
+    mastery_levels = json.loads(user_data.get('subject_mastery_levels', '{}'))
+    
+    if not mastery_levels:
+        st.warning("Henüz ustalık seviyesi verisi bulunamadı.")
+        return
+    
+    st.markdown("### 🎯 DERS USTALLIK SEVİYELERİ")
+    
+    # TYT dersleri
+    st.markdown("#### 📚 TYT Dersleri")
+    tyt_cols = st.columns(2)
+    tyt_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", 
+                   "TYT Kimya", "TYT Biyoloji", "TYT Tarih", "TYT Coğrafya", 
+                   "TYT Felsefe", "TYT Din Kültürü"]
+    
+    for i, subject in enumerate(tyt_subjects):
+        if subject in mastery_levels:
+            level = mastery_levels[subject]
+            level_name = get_mastery_level_name(level)
+            
+            # Renk seçimi
+            colors = {0: "🔴", 1: "🟠", 2: "🟡", 3: "🟢", 4: "🟣"}
+            color = colors.get(level, "⚪")
+            
+            progress = level / 4.0  # 0-1 arası değer
+            
+            with tyt_cols[i % 2]:
+                st.markdown(f"**{subject.replace('TYT ', '')}**")
+                st.progress(progress)
+                st.markdown(f"{color} {level_name} ({level}/4)")
+    
+    # AYT dersleri
+    st.markdown("#### 🎓 AYT Dersleri")
+    ayt_cols = st.columns(2)
+    ayt_subjects = ["AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji", 
+                   "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
+    
+    for i, subject in enumerate(ayt_subjects):
+        if subject in mastery_levels:
+            level = mastery_levels[subject]
+            level_name = get_mastery_level_name(level)
+            
+            # Renk seçimi
+            colors = {0: "🔴", 1: "🟠", 2: "🟡", 3: "🟢", 4: "🟣"}
+            color = colors.get(level, "⚪")
+            
+            progress = level / 4.0  # 0-1 arası değer
+            
+            with ayt_cols[i % 2]:
+                st.markdown(f"**{subject.replace('AYT ', '')}**")
+                st.progress(progress)
+                st.markdown(f"{color} {level_name} ({level}/4)")
+    
+    # Genel istatistikler
+    st.markdown("#### 📊 Genel İstatistikler")
+    total_subjects = len(mastery_levels)
+    if total_subjects > 0:
+        avg_level = sum(mastery_levels.values()) / total_subjects
+        expert_count = sum(1 for level in mastery_levels.values() if level == 4)
+        good_count = sum(1 for level in mastery_levels.values() if level >= 3)
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Ortalama Seviye", f"{avg_level:.1f}/4")
+        with col2:
+            st.metric("Uzman Ders Sayısı", expert_count)
+        with col3:
+            st.metric("İyi+ Ders Sayısı", good_count)
 
 def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data):
     """🎯 YENİ ZAMANSAL STRATEJİ HAFTALIK PLAN ÜRETİCİSİ - DÖNEM BAZLI DİNAMİK SİSTEM"""
