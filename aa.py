@@ -6809,42 +6809,49 @@ def show_progress_chart(user_data, strategy):
             plt.rcParams["font.sans-serif"] = ["Arial Unicode MS", "DejaVu Sans"]
             plt.rcParams["axes.unicode_minus"] = False
             plt.rcParams['font.size'] = 10
-        
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
-        
-        # Grafik 1: Haftalık İlerleme
-        weeks = list(range(1, len(progress_data) + 1))
-        ax1.plot(weeks, progress_data, 'b-o', linewidth=2, markersize=6)
-        ax1.axhline(y=strategy['weekly_target'], color='r', linestyle='--', alpha=0.7, label=f"Hedef: {strategy['weekly_target']}")
-        ax1.set_title('📊 Haftalık Konu Tamamlama')
-        ax1.set_xlabel('Hafta')
-        ax1.set_ylabel('Tamamlanan Konu')
-        ax1.grid(True, alpha=0.3)
-        ax1.legend()
-        
-        # Grafik 2: Kümülatif İlerleme
-        cumulative = np.cumsum(progress_data)
-        ax2.plot(weeks, cumulative, 'g-o', linewidth=2, markersize=6)
-        target_cumulative = [strategy['weekly_target'] * w for w in weeks]
-        ax2.plot(weeks, target_cumulative, 'r--', alpha=0.7, label='Hedef Çizgisi')
-        ax2.set_title('📈 Toplam İlerleme')
-        ax2.set_xlabel('Hafta')
-        ax2.set_ylabel('Toplam Konu')
-        ax2.grid(True, alpha=0.3)
-        ax2.legend()
-        
-        plt.tight_layout()
-        st.pyplot(fig)
-        plt.close()
-        
-        # Hız analizi
-        current_speed = np.mean(progress_data[-4:]) if len(progress_data) >= 4 else 0
-        if current_speed >= strategy['weekly_target']:
-            st.success(f"🚀 **Harika!** Haftalık hızın {current_speed:.1f} konu, hedefin üzerinde!")
-        elif current_speed >= strategy['weekly_target'] * 0.7:
-            st.warning(f"⚡ **İyi!** Haftalık hızın {current_speed:.1f} konu, biraz daha hızlanabilirsin.")
-        else:
-            st.error(f"🚨 **Dikkat!** Haftalık hızın {current_speed:.1f} konu, hedefe ulaşmak için hızlanmalısın!")
+            
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+            
+            # Grafik 1: Haftalık İlerleme
+            weeks = list(range(1, len(progress_data) + 1))
+            ax1.plot(weeks, progress_data, 'b-o', linewidth=2, markersize=6)
+            ax1.axhline(y=strategy['weekly_target'], color='r', linestyle='--', alpha=0.7, label=f"Hedef: {strategy['weekly_target']}")
+            ax1.set_title('📊 Haftalık Konu Tamamlama')
+            ax1.set_xlabel('Hafta')
+            ax1.set_ylabel('Tamamlanan Konu')
+            ax1.grid(True, alpha=0.3)
+            ax1.legend()
+            
+            # Grafik 2: Kümülatif İlerleme
+            cumulative = np.cumsum(progress_data)
+            ax2.plot(weeks, cumulative, 'g-o', linewidth=2, markersize=6)
+            target_cumulative = [strategy['weekly_target'] * w for w in weeks]
+            ax2.plot(weeks, target_cumulative, 'r--', alpha=0.7, label='Hedef Çizgisi')
+            ax2.set_title('📈 Toplam İlerleme')
+            ax2.set_xlabel('Hafta')
+            ax2.set_ylabel('Toplam Konu')
+            ax2.grid(True, alpha=0.3)
+            ax2.legend()
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+            plt.close()
+            
+            # Hız analizi
+            current_speed = np.mean(progress_data[-4:]) if len(progress_data) >= 4 else 0
+            if current_speed >= strategy['weekly_target']:
+                st.success(f"🚀 **Harika!** Haftalık hızın {current_speed:.1f} konu, hedefin üzerinde!")
+            elif current_speed >= strategy['weekly_target'] * 0.7:
+                st.warning(f"⚡ **İyi!** Haftalık hızın {current_speed:.1f} konu, biraz daha hızlanabilirsin.")
+            else:
+                st.error(f"🚨 **Dikkat!** Haftalık hızın {current_speed:.1f} konu, hedefe ulaşmak için hızlanmalısın!")
+                
+        except Exception as e:
+            st.error(f"Grafik oluşturulurken hata: {str(e)}")
+            # Basit metin tabanlı gösterim
+            st.write("📊 **İlerleme Özeti:**")
+            for i, val in enumerate(progress_data):
+                st.write(f"Hafta {i+1}: {val} konu")
     else:
         st.info("📊 Henüz yeterli veri yok. 2-3 hafta daha çalıştıktan sonra grafikler görünecek!")
 
