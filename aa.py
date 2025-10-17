@@ -228,36 +228,54 @@ if FIREBASE_AVAILABLE:
 else:
     st.info("📦 Firebase modülü yüklenmedi - yerel test modu aktif")
 
-# FALLBACK: Geçici test kullanıcıları
+# FALLBACK: JSON dosyasından öğrenci verilerini yükle
 if not firebase_connected:
     st.info("🔧 Yerel test sistemi kullanılıyor...")
-    if 'fallback_users' not in st.session_state:
-        st.session_state.fallback_users = {
-            'test_ogrenci': {
-                'username': 'test_ogrenci',
-                'password': '123456',
-                'name': 'Test',
-                'surname': 'Öğrenci',
-                'grade': '12',
-                'field': 'Sayısal',
-                'created_date': '2025-01-01',
-                'student_status': 'ACTIVE',
-                'topic_progress': '{}',
-                'topic_completion_dates': '{}',
-                'topic_repetition_history': '{}',
-                'topic_mastery_status': '{}',
-                'pending_review_topics': '{}',
-                'total_study_time': 0,
-                'created_by': 'LOCAL_TEST',
-                'last_login': None
-            },
-            'admin': {
+    
+    # JSON dosyasından öğrenci verilerini yükle
+    def load_students_from_json():
+        """JSON dosyasından öğrenci verilerini yükler"""
+        try:
+            with open('user_input_files/ogrenciler_1_s30.json', 'r', encoding='utf-8') as f:
+                json_data = json.load(f)
+            
+            ogrenciler = json_data.get('users', {})
+            loaded_users = {}
+            
+            # Her öğrenciyi dönüştür
+            for username, ogrenci_data in ogrenciler.items():
+                loaded_users[username] = {
+                    'username': ogrenci_data.get('username'),
+                    'password': ogrenci_data.get('password'),
+                    'name': ogrenci_data.get('name'),
+                    'surname': ogrenci_data.get('surname'),
+                    'field': ogrenci_data.get('field'),
+                    'grade': '12. Sınıf',
+                    'created_at': datetime.now().isoformat(),
+                    'created_date': datetime.now().isoformat(),
+                    'student_status': 'ACTIVE',
+                    'topic_progress': '{}',
+                    'topic_completion_dates': '{}',
+                    'topic_repetition_history': '{}',
+                    'topic_mastery_status': '{}',
+                    'pending_review_topics': '{}',
+                    'total_study_time': 0,
+                    'created_by': 'JSON_IMPORT',
+                    'last_login': None,
+                    'is_profile_complete': False,
+                    'is_learning_style_set': False,
+                    'learning_style': None
+                }
+            
+            # Admin kullanıcıyı ekle
+            loaded_users['admin'] = {
                 'username': 'admin',
                 'password': 'admin123',
                 'name': 'Admin',
                 'surname': 'User',
                 'grade': '12',
                 'field': 'Test',
+                'created_at': datetime.now().isoformat(),
                 'created_date': '2025-01-01',
                 'student_status': 'ACTIVE',
                 'topic_progress': '{}',
@@ -269,8 +287,64 @@ if not firebase_connected:
                 'created_by': 'LOCAL_TEST',
                 'last_login': None
             }
-        }
-    st.success("✅ Test kullanıcıları hazırlandı!")
+            
+            return loaded_users
+            
+        except Exception as e:
+            st.warning(f"JSON öğrenci verileri yüklenemedi: {e}")
+            # Fallback: Temel test kullanıcıları
+            return {
+                'test_ogrenci': {
+                    'username': 'test_ogrenci',
+                    'password': '123456',
+                    'name': 'Test',
+                    'surname': 'Öğrenci',
+                    'grade': '12',
+                    'field': 'Sayısal',
+                    'created_at': datetime.now().isoformat(),
+                    'created_date': '2025-01-01',
+                    'student_status': 'ACTIVE',
+                    'topic_progress': '{}',
+                    'topic_completion_dates': '{}',
+                    'topic_repetition_history': '{}',
+                    'topic_mastery_status': '{}',
+                    'pending_review_topics': '{}',
+                    'total_study_time': 0,
+                    'created_by': 'LOCAL_TEST',
+                    'last_login': None
+                },
+                'admin': {
+                    'username': 'admin',
+                    'password': 'admin123',
+                    'name': 'Admin',
+                    'surname': 'User',
+                    'grade': '12',
+                    'field': 'Test',
+                    'created_at': datetime.now().isoformat(),
+                    'created_date': '2025-01-01',
+                    'student_status': 'ACTIVE',
+                    'topic_progress': '{}',
+                    'topic_completion_dates': '{}',
+                    'topic_repetition_history': '{}',
+                    'topic_mastery_status': '{}',
+                    'pending_review_topics': '{}',
+                    'total_study_time': 0,
+                    'created_by': 'LOCAL_TEST',
+                    'last_login': None
+                }
+            }
+    
+    if 'fallback_users' not in st.session_state:
+        st.session_state.fallback_users = load_students_from_json()
+        st.success(f"✅ {len(st.session_state.fallback_users)} kullanıcı sisteme yüklendi!")
+        
+        # JSON'dan yüklenen öğrenci sayısını göster
+        json_students = [k for k, v in st.session_state.fallback_users.items() 
+                        if v.get('created_by') == 'JSON_IMPORT']
+        if json_students:
+            st.info(f"📚 JSON dosyasından {len(json_students)} öğrenci yüklendi")
+    else:
+        st.success("✅ Kullanıcı verileri hazır!")
 
 # Firebase veritabanı fonksiyonları
 def load_users_from_firebase():
@@ -12878,9 +12952,40 @@ def main():
         # Firebase durumuna göre mesaj
         if db_ref is None:
             st.warning("⚠️ Firebase bağlantısı yok - Test modu aktif")
-            with st.expander("📋 Test Kullanıcı Bilgileri", expanded=True):
-                st.success("👤 **Test Öğrenci:**\n- Kullanıcı Adı: `test_ogrenci`\n- Şifre: `123456`")
-                st.info("👤 **Admin:**\n- Kullanıcı Adı: `admin`\n- Şifre: `admin123`")
+            
+            # Öğrenci bilgilerini göster
+            with st.expander("📋 Kayıtlı Öğrenci Bilgileri", expanded=True):
+                if 'fallback_users' in st.session_state:
+                    # JSON'dan yüklenen öğrencileri göster
+                    json_students = [(k, v) for k, v in st.session_state.fallback_users.items() 
+                                    if v.get('created_by') == 'JSON_IMPORT']
+                    
+                    if json_students:
+                        st.success(f"👥 **{len(json_students)} Öğrenci Sisteme Kayıtlı:**")
+                        
+                        # İlk 10 öğrenciyi göster
+                        for i, (username, user_data) in enumerate(json_students[:10]):
+                            st.write(f"{i+1}. **{user_data.get('name')} {user_data.get('surname')}** "
+                                   f"({user_data.get('field')}) - Kullanıcı Adı: `{username}` | Şifre: `{user_data.get('password')}`")
+                        
+                        if len(json_students) > 10:
+                            st.info(f"... ve {len(json_students) - 10} öğrenci daha")
+                        
+                        st.divider()
+                        st.info("💡 **Giriş Yapmak İçin:** Yukarıdaki listeden herhangi bir öğrencinin kullanıcı adı ve şifresini kullanın")
+                    
+                    # Test kullanıcıları
+                    test_users = [(k, v) for k, v in st.session_state.fallback_users.items() 
+                                 if v.get('created_by') == 'LOCAL_TEST']
+                    
+                    if test_users:
+                        st.success("🔧 **Test Kullanıcıları:**")
+                        for username, user_data in test_users:
+                            st.write(f"• **{user_data.get('name')} {user_data.get('surname')}** - "
+                                   f"Kullanıcı Adı: `{username}` | Şifre: `{user_data.get('password')}`")
+                
+                else:
+                    st.error("❌ Kullanıcı verileri yüklenemedi!")
         else:
             st.info("🛡️ Sadece kayıtlı öğrenciler sisteme erişebilir")
         
