@@ -14121,9 +14121,9 @@ def main():
                 important_subjects = []
                 
                 if user_field == "Sayısal":
-                    important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
+                    important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih", "TYT Coğrafya", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
                 elif user_field == "Eşit Ağırlık":
-                    important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Tarih", "TYT Coğrafya", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
+                    important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Tarih", "TYT Coğrafya", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
                 elif user_field == "Sözel":
                     important_subjects = ["TYT Türkçe", "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
                 else:
@@ -14468,9 +14468,9 @@ def main():
                 user_field = user_data.get('field', 'Belirlenmedi')
                 
                 if user_field == "Sayısal":
-                    available_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
+                    available_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih", "TYT Coğrafya", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
                 elif user_field == "Eşit Ağırlık":
-                    available_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Tarih", "TYT Coğrafya", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
+                    available_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Tarih", "TYT Coğrafya", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
                 elif user_field == "Sözel":
                     available_subjects = ["TYT Türkçe", "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "TYT Din Kültürü", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya", "AYT Felsefe", "AYT Din Kültürü ve Ahlak Bilgisi"]
 
