@@ -439,7 +439,12 @@ BREATHING_EXERCISES = [
 ]
 
 # Tüm kullanıcı alanlarını tutarlılık için tanımlıyoruz.
-FIELDNAMES = ['username', 'password', 'name', 'surname', 'grade', 'field', 'target_department', 'tyt_last_net', 'tyt_avg_net', 'ayt_last_net', 'ayt_avg_net', 'learning_style', 'learning_style_scores', 'created_at',  'detailed_nets', 'deneme_analizleri','study_program', 'topic_progress', 'topic_completion_dates', 'yks_survey_data', 'pomodoro_history'
+FIELDNAMES = ['username', 'password', 'name', 'surname', 'grade', 'field', 'target_department', 'tyt_last_net', 'tyt_avg_net', 'ayt_last_net', 'ayt_avg_net', 
+              # Net aralık ve seviye bilgileri
+              'tyt_last_range', 'tyt_avg_range', 'ayt_last_range', 'ayt_avg_range',
+              'tyt_last_level', 'tyt_avg_level', 'ayt_last_level', 'ayt_avg_level',
+              # Diğer alanlar
+              'learning_style', 'learning_style_scores', 'created_at',  'detailed_nets', 'deneme_analizleri','study_program', 'topic_progress', 'topic_completion_dates', 'yks_survey_data', 'pomodoro_history'
               ,'is_profile_complete', 
               'is_learning_style_set', 
               'learning_style',
@@ -6493,8 +6498,12 @@ def show_weekly_planner(user_data):
     survey_data = json.loads(user_data.get('yks_survey_data', '{}'))
     student_field = user_data.get('field', '')
     
-    # Sistematik haftalık plan al
-    weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
+    # 🔁 YENİ: DİNAMİK HAFTALIK PLAN AL - Kayıt tarihinden itibaren esnek döngü
+    weekly_plan = create_dynamic_weekly_plan(user_data, student_field, survey_data)
+    
+    # 📋 YENİ: DİNAMİK HAFTA DASHBOARD'U GÖSTER
+    show_dynamic_week_dashboard(weekly_plan, user_data)
+    st.markdown("---")
     
     # Üst dashboard
     show_progress_dashboard(weekly_plan, user_data)
@@ -6559,7 +6568,7 @@ def show_weekly_planner(user_data):
     
     # Progress bar göster
     st.markdown("#### 📊 BU HAFTANİN İLERLEMESİ")
-    progress_col1, progress_col2, progress_col3 = st.columns([3, 1, 1])
+    progress_col1, progress_col2 = st.columns([3, 2])
     
     with progress_col1:
         progress_bar = st.progress(completion_percentage / 100)
@@ -6573,32 +6582,8 @@ def show_weekly_planner(user_data):
         else:
             st.markdown("💪 **Devam Et!**")
     
-    with progress_col3:
-        # Manuel ilerleme güncelleme butonları
-        if st.button("➕ +10%", key="increase_progress", help="İlerlemeyi %10 artır"):
-            # Mevcut tamamlanan konuları artır
-            if 'manual_progress_boost' not in st.session_state:
-                st.session_state.manual_progress_boost = 0
-            st.session_state.manual_progress_boost += 10
-            st.success("📈 İlerleme %10 artırıldı!")
-            st.rerun()
-        
-        if st.button("🔄", key="reset_progress", help="İlerlemeyi sıfırla"):
-            # Tüm tamamlanma durumlarını sıfırla
-            keys_to_remove = [key for key in st.session_state.keys() if key.startswith('completed_')]
-            for key in keys_to_remove:
-                del st.session_state[key]
-            if 'manual_progress_boost' in st.session_state:
-                del st.session_state['manual_progress_boost']
-            st.success("🔄 İlerleme sıfırlandı!")
-            st.rerun()
-    
-    # Manual boost'u ekleme
-    manual_boost = st.session_state.get('manual_progress_boost', 0)
-    final_completion = min(completion_percentage + manual_boost, 100.0)
-    
-    if manual_boost > 0:
-        st.info(f"📈 Manuel artış: +{manual_boost}% | Toplam: %{final_completion:.1f}")
+    # İlerleme yüzdesi hesaplanıyor
+    final_completion = completion_percentage
     
     # Eğer %80+ tamamlandıysa bonus konuları göster
     if final_completion >= 80.0:
@@ -11415,14 +11400,14 @@ def get_subjects_by_field_yks(field):
     """Alan bazında dersleri döndürür"""
     if field == "Sayısal":
         return ["TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe",
-                "TYT Tarih", "TYT Coğrafya",  # İsteğe bağlı
+                "TYT Tarih (isteğe bağlı)", "TYT Coğrafya (isteğe bağlı)",  # İsteğe bağlı
                 "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
     elif field == "Sözel":
         return ["TYT Türkçe", "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "TYT Din Kültürü",
                 "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
     elif field == "Eşit Ağırlık":
         return ["TYT Matematik", "TYT Geometri", "TYT Türkçe", "TYT Tarih", "TYT Coğrafya", "TYT Din Kültürü", "TYT Felsefe",
-                "TYT Fizik", "TYT Kimya", "TYT Biyoloji",  # İsteğe bağlı
+                "TYT Fizik (isteğe bağlı)", "TYT Kimya (isteğe bağlı)", "TYT Biyoloji (isteğe bağlı)",  # İsteğe bağlı
                 "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
 
     else:
@@ -12979,13 +12964,65 @@ def main():
             
             with col2:
                 st.subheader("📊 Net Bilgileri")
-                st.write("**TYT Netler**")
-                tyt_last = st.number_input("Son TYT Neti", min_value=0.0, max_value=120.0, step=0.25, key="tyt_last_input")
-                tyt_avg = st.number_input("Genel TYT Ortalaması", min_value=0.0, max_value=120.0, step=0.25, key="tyt_avg_input")
                 
+                # TYT Net Aralıkları
+                st.write("**TYT Netler**")
+                
+                # TYT aralık seçenekleri (kullanıcıya sadece aralık gösteriliyor)
+                tyt_ranges = [
+                    {"display": "0-25", "value": "0-25", "level": "Başlangıç", "avg": 12.5},
+                    {"display": "25-40", "value": "25-40", "level": "Gelişen", "avg": 32.5},
+                    {"display": "40-55", "value": "40-55", "level": "Orta", "avg": 47.5},
+                    {"display": "55-65", "value": "55-65", "level": "İyi", "avg": 60},
+                    {"display": "65-80", "value": "65-80", "level": "Çok İyi", "avg": 72.5},
+                    {"display": "80-95", "value": "80-95", "level": "Mükemmel", "avg": 87.5},
+                    {"display": "95+", "value": "95+", "level": "Uzman", "avg": 100}
+                ]
+                
+                tyt_last_range = st.selectbox(
+                    "Son TYT Net Aralığınız", 
+                    [r["display"] for r in tyt_ranges], 
+                    key="tyt_last_input"
+                )
+                tyt_avg_range = st.selectbox(
+                    "Genel TYT Net Ortalamanız", 
+                    [r["display"] for r in tyt_ranges], 
+                    key="tyt_avg_input"
+                )
+                
+                # AYT Net Aralıkları
                 st.write("**AYT Netler**")
-                ayt_last = st.number_input("Son AYT Neti", min_value=0.0, max_value=80.0, step=0.25, key="ayt_last_input")
-                ayt_avg = st.number_input("Genel AYT Ortalaması", min_value=0.0, max_value=80.0, step=0.25, key="ayt_avg_input")
+                
+                # AYT aralık seçenekleri (kullanıcıya sadece aralık gösteriliyor)
+                ayt_ranges = [
+                    {"display": "0-20", "value": "0-20", "level": "Başlangıç", "avg": 10},
+                    {"display": "20-35", "value": "20-35", "level": "Gelişen", "avg": 27.5},
+                    {"display": "35-50", "value": "35-50", "level": "İyi", "avg": 42.5},
+                    {"display": "50-65+", "value": "50-65+", "level": "Mükemmel", "avg": 57.5}
+                ]
+                
+                ayt_last_range = st.selectbox(
+                    "Son AYT Net Aralığınız", 
+                    [r["display"] for r in ayt_ranges], 
+                    key="ayt_last_input"
+                )
+                ayt_avg_range = st.selectbox(
+                    "Genel AYT Net Ortalamanız", 
+                    [r["display"] for r in ayt_ranges], 
+                    key="ayt_avg_input"
+                )
+                
+                # Seçilen aralıkların orta değerlerini hesapla (sistem için)
+                tyt_last = next(r["avg"] for r in tyt_ranges if r["display"] == tyt_last_range)
+                tyt_avg = next(r["avg"] for r in tyt_ranges if r["display"] == tyt_avg_range)
+                ayt_last = next(r["avg"] for r in ayt_ranges if r["display"] == ayt_last_range)
+                ayt_avg = next(r["avg"] for r in ayt_ranges if r["display"] == ayt_avg_range)
+                
+                # Seviye etiketlerini sistem için sakla (kullanıcıya gösterilmez)
+                tyt_last_level = next(r["level"] for r in tyt_ranges if r["display"] == tyt_last_range)
+                tyt_avg_level = next(r["level"] for r in tyt_ranges if r["display"] == tyt_avg_range)
+                ayt_last_level = next(r["level"] for r in ayt_ranges if r["display"] == ayt_last_range)
+                ayt_avg_level = next(r["level"] for r in ayt_ranges if r["display"] == ayt_avg_range)
             
             if st.button("💾 Bilgileri Kaydet", type="primary", use_container_width=True):
                 # TYT & MSÜ seçilmişse sub_category zorunlu
@@ -13009,6 +13046,18 @@ def main():
                         'tyt_avg_net': str(tyt_avg),
                         'ayt_last_net': str(ayt_last),
                         'ayt_avg_net': str(ayt_avg),
+                        # Net aralık bilgileri (kullanıcının seçtiği aralık)
+                        'tyt_last_range': tyt_last_range,
+                        'tyt_avg_range': tyt_avg_range,
+                        'ayt_last_range': ayt_last_range,
+                        'ayt_avg_range': ayt_avg_range,
+                        # Seviye etiketleri (sistem için - Başlangıç, Gelişen, vb.)
+                        'tyt_last_level': tyt_last_level,
+                        'tyt_avg_level': tyt_avg_level,
+                        'ayt_last_level': ayt_last_level,
+                        'ayt_avg_level': ayt_avg_level,
+                        # Dinamik haftalık plan için kayıt tarihi
+                        'created_at': datetime.now().isoformat(),
                         'is_profile_complete': 'True'
                     }
                     
@@ -14121,9 +14170,9 @@ def main():
                 important_subjects = []
                 
                 if user_field == "Sayısal":
-                    important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih", "TYT Coğrafya", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
+                    important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih (isteğe bağlı)", "TYT Coğrafya (isteğe bağlı)", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
                 elif user_field == "Eşit Ağırlık":
-                    important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Tarih", "TYT Coğrafya", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
+                    important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Tarih", "TYT Coğrafya", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik (isteğe bağlı)", "TYT Kimya (isteğe bağlı)", "TYT Biyoloji (isteğe bağlı)", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
                 elif user_field == "Sözel":
                     important_subjects = ["TYT Türkçe", "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
                 else:
@@ -14468,9 +14517,9 @@ def main():
                 user_field = user_data.get('field', 'Belirlenmedi')
                 
                 if user_field == "Sayısal":
-                    available_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih", "TYT Coğrafya", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
+                    available_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih (isteğe bağlı)", "TYT Coğrafya (isteğe bağlı)", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
                 elif user_field == "Eşit Ağırlık":
-                    available_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Tarih", "TYT Coğrafya", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
+                    available_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Tarih", "TYT Coğrafya", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik (isteğe bağlı)", "TYT Kimya (isteğe bağlı)", "TYT Biyoloji (isteğe bağlı)", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
                 elif user_field == "Sözel":
                     available_subjects = ["TYT Türkçe", "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "TYT Din Kültürü", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya", "AYT Felsefe", "AYT Din Kültürü ve Ahlak Bilgisi"]
 
@@ -15313,8 +15362,8 @@ def main():
                         # Alan bilgisini sistemden al
                         user_area = user_data.get('target_department', 'Sayısal')
                         area_subjects = {
-                            'Sayısal': ["TYT Matematik", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih", "TYT Coğrafya", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"],
-                            'Eşit Ağırlık': ["TYT Türkçe", "TYT Matematik", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"],
+                            'Sayısal': ["TYT Matematik", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih (isteğe bağlı)", "TYT Coğrafya (isteğe bağlı)", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"],
+                            'Eşit Ağırlık': ["TYT Türkçe", "TYT Matematik", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik (isteğe bağlı)", "TYT Kimya (isteğe bağlı)", "TYT Biyoloji (isteğe bağlı)", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"],
                             'Sözel': ["TYT Türkçe", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya", "TYT Tarih", "TYT Coğrafya"],
                             'Dil': ["TYT Türkçe", "AYT Edebiyat", "YDT Dil"]
                         }
@@ -15582,8 +15631,8 @@ Kanuni döneminde zirveye çıktık biz! 🎵""",
                         # Alan bilgisini sistemden al (aynı mantık)
                         user_area = user_data.get('target_department', 'Sayısal')
                         area_subjects = {
-                            'Sayısal': ["TYT Matematik", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih", "TYT Coğrafya", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"],
-                            'Eşit Ağırlık': ["TYT Türkçe", "TYT Matematik", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"],
+                            'Sayısal': ["TYT Matematik", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih (isteğe bağlı)", "TYT Coğrafya (isteğe bağlı)", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"],
+                            'Eşit Ağırlık': ["TYT Türkçe", "TYT Matematik", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik (isteğe bağlı)", "TYT Kimya (isteğe bağlı)", "TYT Biyoloji (isteğe bağlı)", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"],
                             'Sözel': ["TYT Türkçe", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya", "TYT Tarih", "TYT Coğrafya"],
                             'Dil': ["TYT Türkçe", "AYT Edebiyat", "YDT Dil"]
                         }
@@ -20377,6 +20426,274 @@ def get_weak_topics_for_subject(user_data, subject):
             
     except Exception as e:
         return [{"topic": "Genel Konu", "detail": "Genel Tekrar", "net": 0}]
+
+# ===== YENİ: DİNAMİK HAFTALIK PLAN SİSTEMİ =====
+
+def get_user_dynamic_week_info(user_data):
+    """🔁 Kullanıcı kayıt tarihinden itibaren dinamik hafta ve gün bilgisini hesaplar"""
+    from datetime import datetime, timedelta
+    import json
+    
+    try:
+        # Kullanıcının kayıt tarihini al
+        registration_date = None
+        
+        # Önce created_at alanını kontrol et (ISO format)
+        if 'created_at' in user_data and user_data['created_at']:
+            try:
+                # ISO format: 2025-10-18T05:55:30 veya 2025-10-18T05:55:30.123456
+                date_str = user_data['created_at'].split('T')[0]  # Sadece tarih kısmını al
+                registration_date = datetime.strptime(date_str, '%Y-%m-%d')
+            except:
+                pass
+        
+        # Eğer created_at yoksa created_date kontrol et (eski format)
+        if not registration_date and 'created_date' in user_data and user_data['created_date']:
+            try:
+                if len(user_data['created_date']) > 10:  # Saat bilgisi de varsa
+                    date_str = user_data['created_date'][:10]  # Sadece tarih kısmını al
+                else:
+                    date_str = user_data['created_date']
+                registration_date = datetime.strptime(date_str, '%Y-%m-%d')
+            except:
+                pass
+        
+        # Eğer hiçbir tarih bulunamazsa bugünü kayıt tarihi olarak kabul et
+        if not registration_date:
+            registration_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        # Bugünün tarihini al
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        # Kayıt tarihinden bu yana geçen gün sayısı
+        days_since_registration = (today - registration_date).days
+        
+        # 7 günlük döngülerde hangi hafta ve gün
+        current_week = (days_since_registration // 7) + 1  # 1. hafta, 2. hafta...
+        current_day_in_week = (days_since_registration % 7) + 1  # Haftanın 1-7. günü
+        
+        # Hafta başlanğıç ve bitiş tarihleri
+        week_start_date = registration_date + timedelta(days=(current_week - 1) * 7)
+        week_end_date = week_start_date + timedelta(days=6)
+        
+        # Bu haftada kalan gün sayısı
+        days_left_in_week = 7 - current_day_in_week + 1
+        
+        # Gün adları listesi (kayıt gününden başlayarak)
+        weekday_names = [
+            registration_date.strftime('%A'),  # Kayıt günü
+            (registration_date + timedelta(days=1)).strftime('%A'),
+            (registration_date + timedelta(days=2)).strftime('%A'),
+            (registration_date + timedelta(days=3)).strftime('%A'),
+            (registration_date + timedelta(days=4)).strftime('%A'),
+            (registration_date + timedelta(days=5)).strftime('%A'),
+            (registration_date + timedelta(days=6)).strftime('%A')
+        ]
+        
+        # Türkçe gün adlarına çevir
+        day_translation = {
+            'Monday': 'Pazartesi', 'Tuesday': 'Salı', 'Wednesday': 'Çarşamba',
+            'Thursday': 'Perşembe', 'Friday': 'Cuma', 'Saturday': 'Cumartesi', 'Sunday': 'Pazar'
+        }
+        
+        turkish_weekdays = [day_translation.get(day, day) for day in weekday_names]
+        current_day_name = turkish_weekdays[current_day_in_week - 1]
+        
+        return {
+            'registration_date': registration_date,
+            'current_week': current_week,
+            'current_day_in_week': current_day_in_week,
+            'current_day_name': current_day_name,
+            'days_left_in_week': days_left_in_week,
+            'week_start_date': week_start_date,
+            'week_end_date': week_end_date,
+            'days_since_registration': days_since_registration,
+            'weekday_cycle': turkish_weekdays,
+            'total_weeks_completed': current_week - 1 if current_day_in_week == 1 and days_since_registration > 0 else current_week - 1
+        }
+        
+    except Exception as e:
+        # Hata durumunda varsayılan değerler
+        today = datetime.now()
+        return {
+            'registration_date': today,
+            'current_week': 1,
+            'current_day_in_week': 1,
+            'current_day_name': 'Pazartesi',
+            'days_left_in_week': 7,
+            'week_start_date': today,
+            'week_end_date': today + timedelta(days=6),
+            'days_since_registration': 0,
+            'weekday_cycle': ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'],
+            'total_weeks_completed': 0
+        }
+
+def create_dynamic_weekly_plan(user_data, student_field, survey_data):
+    """🔄 Kullanıcının dinamik haftalık planını oluşturur"""
+    from datetime import datetime
+    import json
+    
+    # Dinamik hafta bilgisini al
+    week_info = get_user_dynamic_week_info(user_data)
+    
+    # Mevcut haftalık plan sistemindeki temel bilgileri al
+    base_weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
+    
+    # Dinamik bilgileri ekle
+    base_weekly_plan['dynamic_week_info'] = week_info
+    base_weekly_plan['is_dynamic'] = True
+    
+    # Özel dinamik başlık ve açıklama
+    base_weekly_plan['dynamic_title'] = f"🔁 {week_info['current_week']}. Haftanız - Gün {week_info['current_day_in_week']}/7"
+    base_weekly_plan['dynamic_description'] = f"""
+    📅 **Kayıt Tarihinizden Bu Yana:** {week_info['days_since_registration']} gün  
+    🔄 **Mevcut Hafta Döngünüz:** {week_info['current_week']}. hafta  
+    📆 **Bugün:** {week_info['current_day_name']} ({week_info['current_day_in_week']}/7)  
+    ⏳ **Bu Haftada Kalan:** {week_info['days_left_in_week']} gün  
+    🏁 **Hafta Aralığı:** {week_info['week_start_date'].strftime('%d.%m')} - {week_info['week_end_date'].strftime('%d.%m')}
+    """
+    
+    # Haftalık döngü takvimini ekle
+    base_weekly_plan['weekly_calendar'] = create_weekly_calendar(week_info)
+    
+    return base_weekly_plan
+
+def create_weekly_calendar(week_info):
+    """📅 7 günlük döngü takvimi oluşturur"""
+    calendar = []
+    
+    for day_num in range(1, 8):
+        day_name = week_info['weekday_cycle'][day_num - 1]
+        
+        # Bugün mü?
+        is_today = (day_num == week_info['current_day_in_week'])
+        
+        # Geçmiş mi?
+        is_past = (day_num < week_info['current_day_in_week'])
+        
+        # Gelecek mi?
+        is_future = (day_num > week_info['current_day_in_week'])
+        
+        calendar.append({
+            'day_number': day_num,
+            'day_name': day_name,
+            'is_today': is_today,
+            'is_past': is_past,
+            'is_future': is_future,
+            'status_emoji': '🔴' if is_today else ('✅' if is_past else '⏳')
+        })
+    
+    return calendar
+
+def show_dynamic_week_dashboard(weekly_plan, user_data):
+    """📋 Dinamik haftalık dashboard gösterir"""
+    if not weekly_plan.get('is_dynamic', False):
+        return
+    
+    week_info = weekly_plan['dynamic_week_info']
+    
+    # Ana başlık
+    st.markdown(f"### {weekly_plan['dynamic_title']}")
+    
+    # Bilgi kutucukları
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="🔄 Hafta Döngünüz",
+            value=f"{week_info['current_week']}. Hafta",
+            delta=f"+{week_info['total_weeks_completed']} tamamlandı"
+        )
+    
+    with col2:
+        st.metric(
+            label="📆 Bugün",
+            value=f"Gün {week_info['current_day_in_week']}/7",
+            delta=f"{week_info['current_day_name']}"
+        )
+    
+    with col3:
+        st.metric(
+            label="⏳ Kalan Gün",
+            value=f"{week_info['days_left_in_week']} gün",
+            delta="Bu haftada" if week_info['days_left_in_week'] > 0 else "Hafta bitti!"
+        )
+    
+    with col4:
+        st.metric(
+            label="📅 Toplam Gün",
+            value=f"{week_info['days_since_registration']} gün",
+            delta="Kayıt tarihinden beri"
+        )
+    
+    # Haftalık takvim
+    st.markdown("#### 📅 Bu Haftanın Döngü Takvimi")
+    
+    calendar = weekly_plan['weekly_calendar']
+    cols = st.columns(7)
+    
+    for i, day in enumerate(calendar):
+        with cols[i]:
+            # Durum rengine göre stil
+            if day['is_today']:
+                st.markdown(
+                    f"""
+                    <div style='background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%); 
+                                color: white; padding: 8px; border-radius: 8px; text-align: center; 
+                                border: 2px solid #ff4757; box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);'>
+                        <div style='font-size: 12px; font-weight: bold;'>GÜN {day['day_number']}</div>
+                        <div style='font-size: 14px; margin: 2px 0;'>{day['status_emoji']}</div>
+                        <div style='font-size: 10px;'>{day['day_name']}</div>
+                        <div style='font-size: 9px; color: #ffe6e6;'>BUGÜN</div>
+                    </div>
+                    """, 
+                    unsafe_allow_html=True
+                )
+            elif day['is_past']:
+                st.markdown(
+                    f"""
+                    <div style='background: linear-gradient(135deg, #2ed573 0%, #7bed9f 100%); 
+                                color: white; padding: 8px; border-radius: 8px; text-align: center;'>
+                        <div style='font-size: 12px; font-weight: bold;'>GÜN {day['day_number']}</div>
+                        <div style='font-size: 14px; margin: 2px 0;'>{day['status_emoji']}</div>
+                        <div style='font-size: 10px;'>{day['day_name']}</div>
+                        <div style='font-size: 9px; color: #e6ffe6;'>GEÇTİ</div>
+                    </div>
+                    """, 
+                    unsafe_allow_html=True
+                )
+            else:  # Gelecek
+                st.markdown(
+                    f"""
+                    <div style='background: linear-gradient(135deg, #747d8c 0%, #a4b0be 100%); 
+                                color: white; padding: 8px; border-radius: 8px; text-align: center;'>
+                        <div style='font-size: 12px; font-weight: bold;'>GÜN {day['day_number']}</div>
+                        <div style='font-size: 14px; margin: 2px 0;'>{day['status_emoji']}</div>
+                        <div style='font-size: 10px;'>{day['day_name']}</div>
+                        <div style='font-size: 9px; color: #f1f2f6;'>GELECEK</div>
+                    </div>
+                    """, 
+                    unsafe_allow_html=True
+                )
+    
+    # Açıklama metni
+    st.markdown(weekly_plan['dynamic_description'])
+    
+    # Hafta ilerleme çubuğu
+    week_progress = ((week_info['current_day_in_week'] - 1) / 7) * 100
+    st.markdown("#### 📊 Bu Haftanın İlerlemesi")
+    progress_col1, progress_col2 = st.columns([4, 1])
+    
+    with progress_col1:
+        st.progress(week_progress / 100)
+    
+    with progress_col2:
+        st.metric(
+            label="İlerleme",
+            value=f"%{week_progress:.1f}"
+        )
+
+# ===== DİNAMİK HAFTALIK PLAN ENTEGRASYONU =====
 
 def calculate_weekly_completion_percentage(user_data, weekly_plan):
     """Bu haftanın hedef konularının tamamlanma yüzdesini hesaplar"""
