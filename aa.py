@@ -232,43 +232,129 @@ else:
 if not firebase_connected:
     st.info("🔧 Yerel test sistemi kullanılıyor...")
     
-    # JSON dosyasından öğrenci verilerini yükle
-    def load_students_from_json():
-        """JSON dosyasından öğrenci verilerini yükler"""
+    # load_users_from_firebase fonksiyonu gerektiğinde JSON'dan yükleyecek
+    if 'fallback_users' not in st.session_state:
+        # İlk çalıştırmada veri sayısını göstermek için JSON'u kontrol et
         try:
             with open('user_input_files/ogrenciler_1_s30.json', 'r', encoding='utf-8') as f:
                 json_data = json.load(f)
-            
-            ogrenciler = json_data.get('users', {})
-            loaded_users = {}
-            
-            # Her öğrenciyi dönüştür
-            for username, ogrenci_data in ogrenciler.items():
-                loaded_users[username] = {
-                    'username': ogrenci_data.get('username'),
-                    'password': ogrenci_data.get('password'),
-                    'name': ogrenci_data.get('name'),
-                    'surname': ogrenci_data.get('surname'),
-                    'field': ogrenci_data.get('field'),
-                    'grade': '12. Sınıf',
-                    'created_at': datetime.now().isoformat(),
-                    'created_date': datetime.now().isoformat(),
-                    'student_status': 'ACTIVE',
-                    'topic_progress': '{}',
-                    'topic_completion_dates': '{}',
-                    'topic_repetition_history': '{}',
-                    'topic_mastery_status': '{}',
-                    'pending_review_topics': '{}',
-                    'total_study_time': 0,
-                    'created_by': 'JSON_IMPORT',
-                    'last_login': None,
-                    'is_profile_complete': False,
-                    'is_learning_style_set': False,
-                    'learning_style': None
-                }
-            
-            # Admin kullanıcıyı ekle
-            loaded_users['admin'] = {
+            student_count = len(json_data.get('users', {}))
+            st.success(f"✅ {student_count + 1} kullanıcı (JSON + Admin) kullanıma hazır!")
+        except:
+            st.success("✅ Fallback sistemi hazır!")
+    else:
+        user_count = len(st.session_state.fallback_users)
+        json_students = len([v for v in st.session_state.fallback_users.values() 
+                           if v.get('created_by') == 'JSON_IMPORT'])
+        if json_students > 0:
+            st.success(f"✅ {user_count} kullanıcı yüklü ({json_students} öğrenci + test kullanıcıları)")
+
+# Firebase veritabanı fonksiyonları
+def load_users_from_firebase():
+    """Firebase'den kullanıcı verilerini yükler (Fallback destekli)"""
+    try:
+        if firebase_connected and db_ref:
+            users_data = db_ref.child("users").get()
+            return users_data if users_data else {}
+        else:
+            # FALLBACK: Local test kullanıcıları
+            if hasattr(st.session_state, 'fallback_users') and st.session_state.fallback_users:
+                return st.session_state.fallback_users
+            else:
+                # JSON'dan yükle ve session_state'e kaydet
+                return load_and_initialize_fallback_users()
+    except Exception as e:
+        st.error(f"Firebase veri yükleme hatası: {e}")
+        # FALLBACK: Local test kullanıcıları
+        if hasattr(st.session_state, 'fallback_users') and st.session_state.fallback_users:
+            return st.session_state.fallback_users
+        else:
+            return load_and_initialize_fallback_users()
+
+def load_and_initialize_fallback_users():
+    """JSON dosyasından fallback kullanıcıları yükler ve session_state'e kaydeder"""
+    try:
+        with open('user_input_files/ogrenciler_1_s30.json', 'r', encoding='utf-8') as f:
+            json_data = json.load(f)
+        
+        ogrenciler = json_data.get('users', {})
+        loaded_users = {}
+        
+        # Her öğrenciyi dönüştür
+        for username, ogrenci_data in ogrenciler.items():
+            loaded_users[username] = {
+                'username': ogrenci_data.get('username'),
+                'password': ogrenci_data.get('password'),
+                'name': ogrenci_data.get('name'),
+                'surname': ogrenci_data.get('surname'),
+                'field': ogrenci_data.get('field'),
+                'grade': '12. Sınıf',
+                'created_at': datetime.now().isoformat(),
+                'created_date': datetime.now().isoformat(),
+                'student_status': 'ACTIVE',
+                'topic_progress': '{}',
+                'topic_completion_dates': '{}',
+                'topic_repetition_history': '{}',
+                'topic_mastery_status': '{}',
+                'pending_review_topics': '{}',
+                'total_study_time': 0,
+                'created_by': 'JSON_IMPORT',
+                'last_login': None,
+                'is_profile_complete': False,
+                'is_learning_style_set': False,
+                'learning_style': None
+            }
+        
+        # Admin kullanıcıyı ekle
+        loaded_users['admin'] = {
+            'username': 'admin',
+            'password': 'admin123',
+            'name': 'Admin',
+            'surname': 'User',
+            'grade': '12',
+            'field': 'Test',
+            'created_at': datetime.now().isoformat(),
+            'created_date': '2025-01-01',
+            'student_status': 'ACTIVE',
+            'topic_progress': '{}',
+            'topic_completion_dates': '{}',
+            'topic_repetition_history': '{}',
+            'topic_mastery_status': '{}',
+            'pending_review_topics': '{}',
+            'total_study_time': 0,
+            'created_by': 'LOCAL_TEST',
+            'last_login': None
+        }
+        
+        # Session state'e kaydet
+        st.session_state.fallback_users = loaded_users
+        
+        return loaded_users
+        
+    except Exception as e:
+        st.warning(f"JSON öğrenci verileri yüklenemedi: {e}")
+        # En son fallback: Temel test kullanıcıları
+        fallback_basic = {
+            'test_ogrenci': {
+                'username': 'test_ogrenci',
+                'password': '123456',
+                'name': 'Test',
+                'surname': 'Öğrenci',
+                'grade': '12',
+                'field': 'Sayısal',
+                'created_at': datetime.now().isoformat(),
+                'created_date': '2025-01-01',
+                'student_status': 'ACTIVE',
+                'topic_progress': '{}',
+                'topic_completion_dates': '{}',
+                'topic_repetition_history': '{}',
+                'topic_mastery_status': '{}',
+                'pending_review_topics': '{}',
+                'total_study_time': 0,
+                'created_by': 'LOCAL_TEST',
+                'last_login': None
+            },
+            'admin': {
                 'username': 'admin',
                 'password': 'admin123',
                 'name': 'Admin',
@@ -287,83 +373,10 @@ if not firebase_connected:
                 'created_by': 'LOCAL_TEST',
                 'last_login': None
             }
-            
-            return loaded_users
-            
-        except Exception as e:
-            st.warning(f"JSON öğrenci verileri yüklenemedi: {e}")
-            # Fallback: Temel test kullanıcıları
-            return {
-                'test_ogrenci': {
-                    'username': 'test_ogrenci',
-                    'password': '123456',
-                    'name': 'Test',
-                    'surname': 'Öğrenci',
-                    'grade': '12',
-                    'field': 'Sayısal',
-                    'created_at': datetime.now().isoformat(),
-                    'created_date': '2025-01-01',
-                    'student_status': 'ACTIVE',
-                    'topic_progress': '{}',
-                    'topic_completion_dates': '{}',
-                    'topic_repetition_history': '{}',
-                    'topic_mastery_status': '{}',
-                    'pending_review_topics': '{}',
-                    'total_study_time': 0,
-                    'created_by': 'LOCAL_TEST',
-                    'last_login': None
-                },
-                'admin': {
-                    'username': 'admin',
-                    'password': 'admin123',
-                    'name': 'Admin',
-                    'surname': 'User',
-                    'grade': '12',
-                    'field': 'Test',
-                    'created_at': datetime.now().isoformat(),
-                    'created_date': '2025-01-01',
-                    'student_status': 'ACTIVE',
-                    'topic_progress': '{}',
-                    'topic_completion_dates': '{}',
-                    'topic_repetition_history': '{}',
-                    'topic_mastery_status': '{}',
-                    'pending_review_topics': '{}',
-                    'total_study_time': 0,
-                    'created_by': 'LOCAL_TEST',
-                    'last_login': None
-                }
-            }
-    
-    if 'fallback_users' not in st.session_state:
-        st.session_state.fallback_users = load_students_from_json()
-        st.success(f"✅ {len(st.session_state.fallback_users)} kullanıcı sisteme yüklendi!")
+        }
         
-        # JSON'dan yüklenen öğrenci sayısını göster
-        json_students = [k for k, v in st.session_state.fallback_users.items() 
-                        if v.get('created_by') == 'JSON_IMPORT']
-        if json_students:
-            st.info(f"📚 JSON dosyasından {len(json_students)} öğrenci yüklendi")
-    else:
-        st.success("✅ Kullanıcı verileri hazır!")
-
-# Firebase veritabanı fonksiyonları
-def load_users_from_firebase():
-    """Firebase'den kullanıcı verilerini yükler (Fallback destekli)"""
-    try:
-        if firebase_connected and db_ref:
-            users_data = db_ref.child("users").get()
-            return users_data if users_data else {}
-        else:
-            # FALLBACK: Local test kullanıcıları
-            if hasattr(st.session_state, 'fallback_users'):
-                return st.session_state.fallback_users
-            return {}
-    except Exception as e:
-        st.error(f"Firebase veri yükleme hatası: {e}")
-        # FALLBACK: Local test kullanıcıları
-        if hasattr(st.session_state, 'fallback_users'):
-            return st.session_state.fallback_users
-        return {}
+        st.session_state.fallback_users = fallback_basic
+        return fallback_basic
 
 def update_user_in_firebase(username, data):
     """Firebase'de kullanıcı verilerini günceller (Fallback destekli)"""
@@ -12953,11 +12966,14 @@ def main():
         if db_ref is None:
             st.warning("⚠️ Firebase bağlantısı yok - Test modu aktif")
             
-            # Öğrenci bilgilerini göster
+            # Kullanıcı verilerini yükle ve göster
             with st.expander("📋 Kayıtlı Öğrenci Bilgileri", expanded=True):
-                if 'fallback_users' in st.session_state:
+                # Fallback sistemini otomatik yükle
+                users_db = load_users_from_firebase()
+                
+                if users_db:
                     # JSON'dan yüklenen öğrencileri göster
-                    json_students = [(k, v) for k, v in st.session_state.fallback_users.items() 
+                    json_students = [(k, v) for k, v in users_db.items() 
                                     if v.get('created_by') == 'JSON_IMPORT']
                     
                     if json_students:
@@ -12975,7 +12991,7 @@ def main():
                         st.info("💡 **Giriş Yapmak İçin:** Yukarıdaki listeden herhangi bir öğrencinin kullanıcı adı ve şifresini kullanın")
                     
                     # Test kullanıcıları
-                    test_users = [(k, v) for k, v in st.session_state.fallback_users.items() 
+                    test_users = [(k, v) for k, v in users_db.items() 
                                  if v.get('created_by') == 'LOCAL_TEST']
                     
                     if test_users:
