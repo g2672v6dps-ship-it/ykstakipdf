@@ -11414,13 +11414,15 @@ def show_breathing_exercise():
 def get_subjects_by_field_yks(field):
     """Alan bazında dersleri döndürür"""
     if field == "Sayısal":
-        return ["TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", 
+        return ["TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe",
+                "TYT Tarih", "TYT Coğrafya",  # İsteğe bağlı
                 "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
     elif field == "Sözel":
         return ["TYT Türkçe", "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "TYT Din Kültürü",
                 "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
     elif field == "Eşit Ağırlık":
-        return ["TYT Matematik", "TYT Geometri", "TYT Türkçe", "TYT Tarih", "TYT Coğrafya",
+        return ["TYT Matematik", "TYT Geometri", "TYT Türkçe", "TYT Tarih", "TYT Coğrafya", "TYT Din Kültürü", "TYT Felsefe",
+                "TYT Fizik", "TYT Kimya", "TYT Biyoloji",  # İsteğe bağlı
                 "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
 
     else:
@@ -15311,8 +15313,8 @@ def main():
                         # Alan bilgisini sistemden al
                         user_area = user_data.get('target_department', 'Sayısal')
                         area_subjects = {
-                            'Sayısal': ["TYT Matematik", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"],
-                            'Eşit Ağırlık': ["TYT Türkçe", "TYT Matematik", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"],
+                            'Sayısal': ["TYT Matematik", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih", "TYT Coğrafya", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"],
+                            'Eşit Ağırlık': ["TYT Türkçe", "TYT Matematik", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"],
                             'Sözel': ["TYT Türkçe", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya", "TYT Tarih", "TYT Coğrafya"],
                             'Dil': ["TYT Türkçe", "AYT Edebiyat", "YDT Dil"]
                         }
@@ -15580,8 +15582,8 @@ Kanuni döneminde zirveye çıktık biz! 🎵""",
                         # Alan bilgisini sistemden al (aynı mantık)
                         user_area = user_data.get('target_department', 'Sayısal')
                         area_subjects = {
-                            'Sayısal': ["TYT Matematik", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"],
-                            'Eşit Ağırlık': ["TYT Türkçe", "TYT Matematik", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"],
+                            'Sayısal': ["TYT Matematik", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih", "TYT Coğrafya", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"],
+                            'Eşit Ağırlık': ["TYT Türkçe", "TYT Matematik", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"],
                             'Sözel': ["TYT Türkçe", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya", "TYT Tarih", "TYT Coğrafya"],
                             'Dil': ["TYT Türkçe", "AYT Edebiyat", "YDT Dil"]
                         }
