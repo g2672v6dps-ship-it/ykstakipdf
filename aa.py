@@ -22117,27 +22117,12 @@ def calculate_required_nets_for_target(target_score, field):
     return scenarios[:3]  # En iyi 3 senaryoyu döndür
 
 def show_target_department_roadmap(user_data):
-    """🎯 Hedef Bölüm Odaklı Gidiş Haritası"""
-    st.subheader("🎯 Hedef Bölüm Odaklı Strateji Haritası")
+    """🎯 Hedef Bölüm Bilgileri"""
+    st.subheader("🎯 Hedef Bölüm Bilgileri")
     
     field = user_data.get('field', 'Sayısal')
-    current_score = calculate_current_yks_score(user_data)
-    
-    # Mevcut durum kartı
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("📊 Mevcut Tahmini Puanınız", f"{current_score:.1f}")
-    with col2:
-        st.metric("📚 Alanınız", field)
-    with col3:
-        days_to_yks = get_current_week_info()['days_to_yks']
-        st.metric("⏰ YKS'ye Kalan Gün", days_to_yks)
-    
-    st.markdown("---")
     
     # Hedef bölüm seçimi
-    st.subheader("🎯 Hedef Bölümünüzü Seçin")
-    
     departments = get_departments_by_field(field)
     if not departments:
         st.warning(f"❌ {field} alanı için bölüm bilgisi bulunamadı.")
@@ -22146,75 +22131,61 @@ def show_target_department_roadmap(user_data):
     selected_department = st.selectbox("Hedef bölümünüzü seçin:", departments)
     
     if selected_department:
-        universities = get_universities_by_department(field, selected_department)
-        selected_university = st.selectbox("Hedef üniversitenizi seçin:", universities)
+        # Bölüm için puan aralığı ve zorluk derecesi hesapla
+        department_scores = []
+        department_unis = get_universities_by_department(field, selected_department)
         
-        if selected_university:
-            # Hedef bilgileri göster
-            target_info = YKS_2025_TABAN_PUANLARI[field][selected_department][selected_university]
-            target_score = target_info["taban_puan"]
-            kontenjan = target_info["kontenjan"]
+        for uni in department_unis:
+            try:
+                score = YKS_2025_TABAN_PUANLARI[field][selected_department][uni]["taban_puan"]
+                department_scores.append((score, uni))
+            except:
+                continue
+        
+        if department_scores:
+            department_scores.sort()
+            min_score = department_scores[0][0]
+            max_score = department_scores[-1][0]
+            min_uni = department_scores[0][1]
+            max_uni = department_scores[-1][1]
             
-            st.markdown("---")
-            st.subheader("📊 Hedef Analizi")
-            
-            # Ana metrikler
-            score_diff = target_score - current_score
-            col1, col2, col3, col4 = st.columns(4)
-            
-            with col1:
-                st.metric("🎯 Hedef Taban Puan", target_score)
-            with col2:
-                st.metric("📊 Mevcut Puanınız", f"{current_score:.1f}")
-            with col3:
-                color = "🔴" if score_diff > 0 else "🟢"
-                st.metric(f"{color} Puan Farkı", f"{score_diff:.1f}")
-            with col4:
-                st.metric("👥 Kontenjan", kontenjan)
-            
-            # Durum analizi
-            if score_diff <= 0:
-                st.success(f"🎉 **Tebrikler!** Mevcut puanınız hedef bölümünüz için yeterli! (+{abs(score_diff):.1f} puan üstünde)")
-                st.info("💡 **Strateji:** Mevcut seviyenizi koruyun ve YKS gününde performansınızı en üst düzeyde tutun.")
-            
-            elif score_diff <= 20:
-                st.warning(f"⚠️ **Dikkat!** Hedefinize çok yakınsınız! ({score_diff:.1f} puan eksik)")
-                st.info("💡 **Strateji:** Yoğun çalışma ile hedefinize ulaşabilirsiniz. Zayıf alanlarınıza odaklanın.")
-            
-            elif score_diff <= 50:
-                st.error(f"🔴 **Yoğun Çalışma Gerekli!** ({score_diff:.1f} puan eksik)")
-                st.info("💡 **Strateji:** Sistematik çalışma planı ve zayıf alanlarınızda büyük gelişim gerekli.")
-            
+            # Zorluk derecesi belirleme
+            if max_score >= 450:
+                difficulty = "Çok Zor"
+                difficulty_color = "🔴"
+            elif max_score >= 350:
+                difficulty = "Zor"
+                difficulty_color = "🟠"
+            elif max_score >= 280:
+                difficulty = "Orta-Zor"
+                difficulty_color = "🟡"
+            elif max_score >= 220:
+                difficulty = "Orta"
+                difficulty_color = "🟢"
             else:
-                st.error(f"🚨 **Alternatif Hedefler Değerlendirin!** ({score_diff:.1f} puan eksik)")
-                st.info("💡 **Strateji:** Daha gerçekçi hedefler belirleyin veya çok yoğun çalışma programına başlayın.")
+                difficulty = "Kolay"
+                difficulty_color = "💚"
             
-            # Gerekli net analizi
-            st.markdown("---")
-            st.subheader("📈 Hedef İçin Gerekli Net Analizi")
+            # Bölüm bilgileri kartı
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                        padding: 20px; border-radius: 15px; margin: 10px 0; color: white;">
+                <h3>{difficulty_color} {selected_department}</h3>
+                <p><strong>Zorluk Derecesi:</strong> {difficulty}</p>
+                <p><strong>Puan Aralığı:</strong> {min_score} - {max_score} puan</p>
+                <p><strong>En Düşük Devlet:</strong> {min_uni} ({min_score} puan)</p>
+                <p><strong>En Yüksek Vakıf:</strong> {max_uni} ({max_score} puan)</p>
+            </div>
+            """, unsafe_allow_html=True)
             
-            scenarios = calculate_required_nets_for_target(target_score, field)
-            
-            if scenarios:
-                st.write("**Hedefinize ulaşmak için gerekli net kombinasyonları:**")
-                
-                for i, scenario in enumerate(scenarios):
-                    difficulty_color = {"Kolay": "🟢", "Orta": "🟡", "Zor": "🔴"}
-                    color = difficulty_color.get(scenario["difficulty"], "⚪")
-                    
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric(f"{color} Senaryo {i+1}", scenario["difficulty"])
-                    with col2:
-                        st.metric("TYT Net", scenario["tyt_net"])
-                    with col3:
-                        if scenario["ayt_net"] > 0:
-                            st.metric("AYT Net", scenario["ayt_net"])
-                        else:
-                            st.metric("AYT Net", "Gerekli Değil")
-            
-            # Zayıf alan analizi
-            show_weak_subjects_analysis(user_data, field, score_diff)
+            # Metrikler
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("📊 Puan Aralığı", f"{min_score}-{max_score}")
+            with col2:
+                st.metric(f"{difficulty_color} Zorluk", difficulty)
+            with col3:
+                st.metric("🏫 Üniversite Sayısı", len(department_scores))
 
 def show_weak_subjects_analysis(user_data, field, score_diff):
     """Zayıf alan analizi ve öneriler"""
@@ -22524,8 +22495,13 @@ def show_progress_analytics(user_data):
         week_info = get_current_week_info()
         days_to_yks = week_info['days_to_yks']
     except:
-        # Varsayılan değerler
-        days_to_yks = 200  # Yaklaşık 6-7 ay varsayılan
+        # Varsayılan değerler (2025 YKS: Haziran ayı ortası)
+        from datetime import datetime
+        yks_date = datetime(2025, 6, 15)  # Yaklaşık YKS tarihi
+        today = datetime.now()
+        days_to_yks = (yks_date - today).days
+        if days_to_yks < 0:
+            days_to_yks = 240  # Yaklaşık 8 ay varsayılan
     
     weeks_to_yks = days_to_yks // 7
     months_to_yks = days_to_yks // 30
@@ -22533,136 +22509,153 @@ def show_progress_analytics(user_data):
     # Zaman kartları
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("📅 Kalan Ay", months_to_yks)
+        st.metric("📅 Sınava Kalan Ay", months_to_yks)
     with col2:
-        st.metric("📅 Kalan Hafta", weeks_to_yks)
+        st.metric("📅 Sınava Kalan Hafta", weeks_to_yks)
     with col3:
-        st.metric("📅 Kalan Gün", days_to_yks)
+        st.metric("📅 Sınava Kalan Gün", days_to_yks)
     
     st.markdown("---")
     
-    # Mevcut YKS puanını hesapla
-    current_score = calculate_current_yks_score(user_data)
+    # Haftalık hedef program başlangıç tarihi kontrolü
+    weekly_plan_start = user_data.get('weekly_plan_start_date', None)
+    if not weekly_plan_start:
+        # İlk kez kullanıyorsa bugünü kaydet
+        from datetime import datetime
+        today = datetime.now()
+        weekly_plan_start = today.strftime("%Y-%m-%d")
+        user_data['weekly_plan_start_date'] = weekly_plan_start
     
-    # ===== YENİ: ADAPTİF YILLIK PLAN SİSTEMİ =====
-    show_adaptive_yearly_plan(user_data, current_score, months_to_yks)
-    
-    # Kişiselleştirilmiş Motivasyon & Strateji
-    st.markdown("---")
-    st.subheader("💪 Kişiselleştirilmiş Motivasyon & Strateji")
-    
-    # Haftalık performans analizi - değişkenleri önce tanımla ve güvenli çağrı
-    weekly_plan = user_data.get('weekly_plan', {})  # weekly_plan tanımlandı
+    # Haftalık performans hesaplama
+    weekly_plan = user_data.get('weekly_plan', {})
     try:
-        current_progress = calculate_weekly_completion_percentage(user_data, weekly_plan)
+        weekly_completion_rate = calculate_weekly_completion_percentage(user_data, weekly_plan)
     except:
-        # Eğer hesaplama başarısız olursa varsayılan değer kullan
-        current_progress = 50.0  # %50 varsayılan performans
+        weekly_completion_rate = 65.0  # Varsayılan performans
     
-    current_score = calculate_current_yks_score(user_data)
-    target_score = current_score + 50  # Hedef skorun belirlenmesi
+    # Haftalık konu bitirme hızı hesaplama (hafta başına kaç konu)
+    topics_per_week = max(1, (weekly_completion_rate / 100) * 5)  # Hafta başına maksimum 5 konu varsayımı
     
-    # Öğrenci profiline göre kişiselleştirilmiş mesajlar
-    student_field = user_data.get('student_field', 'Bilinmiyor')
-    learning_style = user_data.get('learning_style', 'Bilinmiyor')
+    st.subheader("📈 Haftalık Performans Analizi")
     
-    # Performans bazlı motivasyon
-    col1, col2, col3 = st.columns(3)
-    
+    col1, col2 = st.columns(2)
     with col1:
-        if current_progress >= 80:
-            st.success(f"🏆 **Mükemmel!** (%{current_progress:.1f})")
-            motivation_color = "success"
-            motivation_msg = f"🌟 **{student_field}** alanında harika gidiyorsun! Bu tempoyu korursan hedef puanına (%{target_score:.0f}) rahatlıkla ulaşabilirsin."
-        elif current_progress >= 60:
-            st.warning(f"⚡ **İyi gidiyor!** (%{current_progress:.1f})")
-            motivation_color = "warning"
-            motivation_msg = f"💪 **{learning_style}** öğrenme stiline uygun şekilde ilerliyorsun, ama biraz daha hızlanabilirsin!"
-        elif current_progress >= 40:
-            st.error(f"🔔 **Dikkat!** (%{current_progress:.1f})")
-            motivation_color = "error"
-            motivation_msg = f"⚠️ **{student_field}** için tempo düşük! Zayıf konularına odaklanman gerekiyor."
+        if weekly_completion_rate >= 80:
+            st.success(f"🚀 Mükemmel Tempo: %{weekly_completion_rate:.1f}")
+        elif weekly_completion_rate >= 60:
+            st.warning(f"📈 Normal Tempo: %{weekly_completion_rate:.1f}")
         else:
-            st.error(f"🚨 **Acil aksiyon!** (%{current_progress:.1f})")
-            motivation_color = "error"
-            motivation_msg = f"🔥 **Çok kritik durum!** {student_field} hedefin için derhal çalışma stratejini gözden geçir!"
+            st.error(f"⚠️ Yavaş Tempo: %{weekly_completion_rate:.1f}")
     
     with col2:
-        # Zaman analizi
-        if days_to_yks > 180:
-            time_status = "🌟 Bol zaman"
-            time_strategy = "Temel konularda sağlam altyapı kur"
-        elif days_to_yks > 90:
-            time_status = "⚡ Orta süre"
-            time_strategy = "Zayıf konulara yoğunlaş"
-        elif days_to_yks > 30:
-            time_status = "🔥 Son dönem"
-            time_strategy = "Yüksek getirili konulara odaklan"
-        else:
-            time_status = "🚨 Final"
-            time_strategy = "Tekrar ve deneme çözümü"
-        
-        st.metric("⏰ Zaman Durumu", time_status)
-        st.caption(time_strategy)
+        st.metric("🎯 Haftalık Konu Bitirme Hızı", f"{topics_per_week:.1f} konu/hafta")
     
-    with col3:
-        # Hedef yakınlık
-        score_gap = target_score - current_score
-        if score_gap <= 10:
-            st.success(f"🎯 Hedefe çok yakın!")
-        elif score_gap <= 30:
-            st.warning(f"🎯 {score_gap:.0f} puan gerekli")
-        else:
-            st.error(f"🎯 {score_gap:.0f} puan açık var")
-    
-    # Ana motivasyon mesajı
-    if motivation_color == "success":
-        st.success(motivation_msg)
-    elif motivation_color == "warning":
-        st.warning(motivation_msg)
-    else:
-        st.error(motivation_msg)
-    
-    # ===== KİŞİSELLEŞTİRİLMİŞ AYLIK KONU PLANLAMA =====
     st.markdown("---")
-    st.subheader("📅 Haftalık Gidişatınıza Göre Gerçek Konu Bitiş Takvimi")
     
-    show_real_topic_completion_timeline(user_data, current_progress, days_to_yks, student_field)
+    # DİNAMİK KONU BİTİŞ TAKVİMİ
+    st.subheader("📅 Haftalık Gidişatınıza Göre Konu Bitiş Takvimi")
     
-    # ===== YENİ: OTOMAUTİK SAAT AYARLAMA SİSTEMİ =====
-    st.markdown("---")
-    st.subheader("⏰ Otomatik Çalışma Programı")
-    
-    # Adaptif program oluştur
-    schedule_data = generate_adaptive_schedule(user_data)
-    
-    # Tempo mesajını göster
-    if schedule_data['tempo_color'] == 'warning':
-        st.warning(schedule_data['tempo_message'])
-    elif schedule_data['tempo_color'] == 'success':
-        st.success(schedule_data['tempo_message'])
-    else:
-        st.info(schedule_data['tempo_message'])
-    
-    # Programı göster
-    st.info(f"""
-    **📚 Günlük Çalışma Programı:** {schedule_data['schedule']}
-    
-    **⏰ Haftalık Program:**
-    - Pazartesi-Cuma: Yoğun çalışma ({schedule_data['adjusted_hours']:.1f} saat/gün)
-    - Cumartesi: Hafta tekrarı (4 saat)
-    - Pazar: Dinlenme veya hafif tekrar (2 saat)
-    
-    *Bu program ilerlemenize göre otomatik güncellenir.*
-    """)
-    
-    # Sistem başarıyla güncellendi - adaptif sistem aktif
+    show_dynamic_topic_calendar(user_data, topics_per_week, weekly_plan_start, days_to_yks)
     
     # Başarı badge'leri (boş)
     points = 0
     new_badges = []
     
     return points, new_badges
+
+def show_dynamic_topic_calendar(user_data, topics_per_week, weekly_plan_start, days_to_yks):
+    """🗓️ Dinamik Konu Bitiş Takvimi - Haftalık performansa göre güncellenir"""
+    from datetime import datetime, timedelta
+    
+    # Öğrenci alanını al
+    student_field = user_data.get('field', 'Sayısal')
+    
+    # Alan bazlı temel konu listesi
+    if student_field == 'Sayısal (MF)':
+        all_topics = [
+            "TYT Matematik Temelleri", "TYT Türkçe", "TYT Fen Bilimleri", "TYT Sosyal Bilimler",
+            "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji",
+            "Matematik İleri Konular", "Fizik İleri Konular", "Kimya İleri Konular", "Biyoloji İleri Konular"
+        ]
+    elif student_field == 'Sözel (TM)':
+        all_topics = [
+            "TYT Matematik Temelleri", "TYT Türkçe", "TYT Fen Bilimleri", "TYT Sosyal Bilimler", 
+            "AYT Türk Dili ve Edebiyatı", "AYT Tarih-1", "AYT Coğrafya-1", "AYT Felsefe",
+            "Edebiyat İleri Konular", "Tarih İleri Konular", "Coğrafya İleri Konular"
+        ]
+    else:  # Eşit Ağırlık
+        all_topics = [
+            "TYT Matematik Temelleri", "TYT Türkçe", "TYT Fen Bilimleri", "TYT Sosyal Bilimler",
+            "AYT Matematik", "AYT Türk Dili ve Edebiyatı", "AYT Tarih-1", "AYT Coğrafya-1",
+            "Matematik İleri Konular", "Sosyal Bilimler İleri Konular"
+        ]
+    
+    # Tamamlanan konuları al (varsayılan olarak ilk 2 konu tamamlanmış kabul edelim)
+    completed_topics = user_data.get('completed_topics_list', all_topics[:2])
+    remaining_topics = [topic for topic in all_topics if topic not in completed_topics]
+    
+    # Başlangıç tarihini parse et
+    try:
+        start_date = datetime.strptime(weekly_plan_start, "%Y-%m-%d")
+    except:
+        start_date = datetime.now()
+    
+    # Ay ay konu dağılımı hesapla
+    current_date = start_date
+    end_date = current_date + timedelta(days=days_to_yks)
+    
+    monthly_plan = {}
+    topic_index = 0
+    
+    # Her ay için konu dağılımı
+    while current_date < end_date and topic_index < len(remaining_topics):
+        month_name = current_date.strftime("%B %Y")
+        month_name_tr = {
+            'January': 'Ocak', 'February': 'Şubat', 'March': 'Mart', 'April': 'Nisan',
+            'May': 'Mayıs', 'June': 'Haziran', 'July': 'Temmuz', 'August': 'Ağustos',
+            'September': 'Eylül', 'October': 'Ekim', 'November': 'Kasım', 'December': 'Aralık'
+        }
+        
+        for eng, tr in month_name_tr.items():
+            month_name = month_name.replace(eng, tr)
+        
+        # Bu ayda bitecek konu sayısı (4-5 hafta × haftalık tempo)
+        topics_this_month = int(4 * topics_per_week)
+        topics_this_month = max(1, min(topics_this_month, len(remaining_topics) - topic_index))
+        
+        month_topics = remaining_topics[topic_index:topic_index + topics_this_month]
+        monthly_plan[month_name] = month_topics
+        
+        topic_index += topics_this_month
+        current_date += timedelta(days=30)  # Bir sonraki ay
+    
+    # Takvimi göster
+    st.markdown("**🎯 Mevcut temponuza göre konu bitiş tahmini:**")
+    
+    for month, topics in monthly_plan.items():
+        if topics:
+            with st.expander(f"📅 **{month}** ({len(topics)} konu)"):
+                for i, topic in enumerate(topics, 1):
+                    st.write(f"{i}. ✅ {topic}")
+    
+    # Deneme sınavları tahmini
+    total_months = len(monthly_plan)
+    if total_months >= 6:
+        deneme_start_month = list(monthly_plan.keys())[-2] if len(monthly_plan) >= 2 else list(monthly_plan.keys())[-1]
+        st.info(f"🎯 **Bu hızda gidersen {deneme_start_month}'da denemelere başlayacaksın!**")
+    elif total_months >= 4:
+        deneme_start_month = list(monthly_plan.keys())[-1]
+        st.warning(f"⚡ **Bu tempoda {deneme_start_month}'da denemelere başlayabilirsin, ama biraz hızlanman iyi olur!**")
+    else:
+        st.error("🚨 **Mevcut tempo çok yavaş! Deneme sınavları için tempo artırmalısın!**")
+    
+    # Performans önerisi
+    if topics_per_week >= 4:
+        st.success("🚀 **Mükemmel tempo! Bu şekilde devam et!**")
+    elif topics_per_week >= 2.5:
+        st.info("📈 **Normal tempo. Biraz daha hızlanabilirsin.**")
+    else:
+        st.warning("⚠️ **Yavaş tempo. Haftalık çalışma saatlerini artırman gerekiyor.**")
 
 def show_scientific_life_coaching(user_data):
     """🧠 Bilimsel Yaşam Koçluğu - YKS için nörobilim destekli optimizasyon"""
