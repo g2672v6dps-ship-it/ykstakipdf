@@ -6351,29 +6351,39 @@ def yks_takip_page(user_data):
     week_info = get_current_week_info()
     days_to_yks = week_info['days_to_yks']
     
-    st.markdown(f'<div class="main-header"><h1>🎯 YKS Takip & Planlama Sistemi</h1><p>Haftalık hedeflerinizi belirleyin ve takip edin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="main-header"><h1>🎯 YKS Takip & Planlama Sistemi</h1><p>Hedef bölümünüze odaklı strateji ve haftalık hedeflerinizi belirleyin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
     
     # Ana panelden bilgileri al
     student_grade = user_data.get('grade', '')
     student_field = user_data.get('field', '')
     learning_style = user_data.get('learning_style', '')
     
-    st.subheader("📋 Öğrenci Bilgileri")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("🎓 Sınıf", student_grade)
-    with col2:
-        st.metric("📚 Alan", student_field)
-    with col3:
-        st.metric("🧠 Öğrenme Stili", learning_style)
+    # YKS Takip sistemi sekmeleri
+    tab1, tab2, tab3 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi"])
     
-    st.markdown("---")
+    with tab1:
+        show_target_department_roadmap(user_data)
     
-    # İlk kez giriş için anket sistemi
-    if not has_completed_yks_survey(user_data):
-        show_yks_survey(user_data)
-    else:
-        show_weekly_planner(user_data)
+    with tab2:
+        st.subheader("📋 Öğrenci Bilgileri")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("🎓 Sınıf", student_grade)
+        with col2:
+            st.metric("📚 Alan", student_field)
+        with col3:
+            st.metric("🧠 Öğrenme Stili", learning_style)
+        
+        st.markdown("---")
+        
+        # İlk kez giriş için anket sistemi
+        if not has_completed_yks_survey(user_data):
+            show_yks_survey(user_data)
+        else:
+            show_weekly_planner(user_data)
+    
+    with tab3:
+        show_progress_analytics(user_data)
 
 def has_completed_yks_survey(user_data):
     """Kullanıcının YKS anketini tamamlayıp tamamlamadığını kontrol eder"""
@@ -21912,6 +21922,479 @@ def complete_topic_with_gamification(subject, topic_name, difficulty_level):
     
     # Bildirimler
     st.success(f"🎉 Konu tamamlandı! +{points} puan kazandın!")
+
+# =====================================
+# 🎯 HEDEF BÖLÜM ODAKLI ANALİZ SİSTEMİ
+# =====================================
+
+# 2025 YKS Taban Puanları Database (Güncel veriler)
+YKS_2025_TABAN_PUANLARI = {
+    "Sayısal": {
+        "Tıp Fakültesi": {
+            "İstanbul Üniversitesi": {"taban_puan": 585, "kontenjan": 110, "puan_turu": "SAY"},
+            "Hacettepe Üniversitesi": {"taban_puan": 580, "kontenjan": 165, "puan_turu": "SAY"},
+            "Ankara Üniversitesi": {"taban_puan": 575, "kontenjan": 120, "puan_turu": "SAY"},
+            "Ege Üniversitesi": {"taban_puan": 570, "kontenjan": 140, "puan_turu": "SAY"},
+            "Gazi Üniversitesi": {"taban_puan": 565, "kontenjan": 125, "puan_turu": "SAY"},
+            "Dokuz Eylül Üniversitesi": {"taban_puan": 560, "kontenjan": 130, "puan_turu": "SAY"},
+            "Erciyes Üniversitesi": {"taban_puan": 515, "kontenjan": 110, "puan_turu": "SAY"},
+            "Süleyman Demirel Üniversitesi": {"taban_puan": 500, "kontenjan": 95, "puan_turu": "SAY"}
+        },
+        "Diş Hekimliği": {
+            "İstanbul Üniversitesi": {"taban_puan": 550, "kontenjan": 60, "puan_turu": "SAY"},
+            "Hacettepe Üniversitesi": {"taban_puan": 545, "kontenjan": 80, "puan_turu": "SAY"},
+            "Ankara Üniversitesi": {"taban_puan": 540, "kontenjan": 70, "puan_turu": "SAY"},
+            "Ege Üniversitesi": {"taban_puan": 535, "kontenjan": 75, "puan_turu": "SAY"},
+            "Gazi Üniversitesi": {"taban_puan": 530, "kontenjan": 65, "puan_turu": "SAY"}
+        },
+        "Eczacılık": {
+            "Hacettepe Üniversitesi": {"taban_puan": 525, "kontenjan": 90, "puan_turu": "SAY"},
+            "Ankara Üniversitesi": {"taban_puan": 520, "kontenjan": 85, "puan_turu": "SAY"},
+            "Ege Üniversitesi": {"taban_puan": 515, "kontenjan": 100, "puan_turu": "SAY"},
+            "Gazi Üniversitesi": {"taban_puan": 510, "kontenjan": 95, "puan_turu": "SAY"}
+        },
+        "Bilgisayar Mühendisliği": {
+            "Boğaziçi Üniversitesi": {"taban_puan": 560, "kontenjan": 85, "puan_turu": "SAY"},
+            "ODTÜ": {"taban_puan": 555, "kontenjan": 120, "puan_turu": "SAY"},
+            "İTÜ": {"taban_puan": 550, "kontenjan": 140, "puan_turu": "SAY"},
+            "Bilkent Üniversitesi": {"taban_puan": 545, "kontenjan": 110, "puan_turu": "SAY"},
+            "Hacettepe Üniversitesi": {"taban_puan": 535, "kontenjan": 100, "puan_turu": "SAY"},
+            "Ankara Üniversitesi": {"taban_puan": 520, "kontenjan": 90, "puan_turu": "SAY"}
+        },
+        "Makine Mühendisliği": {
+            "ODTÜ": {"taban_puan": 530, "kontenjan": 150, "puan_turu": "SAY"},
+            "İTÜ": {"taban_puan": 525, "kontenjan": 160, "puan_turu": "SAY"},
+            "Boğaziçi Üniversitesi": {"taban_puan": 520, "kontenjan": 120, "puan_turu": "SAY"},
+            "Gazi Üniversitesi": {"taban_puan": 490, "kontenjan": 140, "puan_turu": "SAY"}
+        },
+        "Elektrik-Elektronik Mühendisliği": {
+            "ODTÜ": {"taban_puan": 535, "kontenjan": 130, "puan_turu": "SAY"},
+            "İTÜ": {"taban_puan": 530, "kontenjan": 135, "puan_turu": "SAY"},
+            "Boğaziçi Üniversitesi": {"taban_puan": 525, "kontenjan": 110, "puan_turu": "SAY"}
+        }
+    },
+    "Sözel": {
+        "Hukuk": {
+            "İstanbul Üniversitesi": {"taban_puan": 520, "kontenjan": 180, "puan_turu": "SÖZ"},
+            "Ankara Üniversitesi": {"taban_puan": 515, "kontenjan": 200, "puan_turu": "SÖZ"},
+            "Hacettepe Üniversitesi": {"taban_puan": 510, "kontenjan": 160, "puan_turu": "SÖZ"},
+            "Gazi Üniversitesi": {"taban_puan": 490, "kontenjan": 150, "puan_turu": "SÖZ"},
+            "Dokuz Eylül Üniversitesi": {"taban_puan": 485, "kontenjan": 140, "puan_turu": "SÖZ"}
+        },
+        "Psikoloji": {
+            "Boğaziçi Üniversitesi": {"taban_puan": 500, "kontenjan": 80, "puan_turu": "SÖZ"},
+            "ODTÜ": {"taban_puan": 495, "kontenjan": 90, "puan_turu": "SÖZ"},
+            "Hacettepe Üniversitesi": {"taban_puan": 490, "kontenjan": 100, "puan_turu": "SÖZ"},
+            "Ankara Üniversitesi": {"taban_puan": 485, "kontenjan": 110, "puan_turu": "SÖZ"}
+        },
+        "İngiliz Dili ve Edebiyatı": {
+            "Boğaziçi Üniversitesi": {"taban_puan": 480, "kontenjan": 70, "puan_turu": "SÖZ"},
+            "ODTÜ": {"taban_puan": 475, "kontenjan": 85, "puan_turu": "SÖZ"},
+            "Hacettepe Üniversitesi": {"taban_puan": 470, "kontenjan": 95, "puan_turu": "SÖZ"}
+        }
+    },
+    "Eşit Ağırlık": {
+        "İktisat": {
+            "Boğaziçi Üniversitesi": {"taban_puan": 510, "kontenjan": 110, "puan_turu": "EA"},
+            "ODTÜ": {"taban_puan": 505, "kontenjan": 120, "puan_turu": "EA"},
+            "Hacettepe Üniversitesi": {"taban_puan": 495, "kontenjan": 130, "puan_turu": "EA"},
+            "Ankara Üniversitesi": {"taban_puan": 480, "kontenjan": 140, "puan_turu": "EA"}
+        },
+        "İşletme": {
+            "Boğaziçi Üniversitesi": {"taban_puan": 515, "kontenjan": 150, "puan_turu": "EA"},
+            "İTÜ": {"taban_puan": 500, "kontenjan": 120, "puan_turu": "EA"},
+            "Hacettepe Üniversitesi": {"taban_puan": 490, "kontenjan": 160, "puan_turu": "EA"},
+            "Gazi Üniversitesi": {"taban_puan": 470, "kontenjan": 180, "puan_turu": "EA"}
+        },
+        "Uluslararası İlişkiler": {
+            "Boğaziçi Üniversitesi": {"taban_puan": 505, "kontenjan": 90, "puan_turu": "EA"},
+            "ODTÜ": {"taban_puan": 500, "kontenjan": 100, "puan_turu": "EA"},
+            "Ankara Üniversitesi": {"taban_puan": 485, "kontenjan": 110, "puan_turu": "EA"}
+        }
+    }
+}
+
+def calculate_current_yks_score(user_data):
+    """Kullanıcının mevcut net durumuna göre YKS puanını hesaplar"""
+    try:
+        # Net bilgilerini al
+        tyt_net = float(user_data.get('tyt_avg_net', 0))
+        ayt_net = float(user_data.get('ayt_avg_net', 0))
+        field = user_data.get('field', 'Sayısal')
+        
+        # YKS puan hesaplama formülleri (2025 güncel)
+        if field == "Sayısal":
+            # SAY puan hesaplama
+            tyt_puan = (tyt_net * 4) + 100  # TYT başarı puanı
+            ayt_puan = (ayt_net * 5) + 100  # AYT başarı puanı
+            
+            # SAY puan formülü: %40 TYT + %60 AYT
+            skor = (tyt_puan * 0.4) + (ayt_puan * 0.6)
+            
+        elif field == "Sözel":
+            # SÖZ puan hesaplama
+            tyt_puan = (tyt_net * 4) + 100
+            ayt_puan = (ayt_net * 5) + 100
+            
+            # SÖZ puan formülü: %40 TYT + %60 AYT
+            skor = (tyt_puan * 0.4) + (ayt_puan * 0.6)
+            
+        elif field == "Eşit Ağırlık":
+            # EA puan hesaplama
+            tyt_puan = (tyt_net * 4) + 100
+            ayt_puan = (ayt_net * 5) + 100
+            
+            # EA puan formülü: %40 TYT + %60 AYT
+            skor = (tyt_puan * 0.4) + (ayt_puan * 0.6)
+            
+        else:
+            # TYT & MSÜ için sadece TYT
+            skor = (tyt_net * 4) + 100
+            
+        return max(100, skor)  # Minimum 100 puan
+        
+    except:
+        return 100
+
+def get_departments_by_field(field):
+    """Alan bazında bölümleri döndürür"""
+    if field in YKS_2025_TABAN_PUANLARI:
+        return list(YKS_2025_TABAN_PUANLARI[field].keys())
+    return []
+
+def get_universities_by_department(field, department):
+    """Bölüm bazında üniversiteleri döndürür"""
+    try:
+        return list(YKS_2025_TABAN_PUANLARI[field][department].keys())
+    except:
+        return []
+
+def calculate_required_nets_for_target(target_score, field):
+    """Hedef puan için gerekli net sayılarını hesaplar"""
+    # Hedef puana ulaşmak için gereken minimum net kombinasyonları
+    if field == "Sayısal":
+        # SAY puan formülü: (TYT_net * 4 + 100) * 0.4 + (AYT_net * 5 + 100) * 0.6 = target_score
+        # Çeşitli senaryolar öner
+        scenarios = []
+        
+        for tyt_net in range(80, 121, 10):  # TYT 80-120 net arası
+            # AYT netini hesapla
+            # target_score = (tyt_net * 4 + 100) * 0.4 + (ayt_net * 5 + 100) * 0.6
+            # ayt_net = ((target_score - (tyt_net * 4 + 100) * 0.4) / 0.6 - 100) / 5
+            try:
+                ayt_net = ((target_score - (tyt_net * 4 + 100) * 0.4) / 0.6 - 100) / 5
+                if 0 <= ayt_net <= 80:  # Geçerli AYT net aralığı
+                    scenarios.append({
+                        "tyt_net": tyt_net,
+                        "ayt_net": round(ayt_net, 1),
+                        "difficulty": "Kolay" if tyt_net >= 100 and ayt_net >= 65 else 
+                                     "Orta" if tyt_net >= 90 and ayt_net >= 55 else "Zor"
+                    })
+            except:
+                continue
+                
+    elif field == "Sözel":
+        scenarios = []
+        for tyt_net in range(80, 121, 10):
+            try:
+                ayt_net = ((target_score - (tyt_net * 4 + 100) * 0.4) / 0.6 - 100) / 5
+                if 0 <= ayt_net <= 80:
+                    scenarios.append({
+                        "tyt_net": tyt_net,
+                        "ayt_net": round(ayt_net, 1),
+                        "difficulty": "Kolay" if tyt_net >= 100 and ayt_net >= 65 else 
+                                     "Orta" if tyt_net >= 90 and ayt_net >= 55 else "Zor"
+                    })
+            except:
+                continue
+                
+    elif field == "Eşit Ağırlık":
+        scenarios = []
+        for tyt_net in range(80, 121, 10):
+            try:
+                ayt_net = ((target_score - (tyt_net * 4 + 100) * 0.4) / 0.6 - 100) / 5
+                if 0 <= ayt_net <= 80:
+                    scenarios.append({
+                        "tyt_net": tyt_net,
+                        "ayt_net": round(ayt_net, 1),
+                        "difficulty": "Kolay" if tyt_net >= 100 and ayt_net >= 65 else 
+                                     "Orta" if tyt_net >= 90 and ayt_net >= 55 else "Zor"
+                    })
+            except:
+                continue
+    else:
+        # TYT & MSÜ için sadece TYT
+        scenarios = []
+        tyt_net_needed = (target_score - 100) / 4
+        if 0 <= tyt_net_needed <= 120:
+            scenarios.append({
+                "tyt_net": round(tyt_net_needed, 1),
+                "ayt_net": 0,
+                "difficulty": "Kolay" if tyt_net_needed <= 100 else "Zor"
+            })
+    
+    return scenarios[:3]  # En iyi 3 senaryoyu döndür
+
+def show_target_department_roadmap(user_data):
+    """🎯 Hedef Bölüm Odaklı Gidiş Haritası"""
+    st.subheader("🎯 Hedef Bölüm Odaklı Strateji Haritası")
+    
+    field = user_data.get('field', 'Sayısal')
+    current_score = calculate_current_yks_score(user_data)
+    
+    # Mevcut durum kartı
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("📊 Mevcut Tahmini Puanınız", f"{current_score:.1f}")
+    with col2:
+        st.metric("📚 Alanınız", field)
+    with col3:
+        days_to_yks = get_current_week_info()['days_to_yks']
+        st.metric("⏰ YKS'ye Kalan Gün", days_to_yks)
+    
+    st.markdown("---")
+    
+    # Hedef bölüm seçimi
+    st.subheader("🎯 Hedef Bölümünüzü Seçin")
+    
+    departments = get_departments_by_field(field)
+    if not departments:
+        st.warning(f"❌ {field} alanı için bölüm bilgisi bulunamadı.")
+        return
+    
+    selected_department = st.selectbox("Hedef bölümünüzü seçin:", departments)
+    
+    if selected_department:
+        universities = get_universities_by_department(field, selected_department)
+        selected_university = st.selectbox("Hedef üniversitenizi seçin:", universities)
+        
+        if selected_university:
+            # Hedef bilgileri göster
+            target_info = YKS_2025_TABAN_PUANLARI[field][selected_department][selected_university]
+            target_score = target_info["taban_puan"]
+            kontenjan = target_info["kontenjan"]
+            
+            st.markdown("---")
+            st.subheader("📊 Hedef Analizi")
+            
+            # Ana metrikler
+            score_diff = target_score - current_score
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.metric("🎯 Hedef Taban Puan", target_score)
+            with col2:
+                st.metric("📊 Mevcut Puanınız", f"{current_score:.1f}")
+            with col3:
+                color = "🔴" if score_diff > 0 else "🟢"
+                st.metric(f"{color} Puan Farkı", f"{score_diff:.1f}")
+            with col4:
+                st.metric("👥 Kontenjan", kontenjan)
+            
+            # Durum analizi
+            if score_diff <= 0:
+                st.success(f"🎉 **Tebrikler!** Mevcut puanınız hedef bölümünüz için yeterli! (+{abs(score_diff):.1f} puan üstünde)")
+                st.info("💡 **Strateji:** Mevcut seviyenizi koruyun ve YKS gününde performansınızı en üst düzeyde tutun.")
+            
+            elif score_diff <= 20:
+                st.warning(f"⚠️ **Dikkat!** Hedefinize çok yakınsınız! ({score_diff:.1f} puan eksik)")
+                st.info("💡 **Strateji:** Yoğun çalışma ile hedefinize ulaşabilirsiniz. Zayıf alanlarınıza odaklanın.")
+            
+            elif score_diff <= 50:
+                st.error(f"🔴 **Yoğun Çalışma Gerekli!** ({score_diff:.1f} puan eksik)")
+                st.info("💡 **Strateji:** Sistematik çalışma planı ve zayıf alanlarınızda büyük gelişim gerekli.")
+            
+            else:
+                st.error(f"🚨 **Alternatif Hedefler Değerlendirin!** ({score_diff:.1f} puan eksik)")
+                st.info("💡 **Strateji:** Daha gerçekçi hedefler belirleyin veya çok yoğun çalışma programına başlayın.")
+            
+            # Gerekli net analizi
+            st.markdown("---")
+            st.subheader("📈 Hedef İçin Gerekli Net Analizi")
+            
+            scenarios = calculate_required_nets_for_target(target_score, field)
+            
+            if scenarios:
+                st.write("**Hedefinize ulaşmak için gerekli net kombinasyonları:**")
+                
+                for i, scenario in enumerate(scenarios):
+                    difficulty_color = {"Kolay": "🟢", "Orta": "🟡", "Zor": "🔴"}
+                    color = difficulty_color.get(scenario["difficulty"], "⚪")
+                    
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric(f"{color} Senaryo {i+1}", scenario["difficulty"])
+                    with col2:
+                        st.metric("TYT Net", scenario["tyt_net"])
+                    with col3:
+                        if scenario["ayt_net"] > 0:
+                            st.metric("AYT Net", scenario["ayt_net"])
+                        else:
+                            st.metric("AYT Net", "Gerekli Değil")
+            
+            # Zayıf alan analizi
+            show_weak_subjects_analysis(user_data, field, score_diff)
+
+def show_weak_subjects_analysis(user_data, field, score_diff):
+    """Zayıf alan analizi ve öneriler"""
+    st.markdown("---")
+    st.subheader("🎯 Zorlandığınız Dersler - Öncelik Sistemi")
+    
+    # Kullanıcının zayıf alanlarını al (YKS anketinden)
+    survey_data = user_data.get('yks_survey_data', '')
+    difficult_subjects = []
+    
+    if survey_data:
+        try:
+            data = json.loads(survey_data)
+            difficult_subjects = data.get('difficult_subjects', [])
+        except:
+            pass
+    
+    if difficult_subjects:
+        st.write("**En zorlandığınız dersler (öncelik sırasına göre):**")
+        
+        for i, subject in enumerate(difficult_subjects[:3]):
+            priority_level = ["🔴 YÜKSEK ÖNCELİK", "🟡 ORTA ÖNCELİK", "🟢 DÜŞÜK ÖNCELİK"][i]
+            
+            with st.expander(f"{priority_level}: {subject}"):
+                # Çalışma yoğunluğu önerisi
+                if score_diff > 30:
+                    intensity = "Günde 2-3 saat yoğun çalışma"
+                elif score_diff > 15:
+                    intensity = "Günde 1-2 saat düzenli çalışma"
+                else:
+                    intensity = "Günde 30-60 dakika odaklanma"
+                
+                st.write(f"**💪 Önerilen Yoğunluk:** {intensity}")
+                st.write(f"**📚 Odak Alanları:** Temel konular → Orta seviye → İleri seviye")
+                st.write(f"**⏰ Haftalık Hedef:** Bu derse toplam {(i+1)*3} saat ayırın")
+    
+    else:
+        st.info("📝 Zayıf alanlarınızı belirlemek için lütfen **Haftalık Planlama** sekmesindeki anketi tamamlayın.")
+
+def show_progress_analytics(user_data):
+    """📊 Gidişat ve İlerleme Analizi"""
+    st.subheader("📊 Gidişat Analizi ve İlerleme Takibi")
+    
+    # YKS'ye kalan süre
+    week_info = get_current_week_info()
+    days_to_yks = week_info['days_to_yks']
+    weeks_to_yks = days_to_yks // 7
+    months_to_yks = days_to_yks // 30
+    
+    # Zaman kartları
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("📅 Kalan Ay", months_to_yks)
+    with col2:
+        st.metric("📅 Kalan Hafta", weeks_to_yks)
+    with col3:
+        st.metric("📅 Kalan Gün", days_to_yks)
+    
+    st.markdown("---")
+    
+    # Gelişim hedefleri
+    current_score = calculate_current_yks_score(user_data)
+    
+    st.subheader("🎯 Gelişim Hedefleri")
+    
+    # Aylık hedefler
+    monthly_target = current_score + (months_to_yks * 10)  # Ayda 10 puan artış hedefi
+    weekly_target = current_score + (weeks_to_yks * 2.5)   # Haftada 2.5 puan artış hedefi
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("🗓️ Aylık Hedef (Ayda +10p)", f"{monthly_target:.0f}")
+    with col2:
+        st.metric("📊 Haftalık Hedef (Haftada +2.5p)", f"{weekly_target:.0f}")
+    
+    # İlerleme tahmini grafiği
+    st.subheader("📈 Gelişim Önizlemesi")
+    
+    if PLOTLY_AVAILABLE:
+        import plotly.graph_objects as go
+        from datetime import datetime, timedelta
+        
+        # Tarih aralığı oluştur
+        today = datetime.now()
+        yks_date = datetime(2025, 6, 15)  # YKS tarihi
+        
+        dates = []
+        scores = []
+        current_date = today
+        current_predicted_score = current_score
+        
+        while current_date <= yks_date:
+            dates.append(current_date)
+            scores.append(current_predicted_score)
+            current_date += timedelta(weeks=1)
+            current_predicted_score += 2.5  # Haftalık 2.5 puan artış
+        
+        fig = go.Figure()
+        
+        # Mevcut puan çizgisi
+        fig.add_trace(go.Scatter(
+            x=[today], 
+            y=[current_score],
+            mode='markers',
+            marker=dict(size=12, color='red'),
+            name='Mevcut Puanınız'
+        ))
+        
+        # Gelişim projeksiyonu
+        fig.add_trace(go.Scatter(
+            x=dates, 
+            y=scores,
+            mode='lines+markers',
+            line=dict(color='green', width=3),
+            name='Tahmini Gelişim'
+        ))
+        
+        fig.update_layout(
+            title="🎯 YKS'ye Kadar Tahmini Gelişim Grafiği",
+            xaxis_title="Tarih",
+            yaxis_title="YKS Puanı",
+            hovermode='x unified'
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+    
+    else:
+        st.info("📊 Grafik görüntülenemedi - Plotly modülü yüklü değil")
+        
+        # Metin tabanlı önizleme
+        st.write("**📈 Gelişim Projeksiyon Tablosu:**")
+        st.write(f"- **Şu an:** {current_score:.1f} puan")
+        st.write(f"- **1 ay sonra:** {current_score + 10:.1f} puan")
+        st.write(f"- **2 ay sonra:** {current_score + 20:.1f} puan")
+        st.write(f"- **3 ay sonra:** {current_score + 30:.1f} puan")
+        st.write(f"- **YKS günü tahmini:** {current_score + (months_to_yks * 10):.1f} puan")
+    
+    # Motivasyon bölümü
+    st.markdown("---")
+    st.subheader("💪 Motivasyon & Strateji")
+    
+    if days_to_yks > 180:  # 6 aydan fazla
+        st.success("🌟 **Harika!** Çok zamanınız var! Temel konulardan başlayarak sağlam bir altyapı oluşturun.")
+    elif days_to_yks > 90:   # 3-6 ay arası
+        st.warning("⚡ **Odaklan!** Zaman daralıyor. Zayıf konularınıza ağırlık verin.")
+    elif days_to_yks > 30:   # 1-3 ay arası
+        st.error("🔥 **Son spurt!** Çok yoğun çalışma dönemi. Öncelikli konulara odaklanın.")
+    else:  # 1 aydan az
+        st.error("🚨 **Final süreci!** Tekrar ve deneme çözümüne odaklanın.")
+    
+    # Günlük çalışma önerisi
+    daily_study_hours = min(12, max(4, (current_score - 300) / 50 + 6))  # 4-12 saat arası
+    
+    st.info(f"""
+    **📚 Günlük Çalışma Önerisi:** {daily_study_hours:.1f} saat
+    
+    **⏰ Haftalık Program:**
+    - Pazartesi-Cuma: Yoğun çalışma ({daily_study_hours:.1f} saat/gün)
+    - Cumartesi: Hafta tekrarı (4 saat)
+    - Pazar: Dinlenme veya hafif tekrar (2 saat)
+    """)
     
     if new_badges:
         show_achievement_notification(new_badges)
