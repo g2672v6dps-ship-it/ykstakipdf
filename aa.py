@@ -17406,22 +17406,24 @@ def run_psychology_page():
     
     /* Genel profil analizi - Daha sade */
     .comprehensive-profile {
-        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-        color: #2d3748;
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+        color: white;
         padding: 2rem;
         border-radius: 15px;
         margin: 2rem 0;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-        border: 1px solid #e2e8f0;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        border: 1px solid #ff4757;
     }
     
     .comprehensive-profile h2 {
-        color: #2d3748;
+        color: white;
         margin-bottom: 0.5rem;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
     }
     
     .comprehensive-profile p {
-        color: #4a5568;
+        color: rgba(255,255,255,0.9);
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     }
     
     .profile-chart {
