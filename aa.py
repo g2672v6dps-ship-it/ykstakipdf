@@ -10688,11 +10688,37 @@ def add_pomodoro_to_weekly_program(user_data, pomodoro_record):
         st.warning(f"⚠️ Haftalık programa ekleme sırasında hata: {e}")
 
 def save_pomodoro_to_user_data(user_data, pomodoro_record):
-    """Pomodoro kaydını kullanıcı verisine kaydet"""
+    """Pomodoro kaydını kullanıcı verisine kaydet - KONU TAKİP SEVİYE KONTROLÜ İLE"""
     try:
+        # 🎯 ÖNEMLI: Konu takipteki seviyeyi kontrol et
+        subject = pomodoro_record.get('subject', '')
+        topic_name = pomodoro_record.get('topic', '')
+        
+        # Konu key'ini bul
+        topic_key = f"{subject}-{topic_name}"
+        
+        # Konu takipten seviyeyi al
+        topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+        current_net = topic_progress.get(topic_key, '0')
+        
+        try:
+            net_value = int(float(current_net))
+        except:
+            net_value = 0
+        
+        # 🚀 İYİ SEVİYE KONTROLÜ: 15+ net olması gerekli
+        if net_value < 15:
+            st.warning(f"⚠️ **{topic_name}** konusu henüz **İYİ seviyede değil** (Mevcut: {net_value} net, Gerekli: 15+ net)")
+            st.info("🎯 Bu konu **tamamlanmış sayılmadı**. Konu Takip'te seviyeyi artırın!")
+            return False  # Kaydetme!
+        
         # Mevcut pomodoro verilerini yükle
         pomodoro_data_str = user_data.get('pomodoro_history', '[]')
         pomodoro_history = json.loads(pomodoro_data_str) if pomodoro_data_str else []
+        
+        # ✅ İYİ seviyede olan konu için kaydet
+        pomodoro_record['topic_level'] = net_value  # Seviyeyi de kaydet
+        pomodoro_record['is_completed'] = True  # Tamamlandı işareti
         
         # Yeni kaydı ekle
         pomodoro_history.append(pomodoro_record)
@@ -10708,8 +10734,12 @@ def save_pomodoro_to_user_data(user_data, pomodoro_record):
         # Session state'teki kullanıcı verisini güncelle
         st.session_state.users_db = load_users_from_firebase()
         
+        st.success(f"✅ **{topic_name}** başarıyla tamamlandı! (Seviye: {net_value} net - 🚀 İyi)")
+        return True
+        
     except Exception as e:
         st.error(f"Pomodoro kaydı kaydedilirken hata: {e}")
+        return False
 
 def show_daily_pomodoro_stats(user_data):
     """Hibrit Pomodoro istatistiklerini göster"""
@@ -11447,14 +11477,6 @@ def organize_daily_study_by_style(topics_list, survey_data):
         all_topics = hard_topics + normal_topics + easy_topics
         random.shuffle(all_topics)
         organized_topics = all_topics
-    
-    # Günlük ders sayısını uygula
-    try:
-        max_daily = int(daily_subjects)
-        if len(organized_topics) > max_daily:
-            organized_topics = organized_topics[:max_daily]
-    except:
-        pass
     
     return organized_topics
 
