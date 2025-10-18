@@ -22395,11 +22395,6 @@ def show_progress_analytics(user_data):
     - Cumartesi: Hafta tekrarı (4 saat)
     - Pazar: Dinlenme veya hafif tekrar (2 saat)
     """)
-    
-    if new_badges:
-        show_achievement_notification(new_badges)
-    
-    return points, new_badges
 
 # Karmaşık fonksiyonlar kaldırıldı - Basit sistem artık tamamen hazır!
 
