@@ -6593,6 +6593,47 @@ def show_weekly_planner(user_data):
         progress_bar = st.progress(completion_percentage / 100)
         st.caption(f"Haftalık hedefin %{completion_percentage:.1f}'ini tamamladın!")
         
+        # Debug bilgisi (geliştirme amaçlı)
+        with st.expander("📊 İlerleme Detayları", expanded=False):
+            # Session state tamamlanan konuları say
+            session_completed = 0
+            for key in st.session_state.keys():
+                if key.startswith('completed_') and st.session_state[key]:
+                    session_completed += 1
+            
+            # Konu takip verilerini say
+            konu_takip_completed = 0
+            if hasattr(st.session_state, 'konu_takip'):
+                from datetime import datetime, timedelta
+                today = datetime.now()
+                week_start = today - timedelta(days=today.weekday())
+                
+                for konu_key, konu_data in st.session_state.konu_takip.items():
+                    if isinstance(konu_data, dict):
+                        last_update = konu_data.get('last_update', '')
+                        if last_update:
+                            try:
+                                update_date = datetime.fromisoformat(last_update.split('T')[0])
+                                if update_date >= week_start:
+                                    net_dogru = konu_data.get('net_dogru', 0)
+                                    if net_dogru >= 5:
+                                        konu_takip_completed += 1
+                            except:
+                                pass
+            
+            # Pomodoro tamamlanan konuları say  
+            pomodoro_completed = 0
+            if hasattr(st.session_state, 'completed_pomodoros'):
+                pomodoro_completed = len(st.session_state.completed_pomodoros)
+            
+            total_found = session_completed + konu_takip_completed + pomodoro_completed
+            
+            st.write(f"🎯 **Tamamlanan İşler:**")
+            st.write(f"• Oturumda işaretlenen: {session_completed}")
+            st.write(f"• Konu takipte gelişen: {konu_takip_completed}")  
+            st.write(f"• Pomodoro tamamlanan: {pomodoro_completed}")
+            st.write(f"**Toplam: {total_found} konu**")
+        
         # Hafta sonu yaklaşırken özel mesaj
         today = datetime.now()
         if today.weekday() >= 5:  # Cumartesi veya Pazar
@@ -6613,7 +6654,15 @@ def show_weekly_planner(user_data):
         elif completion_percentage >= 20:
             st.markdown("💪 **Devam Et!**")
         else:
-            st.markdown("🚀 **Hızlan!**")
+            # İnteraktif hızlan butonu
+            if st.button("🚀 **Hızlan!**", key="speedup_btn", help="Motivasyon için tıkla!"):
+                st.balloons()
+                st.success("💪 Hadi bakalım! Bugün daha çok çalış!")
+                # Session state'e motivasyon puanı ekle
+                if 'motivation_points' not in st.session_state:
+                    st.session_state.motivation_points = 0
+                st.session_state.motivation_points += 1
+                st.rerun()
     
     # İlerleme yüzdesi hesaplanıyor
     final_completion = completion_percentage
@@ -20547,90 +20596,79 @@ def show_dynamic_week_dashboard(weekly_plan, user_data):
 # ===== DİNAMİK HAFTALIK PLAN ENTEGRASYONU =====
 
 def calculate_weekly_completion_percentage(user_data, weekly_plan=None):
-    """Bu haftanın hedef konularının tamamlanma yüzdesini hesaplar"""
+    """Bu haftanın hedef konularının tamamlanma yüzdesini hesaplar - İYİLEŞTİRİLMİŞ"""
     import json
     from datetime import datetime, timedelta
     
     try:
-        # weekly_plan None ise sadece gerçek ilerlemeyi hesapla
-        if weekly_plan is None:
-            # Bu hafta tamamlanan konuları session state'den kontrol et
+        # Gerçek tamamlanma yüzdesini hesapla
+        completed_topics = 0
+        total_targets = 0
+        
+        # 1. SESSION STATE'deki tamamlanan konuları say
+        for key in st.session_state.keys():
+            if key.startswith('completed_') and st.session_state[key]:
+                completed_topics += 1
+        
+        # 2. KONU TAKİP'teki bu hafta çalışılan konuları say
+        if hasattr(st.session_state, 'konu_takip'):
+            konu_takip = st.session_state.konu_takip
             today = datetime.now()
             week_start = today - timedelta(days=today.weekday())
             
-            completed_this_week = 0
-            target_topics_per_week = 7  # Varsayılan haftalık hedef
-            
-            # Session state'de bu hafta tamamlanan konuları say
-            for key in st.session_state.keys():
-                if key.startswith('completed_') and st.session_state[key]:
-                    completed_this_week += 1
-            
-            # Haftalık hedef konuları belirleme (alan bazında)
-            user_field = user_data.get('field', 'Genel')
-            if user_field in ['Sayısal', 'MF']:
-                target_topics_per_week = 8  # Sayısal daha yoğun
-            elif user_field in ['Sözel', 'TM']:
-                target_topics_per_week = 6  # Sözel biraz daha az
-            else:
-                target_topics_per_week = 7  # Varsayılan
-            
-            # Gerçek yüzde hesaplama
-            actual_percentage = min((completed_this_week / target_topics_per_week) * 100, 100.0)
-            
-            # Eğer hiç tamamlanmamışsa kullanıcının topic_progress'inden hesapla
-            if actual_percentage == 0:
-                topic_progress = json.loads(user_data.get('topic_progress', '{}'))
-                
-                # Son 7 gün içinde güncellenmiş konuları say
-                for topic_key, progress in topic_progress.items():
-                    if isinstance(progress, dict) and 'last_study_date' in progress:
+            for konu_key, konu_data in konu_takip.items():
+                if isinstance(konu_data, dict):
+                    # Bu hafta güncellenmiş konuları say
+                    last_update = konu_data.get('last_update', '')
+                    if last_update:
                         try:
-                            last_date = datetime.fromisoformat(progress['last_study_date'].split('T')[0])
-                            if (today - last_date).days <= 7:
-                                completed_this_week += 1
+                            update_date = datetime.fromisoformat(last_update.split('T')[0])
+                            if update_date >= week_start:
+                                net_dogru = konu_data.get('net_dogru', 0)
+                                if net_dogru >= 5:  # En az 5 net yapmışsa sayalım
+                                    completed_topics += 1
                         except:
                             pass
-                
-                actual_percentage = min((completed_this_week / target_topics_per_week) * 100, 100.0)
-            
-            return actual_percentage if actual_percentage > 0 else 15.0  # Minimum %15
         
-        # weekly_plan var ise orijinal mantık
-        # Bu hafta programlanmış konuları session'dan al
-        if 'weekly_schedule' not in st.session_state:
-            st.session_state.weekly_schedule = {}
+        # 3. POMODORO tamamlanan konuları say
+        if hasattr(st.session_state, 'completed_pomodoros'):
+            completed_topics += len(st.session_state.completed_pomodoros)
         
-        weekly_schedule = st.session_state.weekly_schedule
-        
-        # Toplam programlanmış konu sayısı
-        total_scheduled = 0
-        completed_topics = 0
-        
-        # Tüm günlerdeki programlanmış konuları say
-        for day, topics in weekly_schedule.items():
-            for topic in topics:
-                total_scheduled += 1
-                
-                # Konunun tamamlanıp tamamlanmadığını kontrol et
-                topic_key = f"{topic.get('subject', '')}_{topic.get('topic', '')}_{topic.get('detail', '')}"
-                
-                # Session state'de tamamlanma durumu
-                if f"completed_{topic_key}" in st.session_state:
-                    if st.session_state[f"completed_{topic_key}"]:
-                        completed_topics += 1
-        
-        # Tamamlanma yüzdesini hesapla
-        if total_scheduled > 0:
-            completion_percentage = (completed_topics / total_scheduled) * 100
+        # 4. HAFTALIK HEDEF BELİRLE (alan bazında)
+        user_field = user_data.get('field', 'Genel')
+        if user_field in ['Sayısal', 'MF']:
+            total_targets = 10  # Sayısal daha yoğun
+        elif user_field in ['Sözel', 'TM']:
+            total_targets = 8   # Sözel biraz daha az
+        elif user_field in ['Eşit Ağırlık', 'EA']:
+            total_targets = 9   # Eşit ağırlık orta
         else:
-            completion_percentage = 15.0  # Varsayılan
+            total_targets = 8   # Varsayılan
+        
+        # 5. PROGRAMLANMIŞ KONULAR VAR MI KONTROL ET
+        if weekly_plan and 'weekly_schedule' in st.session_state:
+            weekly_schedule = st.session_state.weekly_schedule
+            scheduled_count = 0
             
-        return min(completion_percentage, 100.0)  # Max %100
+            for day, topics in weekly_schedule.items():
+                scheduled_count += len(topics) if topics else 0
+            
+            # Programlanmış konu varsa hedefi ona göre ayarla
+            if scheduled_count > 0:
+                total_targets = max(scheduled_count, total_targets)
+        
+        # 6. GERÇEK YÜZDE HESAPLA
+        if total_targets > 0:
+            real_percentage = min((completed_topics / total_targets) * 100, 100.0)
+        else:
+            real_percentage = 0.0
+        
+        # 7. MİNİMUM YÜZDE KURALINI KALDIR - GERÇEK VERİYİ GÖSTER
+        return max(real_percentage, 0.0)  # Gerçek veri, minimum yok!
         
     except Exception as e:
-        # Hata durumunda güvenli varsayılan
-        return 25.0
+        # Hata durumunda bile gerçek veri döndür
+        return 0.0
 
 def get_next_week_topics(user_data, student_field, survey_data):
     """Gelecek haftanın konularını getirir"""
