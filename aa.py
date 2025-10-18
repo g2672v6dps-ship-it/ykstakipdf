@@ -295,7 +295,7 @@ def update_user_in_firebase(username, data):
     """Firebase'de kullanıcı verilerini günceller (Fallback destekli)"""
     try:
         if firebase_connected and db_ref:
-            db_ref.child("users").child(username).update(data)
+            db_ref.child(username).update(data)  # ✅ DÜZELTME: /users yolu zaten tanımlı
             return True
         else:
             # FALLBACK: Local test kullanıcıları
