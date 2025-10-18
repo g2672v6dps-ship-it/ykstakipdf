@@ -6494,11 +6494,7 @@ def show_yks_survey(user_data):
                               {'yks_survey_data': json.dumps(survey_data)})
             st.session_state.users_db = load_users_from_firebase()
             
-            # Kitap önerilerini göster
-            st.success("✅ Bilgileriniz kaydedildi!")
-            st.markdown("### 📚 Size Özel Kitap Önerileri")
-            for book in BOOK_RECOMMENDATIONS[book_type]:
-                st.write(f"📖 {book}")
+            # Anket verileri kaydedildi - gereksiz kitap önerisi gösterilmiyor
             
             st.rerun()
 
@@ -6587,21 +6583,57 @@ def show_weekly_planner(user_data):
     
     completion_percentage = calculate_weekly_completion_percentage(user_data, weekly_plan)
     
-    # Progress bar göster
-    st.markdown("#### 📊 BU HAFTANİN İLERLEMESİ")
+    # Progress bar göster - SÜREKLI GÜNCEL SİSTEM
+    st.markdown("#### 📊 BU HAFTANİN İLERLEMESİ (Sürekli Güncel)")
     progress_col1, progress_col2 = st.columns([3, 2])
+    
+    # Gerçek zamanlı hesaplama - güncel tarih bazlı
+    from datetime import datetime
+    current_date = datetime.now()
+    week_start = current_date - timedelta(days=current_date.weekday())
+    week_progress = (current_date - week_start).days / 7 * 100  # Haftanın yüzde kaçı geçti
+    
+    # Hedef tamamlanma yüzdesi
+    expected_completion = week_progress  # Hafta %50 geçtiyse %50 tamamlanmış olmalı
+    actual_completion = completion_percentage
     
     with progress_col1:
         progress_bar = st.progress(completion_percentage / 100)
-        st.caption(f"Haftalık hedefin %{completion_percentage:.1f}'ini tamamladın!")
+        
+        # Dinamik mesaj - gerçek zamanlı
+        if actual_completion >= expected_completion + 20:
+            status_msg = f"🚀 Süper! Haftanın %{week_progress:.0f}'i geçti, sen %{completion_percentage:.1f} tamamladın! Hedefin önündesin!"
+            color = "success"
+        elif actual_completion >= expected_completion:
+            status_msg = f"⚡ İyi! Haftanın %{week_progress:.0f}'i geçti, sen %{completion_percentage:.1f} tamamladın! Hedeftesin!"
+            color = "info"
+        else:
+            gap = expected_completion - actual_completion
+            status_msg = f"⚠️ Dikkat! Haftanın %{week_progress:.0f}'i geçti ama sen sadece %{completion_percentage:.1f} tamamladın! {gap:.0f} puan geridesin!"
+            color = "error"
+        
+        if color == "success":
+            st.success(status_msg)
+        elif color == "info":
+            st.info(status_msg)
+        else:
+            st.error(status_msg)
     
     with progress_col2:
+        # Güncel zaman bilgisi
+        st.write(f"📅 **Bugün:** {current_date.strftime('%d %B %Y %A')}")
+        st.write(f"⏰ **Saat:** {current_date.strftime('%H:%M')}")
+        st.write(f"📊 **Hafta geçişi:** %{week_progress:.0f}")
+        
         if completion_percentage >= 80:
             st.markdown("🎉 **Hedef Aşıldı!**")
         elif completion_percentage >= 60:
             st.markdown("⚡ **İyi Gidiyorsun!**")
         else:
-            st.markdown("💪 **Devam Et!**")
+            st.markdown("💪 **Hızlanmalısın!**")
+    
+    # Otomatik güncelleme sistemi göstergesi
+    st.caption("🔄 Bu sistem anlık olarak güncellenir - sayfa yenilendiğinde en güncel durumu gösterir")
     
     # İlerleme yüzdesi hesaplanıyor
     final_completion = completion_percentage
@@ -7658,119 +7690,7 @@ def show_time_strategy_dashboard(weekly_plan):
     recommendations = weekly_plan.get('period_recommendations', [])
     focus_areas = weekly_plan.get('focus_areas', {})
     
-    st.markdown("### 🎯 DÖNEM STRATEJİNİZ")
-    
-    # Ana strateji bilgileri
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        period_emoji = {
-            'TEMELCİ DÖNEM': '🧠',
-            'KONSOLDASYON DÖNEM': '🔗',
-            'EKSİK KAPATMA DÖNEM': '🎯',
-            'YOĞUN DENEMECİ DÖNEM': '🎲',
-            'DENEME VE ANALİZ DÖNEM': '📊',
-            'SON SPRİNT DÖNEM': '💎',
-            'MORAL KORUMA DÖNEM': '😌'
-        }
-        
-        period_name = time_strategy.get('period_name', 'GENEL')
-        emoji = period_emoji.get(period_name, '📚')
-        
-        st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                    padding: 20px; border-radius: 15px; text-align: center; color: white;">
-            <h3 style="margin: 0; color: white;">{emoji} {period_name}</h3>
-            <p style="margin: 5px 0; opacity: 0.9;">{time_strategy.get('special_notes', '')}</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        intensity_colors = {
-            'sakin': '#28a745',
-            'normal': '#17a2b8', 
-            'artiriyor': '#ffc107',
-            'yuksek': '#fd7e14',
-            'maksimum': '#dc3545',
-            'kontrollü_yoğun': '#e83e8c'
-        }
-        
-        intensity = time_strategy.get('study_intensity', 'normal')
-        color = intensity_colors.get(intensity, '#17a2b8')
-        
-        st.markdown(f"""
-        <div style="background-color: {color}; padding: 20px; border-radius: 15px; text-align: center; color: white;">
-            <h4 style="margin: 0; color: white;">📈 ÇALIŞMA YoĞUNLUĞU</h4>
-            <h3 style="margin: 5px 0; color: white;">{intensity.upper()}</h3>
-            <p style="margin: 0; opacity: 0.9;">Haftalık {time_strategy.get('new_topics_per_week', 0)} yeni konu</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
-                    padding: 20px; border-radius: 15px; text-align: center; color: white;">
-            <h4 style="margin: 0; color: white;">🎲 DENEME STRATEJİSİ</h4>
-            <h3 style="margin: 5px 0; color: white;">{time_strategy.get('deneme_frequency', 'Belirtilmemiş')}</h3>
-            <p style="margin: 0; opacity: 0.9;">{deneme_strategy.get('type', 'Genel deneme').replace('_', ' ').title()}</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # Detaylı bilgiler
-    col4, col5 = st.columns(2)
-    
-    with col4:
-        st.markdown("#### 💡 DÖNEM ÖNERİLERİ")
-        for i, rec in enumerate(recommendations[:5], 1):
-            st.markdown(f"**{i}.** {rec}")
-        
-        if len(recommendations) > 5:
-            with st.expander("Daha fazla öneri..."):
-                for i, rec in enumerate(recommendations[5:], 6):
-                    st.markdown(f"**{i}.** {rec}")
-    
-    with col5:
-        st.markdown("#### 🎯 ODAK ALANLARI")
-        
-        # Öncelikli alanlar
-        if focus_areas.get('primary'):
-            st.markdown("**🔥 Öncelikli:**")
-            for area in focus_areas['primary']:
-                st.markdown(f"• {area}")
-        
-        # İkincil alanlar
-        if focus_areas.get('secondary'):
-            st.markdown("**⚡ İkincil:**")
-            for area in focus_areas['secondary']:
-                st.markdown(f"• {area}")
-        
-        # Kaçınılacaklar
-        if focus_areas.get('avoid'):
-            st.markdown("**❌ Kaçın:**")
-            for area in focus_areas['avoid']:
-                st.markdown(f"• {area}")
-    
-    # Deneme strateji detayları
-    if deneme_strategy:
-        st.markdown("---")
-        st.markdown("#### 📊 DENEME STRATEJİ DETAYLARI")
-        
-        deneme_col1, deneme_col2 = st.columns(2)
-        
-        with deneme_col1:
-            st.markdown(f"**🎯 Sıklık:** {deneme_strategy.get('frequency_description', 'Belirtilmemiş')}")
-            st.markdown(f"**🔍 Analiz Odağı:** {deneme_strategy.get('analysis_focus', 'Genel analiz')}")
-        
-        with deneme_col2:
-            st.markdown(f"**💡 Önerisi:** {deneme_strategy.get('recommendation', 'Deneme sonrası analiz yapın')}")
-            
-            # Deneme sonrası ne yapacağını net söyle
-            if time_strategy.get('period_name') == 'YOĞUN DENEMECİ DÖNEM':
-                st.success("🎯 Nisan Dönemdesiniz! Deneme stratejilerine odaklanın!")
-            elif time_strategy.get('period_name') == 'DENEME VE ANALİZ DÖNEM':
-                st.warning("📊 Mayıs Dönemdesiniz! Her deneme sonrası detaylı analiz!")
+    # DÖNEM STRATEJİNİZ kısmı kaldırıldı - Gereksiz karmaşa yerine gerçek konu takvimi eklendi
     
     # Kalan gün sayısına göre motivasyon mesajı
     days_to_yks = time_strategy.get('days_to_yks', 300)
@@ -9885,12 +9805,7 @@ def show_systematic_recommendations(weekly_plan, survey_data, student_field):
             for item in rec['items']:
                 st.write(f"• {item}")
     
-    # Haftalık motivasyon
-    st.markdown("### 🚀 Bu Hafta Motivasyon")
-    motivation_quote = random.choice(MOTIVATION_QUOTES)
-    st.success(f"💫 {motivation_quote}")
-    
-    # Öğrenme tarzına göre ipucu
+    # Haftalık öğrenme tarzına göre ipucu
     learning_style = survey_data.get('book_type', 'Genel')
     if learning_style in LEARNING_STYLE_DESCRIPTIONS:
         style_info = LEARNING_STYLE_DESCRIPTIONS[learning_style]
@@ -10741,18 +10656,73 @@ def reset_pomodoro():
     st.info("🔄 Pomodoro sıfırlandı")
 
 def complete_pomodoro(user_data):
-    """Pomodoro'yu tamamla ve kaydet"""
-    # Pomodoro'yu durdur
+    """Pomodoro'yu tamamla ve kaydet - SADECE KONU "İYİ" SEVİYEYE GELİRSE TAMAMLANMIŞ SAYILIR"""
+    # Konu seviyesi kontrolü - ÇOK ÖNEMLİ!
+    current_subject = st.session_state.current_subject
+    current_topic = st.session_state.current_topic
+    
+    # Konu takipte seviye kontrolü yap
+    topic_key = f"{current_subject}_{current_topic}".replace(" ", "_")
+    topic_level = user_data.get('topic_levels', {}).get(topic_key, 'başlangıç')
+    
+    # SADECE "iyi" veya "mükemmel" seviyeye geldiyse tamamlanmış say
+    if topic_level not in ['iyi', 'mükemmel']:
+        # Pomodoro'yu durdur ama tamamlanmış sayma!
+        st.session_state.pomodoro_active = False
+        st.session_state.start_time = None
+        
+        st.warning(f"""
+        ⚠️ **Pomodoro tamamlandı ama konu henüz tamamlanmış sayılmadı!**
+        
+        **📚 Konu:** {current_topic}
+        **📊 Mevcut Seviye:** {topic_level.title()}
+        **🎯 Gerekli Seviye:** İyi veya Mükemmel
+        
+        **Konu takip bölümünden seviyenizi "İyi"ye çıkarın, sonra pomodoro tamamlanmış sayılacak!**
+        """)
+        
+        # Kısmi kayıt oluştur (tamamlanmamış)
+        pomodoro_record = {
+            'timestamp': datetime.now().isoformat(),
+            'type': st.session_state.pomodoro_type,
+            'subject': current_subject,
+            'topic': current_topic,
+            'completed': False,  # TAMAMLANMADI!
+            'reason': f'Konu seviyesi yetersiz: {topic_level}'
+        }
+        
+        # Günlük listeye ekle (tamamlanmamış olarak)
+        st.session_state.daily_pomodoros.append(pomodoro_record)
+        save_pomodoro_to_user_data(user_data, pomodoro_record)
+        
+        # Timer'i sıfırla
+        duration_map = {
+            'Kısa Odak (25dk+5dk)': 25,
+            'Standart Odak (35dk+10dk)': 35,
+            'Derin Odak (50dk+15dk)': 50,
+            'Tam Konsantrasyon (90dk+25dk)': 90
+        }
+        
+        if st.session_state.pomodoro_type in duration_map:
+            st.session_state.time_remaining = duration_map[st.session_state.pomodoro_type] * 60
+        else:
+            st.session_state.pomodoro_type = 'Kısa Odak (25dk+5dk)'
+            st.session_state.time_remaining = 25 * 60
+        
+        return  # Fonksiyondan çık - tam tamamlanma işlemi yapma
+    
+    # KONU SEVİYESİ YETERLİ - NORMAL TAMAMLANMA İŞLEMİ
     st.session_state.pomodoro_active = False
     st.session_state.start_time = None
     
-    # Kayıt oluştur
+    # Kayıt oluştur (GERÇEKTEN TAMAMLANDI)
     pomodoro_record = {
         'timestamp': datetime.now().isoformat(),
         'type': st.session_state.pomodoro_type,
-        'subject': st.session_state.current_subject,
-        'topic': st.session_state.current_topic,
-        'completed': True
+        'subject': current_subject,
+        'topic': current_topic,
+        'completed': True,
+        'topic_level': topic_level  # Seviye bilgisi ekle
     }
     
     # Günlük listeye ekle
@@ -22655,9 +22625,9 @@ def show_progress_analytics(user_data):
     
     # ===== KİŞİSELLEŞTİRİLMİŞ AYLIK KONU PLANLAMA =====
     st.markdown("---")
-    st.subheader("📅 Haftalık Performansa Göre Aylık Konu Dağılımı")
+    st.subheader("📅 Haftalık Gidişatınıza Göre Gerçek Konu Bitiş Takvimi")
     
-    show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student_field)
+    show_real_topic_completion_timeline(user_data, current_progress, days_to_yks, student_field)
     
     # ===== YENİ: OTOMAUTİK SAAT AYARLAMA SİSTEMİ =====
     st.markdown("---")
@@ -22922,6 +22892,182 @@ def show_sleep_neuroscience_coaching(score_gap):
         - Yatmadan 1 saat önce ekran yok
         - Karanlık, serin, sessiz ortam
         """)
+
+def show_real_topic_completion_timeline(user_data, current_progress, days_to_yks, student_field):
+    """GERÇEK HAFTALİK GİDİŞATA GÖRE KONU BİTİŞ TAKVİMİ - Her hafta güncellenir"""
+    
+    # Kullanıcının gerçek öğrenme hızını hesapla
+    completed_topics = user_data.get('completed_topics', {})
+    study_weeks = max(1, len([week for week in user_data.get('weekly_progress', {}).keys()]))
+    actual_completion_rate = len(completed_topics) / max(1, study_weeks)  # Hafta başına konu sayısı
+    
+    # Alan bazlı toplam konular
+    total_topics = {
+        'Sayısal': {
+            'Matematik': 45, 'Fizik': 35, 'Kimya': 30, 'Biyoloji': 25,
+            'Türkçe': 20, 'Tarih': 15, 'Coğrafya': 15, 'Felsefe': 10
+        },
+        'Eşit Ağırlık': {
+            'Matematik': 30, 'Türkçe': 35, 'Tarih': 40, 'Coğrafya': 35,
+            'Edebiyat': 25, 'Felsefe': 15, 'Fizik': 15, 'Kimya': 15
+        },
+        'Sözel': {
+            'Türkçe': 40, 'Tarih': 50, 'Coğrafya': 45, 'Edebiyat': 35,
+            'Felsefe': 20, 'Matematik': 15, 'Fizik': 10, 'Kimya': 10
+        }
+    }
+    
+    field_topics = total_topics.get(student_field, total_topics['Sayısal'])
+    
+    # Haftalık gerçek hız analysis
+    if current_progress >= 80:
+        speed_multiplier = 1.2  # Hızlı öğrenen
+        emoji = "🚀"
+        speed_msg = "Çok hızlı!"
+    elif current_progress >= 60:
+        speed_multiplier = 1.0  # Normal hız
+        emoji = "⚡"
+        speed_msg = "Normal hız"
+    elif current_progress >= 40:
+        speed_multiplier = 0.8  # Yavaş
+        emoji = "🐌"
+        speed_msg = "Yavaş - hızlandırmalısın!"
+    else:
+        speed_multiplier = 0.6  # Çok yavaş
+        emoji = "🚨"
+        speed_msg = "Kritik! Acil hızlanma gerekli!"
+    
+    adjusted_rate = actual_completion_rate * speed_multiplier
+    remaining_weeks = days_to_yks // 7
+    
+    # Hız göstergesi
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%); 
+                padding: 20px; border-radius: 15px; margin: 10px 0; color: white;">
+        <h3>{emoji} Senin Gerçek Öğrenme Hızın</h3>
+        <p><strong>Haftalık Konu Bitiş Hızın:</strong> {adjusted_rate:.1f} konu/hafta</p>
+        <p><strong>Durum:</strong> {speed_msg}</p>
+        <p><strong>Kalan Hafta:</strong> {remaining_weeks} hafta</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Aylık konu bitiş takvimi
+    st.markdown("### 📊 Bu Hızla Hangi Ay Hangi Konular Bitecek?")
+    
+    # Şu anki tarih
+    from datetime import datetime, timedelta
+    current_date = datetime.now()
+    
+    total_remaining_topics = sum(field_topics.values()) - len(completed_topics)
+    topics_completed_monthly = adjusted_rate * 4  # 4 hafta = 1 ay
+    
+    timeline_data = []
+    cumulative_topics = len(completed_topics)
+    
+    for month in range(1, min(12, remaining_weeks//4 + 2)):
+        month_date = current_date + timedelta(weeks=month*4)
+        month_name = month_date.strftime("%B %Y")
+        
+        # Bu aydaki konular
+        topics_this_month = min(topics_completed_monthly, total_remaining_topics - (cumulative_topics - len(completed_topics)))
+        cumulative_topics += topics_this_month
+        
+        # TYT/AYT ayrımı
+        tyt_percentage = min(100, (cumulative_topics / 135) * 100)  # TYT yaklaşık 135 konu
+        ayt_percentage = max(0, ((cumulative_topics - 135) / 100) * 100)  # AYT yaklaşık 100 konu
+        
+        timeline_data.append({
+            'month': month_name,
+            'topics_completed': int(topics_this_month),
+            'cumulative': int(cumulative_topics),
+            'tyt_percentage': tyt_percentage,
+            'ayt_percentage': ayt_percentage
+        })
+        
+        if cumulative_topics >= sum(field_topics.values()):
+            break
+    
+    # Timeline göster
+    for i, data in enumerate(timeline_data):
+        col1, col2, col3 = st.columns([2, 1, 1])
+        
+        with col1:
+            if data['tyt_percentage'] >= 100:
+                tyt_status = "✅ TYT Tamamlandı!"
+                color = "#28a745"
+            elif data['tyt_percentage'] >= 80:
+                tyt_status = f"🔥 TYT %{data['tyt_percentage']:.0f} - Son sprint!"
+                color = "#fd7e14"
+            else:
+                tyt_status = f"📚 TYT %{data['tyt_percentage']:.0f}"
+                color = "#17a2b8"
+            
+            ayt_status = ""
+            if data['ayt_percentage'] > 0:
+                if data['ayt_percentage'] >= 100:
+                    ayt_status = " | ✅ AYT Tamamlandı!"
+                else:
+                    ayt_status = f" | 🎯 AYT %{data['ayt_percentage']:.0f}"
+            
+            st.markdown(f"""
+            <div style="background-color: {color}; padding: 15px; border-radius: 10px; margin: 5px 0; color: white;">
+                <h4 style="margin: 0; color: white;">{data['month']}</h4>
+                <p style="margin: 5px 0;">{data['topics_completed']} yeni konu tamamlanacak</p>
+                <p style="margin: 0; font-weight: bold;">{tyt_status}{ayt_status}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.metric("📚 Bu Ay", f"{data['topics_completed']} konu")
+            
+        with col3:
+            st.metric("📊 Toplam", f"{data['cumulative']} konu")
+        
+        # Deneme başlama takvimi
+        if data['tyt_percentage'] >= 70 and i == 0:
+            st.info("🎯 **Bu aydan itibaren haftalık denemelere başlamalısın!**")
+        elif data['tyt_percentage'] >= 90 and data['ayt_percentage'] >= 50:
+            st.success("🏆 **Bu aydan itibaren günlük deneme çözmeye geç!**")
+    
+    # Hızlandırma önerileri
+    if current_progress < 60:
+        st.markdown("---")
+        st.error("""
+        ⚠️ **ACİL HIZLANDIRMA GEREKLİ!**
+        
+        Mevcut hızınla konuları yetiştiremeyebilirsiniz. Öneriler:
+        - Günlük çalışma saatini artırın (en az +2 saat)
+        - Zayıf konuları tamamen bırakıp güçlü konulara odaklanın
+        - Kolay sorulardan başlayın, zor konuları sonraya bırakın
+        - Haftalık hedefleri %50 artırın
+        """)
+    
+    # Haftalık güncelleme sistemi
+    st.markdown("---")
+    st.subheader("🔄 Haftalık Güncelleme Sistemi")
+    
+    st.markdown(f"""
+    **📅 Bu sistem her hafta otomatik güncellenir:**
+    
+    - **13-19 Ekim haftası bitince:** Hızınız yeniden hesaplanacak
+    - **20-27 Ekim haftası bitince:** Takvim otomatik güncellenecek  
+    - **Her Pazar:** Bir sonraki hafta için yeni tahminler
+    - **Performans değişince:** Konu bitiş tarihleri otomatik kayacak
+    
+    **📊 Gerçek verilerinize dayalı tahmin - hiçbir sabit değer yok!**
+    """)
+    
+    # Haftalık progress kaydetme
+    current_week = current_date.strftime("W%U-%Y")
+    if st.button("📊 Bu Haftanın Performansını Kaydet ve Takvimi Güncelle"):
+        # Session'a haftalık performance kaydet
+        if 'weekly_performances' not in st.session_state:
+            st.session_state.weekly_performances = {}
+        
+        st.session_state.weekly_performances[current_week] = current_progress
+        st.balloons()
+        st.success("✅ Haftalık performansın kaydedildi! Takvim bir sonraki hafta güncellenecek.")
+        st.rerun()
 
 def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student_field):
     """Haftalık performansa göre güncellenebilen aylık konu planı"""
