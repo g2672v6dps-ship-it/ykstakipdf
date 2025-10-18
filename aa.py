@@ -6618,8 +6618,6 @@ def show_weekly_planner(user_data):
     
     st.markdown("---")
     
-    # Akıllı öneriler
-    show_systematic_recommendations(weekly_plan, survey_data, student_field)
 
 def show_progress_dashboard(weekly_plan, user_data):
     """İlerleme dashboard'u - DİNAMİK TARİH SİSTEMİ"""
@@ -9649,118 +9647,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                 st.session_state.last_day_change = time.time()
                 st.rerun()
 
-def show_systematic_recommendations(weekly_plan, survey_data, student_field):
-    """Sistematik akıllı öneriler"""
-    st.markdown("### 💡 Size Özel Sistematik Öneriler")
-    
-    new_topics = weekly_plan.get('new_topics', [])
-    review_topics = weekly_plan.get('review_topics', [])
-    projections = weekly_plan.get('projections', {})
-    
-    recommendations = []
-    
-    # İlerleme durumu analizi
-    overall_progress = projections.get('overall_progress', 0)
-    if overall_progress < 30:
-        recommendations.append({
-            'type': '⚡ Hızlandırma Önerileri',
-            'items': [
-                "Günlük çalışma sürenizi artırın (6-8 saat ideal)",
-                "Pomodoro tekniği ile odaklanmanızı artırın",
-                "Zayıf konulara daha fazla zaman ayırın"
-            ]
-        })
-    elif overall_progress > 70:
-        recommendations.append({
-            'type': '🎯 Son Dönem Stratejileri',
-            'items': [
-                "Deneme sınavlarına ağırlık verin",
-                "Tekrar sıklığını artırın",
-                "Zaman yönetimi pratiği yapın"
-            ]
-        })
-    
-    # Öncelik analizi
-    high_priority_count = len([t for t in new_topics if t.get('priority') == 'HIGH'])
-    if high_priority_count > 8:
-        recommendations.append({
-            'type': '🔥 Acil Durum Planı',
-            'items': [
-                f"{high_priority_count} acil konu var - günlük 2-3 konuya odaklanın",
-                "Kolay konuları geçici olarak erteleyin",
-                "Ek destekse alarak hızlıca ilerleyin"
-            ]
-        })
-    
-    # Tekrar yükü analizi
-    repeat_high_count = len([t for t in review_topics if t.get('priority') == 'REPEAT_HIGH'])
-    if repeat_high_count > 5:
-        recommendations.append({
-            'type': '🔄 Tekrar Optimizasyonu',
-            'items': [
-                f"{repeat_high_count} kritik tekrar var - unutma riski yüksek",
-                "Sabah saatlerinde tekrarları yapın",
-                "Aktif hatırlama teknikleri kullanın"
-            ]
-        })
-    
-    # Çalışma stili önerileri
-    study_style = survey_data.get('study_style', '')
-    if '🔥' in study_style:  # Zor dersler önce
-        recommendations.append({
-            'type': '🔥 Zor Konular Önce Stratejisi',
-            'items': [
-                "Sabah saatlerinde en zor konuları çalışın",
-                "Enerji seviyeniz yüksekken zorlu konulara başlayın",
-                "Başarıdan sonra kendini ödüllendirin"
-            ]
-        })
-    elif '🍰' in study_style:  # Kolay dersler önce
-        recommendations.append({
-            'type': '🍰 Kolay Başlangıç Stratejisi',
-            'items': [
-                "Motivasyonu yüksek tutmak için kolay konularla başlayın",
-                "Zor konular için daha fazla zaman ayırın",
-                "Günün son kısmında en zorlu konuları planlayın"
-            ]
-        })
-    
-    # Alan bazında öneriler
-    if student_field == "Sayısal":
-        recommendations.append({
-            'type': '🔬 Sayısal Alan Önerileri',
-            'items': [
-                "Matematik her gün mutlaka çalışın",
-                "Fizik formüllerini günlük tekrar edin",
-                "Kimya denklemleri için görsel yöntemler kullanın"
-            ]
-        })
-    elif student_field == "Sözel":
-        recommendations.append({
-            'type': '📚 Sözel Alan Önerileri',
-            'items': [
-                "Türkçe paragraf sorularında strateji geliştirin",
-                "Tarih konularını kronolojik sırayla öğrenin",
-                "Coğrafya için harita çalışmaları yapın"
-            ]
-        })
-    
-    # Önerileri göster
-    for rec in recommendations:
-        with st.expander(f"💡 {rec['type']}", expanded=False):
-            for item in rec['items']:
-                st.write(f"• {item}")
-    
-    # Haftalık motivasyon
-    st.markdown("### 🚀 Bu Hafta Motivasyon")
-    motivation_quote = random.choice(MOTIVATION_QUOTES)
-    st.success(f"💫 {motivation_quote}")
-    
-    # Öğrenme tarzına göre ipucu
-    learning_style = survey_data.get('book_type', 'Genel')
-    if learning_style in LEARNING_STYLE_DESCRIPTIONS:
-        style_info = LEARNING_STYLE_DESCRIPTIONS[learning_style]
-        st.info(f"🎨 **Öğrenme Tarzınız İçin:** {style_info.get('advice', 'Kendi tarzınızı geliştirin.')}")
+
 
 def update_topic_completion_date(username, topic_key):
     """Konu tamamlandığında tarihi kaydet - YENİ: KALICI ÖĞRENME SİSTEMİ ENTEGRASYONU"""
