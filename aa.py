@@ -277,19 +277,24 @@ def load_users_from_firebase():
     """Firebase'den kullanıcı verilerini yükler (Fallback destekli)"""
     try:
         if firebase_connected and db_ref:
-            users_data = db_ref.child("users").get()
-            return users_data if users_data else {}
+            # 🔍 Firebase test satırı (PATH kontrolü)
+            data = db_ref.child("users").get().val()
+            print("Firebase test:", data is not None, list(data.keys())[:3] if data else "boş")
+            return data if data else {}
+
         else:
             # FALLBACK: Local test kullanıcıları
             if hasattr(st.session_state, 'fallback_users'):
                 return st.session_state.fallback_users
             return {}
+
     except Exception as e:
         st.error(f"Firebase veri yükleme hatası: {e}")
         # FALLBACK: Local test kullanıcıları
         if hasattr(st.session_state, 'fallback_users'):
             return st.session_state.fallback_users
         return {}
+
 
 def update_user_in_firebase(username, data):
     """Firebase'de kullanıcı verilerini günceller (Fallback destekli)"""
@@ -12780,7 +12785,8 @@ def login_user_secure(username, password):
     if username in users_db:
         user_data = users_db[username]
         # Şifre kontrolü
-        if user_data.get('password') == password:
+        if user_data.get('password', '').strip() == password.strip():
+
             # Son giriş tarihini güncelle
             from datetime import datetime
             update_user_in_firebase(username, {
