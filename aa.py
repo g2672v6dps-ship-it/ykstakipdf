@@ -22121,71 +22121,105 @@ def show_target_department_roadmap(user_data):
     st.subheader("🎯 Hedef Bölüm Bilgileri")
     
     field = user_data.get('field', 'Sayısal')
+    target_department = user_data.get('target_department', None)
     
-    # Hedef bölüm seçimi
-    departments = get_departments_by_field(field)
-    if not departments:
-        st.warning(f"❌ {field} alanı için bölüm bilgisi bulunamadı.")
+    if not target_department or target_department == 'Belirlenmedi':
+        st.warning("⚠️ Henüz hedef bölüm belirlenmemiş. Lütfen profil ayarlarınızdan hedef bölümünüzü seçin.")
         return
     
-    selected_department = st.selectbox("Hedef bölümünüzü seçin:", departments)
-    
-    if selected_department:
-        # Bölüm için puan aralığı ve zorluk derecesi hesapla
-        department_scores = []
-        department_unis = get_universities_by_department(field, selected_department)
+    # Hedef bölüm için tüm üniversitelerdeki en düşük/en yüksek puanları bul
+    try:
+        department_data = YKS_2025_TABAN_PUANLARI[field][target_department]
         
-        for uni in department_unis:
-            try:
-                score = YKS_2025_TABAN_PUANLARI[field][selected_department][uni]["taban_puan"]
-                department_scores.append((score, uni))
-            except:
-                continue
+        devlet_unis = []
+        vakif_unis = []
         
-        if department_scores:
-            department_scores.sort()
-            min_score = department_scores[0][0]
-            max_score = department_scores[-1][0]
-            min_uni = department_scores[0][1]
-            max_uni = department_scores[-1][1]
-            
-            # Zorluk derecesi belirleme
-            if max_score >= 450:
-                difficulty = "Çok Zor"
-                difficulty_color = "🔴"
-            elif max_score >= 350:
-                difficulty = "Zor"
-                difficulty_color = "🟠"
-            elif max_score >= 280:
-                difficulty = "Orta-Zor"
-                difficulty_color = "🟡"
-            elif max_score >= 220:
-                difficulty = "Orta"
-                difficulty_color = "🟢"
+        for uni_name, info in department_data.items():
+            puan = info["taban_puan"]
+            if 'vakıf' in uni_name.lower() or 'medipol' in uni_name.lower() or 'koç' in uni_name.lower() or 'sabancı' in uni_name.lower() or 'bilkent' in uni_name.lower() or 'atilim' in uni_name.lower() or 'bahcesehir' in uni_name.lower():
+                vakif_unis.append((puan, uni_name))
             else:
-                difficulty = "Kolay"
-                difficulty_color = "💚"
-            
-            # Bölüm bilgileri kartı
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                        padding: 20px; border-radius: 15px; margin: 10px 0; color: white;">
-                <h3>{difficulty_color} {selected_department}</h3>
-                <p><strong>Zorluk Derecesi:</strong> {difficulty}</p>
-                <p><strong>Puan Aralığı:</strong> {min_score} - {max_score} puan</p>
-                <p><strong>En Düşük Devlet:</strong> {min_uni} ({min_score} puan)</p>
-                <p><strong>En Yüksek Vakıf:</strong> {max_uni} ({max_score} puan)</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Metrikler
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("📊 Puan Aralığı", f"{min_score}-{max_score}")
-            with col2:
-                st.metric(f"{difficulty_color} Zorluk", difficulty)
-            with col3:
-                st.metric("🏫 Üniversite Sayısı", len(department_scores))
+                devlet_unis.append((puan, uni_name))
+        
+        if devlet_unis:
+            devlet_unis.sort()
+            min_devlet_puan, min_devlet_uni = devlet_unis[0]
+            max_devlet_puan, max_devlet_uni = devlet_unis[-1]
+        else:
+            min_devlet_puan = min_devlet_uni = max_devlet_puan = max_devlet_uni = None
+        
+        if vakif_unis:
+            vakif_unis.sort()
+            min_vakif_puan, min_vakif_uni = vakif_unis[0]
+            max_vakif_puan, max_vakif_uni = vakif_unis[-1]
+        else:
+            min_vakif_puan = min_vakif_uni = max_vakif_puan = max_vakif_uni = None
+        
+        # Genel puan aralığı
+        all_puanlar = [info["taban_puan"] for info in department_data.values()]
+        min_puan = min(all_puanlar)
+        max_puan = max(all_puanlar)
+        
+        # Zorluk derecesi belirleme (gerçek verilerden)
+        if max_puan >= 500:
+            difficulty = "Çok Zor"
+            difficulty_color = "🔴"
+        elif max_puan >= 400:
+            difficulty = "Zor"
+            difficulty_color = "🟠"
+        elif max_puan >= 300:
+            difficulty = "Orta-Zor"
+            difficulty_color = "🟡"
+        elif max_puan >= 200:
+            difficulty = "Orta"
+            difficulty_color = "🟢"
+        else:
+            difficulty = "Kolay"
+            difficulty_color = "💚"
+        
+        # Bölüm bilgileri kartı
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    padding: 20px; border-radius: 15px; margin: 10px 0; color: white;">
+            <h3>{difficulty_color} {target_department}</h3>
+            <p><strong>Zorluk Derecesi:</strong> {difficulty}</p>
+            <p><strong>Genel Puan Aralığı:</strong> {min_puan} - {max_puan} puan</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Detay metrikler
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            if min_devlet_puan:
+                st.metric("🏫 En Düşük Devlet", f"{min_devlet_puan} puan")
+                st.caption(f"{min_devlet_uni}")
+            else:
+                st.metric("🏫 En Düşük Devlet", "Yok")
+        
+        with col2:
+            if max_devlet_puan:
+                st.metric("🏫 En Yüksek Devlet", f"{max_devlet_puan} puan")
+                st.caption(f"{max_devlet_uni}")
+            else:
+                st.metric("🏫 En Yüksek Devlet", "Yok")
+        
+        with col3:
+            if min_vakif_puan:
+                st.metric("🏢 En Düşük Vakıf", f"{min_vakif_puan} puan")
+                st.caption(f"{min_vakif_uni}")
+            else:
+                st.metric("🏢 En Düşük Vakıf", "Yok")
+        
+        with col4:
+            if max_vakif_puan:
+                st.metric("🏢 En Yüksek Vakıf", f"{max_vakif_puan} puan")
+                st.caption(f"{max_vakif_uni}")
+            else:
+                st.metric("🏢 En Yüksek Vakıf", "Yok")
+        
+    except KeyError:
+        st.error(f"❌ {target_department} bölümü için {field} alanında veri bulunamadı.")
 
 def show_weak_subjects_analysis(user_data, field, score_diff):
     """Zayıf alan analizi ve öneriler"""
@@ -22648,14 +22682,7 @@ def show_dynamic_topic_calendar(user_data, topics_per_week, weekly_plan_start, d
         st.warning(f"⚡ **Bu tempoda {deneme_start_month}'da denemelere başlayabilirsin, ama biraz hızlanman iyi olur!**")
     else:
         st.error("🚨 **Mevcut tempo çok yavaş! Deneme sınavları için tempo artırmalısın!**")
-    
-    # Performans önerisi
-    if topics_per_week >= 4:
-        st.success("🚀 **Mükemmel tempo! Bu şekilde devam et!**")
-    elif topics_per_week >= 2.5:
-        st.info("📈 **Normal tempo. Biraz daha hızlanabilirsin.**")
-    else:
-        st.warning("⚠️ **Yavaş tempo. Haftalık çalışma saatlerini artırman gerekiyor.**")
+
 
 def show_scientific_life_coaching(user_data):
     """🧠 Bilimsel Yaşam Koçluğu - YKS için nörobilim destekli optimizasyon"""
