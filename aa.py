@@ -273,23 +273,26 @@ if not firebase_connected:
     st.success("✅ Test kullanıcıları hazırlandı!")
 
 def load_users_from_firebase():
-    """Firebase'den kullanıcı verilerini yükler (Fallback destekli)"""
+    """Firebase'den kullanıcı verilerini yükler (otomatik düzeltmeli)"""
     try:
         if firebase_connected and db_ref:
-            # 🔍 Firebase test satırı (PATH kontrolü)
-            data = db_ref.child("users").get()  # .val() KULLANILMIYOR çünkü firebase_admin kullanıyorsun
-            print("🔥 Firebase test:", data is not None, list(data.keys())[:3] if data else "boş")
+            data = db_ref.child("users").get()
+            
+            # Eğer "users" içinde bir "users" daha varsa düzelt
+            if data and "users" in data:
+                data = data["users"]
+
+            # Test çıktısı
+            print("🔥 Firebase test:", type(data), list(data.keys())[:3] if data else "boş")
             return data if data else {}
 
-        else:
-            # FALLBACK: Local test kullanıcıları
-            if hasattr(st.session_state, 'fallback_users'):
-                return st.session_state.fallback_users
-            return {}
+        # Fallback (Firebase yoksa)
+        if hasattr(st.session_state, 'fallback_users'):
+            return st.session_state.fallback_users
+        return {}
 
     except Exception as e:
         st.error(f"Firebase veri yükleme hatası: {e}")
-        # FALLBACK: Local test kullanıcıları
         if hasattr(st.session_state, 'fallback_users'):
             return st.session_state.fallback_users
         return {}
@@ -12771,6 +12774,11 @@ def add_student_account(username, password, student_info=None):
 
 def login_user_secure(username, password):
     """ULTRA GÜVENLİ kullanıcı giriş sistemi - Sadece önceden kayıtlı öğrenciler"""
+
+    # 🔹 Boşluk ve büyük harf hatalarını engelle
+    username = username.strip().lower()
+    password = password.strip()
+
     if not username or not password:
         return False
     
@@ -12800,6 +12808,7 @@ def login_user_secure(username, password):
     else:
         # Kullanıcı bulunamadı
         return False
+
 
 def backup_user_data_before_changes(username, operation_name):
     """Kullanıcı verilerini değişiklik öncesi yedekle"""
