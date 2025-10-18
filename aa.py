@@ -22400,364 +22400,548 @@ def show_progress_analytics(user_data):
     """)
 
 def show_scientific_life_coaching(user_data):
-    """🧠 Bilimsel Yaşam Koçluğu - Puan açığına göre akıllı yaşam stratejisi"""
-    st.subheader("🧠 Bilimsel Yaşam Koçluğu")
-    st.write("*Performansınızı maksimize etmek için bilime dayalı yaşam önerileri*")
+    """🧠 Bilimsel Yaşam Koçluğu - YKS için nörobilim destekli optimizasyon"""
+    st.subheader("🧠 YKS Nörobilim Optimizasyonu")
+    st.write("*Akademik performansınızı maksimize etmek için nörobilim ve psikoloji araştırmalarına dayalı stratejiler*")
     
     # Puan açığı analizi
     current_score = calculate_current_yks_score(user_data)
-    
-    # Hedef puanı tahmin et (kullanıcının hedef bölümü yoksa genel hedef)
-    estimated_target = current_score + 50  # Basit tahmin, ileride hedef bölümden alınacak
+    estimated_target = current_score + 50
     score_gap = estimated_target - current_score
     
-    # Strateji belirleme
+    # Bilimsel mod belirleme
     if score_gap > 100:
-        mode = "🔥 YOĞUN MOD"
-        mode_color = "🔴"
-        intensity = "maksimum"
+        mode = "Yoğun Optimizasyon"
+        study_intensity = "8-10 saat/gün"
+        cognitive_load = "Maksimum"
     elif score_gap > 50:
-        mode = "⚡ ORTA MOD"
-        mode_color = "🟡"
-        intensity = "yüksek"
+        mode = "Dengeli Optimizasyon"  
+        study_intensity = "6-8 saat/gün"
+        cognitive_load = "Yüksek"
     else:
-        mode = "🎯 NORMAL MOD"
-        mode_color = "🟢"
-        intensity = "dengeli"
+        mode = "Sürdürülebilir Optimizasyon"
+        study_intensity = "4-6 saat/gün"
+        cognitive_load = "Orta"
     
-    # Strateji kartı
+    # Bilimsel strateji kartı
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                padding: 20px; border-radius: 15px; margin: 10px 0; color: white;">
-        <h3>{mode_color} {mode}</h3>
-        <p><strong>Puan Açığı:</strong> {score_gap:.1f} puan</p>
-        <p><strong>Yaşam Stratejisi:</strong> {intensity.title()} performans odaklı yaşam</p>
+    <div style="background: linear-gradient(135deg, #2E86C1 0%, #8E44AD 100%); 
+                padding: 25px; border-radius: 15px; margin: 10px 0; color: white;">
+        <h3>🎯 {mode}</h3>
+        <p><strong>Puan Hedefi:</strong> {score_gap:.1f} puan artış gerekli</p>
+        <p><strong>Önerilen Çalışma Yoğunluğu:</strong> {study_intensity}</p>
+        <p><strong>Bilişsel Yük Seviyesi:</strong> {cognitive_load}</p>
+        <small>*Nöroplastisite ve performans optimizasyonu araştırmalarına dayalı</small>
     </div>
     """, unsafe_allow_html=True)
     
-    # Ana bölümler
-    col1, col2 = st.columns(2)
+    # Bilimsel modüller
+    tabs = st.tabs(["🧬 Nöroplastisite", "⚡ Bilişsel Performans", "🔬 Beslenme Bilimi", "😴 Uyku Nörobilimi"])
     
-    with col1:
-        show_nutrition_coaching(score_gap, mode)
-        show_sleep_coaching(score_gap, mode)
+    with tabs[0]:
+        show_neuroplasticity_coaching(score_gap)
     
-    with col2:
-        show_daily_routine_coaching(score_gap, mode)
-        show_study_environment_coaching(score_gap, mode)
+    with tabs[1]:
+        show_cognitive_performance_coaching(score_gap)
+        
+    with tabs[2]:
+        show_nutrition_science_coaching(score_gap)
+        
+    with tabs[3]:
+        show_sleep_neuroscience_coaching(score_gap)
 
-def show_nutrition_coaching(score_gap, mode):
-    """🍎 Beslenme Koçluğu"""
-    st.subheader("🍎 Beyin Performansı Beslenme Programı")
+def show_neuroplasticity_coaching(score_gap):
+    """🧬 Nöroplastisite ve Öğrenme Optimizasyonu"""
+    st.subheader("🧬 Nöroplastisite Tabanlı Öğrenme")
     
-    # Mod bazında beslenme stratejisi
-    if score_gap > 100:  # YOĞUN MOD
-        st.markdown("""
-        **🔥 YOĞUN MOD BESLENME STRATEJİSİ:**
-        
-        **🌅 SABAH (06:00-08:00):**
-        - ✅ Protein + Karmaşık karbonhidrat (yumurta + tam buğday ekmeği)
-        - ✅ Ceviz (5-6 adet) - beyin gücü için
-        - ✅ Yeşil çay - kafein + antioksidan
-        - ❌ Şeker, işlenmiş gıdalar
-        
-        **🏫 DERS ÖNCESİ (30 dk önce):**
-        - ✅ 1 muz + 1 avuç badem
-        - ✅ Bol su (300ml)
-        
-        **🍽️ ÖĞLE (12:00-13:00):**
-        - ✅ Protein (tavuk/balık) + sebze + quinoa/bulgur
-        - ✅ Omega-3 (balık 2x/hafta)
-        - ❌ Ağır, yağlı yemekler (uyku yapar)
-        
-        **📚 ÇALIŞMA ARASI:**
-        - ✅ Kuruyemiş karışımı (az tuzlu)
-        - ✅ Dark çikolata (1-2 kare, %70+ kakao)
-        
-        **🌙 AKŞAM (18:00-19:00):**
-        - ✅ Hafif protein + sebze
-        - ✅ Magnezyum zengini (ıspanak, avokado)
-        - ❌ Kafein (16:00'dan sonra YOK!)
-        """)
-        
-    elif score_gap > 50:  # ORTA MOD
-        st.markdown("""
-        **⚡ ORTA MOD BESLENME STRATEJİSİ:**
-        
-        **🌅 SABAH:** Protein + meyve + yeşil çay
-        **🏫 DERS ÖNCESİ:** Muz + su
-        **🍽️ ÖĞLE:** Dengeli öğün, ağır değil
-        **📚 ÇALIŞMA:** Kuruyemiş + su
-        **🌙 AKŞAM:** Hafif, erken yemek
-        """)
-        
-    else:  # NORMAL MOD
-        st.markdown("""
-        **🎯 NORMAL MOD BESLENME STRATEJİSİ:**
-        
-        **🌅 SABAH:** Sağlıklı kahvaltı
-        **🍽️ ANA ÖĞÜNLER:** Düzenli, dengeli
-        **💧 SU:** Günde 2-3 litre
-        **🍎 APERATIFLER:** Meyve, kuruyemiş
-        """)
+    st.markdown("""
+    **📚 BİLİMSEL TEMEL:**
+    Nöroplastisite araştırmaları, beyninizin yeni bağlantılar kurarak sürekli değiştiğini gösteriyor. 
+    YKS başarısı için bu süreçleri optimize edebiliriz.
+    """)
     
-    # Su takip sistemi
-    with st.expander("💧 Günlük Su Takibi"):
-        water_goal = 8 if score_gap > 50 else 6
-        st.write(f"**Hedef:** {water_goal} bardak su (günde)")
-        
-        if f"water_count_{datetime.now().date()}" not in st.session_state:
-            st.session_state[f"water_count_{datetime.now().date()}"] = 0
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("💧 Su İçtim (+1)"):
-                st.session_state[f"water_count_{datetime.now().date()}"] += 1
-        with col2:
-            water_count = st.session_state[f"water_count_{datetime.now().date()}"]
-            progress = min(water_count / water_goal, 1.0)
-            st.progress(progress)
-            st.write(f"{water_count}/{water_goal} bardak")
-
-def show_sleep_coaching(score_gap, mode):
-    """😴 Uyku Koçluğu"""
-    st.subheader("😴 Beyin Onarımı Uyku Programı")
-    
-    if score_gap > 100:  # YOĞUN MOD
+    # Yoğunluk bazında strateji
+    if score_gap > 100:
         st.markdown("""
-        **🔥 YOĞUN MOD UYKU STRATEJİSİ:**
+        **🎯 YOĞUN ÖĞRENİM STRATEJİSİ:**
         
-        **⏰ UYKU SAATLERİ:** 23:00 - 06:00 (7 saat ZORUNLU)
-        **📱 DİJİTAL DETOKS:** 22:00'dan sonra telefon YOK
-        **🌙 YATAK ODASI:** Serin (18-21°C), karanlık, sessiz
-        **☕ KAFEİN:** Son 16:00'da (uyku kalitesi için)
+        **⏰ Pomodoro+ Protokolü:**
+        - 50 dk yoğun çalışma + 10 dk aktif dinlenme
+        - Her 4 blokta 30 dk tam dinlenme
+        - Günde maksimum 8-10 blok (400-500 dk)
         
-        **🧠 UYKU ÖNCESİ RUTİN:**
-        - 22:00: Sıcak duş
-        - 22:15: Kitap okuma/meditasyon
-        - 22:30: Yatak, derin nefes egzersizi
-        - 22:45: Uyku
+        **🧠 Bilişsel Yük Yönetimi:**
+        - Sabah: En zor konular (06:00-10:00) - Kortizol peak
+        - Öğlen: Orta zorluk (14:00-17:00) - İkinci zirvə
+        - Akşam: Tekrar/kolay konular (19:00-21:00)
         
-        **⚠️ ÖNEMLÍ:** Uyku borcunuz olmasın! Hafta sonu da aynı saatler.
+        **🔄 Spaced Repetition Schedule:**
+        - 1. gün öğren → 3. gün tekrar → 7. gün tekrar → 21. gün tekrar
+        - Forgetting curve'ü kırmak için kritik zamanlamalar
         """)
-        
-    elif score_gap > 50:  # ORTA MOD
+    elif score_gap > 50:
         st.markdown("""
-        **⚡ ORTA MOD UYKU STRATEJİSİ:**
+        **🎯 DENGELİ ÖĞRENİM STRATEJİSİ:**
         
-        **⏰ UYKU:** 23:00-06:30 (7.5 saat)
-        **📱 DETOKS:** 22:30'dan sonra telefon sınırlı
-        **🌙 YATAK ODASI:** Uyku dostu ortam
-        **📚 UYKU ÖNCESİ:** Rahatlatıcı aktiviteler
+        **⏰ Klasik Pomodoro:**
+        - 45 dk çalışma + 15 dk dinlenme
+        - Günde 6-8 blok (270-360 dk)
+        
+        **🧠 Optimal Timing:**
+        - Sabah: Yeni konular
+        - Öğleden sonra: Problem çözme
+        - Akşam: Gözden geçirme
         """)
-        
-    else:  # NORMAL MOD
+    else:
         st.markdown("""
-        **🎯 NORMAL MOD UYKU STRATEJİSİ:**
+        **🎯 SÜRDÜRÜLEBİLİR ÖĞRENİM:**
         
-        **⏰ UYKU:** Düzenli 7-8 saat
-        **📱 DETOKS:** Yatmadan 1 saat önce
-        **🌙 ORTAM:** Rahat, sessiz
-        **📚 RUTİN:** Sakinleştirici aktiviteler
+        **⏰ Esnek Bloklar:**
+        - 40 dk çalışma + 20 dk dinlenme
+        - Günde 4-6 blok (160-240 dk)
+        
+        **🧠 Kalite Odaklı:**
+        - Konsantrasyonunuz tam olduğunda çalışın
+        - Yorgunken molaya çıkın
         """)
     
-    # Uyku takip sistemi
-    with st.expander("😴 Uyku Kalitesi Takibi"):
+    # Nörolojik takip
+    with st.expander("🧠 Bilişsel Performans Takibi"):
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            sleep_time = st.time_input("🌙 Yatış Saati", value=datetime.strptime("23:00", "%H:%M").time())
+            focus_score = st.slider("🎯 Odaklanma (1-10)", 1, 10, 7)
         with col2:
-            wake_time = st.time_input("🌅 Kalkış Saati", value=datetime.strptime("06:30", "%H:%M").time())
+            memory_score = st.slider("🧠 Hafıza (1-10)", 1, 10, 7)
         with col3:
-            # Uyku süresini hesapla
-            sleep_duration = (datetime.combine(datetime.today(), wake_time) - 
-                            datetime.combine(datetime.today(), sleep_time)).total_seconds() / 3600
+            motivation_score = st.slider("⚡ Motivasyon (1-10)", 1, 10, 7)
+        
+        total_cognitive = (focus_score + memory_score + motivation_score) / 3
+        
+        if total_cognitive >= 8:
+            st.success(f"✅ Optimum bilişsel performans! ({total_cognitive:.1f}/10)")
+        elif total_cognitive >= 6:
+            st.warning(f"⚠️ İyi seviye, iyileştirme potansiyeli var ({total_cognitive:.1f}/10)")
+        else:
+            st.error(f"❌ Bilişsel performansı artırın! ({total_cognitive:.1f}/10)")
+            
+        # Öneriler
+        if total_cognitive < 6:
+            st.markdown("""
+            **🔧 Acil İyileştirme Önerileri:**
+            - 20 dk egzersiz (BDNF artışı için)
+            - Meditasyon/nefes egzersizi (5-10 dk)
+            - Omega-3 takviyesi değerlendirin
+            - Uyku kalitesini kontrol edin
+            """)
+
+def show_cognitive_performance_coaching(score_gap):
+    """⚡ Bilişsel Performans Optimizasyonu"""
+    st.subheader("⚡ Bilişsel Performans ve Dikkat Kontrolü")
+    
+    st.markdown("""
+    **📚 BİLİMSEL TEMEL:**
+    Çalışma verimi = Odaklanma × Çalışma Süresi × Stratejik Tekrar
+    Nöropsikoloji araştırmaları optimal çalışma protokollerini tanımlıyor.
+    """)
+    
+    # Dikkat ve odak teknikleri
+    if score_gap > 100:
+        st.markdown("""
+        **🎯 YÜKSEK PERFORMANS PROTOKOLLERİ:**
+        
+        **🧠 Deep Work Sessions:**
+        - Çalışma öncesi 5 dk meditasyon (PFC aktivasyonu)
+        - Tek konu odağı - multitasking yasak
+        - Telefon uçak modunda, bildirimler kapalı
+        - Flow state için 90-120 dk sürekli bloklar
+        
+        **📊 Bilişsel Yük Optimizasyonu:**
+        - **Germane Load** (öğrenme): %70
+        - **Intrinsic Load** (zorluk): %25  
+        - **Extraneous Load** (dikkat dağıtıcı): %5
+        
+        **⚡ Dikkat Antrenmanı:**
+        - Günlük 10 dk mindfulness meditasyon
+        - Dual n-back egzersizleri (working memory)
+        - Stroop testi - kognitif esneklik için
+        """)
+    elif score_gap > 50:
+        st.markdown("""
+        **🎯 DENGELİ PERFORMANS:**
+        
+        **🧠 Fokus Blokları:**
+        - 45-60 dk dikkat blokları
+        - Konu değişimleri arası 10 dk break
+        - Günde 6-8 kaliteli blok hedefi
+        
+        **📊 Etkili Çalışma:**
+        - Active recall tekniği
+        - Spaced repetition uygulaması
+        - Retrieval practice
+        """)
+    else:
+        st.markdown("""
+        **🎯 SÜRDÜRÜLEBİLİR ÇALIŞMA:**
+        
+        **🧠 Temel Teknikler:**
+        - Pomodoro Technique (25+5)
+        - Summarization after each session
+        - Question generation
+        """)
+    
+    # Bilişsel metrikler
+    with st.expander("📊 Günlük Bilişsel Metrikler"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.write("**📈 Performans Takibi:**")
+            if f"cognitive_metrics_{datetime.now().date()}" not in st.session_state:
+                st.session_state[f"cognitive_metrics_{datetime.now().date()}"] = {
+                    "deep_work_minutes": 0,
+                    "distraction_count": 0,
+                    "flow_sessions": 0
+                }
+            
+            metrics = st.session_state[f"cognitive_metrics_{datetime.now().date()}"]
+            
+            if st.button("➕ Deep Work Session (+50 dk)"):
+                metrics["deep_work_minutes"] += 50
+            
+            if st.button("⚠️ Dikkat Dağıldı (+1)"):
+                metrics["distraction_count"] += 1
+            
+            if st.button("🌊 Flow State Yaşadım (+1)"):
+                metrics["flow_sessions"] += 1
+        
+        with col2:
+            st.write("**📊 Günlük Özet:**")
+            st.metric("🧠 Deep Work", f"{metrics['deep_work_minutes']} dk")
+            st.metric("⚠️ Dikkat Dağılma", f"{metrics['distraction_count']} kez")
+            st.metric("🌊 Flow Sessions", f"{metrics['flow_sessions']} kez")
+            
+            # Performans değerlendirmesi
+            efficiency = max(0, (metrics["deep_work_minutes"] - metrics["distraction_count"] * 5) / max(1, metrics["deep_work_minutes"]))
+            if efficiency > 0.8:
+                st.success("✅ Mükemmel kognitif performans!")
+            elif efficiency > 0.6:
+                st.warning("⚠️ İyi, ama dikkat dağılmalarını azaltın")
+            else:
+                st.error("❌ Odaklanma stratejinizi gözden geçirin")
+    
+    # Bilişsel egzersizler
+    with st.expander("🧩 Günlük Beyin Egzersizleri"):
+        st.markdown("""
+        **⚡ 5 Dakikalık Zihin Güçlendirme:**
+        
+        1. **Stroop Test:** Farklı renklerde yazılmış kelimeler okuyun
+        2. **N-Back:** Bellek serilerinizi test edin  
+        3. **Mental Math:** 17 × 23 gibi çarpımları zihninizde yapın
+        4. **Word Association:** Bir kelimeden başlayarak zincir oluşturun
+        5. **Visualization:** Karmaşık geometrik şekilleri zihninizde döndürün
+        
+        **🎯 YKS'ye Özel Egzersizler:**
+        - Matematik formüllerini görselleştirme
+        - Fen kavramlarını analoji ile açıklama
+        - Tarih olaylarını zaman çizelgesinde yerleştirme
+        """)
+
+def show_nutrition_science_coaching(score_gap):
+    """🔬 Beslenme Bilimi ve Beyin Optimizasyonu"""
+    st.subheader("🔬 Nöronutrisyon - Beyin Kimyası Optimizasyonu")
+    
+    st.markdown("""
+    **📚 BİLİMSEL TEMEL:**
+    Beyin glukozu enerji olarak kullanır (%20'si), omega-3 nöron membranlarını güçlendirir,
+    antioksidanlar oksidatif stresi azaltır. YKS performansı için bu dengeyi optimize ediyoruz.
+    """)
+    
+    # Beslenme protokolü
+    if score_gap > 100:
+        st.markdown("""
+        **🧬 YÜKSEK PERFORMANS NÖRONUTRİSYON:**
+        
+        **🌅 Sabah Protokolü (06:00-08:00):**
+        ```
+        🥚 2 adet omega-3 yumurta (protein + kolin)
+        🥑 ½ avokado (monounsaturated fat + K vitamini)  
+        🫐 1 kase blueberry (anthocyanin + BDNF boost)
+        ☕ Green tea (L-theanine + kafein sinerjisi)
+        ```
+        **Nörolojik Etki:** Asetilkolin ↑, Dopamin ↑, Kortizoł regulation
+        
+        **📚 Pre-Study Stack (Çalışma 30dk öncesi):**
+        ```
+        🍌 1 orta muz (B6 + doğal şeker)
+        🥜 8-10 badem (E vitamini + magnezyum)
+        💧 500ml su (hidrasyon optimizasyonu)
+        ```
+        **Nörolojik Etki:** Glucose steady state, Mg++ for synapses
+        
+        **🍽️ Öğle Optimizasyonu (12:00-13:00):**
+        ```
+        🐟 Salmon/mackerel (EPA/DHA omega-3)
+        🥬 Koyu yeşil yapraklar (folat + B12)
+        🍠 Sweet potato (kompleks CHO + beta-carotene)
+        🥦 Brokoli (vitamin K + sulforaphane)
+        ```
+        **Nörolojik Etki:** Membrane fluidity, Neurogenesis support
+        
+        **⚡ Cognitive Snacks:**
+        ```
+        🍫 Dark chocolate 85%+ (flavonoid)
+        🥜 Walnuts (α-linolenic acid)
+        🫖 Matcha (sustained caffeine release)
+        ```
+        
+        **📊 Supplement Stack (Doktor onayı ile):**
+        - Omega-3 (EPA:DHA = 2:1): 1000mg/gün
+        - B-Complex: Sabah 1 adet
+        - Magnesium Glycinate: Akşam 200mg
+        - Vitamin D3: 2000 IU (kış ayları)
+        """)
+    elif score_gap > 50:
+        st.markdown("""
+        **🧬 DENGELİ NÖRONUTRİSYON:**
+        
+        **🌅 Sabah:** Protein + omega-3 + karmaşık karbonhidrat
+        **📚 Çalışma:** Doğal şeker + sağlıklı yağ kombinasyonu
+        **🍽️ Öğle:** Balık/et + sebze + tam tahıl
+        **🌙 Akşam:** Hafif protein + magnezyum içeren gıdalar
+        """)
+    else:
+        st.markdown("""
+        **🧬 TEMEL NÖRONUTRİSYON:**
+        
+        **🎯 Temel Kurallar:**
+        - Her öğünde protein bulundurun
+        - Omega-3 kaynaklarını haftada 2-3 kez tüketin
+        - Antioksidan zengini meyve-sebze (günde 5 porsiyon)
+        - Şeker dalgalanmalarından kaçının
+        """)
+    
+    # Beslenme takip sistemi
+    with st.expander("📊 Nöronutrisyon Takip"):
+        today = datetime.now().date()
+        nutrition_key = f"nutrition_tracking_{today}"
+        
+        if nutrition_key not in st.session_state:
+            st.session_state[nutrition_key] = {
+                "omega3": False,
+                "protein_breakfast": False,
+                "antioxidants": False,
+                "complex_carbs": False,
+                "water_8glasses": False
+            }
+        
+        nutrition = st.session_state[nutrition_key]
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.write("**🧬 Nöro-Nutrient Checklist:**")
+            nutrition["omega3"] = st.checkbox("🐟 Omega-3 aldım", nutrition["omega3"])
+            nutrition["protein_breakfast"] = st.checkbox("🥚 Protein kahvaltı", nutrition["protein_breakfast"])
+            nutrition["antioxidants"] = st.checkbox("🫐 Antioksidan (meyve/sebze)", nutrition["antioxidants"])
+        
+        with col2:
+            nutrition["complex_carbs"] = st.checkbox("🍠 Kompleks karbonhidrat", nutrition["complex_carbs"])
+            nutrition["water_8glasses"] = st.checkbox("💧 8 bardak su", nutrition["water_8glasses"])
+            
+            # Skor hesaplama
+            score = sum(nutrition.values()) / len(nutrition) * 100
+            
+            if score >= 80:
+                st.success(f"✅ Mükemmel beslenme! ({score:.0f}%)")
+            elif score >= 60:
+                st.warning(f"⚠️ İyi, eksikleri tamamlayın ({score:.0f}%)")
+            else:
+                st.error(f"❌ Beslenmenizi optimize edin! ({score:.0f}%)")
+    
+    # Beyin kimyası etkiler
+    with st.expander("🧠 Beslenmenin Beyin Üzerine Etkileri"):
+        st.markdown("""
+        **⚡ HIZLI ETKİLER (30 dk - 2 saat):**
+        - Kafein + L-theanine → Odaklanma artışı
+        - Kompleks karbonhidrat → Glucose steady state
+        - Protein → Tyrosine → Dopamine sentezi
+        
+        **🔬 ORTA VADE ETKİLER (1-7 gün):**
+        - Omega-3 → Nöron membran flexibility
+        - B vitaminleri → Nörotransmitter sentezi
+        - Antioksidanlar → Inflamasyon azalışı
+        
+        **🌟 UZUN VADE ETKİLER (2-8 hafta):**
+        - BDNF artışı → Neuroplasticity improvement
+        - Gut-brain axis optimizasyonu
+        - Mitokondrial biogenesis → Enerji artışı
+        """)
+
+def show_sleep_neuroscience_coaching(score_gap):
+    """😴 Uyku Nörobilimi ve Bellek Konsolidasyonu"""
+    st.subheader("😴 Sleep Optimization for Memory Consolidation")
+    
+    st.markdown("""
+    **📚 BİLİMSEL TEMEL:**
+    Uyku sırasında beyniniz öğrendiklerinizi hippocampus'tan neocortex'e transfer eder.
+    Sleep spindles ve slow-wave sleep memory consolidation için kritik.
+    """)
+    
+    # Uyku protokolü
+    if score_gap > 100:
+        st.markdown("""
+        **🧠 YOĞUN ÇALIŞMA İÇİN UYKU PROTOKOLß:**
+        
+        **⏰ Optimal Sleep Window:**
+        ```
+        🌙 Yatış: 22:30 (Melatonin peak için)
+        🌅 Kalkış: 06:00 (7.5 saat = 5 REM cycle)
+        💡 Light exposure: 06:00-06:30 (Circadian reset)
+        ```
+        
+        **🧬 Pre-Sleep Optimization (21:00-22:30):**
+        ```
+        📚 21:00-21:30: Active recall (öğrendikleri tekrar)
+        🌡️ 21:30: Sıcak duş (core temp düşürme)
+        📱 22:00: Digital sunset (blue light ↓)
+        🧘 22:00-22:15: Meditation/breathing exercises
+        📖 22:15-22:30: Hafif okuma (fiction önerilen)
+        ```
+        
+        **🌙 Sleep Environment Specs:**
+        ```
+        🌡️ Sıcaklık: 18-19°C (REM optimizasyonu)
+        🔇 Ses: <30 dB (white noise OK)
+        💡 Işık: Blackout (<3 lux)
+        💨 Havalandırma: CO₂ <1000 ppm
+        ```
+        
+        **⚗️ Sleep Chemistry Hacks:**
+        ```
+        🥛 Magnesium glycinate: Yatmadan 1 saat önce
+        🍒 Tart cherry juice: Doğal melatonin (isteğe bağlı)
+        ❌ Kafein cut-off: 14:00 (T½ = 6 saat)
+        ❌ Alkol yasak: REM sleep'i bozar
+        ```
+        """)
+    elif score_gap > 50:
+        st.markdown("""
+        **🧠 DENGELİ UYKU OPTİMİZASYONU:**
+        
+        **⏰ Sleep Schedule:**
+        - Yatış: 23:00-06:30 (7.5 saat)
+        - Tutarlı uyku saatleri (±30 dk tolerance)
+        - Hafta sonu da aynı ritim
+        
+        **🌙 Pre-Sleep Routine:**
+        - Digital sunset: 22:00
+        - Günlük review: 10 dk
+        - Relaxation activity: 20 dk
+        """)
+    else:
+        st.markdown("""
+        **🧠 TEMEL UYKU HİJYENİ:**
+        
+        **⏰ Minimum Requirements:**
+        - 7-8 saat uyku
+        - Düzenli yatış/kalkış saatleri
+        - Yatmadan 1 saat önce ekran yok
+        - Karanlık, serin, sessiz ortam
+        """)
+    
+    # Uyku kalitesi analizi
+    with st.expander("📊 Sleep Quality Analytics"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.write("**⏰ Sleep Timing:**")
+            bedtime = st.time_input("🌙 Yatış Saati", value=datetime.strptime("23:00", "%H:%M").time())
+            waketime = st.time_input("🌅 Kalkış Saati", value=datetime.strptime("06:30", "%H:%M").time())
+            
+            # Uyku süresi hesaplama
+            sleep_duration = (datetime.combine(datetime.today(), waketime) - 
+                            datetime.combine(datetime.today(), bedtime)).total_seconds() / 3600
             if sleep_duration < 0:
                 sleep_duration += 24
             
+            # REM cycle hesaplama
+            rem_cycles = sleep_duration / 1.5
+            optimal_cycles = round(rem_cycles)
+            
             st.metric("🕐 Uyku Süresi", f"{sleep_duration:.1f} saat")
-        
-        # Uyku kalitesi değerlendirmesi
-        if sleep_duration >= 7 and sleep_duration <= 9:
-            st.success("✅ Optimal uyku süresi!")
-        elif sleep_duration < 6:
-            st.error("❌ Çok az uyku - performans düşecek!")
-        else:
-            st.warning("⚠️ Çok fazla uyku - günlük rutini etkiler")
-
-def show_daily_routine_coaching(score_gap, mode):
-    """📅 Günlük Rutin Koçluğu"""
-    st.subheader("📅 Bilimsel Günlük Rutin")
-    
-    if score_gap > 100:  # YOĞUN MOD
-        st.markdown("""
-        **🔥 YOĞUN MOD GÜNDELİK RUTİN:**
-        
-        **🌅 SABAH (06:00-08:00):**
-        - 06:00: Kalk, 500ml su iç
-        - 06:15: 10 dk egzersiz/yoga
-        - 06:30: Duş + kahvaltı
-        - 07:30: Günlük hedef belirleme
-        
-        **📚 ÇALIŞMA BLOKLARI:**
-        - 08:00-11:00: EN ZOR DERS (3 saat)
-        - 11:15-12:30: ORTA DERS (1.25 saat)
-        - 14:00-17:00: KOLAY DERS (3 saat)
-        - 19:00-21:00: TEKRAR (2 saat)
-        
-        **🌙 AKŞAM:**
-        - 21:00: Günü değerlendir
-        - 21:30: Rahatlama (müzik, kitap)
-        - 22:30: Yatağa hazırlık
-        
-        **⚠️ KRITIK:** 15 dk molalar, Pomodoro tekniği
-        """)
-        
-    elif score_gap > 50:  # ORTA MOD
-        st.markdown("""
-        **⚡ ORTA MOD GÜNDELİK RUTİN:**
-        
-        **🌅 SABAH:** Düzenli uyanma, sağlıklı başlangıç
-        **📚 ÇALIŞMA:** 6-7 saat etkili çalışma
-        **🍽️ BESLENME:** Düzenli 3 öğün
-        **🌙 AKŞAM:** Erken yatış, kaliteli dinlenme
-        """)
-        
-    else:  # NORMAL MOD
-        st.markdown("""
-        **🎯 NORMAL MOD GÜNDELİK RUTİN:**
-        
-        **🌅 SABAH:** Güne pozitif başlangıç
-        **📚 ÇALIŞMA:** 4-6 saat kaliteli çalışma
-        **⚽ AKTİVİTE:** Spor/hobi zamanı
-        **🌙 AKŞAM:** Sosyal zaman, erken uyku
-        """)
-    
-    # Günlük hedef takibi
-    with st.expander("🎯 Günlük Hedef Takibi"):
-        today = datetime.now().date()
-        
-        if f"daily_goals_{today}" not in st.session_state:
-            st.session_state[f"daily_goals_{today}"] = {
-                "study_hours": 0,
-                "water": 0,
-                "exercise": False,
-                "goals_set": False
-            }
-        
-        if not st.session_state[f"daily_goals_{today}"]["goals_set"]:
-            study_goal = st.number_input("Hedef çalışma saati:", min_value=1, max_value=12, value=8)
-            if st.button("Günlük Hedefleri Belirle"):
-                st.session_state[f"daily_goals_{today}"]["study_hours"] = study_goal
-                st.session_state[f"daily_goals_{today}"]["goals_set"] = True
-                st.success("✅ Günlük hedefler belirlendi!")
-        
-        # Hedef takibi
-        goals = st.session_state[f"daily_goals_{today}"]
-        if goals["goals_set"]:
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric("📚 Hedef Çalışma", f"{goals['study_hours']} saat")
-            with col2:
-                completed = 1 if goals["exercise"] else 0
-                st.metric("💪 Egzersiz", "✅" if completed else "❌")
-
-def show_study_environment_coaching(score_gap, mode):
-    """🏠 Çalışma Ortamı Koçluğu"""
-    st.subheader("🏠 Optimal Çalışma Ortamı")
-    
-    if score_gap > 100:  # YOĞUN MOD
-        st.markdown("""
-        **🔥 YOĞUN MOD ÇALIŞMA ORTAMI:**
-        
-        **🏠 FİZİKSEL ORTAM:**
-        - 🌡️ Sıcaklık: 20-22°C (odaklanma için)
-        - 💡 Işık: Doğal ışık + masa lambası
-        - 🔇 Ses: Tamamen sessiz VEYA beyaz gürültü
-        - 🪑 Ergonomi: Düz sırt, ayaklar yerde
-        
-        **📱 DİJİTAL DETOKS:**
-        - Telefon: Başka odada VEYA uçak modu
-        - Sosyal medya: Günde MAX 30 dk
-        - Bildirimler: Tümü kapalı
-        
-        **🧘 ZİHİNSEL HAZIRLIK:**
-        - Çalışma öncesi: 5 dk derin nefes
-        - Müzik: Odaklanma müziği (sözü yok)
-        - Hedef: Net, ölçülebilir hedefler
-        
-        **⚠️ SIFIR TOLERANS:** Dikkat dağıtıcı hiçbir şey!
-        """)
-        
-    elif score_gap > 50:  # ORTA MOD
-        st.markdown("""
-        **⚡ ORTA MOD ÇALIŞMA ORTAMI:**
-        
-        **🏠 ORTAM:** Düzenli, temiz, sessiz
-        **📱 TELEFON:** Sessiz mod, uzakta
-        **💡 IŞIK:** Yeterli aydınlatma
-        **🎵 MÜZİK:** İsteğe bağlı, odak müziği
-        """)
-        
-    else:  # NORMAL MOD
-        st.markdown("""
-        **🎯 NORMAL MOD ÇALIŞMA ORTAMI:**
-        
-        **🏠 ORTAM:** Rahat, düzenli alan
-        **📱 TELEFON:** Kontrollü kullanım
-        **💡 IŞIK:** Göz yormuyor
-        **🎵 MÜZİK:** Motivasyonel müzik
-        """)
-    
-    # Çalışma ortamı değerlendirmesi
-    with st.expander("📊 Çalışma Ortamı Analizi"):
-        st.write("**Mevcut çalışma ortamınızı değerlendirin:**")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            noise_level = st.selectbox("🔊 Gürültü Seviyesi:", 
-                                     ["Tamamen sessiz", "Hafif gürültü", "Orta gürültü", "Çok gürültülü"])
-            lighting = st.selectbox("💡 Aydınlatma:", 
-                                  ["Mükemmel", "İyi", "Orta", "Kötü"])
+            st.metric("🔄 REM Cycles", f"{rem_cycles:.1f} (Optimal: {optimal_cycles})")
         
         with col2:
-            distractions = st.selectbox("📱 Dikkat Dağıtıcılar:", 
-                                      ["Hiç yok", "Az", "Orta", "Çok fazla"])
-            comfort = st.selectbox("🪑 Rahatlık:", 
-                                 ["Çok rahat", "Rahat", "Orta", "Rahatsız"])
-        
-        # Skorlama
-        score_map = {"Tamamen sessiz": 4, "Hafif gürültü": 3, "Orta gürültü": 2, "Çok gürültülü": 1,
-                    "Mükemmel": 4, "İyi": 3, "Orta": 2, "Kötü": 1,
-                    "Hiç yok": 4, "Az": 3, "Çok fazla": 1,
-                    "Çok rahat": 4, "Rahat": 3, "Rahatsız": 1}
-        
-        total_score = (score_map.get(noise_level, 2) + score_map.get(lighting, 2) + 
-                      score_map.get(distractions, 2) + score_map.get(comfort, 2))
-        
-        percentage = (total_score / 16) * 100
-        
-        if percentage >= 80:
-            st.success(f"✅ Mükemmel çalışma ortamı! ({percentage:.0f}%)")
-        elif percentage >= 60:
-            st.warning(f"⚠️ İyi ama geliştirilebilir ({percentage:.0f}%)")
-        else:
-            st.error(f"❌ Çalışma ortamınızı iyileştirin! ({percentage:.0f}%)")
+            st.write("**🧠 Sleep Quality Factors:**")
+            sleep_latency = st.slider("⏱️ Uykuya dalma süresi (dk)", 5, 60, 15)
+            wake_count = st.slider("😴 Gece uyanma sayısı", 0, 5, 1)
+            morning_feeling = st.selectbox("🌅 Sabah hissi", 
+                                         ["Çok dinç", "Dinç", "Normal", "Yorgun", "Çok yorgun"])
+            
+            # Sleep efficiency hesaplama
+            sleep_efficiency = max(0, 100 - (sleep_latency/2) - (wake_count*10) - 
+                                 ({"Çok dinç": -10, "Dinç": 0, "Normal": 10, "Yorgun": 20, "Çok yorgun": 30}[morning_feeling]))
+            
+            st.metric("📊 Sleep Efficiency", f"{sleep_efficiency:.0f}%")
+            
+            if sleep_efficiency >= 85:
+                st.success("✅ Mükemmel uyku kalitesi!")
+            elif sleep_efficiency >= 70:
+                st.warning("⚠️ İyileştirilebilir uyku")
+            else:
+                st.error("❌ Uyku kalitesi kritik seviyede!")
     
-    # Motivasyon bölümü
-    st.markdown("---")
-    st.info(f"""
-    💡 **{mode} - GÜNLÜK MOTİVASYON:**
+    # Uyku ve öğrenme
+    with st.expander("🧠 Uyku ve Bellek Konsolidasyonu"):
+        st.markdown("""
+        **📚 YKS İÇİN UYKU STRATEJİSİ:**
+        
+        **🌙 Sleep-Learning Connection:**
+        - **Slow-Wave Sleep (3-4. evre):** Declarative memory consolidation
+        - **REM Sleep:** Procedural memory + creative connections
+        - **Sleep Spindles:** Hippocampus ↔ Neocortex information transfer
+        
+        **⚡ Pre-Sleep Study Tekniği:**
+        1. Çalışma bitiminde 15 dk özetleme
+        2. Zor konuları son 30 dk'da gözden geçir
+        3. Formuler/tanımları yatmadan önce bir kez daha okuyun
+        
+        **🔬 Sleep-Enhanced Learning Protocol:**
+        - **Morning Review (06:30-07:00):** Önceki gün öğrendikleri
+        - **Evening Consolidation (21:30-22:00):** Günün özeti
+        - **Power Nap (13:00-13:20):** Sadece hafta sonları, 20 dk max
+        
+        **📊 Memory Consolidation Timeline:**
+        ```
+        0-2 saat: Encoding strengthening
+        2-6 saat: Initial consolidation
+        6-24 saat: Sleep-dependent strengthening
+        1-7 gün: Long-term potentiation
+        ```
+        """)
     
-    {"🔥 Her gün hedefinize bir adım daha yaklaşıyorsunuz!" if score_gap > 100 else
-     "⚡ Kararlılığınız sizi hedefinize taşıyacak!" if score_gap > 50 else
-     "🎯 Düzenli çalışma ve sağlıklı yaşam = Başarı!"}
-     
-    **🧠 BİLİMSEL GERÇEK:** Sağlıklı yaşam tarzı beyin performansını %40'a kadar artırır!
-    """)
+    # Circadian rhythm optimization
+    with st.expander("🌅 Circadian Rhythm Optimization"):
+        st.markdown("""
+        **⏰ YKS Öğrencisi için Optimal Timing:**
+        
+        **🌅 Morning Protocol (06:00-08:00):**
+        - Bright light exposure (10,000 lux, 30 dk)
+        - Protein-rich breakfast
+        - Light exercise/stretching
+        
+        **☀️ Daytime Optimization:**
+        - Peak alertness: 09:00-11:00 (en zor dersler)
+        - Secondary peak: 15:00-17:00 (problem solving)
+        - Decline phase: 13:00-15:00 (tekrar/kolay konular)
+        
+        **🌅 Evening Wind-Down:**
+        - Blue light reduction: 19:00+
+        - Dim lighting: 21:00+
+        - Temperature drop: 22:00+
+        """)
 
-# Karmaşık fonksiyonlar kaldırıldı - Basit sistem artık tamamen hazır!
+# YKS Nörobilim Optimizasyon Sistemi - Bilimsel temelli performans artırma
 
 if __name__ == "__main__":
     main()
