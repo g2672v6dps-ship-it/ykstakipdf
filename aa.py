@@ -21962,139 +21962,94 @@ def calculate_required_nets_for_target(target_score, field):
 
 def show_target_department_roadmap(user_data):
     """🎯 Hedef Bölüm Odaklı Gidiş Haritası"""
-    st.subheader("🎯 Hedef Bölüm Odaklı Strateji Haritası")
+    st.subheader("🎯 Hedef Bölüm Analizi")
     
     field = user_data.get('field', 'Sayısal')
-    current_score = calculate_current_yks_score(user_data)
     target_department = user_data.get('target_department', 'Belirlenmedi')
-    
-    # Mevcut durum ve hedef kartı
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("📊 Mevcut Tahmini Puanınız", f"{current_score:.1f}")
-    with col2:
-        st.metric("📚 Alanınız", field)
-    with col3:
-        st.metric("🎯 Hedef Bölümünüz", target_department)
-    with col4:
-        days_to_yks = get_current_week_info()['days_to_yks']
-        st.metric("⏰ YKS'ye Kalan Gün", days_to_yks)
     
     if target_department == 'Belirlenmedi':
         st.warning("⚠️ Hedef bölümünüz belirlenmemiş. Lütfen profil ayarlarınızdan hedef bölümünüzü belirleyin.")
         return
     
-    st.markdown("---")
-    
-    # Hedef bölüm zorluğu ve gereksinimleri
-    dept_info = TARGET_DEPARTMENT_DIFFICULTY.get(target_department, TARGET_DEPARTMENT_DIFFICULTY.get("Varsayılan", {
-        "difficulty_level": 3,
-        "required_nets": {"TYT": 90, "AYT": 50},
-        "study_intensity": "orta",
-        "weekly_topic_multiplier": 1.0
-    }))
-    
-    # Zorluk analizi - Güvenli dönüşüm
-    difficulty_level = dept_info.get("difficulty_level", 3)
-    required_nets = dept_info.get("required_nets", {"TYT": 90, "AYT": 50})
-    required_tyt = float(required_nets.get("TYT", 90))
-    required_ayt = float(required_nets.get("AYT", 50))
-    study_intensity = dept_info.get("study_intensity", "orta")
-    
-    # Zorluk seviyesi renklendirmesi
-    difficulty_colors = {1: "🟢", 2: "🟡", 3: "🟠", 4: "🔴", 5: "🔥"}
-    difficulty_names = {1: "Çok Kolay", 2: "Kolay", 3: "Orta", 4: "Zor", 5: "Çok Zor"}
-    
-    st.subheader("📊 Hedef Bölüm Analizi")
-    
-    # Zorluk kartları
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric(
-            f"{difficulty_colors[difficulty_level]} Zorluk Seviyesi", 
-            difficulty_names[difficulty_level],
-            f"Seviye {difficulty_level}/5"
-        )
-    with col2:
-        st.metric("📈 Gerekli TYT Net", f"~{required_tyt}")
-    with col3:
-        if required_ayt > 0:
-            st.metric("📊 Gerekli AYT Net", f"~{required_ayt}")
-        else:
-            st.metric("📊 AYT Net", "Gerekli Değil")
-    with col4:
-        st.metric("💪 Çalışma Yoğunluğu", study_intensity.title())
-    
-    st.markdown("---")
-    
-    # Net analizi ve tahmini puan - Güvenli dönüşüm
+    # Mevcut net durumu
     try:
         current_tyt_net = float(user_data.get('tyt_avg_net', 0) or 0)
-    except (ValueError, TypeError):
-        current_tyt_net = 0.0
-    
-    try:
         current_ayt_net = float(user_data.get('ayt_avg_net', 0) or 0)
     except (ValueError, TypeError):
+        current_tyt_net = 0.0
         current_ayt_net = 0.0
     
-    st.subheader("📈 Mevcut Durumunuz vs Hedef")
+    # Hedef bölüm net aralığı
+    dept_info = TARGET_DEPARTMENT_DIFFICULTY.get(target_department, TARGET_DEPARTMENT_DIFFICULTY.get("Varsayılan", {
+        "required_nets": {"TYT": 75, "AYT": 35}
+    }))
     
-    # Net karşılaştırması
-    col1, col2 = st.columns(2)
+    required_nets = dept_info.get("required_nets", {"TYT": 75, "AYT": 35})
+    required_tyt = float(required_nets.get("TYT", 75))
+    required_ayt = float(required_nets.get("AYT", 35))
     
+    # Net aralığı hesaplama (±10 net tolerans)
+    tyt_min = max(0, required_tyt - 10)
+    tyt_max = required_tyt + 5
+    ayt_min = max(0, required_ayt - 8) if required_ayt > 0 else 0
+    ayt_max = required_ayt + 5 if required_ayt > 0 else 0
+    
+    # Basit durum kartları
+    col1, col2, col3 = st.columns(3)
     with col1:
-        st.write("**🎯 TYT Net Analizi:**")
-        
-        if required_tyt > 0:
-            tyt_progress = min(100, (current_tyt_net / required_tyt) * 100)
-            tyt_diff = required_tyt - current_tyt_net
-        else:
-            tyt_progress = 100
-            tyt_diff = 0
-        
-        if tyt_diff <= 0:
-            st.success(f"✅ TYT hedefi aşıldı! (+{abs(tyt_diff):.1f} net üstünde)")
-        elif tyt_diff <= 10:
-            st.warning(f"⚠️ TYT hedefine çok yakın! ({tyt_diff:.1f} net eksik)")
-        elif tyt_diff <= 25:
-            st.error(f"🔴 TYT için yoğun çalışma gerekli! ({tyt_diff:.1f} net eksik)")
-        else:
-            st.error(f"🚨 TYT için çok ciddi çalışma gerekli! ({tyt_diff:.1f} net eksik)")
-        
-        st.progress(tyt_progress / 100)
-        st.caption(f"Mevcut: {current_tyt_net:.1f} / Hedef: {required_tyt:.0f}")
-    
+        st.metric("🎯 Hedef Bölüm", target_department)
     with col2:
         if required_ayt > 0:
-            st.write("**📊 AYT Net Analizi:**")
-            
-            ayt_progress = min(100, (current_ayt_net / required_ayt) * 100)
-            ayt_diff = required_ayt - current_ayt_net
-            
-            if ayt_diff <= 0:
-                st.success(f"✅ AYT hedefi aşıldı! (+{abs(ayt_diff):.1f} net üstünde)")
-            elif ayt_diff <= 8:
-                st.warning(f"⚠️ AYT hedefine çok yakın! ({ayt_diff:.1f} net eksik)")
-            elif ayt_diff <= 20:
-                st.error(f"🔴 AYT için yoğun çalışma gerekli! ({ayt_diff:.1f} net eksik)")
-            else:
-                st.error(f"🚨 AYT için çok ciddi çalışma gerekli! ({ayt_diff:.1f} net eksik)")
-            
-            st.progress(ayt_progress / 100)
-            st.caption(f"Mevcut: {current_ayt_net:.1f} / Hedef: {required_ayt:.0f}")
+            st.metric("📊 Gerekli Net", f"TYT: {tyt_min:.0f}-{tyt_max:.0f}, AYT: {ayt_min:.0f}-{ayt_max:.0f}")
         else:
-            st.info("ℹ️ Bu bölüm için AYT gerekmiyor.")
+            st.metric("📊 Gerekli Net", f"TYT: {tyt_min:.0f}-{tyt_max:.0f}")
+    with col3:
+        st.metric("📈 Mevcut Netiniz", f"TYT: {current_tyt_net:.1f}, AYT: {current_ayt_net:.1f}")
     
     st.markdown("---")
     
-    # Zayıf alan analizi için gap hesaplama
-    tyt_gap = max(0, required_tyt - current_tyt_net) if required_tyt > 0 else 0
-    ayt_gap = max(0, required_ayt - current_ayt_net) if required_ayt > 0 else 0
-    total_gap = tyt_gap + ayt_gap
+    # Haftalık ilerleme analizi
+    weekly_progress = calculate_weekly_completion_percentage(user_data)
     
-    # Zayıf alan analizi
-    show_weak_subjects_analysis(user_data, field, total_gap)
+    # Durum değerlendirmesi
+    st.subheader("📊 Durumunuz")
+    
+    # Net karşılaştırması
+    tyt_status = "✅" if current_tyt_net >= tyt_min else "❌"
+    ayt_status = "✅" if current_ayt_net >= ayt_min or required_ayt == 0 else "❌"
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if current_tyt_net >= tyt_min:
+            st.success(f"✅ **TYT hedefi tamam!** ({current_tyt_net:.1f}/{tyt_min:.0f}-{tyt_max:.0f})")
+        else:
+            gap = tyt_min - current_tyt_net
+            st.error(f"❌ **TYT için {gap:.1f} net eksik** ({current_tyt_net:.1f}/{tyt_min:.0f}-{tyt_max:.0f})")
+    
+    with col2:
+        if required_ayt > 0:
+            if current_ayt_net >= ayt_min:
+                st.success(f"✅ **AYT hedefi tamam!** ({current_ayt_net:.1f}/{ayt_min:.0f}-{ayt_max:.0f})")
+            else:
+                gap = ayt_min - current_ayt_net
+                st.error(f"❌ **AYT için {gap:.1f} net eksik** ({current_ayt_net:.1f}/{ayt_min:.0f}-{ayt_max:.0f})")
+        else:
+            st.info("ℹ️ Bu bölüm için AYT gerekmiyor")
+    
+    # Haftalık ilerleme bazlı öneri
+    st.markdown("---")
+    st.subheader("💡 Bu Haftaki Performansınıza Göre Öneri")
+    
+    if weekly_progress >= 80:
+        st.success(f"🎉 **Mükemmel gidişat!** (%{weekly_progress:.0f}) Mevcut programınızı sürdürün, isteğe bağlı olarak biraz daha rahat çalışabilirsiniz.")
+    elif weekly_progress >= 60:
+        st.info(f"👍 **İyi gidişat!** (%{weekly_progress:.0f}) Mevcut programınız dengeli, bu tempoda devam edin.")
+    elif weekly_progress >= 40:
+        st.warning(f"⚠️ **Orta seviye!** (%{weekly_progress:.0f}) Programınızı biraz daha yoğunlaştırmanız gerekiyor.")
+    elif weekly_progress >= 20:
+        st.error(f"🔴 **Düşük performans!** (%{weekly_progress:.0f}) Programınızı ciddi şekilde yoğunlaştırmalısınız.")
+    else:
+        st.error(f"🚨 **Çok düşük!** (%{weekly_progress:.0f}) Çalışma planınızı gözden geçirin, daha disiplinli olmalısınız.")
 
 def show_weak_subjects_analysis(user_data, field, score_diff):
     """Zayıf alan analizi ve öneriler"""
