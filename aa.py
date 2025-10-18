@@ -272,27 +272,21 @@ if not firebase_connected:
         }
     st.success("✅ Test kullanıcıları hazırlandı!")
 
+# Firebase veritabanı fonksiyonları
 def load_users_from_firebase():
-    """Firebase'den kullanıcı verilerini yükler (otomatik düzeltmeli)"""
+    """Firebase'den kullanıcı verilerini yükler (Fallback destekli)"""
     try:
         if firebase_connected and db_ref:
-            data = db_ref.child("users").get()
-            
-            # Eğer "users" içinde bir "users" daha varsa düzelt
-            if data and "users" in data:
-                data = data["users"]
-
-            # Test çıktısı
-            print("🔥 Firebase test:", type(data), list(data.keys())[:3] if data else "boş")
-            return data if data else {}
-
-        # Fallback (Firebase yoksa)
-        if hasattr(st.session_state, 'fallback_users'):
-            return st.session_state.fallback_users
-        return {}
-
+            users_data = db_ref.child("users").get()
+            return users_data if users_data else {}
+        else:
+            # FALLBACK: Local test kullanıcıları
+            if hasattr(st.session_state, 'fallback_users'):
+                return st.session_state.fallback_users
+            return {}
     except Exception as e:
         st.error(f"Firebase veri yükleme hatası: {e}")
+        # FALLBACK: Local test kullanıcıları
         if hasattr(st.session_state, 'fallback_users'):
             return st.session_state.fallback_users
         return {}
@@ -12774,11 +12768,6 @@ def add_student_account(username, password, student_info=None):
 
 def login_user_secure(username, password):
     """ULTRA GÜVENLİ kullanıcı giriş sistemi - Sadece önceden kayıtlı öğrenciler"""
-
-    # 🔹 Boşluk ve büyük harf hatalarını engelle
-    username = username.strip().lower()
-    password = password.strip()
-
     if not username or not password:
         return False
     
@@ -12791,8 +12780,7 @@ def login_user_secure(username, password):
     if username in users_db:
         user_data = users_db[username]
         # Şifre kontrolü
-        if user_data.get('password', '').strip() == password.strip():
-
+        if user_data.get('password') == password:
             # Son giriş tarihini güncelle
             from datetime import datetime
             update_user_in_firebase(username, {
@@ -12808,7 +12796,6 @@ def login_user_secure(username, password):
     else:
         # Kullanıcı bulunamadı
         return False
-
 
 def backup_user_data_before_changes(username, operation_name):
     """Kullanıcı verilerini değişiklik öncesi yedekle"""
