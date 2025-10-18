@@ -21939,92 +21939,116 @@ def show_target_department_roadmap(user_data):
     """🎯 Hedef Bölüm Odaklı Gidiş Haritası"""
     st.subheader("🎯 Hedef Bölüm Analizi")
     
-    field = user_data.get('field', 'Sayısal')
     target_department = user_data.get('target_department', 'Belirlenmedi')
     
     if target_department == 'Belirlenmedi':
         st.warning("⚠️ Hedef bölümünüz belirlenmemiş. Lütfen profil ayarlarınızdan hedef bölümünüzü belirleyin.")
         return
     
-    # Mevcut net durumu
-    try:
-        current_tyt_net = float(user_data.get('tyt_avg_net', 0) or 0)
-        current_ayt_net = float(user_data.get('ayt_avg_net', 0) or 0)
-    except (ValueError, TypeError):
-        current_tyt_net = 0.0
-        current_ayt_net = 0.0
-    
-    # Hedef bölüm net aralığı
+    # Hedef bölüm zorluğu
     dept_info = TARGET_DEPARTMENT_DIFFICULTY.get(target_department, TARGET_DEPARTMENT_DIFFICULTY.get("Varsayılan", {
-        "required_nets": {"TYT": 75, "AYT": 35}
+        "difficulty_level": 3,
+        "study_intensity": "orta"
     }))
     
-    required_nets = dept_info.get("required_nets", {"TYT": 75, "AYT": 35})
-    required_tyt = float(required_nets.get("TYT", 75))
-    required_ayt = float(required_nets.get("AYT", 35))
+    difficulty_level = dept_info.get("difficulty_level", 3)
+    study_intensity = dept_info.get("study_intensity", "orta")
     
-    # Net aralığı hesaplama (±10 net tolerans)
-    tyt_min = max(0, required_tyt - 10)
-    tyt_max = required_tyt + 5
-    ayt_min = max(0, required_ayt - 8) if required_ayt > 0 else 0
-    ayt_max = required_ayt + 5 if required_ayt > 0 else 0
+    # Zorluk seviyesi tanımları
+    difficulty_names = {1: "Kolay", 2: "Orta", 3: "Orta-Zor", 4: "Zor", 5: "Çok Zor"}
+    difficulty_colors = {1: "🟢", 2: "🟡", 3: "🟠", 4: "🔴", 5: "🔥"}
     
-    # Basit durum kartları
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("🎯 Hedef Bölüm", target_department)
-    with col2:
-        if required_ayt > 0:
-            st.metric("📊 Gerekli Net", f"TYT: {tyt_min:.0f}-{tyt_max:.0f}, AYT: {ayt_min:.0f}-{ayt_max:.0f}")
-        else:
-            st.metric("📊 Gerekli Net", f"TYT: {tyt_min:.0f}-{tyt_max:.0f}")
-    with col3:
-        st.metric("📈 Mevcut Netiniz", f"TYT: {current_tyt_net:.1f}, AYT: {current_ayt_net:.1f}")
-    
-    st.markdown("---")
-    
-    # Haftalık ilerleme analizi
-    weekly_progress = calculate_weekly_completion_percentage(user_data, None)
-    
-    # Durum değerlendirmesi
-    st.subheader("📊 Durumunuz")
-    
-    # Net karşılaştırması
-    tyt_status = "✅" if current_tyt_net >= tyt_min else "❌"
-    ayt_status = "✅" if current_ayt_net >= ayt_min or required_ayt == 0 else "❌"
-    
+    # Temel bilgiler
     col1, col2 = st.columns(2)
     with col1:
-        if current_tyt_net >= tyt_min:
-            st.success(f"✅ **TYT hedefi tamam!** ({current_tyt_net:.1f}/{tyt_min:.0f}-{tyt_max:.0f})")
-        else:
-            gap = tyt_min - current_tyt_net
-            st.error(f"❌ **TYT için {gap:.1f} net eksik** ({current_tyt_net:.1f}/{tyt_min:.0f}-{tyt_max:.0f})")
-    
+        st.metric("🎯 Hedef Bölümünüz", target_department)
     with col2:
-        if required_ayt > 0:
-            if current_ayt_net >= ayt_min:
-                st.success(f"✅ **AYT hedefi tamam!** ({current_ayt_net:.1f}/{ayt_min:.0f}-{ayt_max:.0f})")
-            else:
-                gap = ayt_min - current_ayt_net
-                st.error(f"❌ **AYT için {gap:.1f} net eksik** ({current_ayt_net:.1f}/{ayt_min:.0f}-{ayt_max:.0f})")
-        else:
-            st.info("ℹ️ Bu bölüm için AYT gerekmiyor")
+        st.metric(f"{difficulty_colors[difficulty_level]} Zorluk Seviyesi", 
+                 difficulty_names[difficulty_level])
     
-    # Haftalık ilerleme bazlı öneri
     st.markdown("---")
-    st.subheader("💡 Bu Haftaki Performansınıza Göre Öneri")
+    
+    # Haftalık performans analizi
+    weekly_progress = calculate_weekly_completion_percentage(user_data, None)
+    
+    st.subheader("📊 Program Yoğunluğu Önerisi")
+    
+    # Bölüm zorluğuna göre temel öneriler
+    if difficulty_level >= 4:  # Zor bölümler (Tıp, Hukuk vb.)
+        base_recommendation = "**Yoğun program gerekli** - Bu bölüm için sistematik ve disiplinli çalışma şart."
+        intensity_modifier = 1.0  # Standart yoğun
+    elif difficulty_level == 3:  # Orta-zor bölümler (Mühendislik, Mimarlık vb.)
+        base_recommendation = "**Düzenli program gerekli** - Orta-yüksek yoğunlukta çalışma önerilir."
+        intensity_modifier = 0.8
+    elif difficulty_level == 2:  # Orta bölümler
+        base_recommendation = "**Dengeli program yeterli** - Düzenli çalışma ile hedefinize ulaşabilirsiniz."
+        intensity_modifier = 0.6
+    else:  # Kolay bölümler
+        base_recommendation = "**Rahat program** - Düşük-orta yoğunlukta çalışma yeterli olacaktır."
+        intensity_modifier = 0.4
+    
+    st.info(base_recommendation)
+    
+    # Haftalık performansa göre dinamik öneri
+    st.markdown("### 💡 Bu Haftaki Performansınıza Göre:")
     
     if weekly_progress >= 80:
-        st.success(f"🎉 **Mükemmel gidişat!** (%{weekly_progress:.0f}) Mevcut programınızı sürdürün, isteğe bağlı olarak biraz daha rahat çalışabilirsiniz.")
+        if intensity_modifier >= 1.0:
+            st.success(f"🎉 **Mükemmel gidişat!** (%{weekly_progress:.0f}) Zor bölüm hedeflediğiniz için bu tempoyu sürdürün. Hafta sonları biraz dinlenebilirsiniz.")
+        else:
+            st.success(f"🎉 **Harika!** (%{weekly_progress:.0f}) Hedef bölümünüz için bu performans fazlasıyla yeterli. Programınızı biraz gevşetebilir, sosyal aktivitelere zaman ayırabilirsiniz.")
+    
     elif weekly_progress >= 60:
-        st.info(f"👍 **İyi gidişat!** (%{weekly_progress:.0f}) Mevcut programınız dengeli, bu tempoda devam edin.")
+        if intensity_modifier >= 1.0:
+            st.info(f"👍 **İyi gidişat!** (%{weekly_progress:.0f}) Zor bölüm hedeflediğiniz için bu tempoyu koruyun, mümkünse biraz daha artırın.")
+        else:
+            st.success(f"👍 **Çok iyi!** (%{weekly_progress:.0f}) Hedef bölümünüz için bu performans yeterli. Bu tempoda rahatça devam edebilirsiniz.")
+    
     elif weekly_progress >= 40:
-        st.warning(f"⚠️ **Orta seviye!** (%{weekly_progress:.0f}) Programınızı biraz daha yoğunlaştırmanız gerekiyor.")
+        if intensity_modifier >= 1.0:
+            st.warning(f"⚠️ **Dikkat!** (%{weekly_progress:.0f}) Zor bölüm hedeflediğiniz için bu performans yetersiz. Programınızı ciddi şekilde yoğunlaştırmanız gerekiyor.")
+        elif intensity_modifier >= 0.6:
+            st.warning(f"⚠️ **Artırın!** (%{weekly_progress:.0f}) Hedef bölümünüz için biraz daha yoğun çalışmanız gerekiyor.")
+        else:
+            st.info(f"👌 **Kabul edilebilir** (%{weekly_progress:.0f}) Kolay bölüm hedeflediğiniz için bu performans yeterli olabilir.")
+    
     elif weekly_progress >= 20:
-        st.error(f"🔴 **Düşük performans!** (%{weekly_progress:.0f}) Programınızı ciddi şekilde yoğunlaştırmalısınız.")
+        if intensity_modifier >= 0.8:
+            st.error(f"🔴 **Yetersiz!** (%{weekly_progress:.0f}) Hedef bölümünüz için bu performans çok düşük. Programınızı ciddi şekilde gözden geçirin.")
+        else:
+            st.warning(f"⚠️ **Düşük** (%{weekly_progress:.0f}) Kolay bölüm olsa da biraz daha çaba göstermeniz gerekiyor.")
+    
     else:
-        st.error(f"🚨 **Çok düşük!** (%{weekly_progress:.0f}) Çalışma planınızı gözden geçirin, daha disiplinli olmalısınız.")
+        st.error(f"🚨 **Çok düşük!** (%{weekly_progress:.0f}) Hangi bölüm olursa olsun bu performans yetersiz. Çalışma planınızı tamamen yeniden düzenleyin.")
+    
+    # Pratik öneriler
+    st.markdown("---")
+    st.subheader("⚡ Pratik Öneriler")
+    
+    if intensity_modifier >= 1.0:  # Zor bölümler
+        suggestions = [
+            "📅 **Günlük 6-8 saat** düzenli çalışma",
+            "📚 **Her gün farklı dersler** - monotonluktan kaçının",
+            "🔄 **Günlük tekrar** - önceki konuları unutmayın",
+            "🎯 **Haftalık hedefler** - büyük hedefleri küçük parçalara bölün"
+        ]
+    elif intensity_modifier >= 0.6:  # Orta bölümler  
+        suggestions = [
+            "📅 **Günlük 4-6 saat** kaliteli çalışma",
+            "📚 **Haftada 5 gün** yoğun, 2 gün hafif",
+            "🔄 **Haftalık tekrar** - önemli konuları pekiştirin",
+            "⚖️ **Denge** - çalışma ve dinlenme dengesini kurun"
+        ]
+    else:  # Kolay bölümler
+        suggestions = [
+            "📅 **Günlük 3-5 saat** yeterli çalışma",
+            "📚 **Haftada 4-5 gün** aktif çalışma",
+            "🎨 **Sosyal aktiviteler** - kendinize zaman ayırın",
+            "😌 **Rahat tempo** - stres yapmadan ilerleyin"
+        ]
+    
+    for suggestion in suggestions:
+        st.write(f"• {suggestion}")
 
 def show_weak_subjects_analysis(user_data, field, score_diff):
     """Zayıf alan analizi ve öneriler"""
