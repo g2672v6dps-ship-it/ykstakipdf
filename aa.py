@@ -22285,225 +22285,52 @@ def show_progress_analytics(user_data):
         st.write(f"- **3 ay sonra:** {current_score + 30:.1f} puan")
         st.write(f"- **YKS günü tahmini:** {current_score + (months_to_yks * 10):.1f} puan")
     
-    # Ay Ay Gidişat Planı Bölümü
+    # DİNAMİK AY AY GİDİŞAT PLANI - HER HAFTA GÜNCELLENİR
     st.markdown("---")
-    st.subheader("📅 Ay Ay YKS Gidişat Planı")
+    st.subheader("📅 Dinamik YKS Gidişat Planı")
     
     # Kullanıcının alanını göster
     user_field = user_data.get('field', 'Genel')
     field_emoji = "🔬" if user_field in ['Sayısal', 'MF'] else "📚" if user_field in ['Sözel', 'TM'] else "⚖️"
-    st.info(f"{field_emoji} **{user_field} Alanı için Özel Hazırlanmış Plan** - YKS 2025'e Kadar Yol Haritanız")
+    
+    # Bu haftaki gerçek ilerlemeyi hesapla
+    current_progress = calculate_weekly_completion_percentage(user_data, weekly_plan)
+    
+    # Dinamik plan oluştur
+    dynamic_plan = create_dynamic_monthly_plan(user_data, current_progress)
+    
+    # Plan durumu göster
+    plan_status = dynamic_plan['status']
+    status_color = "🚀" if plan_status == "fast" else "🐌" if plan_status == "slow" else "⚖️"
+    
+    st.info(f"{field_emoji} **{user_field} Alanı** | {status_color} **İlerleme Durumu:** {dynamic_plan['status_message']}")
+    
+    # Gerçek zamanlı durum kartı
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("📊 Bu Hafta İlerleme", f"%{current_progress:.1f}")
+    with col2:
+        st.metric("🎯 Hedef Tempo", f"%{dynamic_plan['target_weekly_progress']:.1f}")
+    with col3:
+        tempo_diff = current_progress - dynamic_plan['target_weekly_progress']
+        st.metric("⚡ Tempo Farkı", f"{tempo_diff:+.1f}%")
+    
+    # Plan durumuna göre uyarı/teşvik
+    if plan_status == "fast":
+        st.success(f"🚀 **TEBRİKLER!** Hedeften hızlı gidiyorsun! Bu tempoda devam edersen deneme sınavlarına **{dynamic_plan['exam_start_month']}** ayında başlayabilirsin!")
+    elif plan_status == "slow":
+        st.warning(f"🐌 **DİKKAT!** Hedefe göre yavaş gidiyorsun. Tempoyu artırmazsan deneme sınavları **{dynamic_plan['exam_start_month']}** ayına kalabilir.")
+    else:
+        st.info(f"⚖️ **MÜKEMMEL TEMPO!** Planında tam olarak gidiyorsun. **{dynamic_plan['exam_start_month']}** ayında deneme sınavlarına başlayacaksın.")
     
     # Tarih hesaplamaları
     from datetime import datetime
     today = datetime.now()
     
-    # YKS'ye kadar aylık plan (alan bazında kişiselleştirilmiş)
-    # user_field yukarıda zaten tanımlanmış
+    # Dinamik aylık timeline'ı göster
+    monthly_timeline = dynamic_plan['timeline']
     
-    # Alan bazında konu dağılımları
-    if user_field in ['Sayısal', 'MF']:
-        monthly_timeline = [
-            {
-                "ay": "Ekim 2024", 
-                "hedef": "Temel Konular",
-                "konular": ["TYT Matematik Temel", "Fizik Kinematik", "Kimya Atom", "Biyoloji Hücre"],
-                "puan_hedefi": 320,
-                "ozellik": "🌱 Sayısal altyapı oluşturma"
-            },
-            {
-                "ay": "Kasım 2024",
-                "hedef": "Ana Konular", 
-                "konular": ["Fonksiyonlar", "Fizik Dinamik", "Kimya Bağlar", "Geometri Açılar"],
-                "puan_hedefi": 340,
-                "ozellik": "📚 Sayısal ana konuları"
-            },
-            {
-                "ay": "Aralık 2024",
-                "hedef": "İleri Konular",
-                "konular": ["Türev", "Elektrik", "Organik Kimya", "Genetik"],
-                "puan_hedefi": 360,
-                "ozellik": "🔥 Sayısal zor konular"
-            },
-            {
-                "ay": "Ocak 2025",
-                "hedef": "Uzmanlık Konuları",
-                "konular": ["İntegral", "Modern Fizik", "Analitik Kimya", "Ekoloji"],
-                "puan_hedefi": 380,
-                "ozellik": "🎯 Sayısal uzmanlık"
-            },
-            {
-                "ay": "Şubat 2025",
-                "hedef": "Problem Çözme",
-                "konular": ["Zor matematik problemleri", "Fizik problemleri", "TYT genel"],
-                "puan_hedefi": 400,
-                "ozellik": "💪 Problem çözme hızı"
-            },
-            {
-                "ay": "Mart 2025",
-                "hedef": "Genel Tekrar",
-                "konular": ["Tüm matematik", "Tüm fizik", "Formül ezberletme"],
-                "puan_hedefi": 420,
-                "ozellik": "🔄 Sayısal tekrar"
-            },
-            {
-                "ay": "Nisan 2025",
-                "hedef": "🎯 DENEMELER BAŞLIYOR!",
-                "konular": ["MF denemeleri", "Zaman yönetimi", "Sınav teknikleri"],
-                "puan_hedefi": 440,
-                "ozellik": "🏁 MF deneme pratiği"
-            },
-            {
-                "ay": "Mayıs 2025",
-                "hedef": "Son Hazırlık",
-                "konular": ["Hızlı tekrar", "Formüller", "Motivasyon"],
-                "puan_hedefi": 460,
-                "ozellik": "⚡ MF final sprint"
-            },
-            {
-                "ay": "Haziran 2025",
-                "hedef": "🏆 YKS ZAMANIII!",
-                "konular": ["Stres yönetimi", "Özgüven", "Mühendislik hayali"],
-                "puan_hedefi": 480,
-                "ozellik": "🎊 Mühendislik fakültesi seni bekliyor!"
-            }
-        ]
-    
-    elif user_field in ['Sözel', 'TM']:
-        monthly_timeline = [
-            {
-                "ay": "Ekim 2024", 
-                "hedef": "Temel Konular",
-                "konular": ["TYT Türkçe Gramer", "Tarih İlk Çağ", "Coğrafya Fiziki", "Edebiyat Divan"],
-                "puan_hedefi": 320,
-                "ozellik": "🌱 Sözel altyapı oluşturma"
-            },
-            {
-                "ay": "Kasım 2024",
-                "hedef": "Ana Konular", 
-                "konular": ["AYT Türkçe", "Tarih Orta Çağ", "Coğrafya Beşeri", "Edebiyat Tanzimat"],
-                "puan_hedefi": 340,
-                "ozellik": "📚 Sözel ana konuları"
-            },
-            {
-                "ay": "Aralık 2024",
-                "hedef": "İleri Konular",
-                "konular": ["Paragraf", "Tarih Yakın Çağ", "Coğrafya Türkiye", "Modern Edebiyat"],
-                "puan_hedefi": 360,
-                "ozellik": "🔥 Sözel zor konular"
-            },
-            {
-                "ay": "Ocak 2025",
-                "hedef": "Uzmanlık Konuları",
-                "konular": ["Deneme Yazma", "Tarih Cumhuriyet", "Coğrafya Ekonomik", "Çağdaş Edebiyat"],
-                "puan_hedefi": 380,
-                "ozellik": "🎯 Sözel uzmanlık"
-            },
-            {
-                "ay": "Şubat 2025",
-                "hedef": "Analiz Becerisi",
-                "konular": ["Metin analizi", "Tarih analizi", "Güncel olaylar"],
-                "puan_hedefi": 400,
-                "ozellik": "💪 Analitik düşünme"
-            },
-            {
-                "ay": "Mart 2025",
-                "hedef": "Genel Tekrar",
-                "konular": ["Tüm Türkçe", "Tüm Tarih", "Konu özetleri"],
-                "puan_hedefi": 420,
-                "ozellik": "🔄 Sözel tekrar"
-            },
-            {
-                "ay": "Nisan 2025",
-                "hedef": "🎯 DENEMELER BAŞLIYOR!",
-                "konular": ["TM denemeleri", "Okuma hızı", "Sınav teknikleri"],
-                "puan_hedefi": 440,
-                "ozellik": "🏁 TM deneme pratiği"
-            },
-            {
-                "ay": "Mayıs 2025",
-                "hedef": "Son Hazırlık",
-                "konular": ["Hızlı okuma", "Özet notlar", "Motivasyon"],
-                "puan_hedefi": 460,
-                "ozellik": "⚡ TM final sprint"
-            },
-            {
-                "ay": "Haziran 2025",
-                "hedef": "🏆 YKS ZAMANIII!",
-                "konular": ["Stres yönetimi", "Özgüven", "Edebiyat hayali"],
-                "puan_hedefi": 480,
-                "ozellik": "🎊 Edebiyat fakültesi seni bekliyor!"
-            }
-        ]
-    
-    else:  # Eşit Ağırlık veya diğer
-        monthly_timeline = [
-            {
-                "ay": "Ekim 2024", 
-                "hedef": "Temel Konular",
-                "konular": ["TYT Mat Temel", "Türkçe Gramer", "Tarih İlk Çağ", "Coğrafya Fiziki"],
-                "puan_hedefi": 320,
-                "ozellik": "🌱 EA altyapı oluşturma"
-            },
-            {
-                "ay": "Kasım 2024",
-                "hedef": "Ana Konular", 
-                "konular": ["AYT Mat", "AYT Türkçe", "Tarih Orta Çağ", "Coğrafya Beşeri"],
-                "puan_hedefi": 340,
-                "ozellik": "📚 EA ana konuları"
-            },
-            {
-                "ay": "Aralık 2024",
-                "hedef": "İleri Konular",
-                "konular": ["Matematik İleri", "Paragraf", "Tarih Yakın Çağ", "Coğrafya Türkiye"],
-                "puan_hedefi": 360,
-                "ozellik": "🔥 EA zor konular"
-            },
-            {
-                "ay": "Ocak 2025",
-                "hedef": "Uzmanlık Konuları",
-                "konular": ["Problem çözme", "Deneme yazma", "Tarih Cumhuriyet", "Güncel olaylar"],
-                "puan_hedefi": 380,
-                "ozellik": "🎯 EA uzmanlık"
-            },
-            {
-                "ay": "Şubat 2025",
-                "hedef": "Denge Kurmak",
-                "konular": ["Mat-Sözel dengesi", "Zayıf alanları güçlendirme"],
-                "puan_hedefi": 400,
-                "ozellik": "💪 Denge oluşturma"
-            },
-            {
-                "ay": "Mart 2025",
-                "hedef": "Genel Tekrar",
-                "konular": ["Matematik özet", "Sözel özet", "Konu tekrarları"],
-                "puan_hedefi": 420,
-                "ozellik": "🔄 EA tekrar"
-            },
-            {
-                "ay": "Nisan 2025",
-                "hedef": "🎯 DENEMELER BAŞLIYOR!",
-                "konular": ["EA denemeleri", "Alan seçimi", "Sınav teknikleri"],
-                "puan_hedefi": 440,
-                "ozellik": "🏁 EA deneme pratiği"
-            },
-            {
-                "ay": "Mayıs 2025",
-                "hedef": "Son Hazırlık",
-                "konular": ["Hızlı tekrar", "Özet notlar", "Motivasyon"],
-                "puan_hedefi": 460,
-                "ozellik": "⚡ EA final sprint"
-            },
-            {
-                "ay": "Haziran 2025",
-                "hedef": "🏆 YKS ZAMANIII!",
-                "konular": ["Stres yönetimi", "Özgüven", "İktisat hayali"],
-                "puan_hedefi": 480,
-                "ozellik": "🎊 İktisat fakültesi seni bekliyor!"
-            }
-        ]
-    
-    # Görsel timeline
+    # Grafik ile ay ay ilerleme gösterimi
     try:
         import plotly.graph_objects as go
         
@@ -22522,12 +22349,23 @@ def show_progress_analytics(user_data):
             marker=dict(size=10, color='#E74C3C'),
             text=[f"{p}p" for p in puanlar],
             textposition="top center",
-            name='Hedef Puan'
+            name='Dinamik Hedef Puan'
         ))
         
+        # Mevcut durumu vurgula
+        current_month_index = dynamic_plan.get('current_month_index', 0)
+        if current_month_index < len(aylar):
+            fig.add_trace(go.Scatter(
+                x=[aylar[current_month_index]], 
+                y=[puanlar[current_month_index]],
+                mode='markers',
+                marker=dict(size=15, color='gold', line=dict(width=3, color='red')),
+                name='Şu An Burada'
+            ))
+        
         fig.update_layout(
-            title="🚀 YKS'ye Kadar Ay Ay Puan Hedefleri",
-            xaxis_title="Aylar",
+            title="🎯 Senin Gerçek İlerlemen Göre Güncellenen Plan",
+            xaxis_title="Aylar", 
             yaxis_title="YKS Puanı",
             height=400,
             xaxis_tickangle=-45
@@ -22538,46 +22376,240 @@ def show_progress_analytics(user_data):
     except ImportError:
         st.info("📊 Grafik için plotly modülü gerekli")
     
-    # Detaylı aylık plan
-    st.markdown("### 📋 Aylık Detaylı Yol Haritası")
+    # Adaptif aylık plan detayları
+    st.markdown("### 📋 Senin İlerlemen Göre Güncellenmiş Plan")
+    st.caption("⚡ Bu plan her hafta senin performansına göre otomatik güncelleniyor!")
     
     for i, plan in enumerate(monthly_timeline):
         # Mevcut aya özel vurgu
-        if "Ekim 2024" in plan["ay"] or "Kasım 2024" in plan["ay"]:
+        if i == dynamic_plan.get('current_month_index', 0):
             expanded = True
             emoji = "🔥"
+            extra_text = " (ŞU AN BURADA)"
         else:
             expanded = False
             emoji = "📅"
+            extra_text = ""
         
-        with st.expander(f"{emoji} **{plan['ay']}** - {plan['hedef']}", expanded=expanded):
+        with st.expander(f"{emoji} **{plan['ay']}** - {plan['hedef']}{extra_text}", expanded=expanded):
             col1, col2 = st.columns([3, 1])
             
             with col1:
                 st.markdown(f"**{plan['ozellik']}**")
-                st.markdown("**📚 Bu ay çalışılacak konular:**")
+                st.markdown("**📚 Bu ay bitirmesi gereken konular:**")
                 for konu in plan["konular"]:
                     st.markdown(f"• {konu}")
+                
+                # Dinamik öneri mesajı
+                if plan.get('dynamic_note'):
+                    if "hızlı" in plan['dynamic_note']:
+                        st.success(f"🚀 **Dinamik Güncelleme:** {plan['dynamic_note']}")
+                    elif "yavaş" in plan['dynamic_note']:
+                        st.warning(f"⚠️ **Dinamik Güncelleme:** {plan['dynamic_note']}")
+                    else:
+                        st.info(f"ℹ️ **Güncelleme:** {plan['dynamic_note']}")
             
             with col2:
                 st.metric("🎯 Hedef Puan", plan["puan_hedefi"])
                 progress = min(100, (i + 1) * 11)
                 st.metric("📊 İlerleme", f"%{progress}")
+                if plan.get('adjusted_timeline'):
+                    st.caption(f"⏰ {plan['adjusted_timeline']}")
     
-    # Kritik milestones
-    st.markdown("### 🎯 Kritik Dönüm Noktaları")
+    # Dinamik milestone'lar
+    st.markdown("### 🎯 Senin Tempona Göre Kritik Tarihler")
     
     milestones = [
-        "🎯 **Nisan 2025:** Deneme sınavlarına başlama - Artık gerçek sınav hissi!",
-        "💪 **Mayıs 2025:** Son eksikleri kapatma - Hiçbir konuda boşluk kalmasın!",
-        "🏆 **Haziran 2025:** YKS Zamanı - Hayalindeki bölüm seni bekliyor!"
+        f"🎯 **{dynamic_plan['exam_start_month']}:** Deneme sınavlarına başlama - Senin temponda bu tarih!",
+        f"💪 **{dynamic_plan['final_prep_month']}:** Son eksikleri kapatma - Bu ayı kaçırma!",
+        f"🏆 **Haziran 2025:** YKS Zamanı - Hayalindeki bölüm seni bekliyor!"
     ]
     
     for milestone in milestones:
         st.info(milestone)
     
-    # Motivasyon mesajı
-    st.success("🌟 **Bu plan ile gidersen, her ay düzenli ilerleme kaydedecek ve YKS'de hedeflediğin puanı alacaksın!**")
+    # Gelecek hafta için özel öneri
+    st.markdown("### 📝 Gelecek Hafta Senin İçin Özel Öneriler")
+    next_week_advice = generate_next_week_advice(dynamic_plan, current_progress)
+    st.success(f"💡 **Bu hafta özel odaklan:** {next_week_advice}")
+
+
+def create_dynamic_monthly_plan(user_data, current_weekly_progress):
+    """Öğrencinin gerçek ilerlemesine göre dinamik aylık plan oluşturur"""
+    from datetime import datetime, timedelta
+    
+    # Hedeflenen haftalık ilerleme (ortalama %70)
+    target_weekly_progress = 70.0
+    
+    # İlerleme durumunu analiz et
+    if current_weekly_progress >= target_weekly_progress + 15:
+        status = "fast"
+        status_message = "Hedefe göre hızlı gidiyorsun! 🚀"
+        time_adjustment = -1  # 1 ay öne çekme
+    elif current_weekly_progress <= target_weekly_progress - 15:
+        status = "slow" 
+        status_message = "Hedefe göre yavaş gidiyorsun 🐌"
+        time_adjustment = +1  # 1 ay geriye alma
+    else:
+        status = "normal"
+        status_message = "Mükemmel tempo! Plan doğru gidiyor ⚖️"
+        time_adjustment = 0  # Değişiklik yok
+    
+    # Kullanıcının alanını al
+    user_field = user_data.get('field', 'Genel')
+    
+    # Temel timeline oluştur (önceki statik planın adaptasyonu)
+    base_timeline = get_base_timeline_by_field(user_field)
+    
+    # Dinamik ayarlamalar yap
+    dynamic_timeline = []
+    today = datetime.now()
+    current_month_index = 0
+    
+    for i, month_plan in enumerate(base_timeline):
+        # Zaman ayarlaması uygula
+        adjusted_month = adjust_timeline_month(month_plan['ay'], time_adjustment)
+        
+        # Dinamik notlar ekle
+        dynamic_note = ""
+        adjusted_timeline = ""
+        
+        if time_adjustment < 0:  # Hızlı gidiyor
+            dynamic_note = f"Hızlı ilerlediğin için bu konuları {abs(time_adjustment)} ay öne çektik!"
+            adjusted_timeline = "⚡ Öne çekildi"
+        elif time_adjustment > 0:  # Yavaş gidiyor
+            dynamic_note = f"Tempo yavaş olduğu için bu konular {time_adjustment} ay geriye alındı."
+            adjusted_timeline = "🐌 Geriye alındı"
+        else:
+            dynamic_note = "Plan tam zamanında gidiyor, değişiklik yok."
+            adjusted_timeline = "⚖️ Zamanında"
+        
+        # Mevcut ayı belirle
+        if adjusted_month.startswith(today.strftime("%B").replace("October", "Ekim").replace("November", "Kasım")):
+            current_month_index = i
+        
+        adjusted_plan = month_plan.copy()
+        adjusted_plan['ay'] = adjusted_month
+        adjusted_plan['dynamic_note'] = dynamic_note
+        adjusted_plan['adjusted_timeline'] = adjusted_timeline
+        
+        dynamic_timeline.append(adjusted_plan)
+    
+    # Kritik tarihler belirle
+    exam_start_month = "Nisan 2025"
+    final_prep_month = "Mayıs 2025"
+    
+    if time_adjustment < 0:  # Hızlı gidiyor
+        exam_start_month = "Mart 2025"
+        final_prep_month = "Nisan 2025"
+    elif time_adjustment > 0:  # Yavaş gidiyor
+        exam_start_month = "Mayıs 2025"
+        final_prep_month = "Haziran 2025"
+    
+    return {
+        'status': status,
+        'status_message': status_message,
+        'target_weekly_progress': target_weekly_progress,
+        'timeline': dynamic_timeline,
+        'current_month_index': current_month_index,
+        'exam_start_month': exam_start_month,
+        'final_prep_month': final_prep_month,
+        'time_adjustment': time_adjustment
+    }
+
+
+def get_base_timeline_by_field(field):
+    """Alan bazında temel timeline döndürür"""
+    if field in ['Sayısal', 'MF']:
+        return [
+            {"ay": "Ekim 2024", "hedef": "Temel Konular", "konular": ["TYT Matematik Temel", "Fizik Kinematik", "Kimya Atom", "Biyoloji Hücre"], "puan_hedefi": 320, "ozellik": "🌱 Sayısal altyapı oluşturma"},
+            {"ay": "Kasım 2024", "hedef": "Ana Konular", "konular": ["Fonksiyonlar", "Fizik Dinamik", "Kimya Bağlar", "Geometri Açılar"], "puan_hedefi": 340, "ozellik": "📚 Sayısal ana konuları"},
+            {"ay": "Aralık 2024", "hedef": "İleri Konular", "konular": ["Türev", "Elektrik", "Organik Kimya", "Genetik"], "puan_hedefi": 360, "ozellik": "🔥 Sayısal zor konular"},
+            {"ay": "Ocak 2025", "hedef": "Uzmanlık Konuları", "konular": ["İntegral", "Modern Fizik", "Analitik Kimya", "Ekoloji"], "puan_hedefi": 380, "ozellik": "🎯 Sayısal uzmanlık"},
+            {"ay": "Şubat 2025", "hedef": "Problem Çözme", "konular": ["Zor matematik problemleri", "Fizik problemleri", "TYT genel"], "puan_hedefi": 400, "ozellik": "💪 Problem çözme hızı"},
+            {"ay": "Mart 2025", "hedef": "Genel Tekrar", "konular": ["Tüm matematik", "Tüm fizik", "Formül ezberletme"], "puan_hedefi": 420, "ozellik": "🔄 Sayısal tekrar"},
+            {"ay": "Nisan 2025", "hedef": "🎯 DENEMELER!", "konular": ["MF denemeleri", "Zaman yönetimi", "Sınav teknikleri"], "puan_hedefi": 440, "ozellik": "🏁 MF deneme pratiği"},
+            {"ay": "Mayıs 2025", "hedef": "Son Hazırlık", "konular": ["Hızlı tekrar", "Formüller", "Motivasyon"], "puan_hedefi": 460, "ozellik": "⚡ MF final sprint"},
+            {"ay": "Haziran 2025", "hedef": "🏆 YKS!", "konular": ["Stres yönetimi", "Özgüven", "Mühendislik hayali"], "puan_hedefi": 480, "ozellik": "🎊 Mühendislik fakültesi seni bekliyor!"}
+        ]
+    elif field in ['Sözel', 'TM']:
+        return [
+            {"ay": "Ekim 2024", "hedef": "Temel Konular", "konular": ["TYT Türkçe Gramer", "Tarih İlk Çağ", "Coğrafya Fiziki", "Edebiyat Divan"], "puan_hedefi": 320, "ozellik": "🌱 Sözel altyapı oluşturma"},
+            {"ay": "Kasım 2024", "hedef": "Ana Konular", "konular": ["AYT Türkçe", "Tarih Orta Çağ", "Coğrafya Beşeri", "Edebiyat Tanzimat"], "puan_hedefi": 340, "ozellik": "📚 Sözel ana konuları"},
+            {"ay": "Aralık 2024", "hedef": "İleri Konular", "konular": ["Paragraf", "Tarih Yakın Çağ", "Coğrafya Türkiye", "Modern Edebiyat"], "puan_hedefi": 360, "ozellik": "🔥 Sözel zor konular"},
+            {"ay": "Ocak 2025", "hedef": "Uzmanlık Konuları", "konular": ["Deneme Yazma", "Tarih Cumhuriyet", "Coğrafya Ekonomik", "Çağdaş Edebiyat"], "puan_hedefi": 380, "ozellik": "🎯 Sözel uzmanlık"},
+            {"ay": "Şubat 2025", "hedef": "Analiz Becerisi", "konular": ["Metin analizi", "Tarih analizi", "Güncel olaylar"], "puan_hedefi": 400, "ozellik": "💪 Analitik düşünme"},
+            {"ay": "Mart 2025", "hedef": "Genel Tekrar", "konular": ["Tüm Türkçe", "Tüm Tarih", "Konu özetleri"], "puan_hedefi": 420, "ozellik": "🔄 Sözel tekrar"},
+            {"ay": "Nisan 2025", "hedef": "🎯 DENEMELER!", "konular": ["TM denemeleri", "Okuma hızı", "Sınav teknikleri"], "puan_hedefi": 440, "ozellik": "🏁 TM deneme pratiği"},
+            {"ay": "Mayıs 2025", "hedef": "Son Hazırlık", "konular": ["Hızlı okuma", "Özet notlar", "Motivasyon"], "puan_hedefi": 460, "ozellik": "⚡ TM final sprint"},
+            {"ay": "Haziran 2025", "hedef": "🏆 YKS!", "konular": ["Stres yönetimi", "Özgüven", "Edebiyat hayali"], "puan_hedefi": 480, "ozellik": "🎊 Edebiyat fakültesi seni bekliyor!"}
+        ]
+    else:  # Eşit Ağırlık
+        return [
+            {"ay": "Ekim 2024", "hedef": "Temel Konular", "konular": ["TYT Mat Temel", "Türkçe Gramer", "Tarih İlk Çağ", "Coğrafya Fiziki"], "puan_hedefi": 320, "ozellik": "🌱 EA altyapı oluşturma"},
+            {"ay": "Kasım 2024", "hedef": "Ana Konular", "konular": ["AYT Mat", "AYT Türkçe", "Tarih Orta Çağ", "Coğrafya Beşeri"], "puan_hedefi": 340, "ozellik": "📚 EA ana konuları"},
+            {"ay": "Aralık 2024", "hedef": "İleri Konular", "konular": ["Matematik İleri", "Paragraf", "Tarih Yakın Çağ", "Coğrafya Türkiye"], "puan_hedefi": 360, "ozellik": "🔥 EA zor konular"},
+            {"ay": "Ocak 2025", "hedef": "Uzmanlık Konuları", "konular": ["Problem çözme", "Deneme yazma", "Tarih Cumhuriyet", "Güncel olaylar"], "puan_hedefi": 380, "ozellik": "🎯 EA uzmanlık"},
+            {"ay": "Şubat 2025", "hedef": "Denge Kurmak", "konular": ["Mat-Sözel dengesi", "Zayıf alanları güçlendirme"], "puan_hedefi": 400, "ozellik": "💪 Denge oluşturma"},
+            {"ay": "Mart 2025", "hedef": "Genel Tekrar", "konular": ["Matematik özet", "Sözel özet", "Konu tekrarları"], "puan_hedefi": 420, "ozellik": "🔄 EA tekrar"},
+            {"ay": "Nisan 2025", "hedef": "🎯 DENEMELER!", "konular": ["EA denemeleri", "Alan seçimi", "Sınav teknikleri"], "puan_hedefi": 440, "ozellik": "🏁 EA deneme pratiği"},
+            {"ay": "Mayıs 2025", "hedef": "Son Hazırlık", "konular": ["Hızlı tekrar", "Özet notlar", "Motivasyon"], "puan_hedefi": 460, "ozellik": "⚡ EA final sprint"},
+            {"ay": "Haziran 2025", "hedef": "🏆 YKS!", "konular": ["Stres yönetimi", "Özgüven", "İktisat hayali"], "puan_hedefi": 480, "ozellik": "🎊 İktisat fakültesi seni bekliyor!"}
+        ]
+
+
+def adjust_timeline_month(original_month, adjustment):
+    """Ay timeline'ını ayarlar"""
+    if adjustment == 0:
+        return original_month
+    
+    # Basit ay çevirme mantığı
+    months = ["Ekim", "Kasım", "Aralık", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran"]
+    
+    try:
+        # Mevcut ayın indexini bul
+        month_name = original_month.split()[0]
+        current_index = months.index(month_name)
+        
+        # Ayarlamayı uygula
+        new_index = max(0, min(len(months) - 1, current_index + adjustment))
+        new_month = months[new_index]
+        
+        # Yılı da ayarla
+        year = "2024" if new_index < 3 else "2025"
+        return f"{new_month} {year}"
+        
+    except (ValueError, IndexError):
+        return original_month
+
+
+def generate_next_week_advice(dynamic_plan, current_progress):
+    """Gelecek hafta için özel öneri oluştur"""
+    
+    if dynamic_plan['status'] == "fast":
+        advice_list = [
+            "Bu hızını korumaya devam et, çok iyi gidiyorsun!",
+            "Zor konulara daha fazla zaman ayırabilirsin",
+            "İleri seviye problemlere geçmeyi düşün",
+            "Bu tempoda deneme sınavlarına erken başlayabilirsin"
+        ]
+    elif dynamic_plan['status'] == "slow":
+        advice_list = [
+            "Bu hafta 2-3 konu daha tamamlamaya odaklan",
+            "Günlük çalışma süresini 1 saat artır",
+            "Temel konuları hızlıca gözden geçir",
+            "Zayıf olduğun derslere daha fazla zaman ayır"
+        ]
+    else:
+        advice_list = [
+            "Mükemmel temponda gidiyorsun, bu kararlılığını sürdür",
+            "Planın tam zamanında, değişiklik yapma",
+            "Konuları derinlemesine anlamaya odaklan",
+            "Düzenli tekrarları ihmal etme"
+        ]
+    
+    import random
+    return random.choice(advice_list)
 
 def show_scientific_life_coaching(user_data):
     """🧠 Bilimsel Yaşam Koçluğu - YKS için nörobilim destekli optimizasyon"""
