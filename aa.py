@@ -21994,11 +21994,12 @@ def show_target_department_roadmap(user_data):
         "weekly_topic_multiplier": 1.0
     }))
     
-    # Zorluk analizi
-    difficulty_level = dept_info["difficulty_level"]
-    required_tyt = dept_info["required_nets"]["TYT"]
-    required_ayt = dept_info["required_nets"]["AYT"]
-    study_intensity = dept_info["study_intensity"]
+    # Zorluk analizi - Güvenli dönüşüm
+    difficulty_level = dept_info.get("difficulty_level", 3)
+    required_nets = dept_info.get("required_nets", {"TYT": 90, "AYT": 50})
+    required_tyt = float(required_nets.get("TYT", 90))
+    required_ayt = float(required_nets.get("AYT", 50))
+    study_intensity = dept_info.get("study_intensity", "orta")
     
     # Zorluk seviyesi renklendirmesi
     difficulty_colors = {1: "🟢", 2: "🟡", 3: "🟠", 4: "🔴", 5: "🔥"}
@@ -22026,9 +22027,16 @@ def show_target_department_roadmap(user_data):
     
     st.markdown("---")
     
-    # Net analizi ve tahmini puan
-    current_tyt_net = user_data.get('tyt_avg_net', 0)
-    current_ayt_net = user_data.get('ayt_avg_net', 0)
+    # Net analizi ve tahmini puan - Güvenli dönüşüm
+    try:
+        current_tyt_net = float(user_data.get('tyt_avg_net', 0) or 0)
+    except (ValueError, TypeError):
+        current_tyt_net = 0.0
+    
+    try:
+        current_ayt_net = float(user_data.get('ayt_avg_net', 0) or 0)
+    except (ValueError, TypeError):
+        current_ayt_net = 0.0
     
     st.subheader("📈 Mevcut Durumunuz vs Hedef")
     
@@ -22037,8 +22045,13 @@ def show_target_department_roadmap(user_data):
     
     with col1:
         st.write("**🎯 TYT Net Analizi:**")
-        tyt_progress = min(100, (current_tyt_net / required_tyt) * 100) if required_tyt > 0 else 100
-        tyt_diff = required_tyt - current_tyt_net
+        
+        if required_tyt > 0:
+            tyt_progress = min(100, (current_tyt_net / required_tyt) * 100)
+            tyt_diff = required_tyt - current_tyt_net
+        else:
+            tyt_progress = 100
+            tyt_diff = 0
         
         if tyt_diff <= 0:
             st.success(f"✅ TYT hedefi aşıldı! (+{abs(tyt_diff):.1f} net üstünde)")
@@ -22050,12 +22063,13 @@ def show_target_department_roadmap(user_data):
             st.error(f"🚨 TYT için çok ciddi çalışma gerekli! ({tyt_diff:.1f} net eksik)")
         
         st.progress(tyt_progress / 100)
-        st.caption(f"Mevcut: {current_tyt_net:.1f} / Hedef: {required_tyt}")
+        st.caption(f"Mevcut: {current_tyt_net:.1f} / Hedef: {required_tyt:.0f}")
     
     with col2:
         if required_ayt > 0:
             st.write("**📊 AYT Net Analizi:**")
-            ayt_progress = min(100, (current_ayt_net / required_ayt) * 100) if required_ayt > 0 else 100
+            
+            ayt_progress = min(100, (current_ayt_net / required_ayt) * 100)
             ayt_diff = required_ayt - current_ayt_net
             
             if ayt_diff <= 0:
@@ -22068,7 +22082,7 @@ def show_target_department_roadmap(user_data):
                 st.error(f"🚨 AYT için çok ciddi çalışma gerekli! ({ayt_diff:.1f} net eksik)")
             
             st.progress(ayt_progress / 100)
-            st.caption(f"Mevcut: {current_ayt_net:.1f} / Hedef: {required_ayt}")
+            st.caption(f"Mevcut: {current_ayt_net:.1f} / Hedef: {required_ayt:.0f}")
         else:
             st.info("ℹ️ Bu bölüm için AYT gerekmiyor.")
     
@@ -22077,7 +22091,10 @@ def show_target_department_roadmap(user_data):
     # Stratejik öneriler
     st.subheader("🎯 Size Özel Strateji Önerileri")
     
-    total_gap = max(0, tyt_diff) + max(0, ayt_diff if required_ayt > 0 else 0)
+    # Güvenli total_gap hesaplama
+    tyt_gap = max(0, required_tyt - current_tyt_net) if required_tyt > 0 else 0
+    ayt_gap = max(0, required_ayt - current_ayt_net) if required_ayt > 0 else 0
+    total_gap = tyt_gap + ayt_gap
     
     if total_gap == 0:
         st.success("🎉 **Mükemmel!** Hedefiniz için gerekli net seviyesini aşmışsınız!")
