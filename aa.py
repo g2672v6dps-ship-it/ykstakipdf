@@ -6583,17 +6583,33 @@ def show_weekly_planner(user_data):
     st.markdown("#### 📊 BU HAFTANİN İLERLEMESİ")
     progress_col1, progress_col2 = st.columns([3, 2])
     
+    from datetime import datetime  # Local import for datetime
+    
     with progress_col1:
         progress_bar = st.progress(completion_percentage / 100)
         st.caption(f"Haftalık hedefin %{completion_percentage:.1f}'ini tamamladın!")
+        
+        # Hafta sonu yaklaşırken özel mesaj
+        today = datetime.now()
+        if today.weekday() >= 5:  # Cumartesi veya Pazar
+            if completion_percentage < 70:
+                st.warning("⏰ Hafta sonu! Son şans için hızlanmanın zamanı!")
+            else:
+                st.success("🎯 Hafta sonu güzel gidiyor! Bu temponu koru!")
     
     with progress_col2:
-        if completion_percentage >= 80:
+        if completion_percentage >= 90:
+            st.markdown("🏆 **Mükemmel!**")
+        elif completion_percentage >= 80:
             st.markdown("🎉 **Hedef Aşıldı!**")
         elif completion_percentage >= 60:
             st.markdown("⚡ **İyi Gidiyorsun!**")
-        else:
+        elif completion_percentage >= 40:
+            st.markdown("🔥 **Tempo Artır!**")
+        elif completion_percentage >= 20:
             st.markdown("💪 **Devam Et!**")
+        else:
+            st.markdown("🚀 **Hızlan!**")
     
     # İlerleme yüzdesi hesaplanıyor
     final_completion = completion_percentage
@@ -20498,14 +20514,50 @@ def calculate_weekly_completion_percentage(user_data, weekly_plan):
                     if st.session_state[f"completed_{topic_key}"]:
                         completed_topics += 1
         
-        # Eğer hiç program yoksa varsayılan hesaplama
+        # Eğer hiç program yoksa gerçek ilerlemeyi hesapla
         if total_scheduled == 0:
-            # Tekrar konularını kontrol et
-            review_topics = weekly_plan.get('review_topics', [])
-            total_scheduled = len(review_topics)
+            # Bu hafta tamamlanan konuları session state'den kontrol et
+            today = datetime.now()
+            week_start = today - timedelta(days=today.weekday())
             
-            if total_scheduled == 0:
-                return 50.0  # Varsayılan orta seviye
+            completed_this_week = 0
+            target_topics_per_week = 7  # Varsayılan haftalık hedef
+            
+            # Session state'de bu hafta tamamlanan konuları say
+            for key in st.session_state.keys():
+                if key.startswith('completed_') and st.session_state[key]:
+                    # Tamamlanma tarihini kontrol et (mümkünse)
+                    completed_this_week += 1
+            
+            # Haftalık hedef konuları belirleme (alan bazında)
+            user_field = user_data.get('field', 'Genel')
+            if user_field in ['Sayısal', 'MF']:
+                target_topics_per_week = 8  # Sayısal daha yoğun
+            elif user_field in ['Sözel', 'TM']:
+                target_topics_per_week = 6  # Sözel biraz daha az
+            else:
+                target_topics_per_week = 7  # Varsayılan
+            
+            # Gerçek yüzde hesaplama
+            actual_percentage = min((completed_this_week / target_topics_per_week) * 100, 100.0)
+            
+            # Eğer hiç tamamlanmamışsa kullanıcının topic_progress'inden hesapla
+            if actual_percentage == 0:
+                topic_progress = json.loads(user_data.get('topic_progress', '{}'))
+                
+                # Son 7 gün içinde güncellenmiş konuları say
+                for topic_key, progress in topic_progress.items():
+                    if isinstance(progress, dict) and 'last_study_date' in progress:
+                        try:
+                            last_date = datetime.fromisoformat(progress['last_study_date'].split('T')[0])
+                            if (today - last_date).days <= 7:
+                                completed_this_week += 1
+                        except:
+                            pass
+                
+                actual_percentage = min((completed_this_week / target_topics_per_week) * 100, 100.0)
+            
+            return actual_percentage if actual_percentage > 0 else 15.0  # Minimum %15
             
             # Tekrar konularının kaçı tamamlandı
             topic_progress = json.loads(user_data.get('topic_progress', '{}'))
@@ -20532,8 +20584,17 @@ def calculate_weekly_completion_percentage(user_data, weekly_plan):
         return min(completion_percentage, 100.0)  # Max %100
         
     except Exception as e:
-        # Hata durumunda güvenli varsayılan
-        return 25.0
+        # Hata durumunda kullanıcının genel ilerlemesine göre tahmin
+        try:
+            topic_progress = json.loads(user_data.get('topic_progress', '{}'))
+            total_topics = len(topic_progress)
+            if total_topics > 0:
+                # Genel ilerleme oranına göre tahmin
+                return min(total_topics * 2, 30.0)  # Haftalık %30 max
+            else:
+                return 10.0  # Yeni kullanıcı
+        except:
+            return 10.0  # Güvenli varsayılan
 
 def get_next_week_topics(user_data, student_field, survey_data):
     """Gelecek haftanın konularını getirir"""
