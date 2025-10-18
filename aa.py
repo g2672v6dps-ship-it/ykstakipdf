@@ -6460,18 +6460,26 @@ def show_yks_survey(user_data):
             "En az sevdiğiniz dersleri seçin (max 3):", all_subjects, max_selections=3
         )
         
-        # Kitap tercihleri
-        st.markdown("### 📖 Kitap Önerileri")
-        book_type = st.selectbox(
-            "Hangi tür kitapları okumayı seversiniz?",
-            list(BOOK_RECOMMENDATIONS.keys())
-        )
-        
         # Tatil günü
         st.markdown("### 🌴 Dinlenme Günü")
         rest_day = st.selectbox(
-            "Haftanın hangi günü tamamen dinlenmek istersiniz?",
-            ["Pazar", "Cumartesi", "Cuma", "Pazartesi", "Salı", "Çarşamba", "Perşembe"]
+            "Dinlenme günü seçin:",
+            [
+                "Pazartesi (Tam Gün)",
+                "Pazartesi (Yarım Gün)",
+                "Salı (Tam Gün)",
+                "Salı (Yarım Gün)",
+                "Çarşamba (Tam Gün)",
+                "Çarşamba (Yarım Gün)",
+                "Perşembe (Tam Gün)",
+                "Perşembe (Yarım Gün)",
+                "Cuma (Tam Gün)",
+                "Cuma (Yarım Gün)",
+                "Cumartesi (Tam Gün)",
+                "Cumartesi (Yarım Gün)",
+                "Pazar (Tam Gün)",
+                "Pazar (Yarım Gün)"
+            ]
         )
         
         # Form submit
@@ -6484,7 +6492,6 @@ def show_yks_survey(user_data):
                 'favorite_subjects': favorite_subjects,
                 'sleep_time': sleep_option,
                 'disliked_subjects': disliked_subjects,
-                'book_type': book_type,
                 'rest_day': rest_day,
                 'created_at': datetime.now().isoformat()
             }
@@ -6496,9 +6503,6 @@ def show_yks_survey(user_data):
             
             # Kitap önerilerini göster
             st.success("✅ Bilgileriniz kaydedildi!")
-            st.markdown("### 📚 Size Özel Kitap Önerileri")
-            for book in BOOK_RECOMMENDATIONS[book_type]:
-                st.write(f"📖 {book}")
             
             st.rerun()
 
