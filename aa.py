@@ -22132,38 +22132,6 @@ def show_target_department_roadmap(user_data):
     for advice in strategy_advice:
         st.write(f"• {advice}")
     
-    # Haftalık hedef önerileri
-    st.markdown("---")
-    st.subheader("📅 Bu Hafta İçin Spesifik Hedefler")
-    
-    weekly_multiplier = dept_info.get("weekly_topic_multiplier", 1.0)
-    
-    if field == "Sayısal":
-        base_topics = {"Matematik": 3, "Fizik": 2, "Kimya": 2, "Biyoloji": 1}
-    elif field == "Sözel":
-        base_topics = {"Türkçe": 3, "Tarih": 2, "Coğrafya": 2, "Felsefe": 1}
-    else:  # Eşit Ağırlık
-        base_topics = {"Matematik": 2, "Türkçe": 2, "Tarih": 2, "Coğrafya": 1}
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.write("**📚 Önerilen Konu Hedefleri:**")
-        for subject, base_count in base_topics.items():
-            recommended_topics = int(base_count * weekly_multiplier)
-            st.write(f"• **{subject}:** {recommended_topics} konu")
-    
-    with col2:
-        st.write("**⏰ Önerilen Çalışma Saatleri:**")
-        total_hours = {
-            "maksimum": 50, "yüksek": 40, "orta-yüksek": 35, 
-            "orta": 30, "düşük": 25
-        }.get(study_intensity, 30)
-        
-        st.write(f"• **Haftalık toplam:** {total_hours} saat")
-        st.write(f"• **Günlük ortalama:** {total_hours/7:.1f} saat")
-        st.write(f"• **Ders başına:** {total_hours/len(base_topics):.1f} saat")
-    
     # Zayıf alan analizi
     show_weak_subjects_analysis(user_data, field, total_gap)
 
