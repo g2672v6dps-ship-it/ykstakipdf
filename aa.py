@@ -21966,99 +21966,189 @@ def show_target_department_roadmap(user_data):
     
     field = user_data.get('field', 'Sayısal')
     current_score = calculate_current_yks_score(user_data)
+    target_department = user_data.get('target_department', 'Belirlenmedi')
     
-    # Mevcut durum kartı
-    col1, col2, col3 = st.columns(3)
+    # Mevcut durum ve hedef kartı
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("📊 Mevcut Tahmini Puanınız", f"{current_score:.1f}")
     with col2:
         st.metric("📚 Alanınız", field)
     with col3:
+        st.metric("🎯 Hedef Bölümünüz", target_department)
+    with col4:
         days_to_yks = get_current_week_info()['days_to_yks']
         st.metric("⏰ YKS'ye Kalan Gün", days_to_yks)
     
-    st.markdown("---")
-    
-    # Hedef bölüm seçimi
-    st.subheader("🎯 Hedef Bölümünüzü Seçin")
-    
-    departments = get_departments_by_field(field)
-    if not departments:
-        st.warning(f"❌ {field} alanı için bölüm bilgisi bulunamadı.")
+    if target_department == 'Belirlenmedi':
+        st.warning("⚠️ Hedef bölümünüz belirlenmemiş. Lütfen profil ayarlarınızdan hedef bölümünüzü belirleyin.")
         return
     
-    selected_department = st.selectbox("Hedef bölümünüzü seçin:", departments)
+    st.markdown("---")
     
-    if selected_department:
-        universities = get_universities_by_department(field, selected_department)
-        selected_university = st.selectbox("Hedef üniversitenizi seçin:", universities)
+    # Hedef bölüm zorluğu ve gereksinimleri
+    dept_info = TARGET_DEPARTMENT_DIFFICULTY.get(target_department, TARGET_DEPARTMENT_DIFFICULTY.get("Varsayılan", {
+        "difficulty_level": 3,
+        "required_nets": {"TYT": 90, "AYT": 50},
+        "study_intensity": "orta",
+        "weekly_topic_multiplier": 1.0
+    }))
+    
+    # Zorluk analizi
+    difficulty_level = dept_info["difficulty_level"]
+    required_tyt = dept_info["required_nets"]["TYT"]
+    required_ayt = dept_info["required_nets"]["AYT"]
+    study_intensity = dept_info["study_intensity"]
+    
+    # Zorluk seviyesi renklendirmesi
+    difficulty_colors = {1: "🟢", 2: "🟡", 3: "🟠", 4: "🔴", 5: "🔥"}
+    difficulty_names = {1: "Çok Kolay", 2: "Kolay", 3: "Orta", 4: "Zor", 5: "Çok Zor"}
+    
+    st.subheader("📊 Hedef Bölüm Analizi")
+    
+    # Zorluk kartları
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric(
+            f"{difficulty_colors[difficulty_level]} Zorluk Seviyesi", 
+            difficulty_names[difficulty_level],
+            f"Seviye {difficulty_level}/5"
+        )
+    with col2:
+        st.metric("📈 Gerekli TYT Net", f"~{required_tyt}")
+    with col3:
+        if required_ayt > 0:
+            st.metric("📊 Gerekli AYT Net", f"~{required_ayt}")
+        else:
+            st.metric("📊 AYT Net", "Gerekli Değil")
+    with col4:
+        st.metric("💪 Çalışma Yoğunluğu", study_intensity.title())
+    
+    st.markdown("---")
+    
+    # Net analizi ve tahmini puan
+    current_tyt_net = user_data.get('tyt_avg_net', 0)
+    current_ayt_net = user_data.get('ayt_avg_net', 0)
+    
+    st.subheader("📈 Mevcut Durumunuz vs Hedef")
+    
+    # Net karşılaştırması
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.write("**🎯 TYT Net Analizi:**")
+        tyt_progress = min(100, (current_tyt_net / required_tyt) * 100) if required_tyt > 0 else 100
+        tyt_diff = required_tyt - current_tyt_net
         
-        if selected_university:
-            # Hedef bilgileri göster
-            target_info = YKS_2025_TABAN_PUANLARI[field][selected_department][selected_university]
-            target_score = target_info["taban_puan"]
-            kontenjan = target_info["kontenjan"]
+        if tyt_diff <= 0:
+            st.success(f"✅ TYT hedefi aşıldı! (+{abs(tyt_diff):.1f} net üstünde)")
+        elif tyt_diff <= 10:
+            st.warning(f"⚠️ TYT hedefine çok yakın! ({tyt_diff:.1f} net eksik)")
+        elif tyt_diff <= 25:
+            st.error(f"🔴 TYT için yoğun çalışma gerekli! ({tyt_diff:.1f} net eksik)")
+        else:
+            st.error(f"🚨 TYT için çok ciddi çalışma gerekli! ({tyt_diff:.1f} net eksik)")
+        
+        st.progress(tyt_progress / 100)
+        st.caption(f"Mevcut: {current_tyt_net:.1f} / Hedef: {required_tyt}")
+    
+    with col2:
+        if required_ayt > 0:
+            st.write("**📊 AYT Net Analizi:**")
+            ayt_progress = min(100, (current_ayt_net / required_ayt) * 100) if required_ayt > 0 else 100
+            ayt_diff = required_ayt - current_ayt_net
             
-            st.markdown("---")
-            st.subheader("📊 Hedef Analizi")
-            
-            # Ana metrikler
-            score_diff = target_score - current_score
-            col1, col2, col3, col4 = st.columns(4)
-            
-            with col1:
-                st.metric("🎯 Hedef Taban Puan", target_score)
-            with col2:
-                st.metric("📊 Mevcut Puanınız", f"{current_score:.1f}")
-            with col3:
-                color = "🔴" if score_diff > 0 else "🟢"
-                st.metric(f"{color} Puan Farkı", f"{score_diff:.1f}")
-            with col4:
-                st.metric("👥 Kontenjan", kontenjan)
-            
-            # Durum analizi
-            if score_diff <= 0:
-                st.success(f"🎉 **Tebrikler!** Mevcut puanınız hedef bölümünüz için yeterli! (+{abs(score_diff):.1f} puan üstünde)")
-                st.info("💡 **Strateji:** Mevcut seviyenizi koruyun ve YKS gününde performansınızı en üst düzeyde tutun.")
-            
-            elif score_diff <= 20:
-                st.warning(f"⚠️ **Dikkat!** Hedefinize çok yakınsınız! ({score_diff:.1f} puan eksik)")
-                st.info("💡 **Strateji:** Yoğun çalışma ile hedefinize ulaşabilirsiniz. Zayıf alanlarınıza odaklanın.")
-            
-            elif score_diff <= 50:
-                st.error(f"🔴 **Yoğun Çalışma Gerekli!** ({score_diff:.1f} puan eksik)")
-                st.info("💡 **Strateji:** Sistematik çalışma planı ve zayıf alanlarınızda büyük gelişim gerekli.")
-            
+            if ayt_diff <= 0:
+                st.success(f"✅ AYT hedefi aşıldı! (+{abs(ayt_diff):.1f} net üstünde)")
+            elif ayt_diff <= 8:
+                st.warning(f"⚠️ AYT hedefine çok yakın! ({ayt_diff:.1f} net eksik)")
+            elif ayt_diff <= 20:
+                st.error(f"🔴 AYT için yoğun çalışma gerekli! ({ayt_diff:.1f} net eksik)")
             else:
-                st.error(f"🚨 **Alternatif Hedefler Değerlendirin!** ({score_diff:.1f} puan eksik)")
-                st.info("💡 **Strateji:** Daha gerçekçi hedefler belirleyin veya çok yoğun çalışma programına başlayın.")
+                st.error(f"🚨 AYT için çok ciddi çalışma gerekli! ({ayt_diff:.1f} net eksik)")
             
-            # Gerekli net analizi
-            st.markdown("---")
-            st.subheader("📈 Hedef İçin Gerekli Net Analizi")
-            
-            scenarios = calculate_required_nets_for_target(target_score, field)
-            
-            if scenarios:
-                st.write("**Hedefinize ulaşmak için gerekli net kombinasyonları:**")
-                
-                for i, scenario in enumerate(scenarios):
-                    difficulty_color = {"Kolay": "🟢", "Orta": "🟡", "Zor": "🔴"}
-                    color = difficulty_color.get(scenario["difficulty"], "⚪")
-                    
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric(f"{color} Senaryo {i+1}", scenario["difficulty"])
-                    with col2:
-                        st.metric("TYT Net", scenario["tyt_net"])
-                    with col3:
-                        if scenario["ayt_net"] > 0:
-                            st.metric("AYT Net", scenario["ayt_net"])
-                        else:
-                            st.metric("AYT Net", "Gerekli Değil")
-            
-            # Zayıf alan analizi
-            show_weak_subjects_analysis(user_data, field, score_diff)
+            st.progress(ayt_progress / 100)
+            st.caption(f"Mevcut: {current_ayt_net:.1f} / Hedef: {required_ayt}")
+        else:
+            st.info("ℹ️ Bu bölüm için AYT gerekmiyor.")
+    
+    st.markdown("---")
+    
+    # Stratejik öneriler
+    st.subheader("🎯 Size Özel Strateji Önerileri")
+    
+    total_gap = max(0, tyt_diff) + max(0, ayt_diff if required_ayt > 0 else 0)
+    
+    if total_gap == 0:
+        st.success("🎉 **Mükemmel!** Hedefiniz için gerekli net seviyesini aşmışsınız!")
+        strategy_advice = [
+            "🔒 **Mevcut seviyenizi koruyun** - Düzenli tekrar yapın",
+            "🎯 **Sınav performansına odaklanın** - Sınav teknikleri geliştirin",
+            "📚 **Zor sorulara çalışın** - Üst seviye sorularla kendinizi zorlayın",
+            "🧘 **Mental hazırlık** - Sınav kaygısını azaltın, özgüven geliştirin"
+        ]
+    elif total_gap <= 15:
+        st.warning("⚠️ **Hedefe çok yakınsınız!** Son sprint zamanı!")
+        strategy_advice = [
+            f"🎯 **Öncelik 1:** En zayıf alanlarınıza odaklanın",
+            f"⏰ **Günlük hedef:** +{total_gap/30:.1f} net artış için günde 4-5 saat",
+            f"📚 **Çalışma planı:** %70 zayıf konular, %30 güçlü konular",
+            f"🔄 **Tekrar stratejisi:** Günde en az 2 saat önceki konuları tekrar edin"
+        ]
+    elif total_gap <= 40:
+        st.error("🔴 **Yoğun çalışma gerekli!** Sistematik plan şart!")
+        strategy_advice = [
+            f"💪 **Günlük hedef:** +{total_gap/60:.1f} net için günde 6-7 saat çalışma",
+            f"📚 **Odak alanları:** Temel konulardan başlayıp ileri seviyeye geçin",
+            f"🎯 **Konu dağılımı:** %80 zayıf konular, %20 pekiştirme",
+            f"⚡ **Hızlandırma:** Günde en az 3 farklı derste çalışın"
+        ]
+    else:
+        st.error("🚨 **Çok ciddi çalışma gerekli!** Alternatif hedefler de değerlendirin.")
+        strategy_advice = [
+            f"🔥 **Maksimum çaba:** Günde 8+ saat sistematik çalışma",
+            f"🎯 **Alternatif plan:** Daha düşük puanlı bölümler de değerlendirin",
+            f"📚 **Temel odak:** %90 temel konular, %10 orta seviye",
+            f"🆘 **Destek alın:** Öğretmen/mentor desteği şart"
+        ]
+    
+    for advice in strategy_advice:
+        st.write(f"• {advice}")
+    
+    # Haftalık hedef önerileri
+    st.markdown("---")
+    st.subheader("📅 Bu Hafta İçin Spesifik Hedefler")
+    
+    weekly_multiplier = dept_info.get("weekly_topic_multiplier", 1.0)
+    
+    if field == "Sayısal":
+        base_topics = {"Matematik": 3, "Fizik": 2, "Kimya": 2, "Biyoloji": 1}
+    elif field == "Sözel":
+        base_topics = {"Türkçe": 3, "Tarih": 2, "Coğrafya": 2, "Felsefe": 1}
+    else:  # Eşit Ağırlık
+        base_topics = {"Matematik": 2, "Türkçe": 2, "Tarih": 2, "Coğrafya": 1}
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.write("**📚 Önerilen Konu Hedefleri:**")
+        for subject, base_count in base_topics.items():
+            recommended_topics = int(base_count * weekly_multiplier)
+            st.write(f"• **{subject}:** {recommended_topics} konu")
+    
+    with col2:
+        st.write("**⏰ Önerilen Çalışma Saatleri:**")
+        total_hours = {
+            "maksimum": 50, "yüksek": 40, "orta-yüksek": 35, 
+            "orta": 30, "düşük": 25
+        }.get(study_intensity, 30)
+        
+        st.write(f"• **Haftalık toplam:** {total_hours} saat")
+        st.write(f"• **Günlük ortalama:** {total_hours/7:.1f} saat")
+        st.write(f"• **Ders başına:** {total_hours/len(base_topics):.1f} saat")
+    
+    # Zayıf alan analizi
+    show_weak_subjects_analysis(user_data, field, total_gap)
 
 def show_weak_subjects_analysis(user_data, field, score_diff):
     """Zayıf alan analizi ve öneriler"""
