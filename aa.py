@@ -5718,7 +5718,7 @@ VAK_LEARNING_STYLES_TEST = [
         "type": "auditory"
     },
     {
-        "question": "Gözlerimi ellerime dayarım",
+        "question": "Düşünürken başımı ellerime dayama alışkanlığım var",
         "category": "B",
         "type": "auditory"
     },
@@ -5840,7 +5840,7 @@ VAK_LEARNING_STYLES_TEST = [
         "type": "kinesthetic"
     },
     {
-        "question": "Arkadaşlarıma el şakası yapmaya bayılırım",
+        "question": "Arkadaşlarımla fiziksel oyunlar oynamayı severim",
         "category": "C",
         "type": "kinesthetic"
     },
