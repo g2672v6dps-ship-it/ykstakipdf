@@ -6396,7 +6396,7 @@ def has_completed_yks_survey(user_data):
             data = json.loads(survey_data)
             return all(key in data for key in ['program_type', 'daily_subjects', 'study_style', 
                                               'difficult_subjects', 'favorite_subjects', 'sleep_time', 'disliked_subjects', 
-                                              'book_type', 'rest_day'])
+                                              'rest_day'])
         except:
             return False
     return False
@@ -8060,9 +8060,19 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
     days = ["PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ", "PAZAR"]
     rest_day = survey_data.get('rest_day', 'Pazar')
     
+    # Dinlenme günü formatını parse et (örn: "Pazartesi (Tam Gün)")
+    rest_day_name = rest_day.split('(')[0].strip() if '(' in rest_day else rest_day
+    rest_day_type = "Tam Gün" if "(Tam Gün)" in rest_day else "Yarım Gün" if "(Yarım Gün)" in rest_day else "Tam Gün"
+    
     # Session state'te planları tut
     if 'day_plans' not in st.session_state:
         st.session_state.day_plans = {day: [] for day in days}
+    
+    # Dinlenme günü bilgisini göster
+    if rest_day_type == "Tam Gün":
+        st.info(f"🌴 **Dinlenme Günü:** {rest_day_name} (Tam Gün) - Hiç çalışma yok")
+    else:
+        st.info(f"🌸 **Dinlenme Günü:** {rest_day_name} (Yarım Gün) - Hafif çalışma")
     
     # Günleri göster
     cols = st.columns(7)
@@ -8070,9 +8080,13 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
     for i, day in enumerate(days):
         with cols[i]:
             # Gün başlığı
-            if day.title() == rest_day:
-                st.markdown(f"**{day}** 🌴")
-                st.info("🌴 Dinlenme Günü")
+            if day.upper() == rest_day_name.upper():
+                if rest_day_type == "Tam Gün":
+                    st.markdown(f"**{day}** 🌴")
+                    st.info("🌴 Tam Dinlenme")
+                else:
+                    st.markdown(f"**{day}** 🌸")  
+                    st.warning("🌸 Yarım Gün (Hafif çalışma)")
             else:
                 st.markdown(f"**{day}**")
                 
@@ -8118,6 +8132,28 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
     # Tüm konuları birleştir
     all_topics = weekly_plan.get('new_topics', []) + weekly_plan.get('review_topics', [])
     
+    # 🎯 ÇALIŞMA STİLİNE GÖRE ORGANIZE ET
+    if all_topics:
+        organized_topics = organize_daily_study_by_style(all_topics, survey_data)
+        
+        # Çalışma stili bilgisini göster
+        study_style = survey_data.get('study_style', '')
+        daily_subjects = survey_data.get('daily_subjects', 3)
+        
+        if study_style:
+            style_icon = "🍰" if "sona saklarım" in study_style else "🔥" if "başlarım" in study_style else "🍽️"
+            st.info(f"{style_icon} **Çalışma Stiliniz:** {study_style}")
+        
+        if daily_subjects:
+            st.info(f"📚 **Günlük Ders Limiti:** {daily_subjects} ders")
+        
+        # Önerilen çalışma saatleri
+        recommended_times = get_study_time_by_sleep_schedule(survey_data)
+        if recommended_times:
+            st.success(f"🕰️ **Önerilen Çalışma Saatleri:** {', '.join(recommended_times)}")
+        
+        all_topics = organized_topics  # Organize edilmiş konuları kullan
+    
     if all_topics:
         # Konuları kutu olarak göster
         topic_cols = st.columns(3)  # 3'lü gruplar halinde
@@ -8144,9 +8180,16 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
                     # Ekleme formu - sadeleştirilmiş
                     with st.expander(f"📅 Programa Ekle", expanded=False):
                         date_key = datetime.now().date().isoformat().replace('-', '')
+                        # Günleri filtrele: Tam dinlenme günü hariç, yarım dinlenme günü dahil
+                        available_days = []
+                        for d in days:
+                            if d.upper() == rest_day_name.upper() and rest_day_type == "Tam Gün":
+                                continue  # Tam dinlenme günü hariç
+                            available_days.append(d)
+                        
                         selected_day = st.selectbox(
                             "Gün seçin:", 
-                            [d for d in days if d.title() != rest_day],
+                            available_days,
                             key=f"day_select_{i}_{date_key}"
                         )
                         
@@ -11347,6 +11390,88 @@ def calculate_subject_priority_new(subject, user_data, survey_data):
     
     # Maksimum 100 puan
     return min(100, base_priority_score)
+
+def organize_daily_study_by_style(topics_list, survey_data):
+    """🎯 Çalışma stiline göre günlük ders sıralaması yapar"""
+    if not topics_list:
+        return topics_list
+    
+    study_style = survey_data.get('study_style', '')
+    daily_subjects = survey_data.get('daily_subjects', 3)
+    
+    # Konuları zorluk seviyesine göre sınıflandır
+    difficult_subjects = survey_data.get('difficult_subjects', [])
+    disliked_subjects = survey_data.get('disliked_subjects', [])
+    favorite_subjects = survey_data.get('favorite_subjects', [])
+    
+    # Konuları kategorilere ayır
+    hard_topics = []
+    easy_topics = []
+    normal_topics = []
+    
+    for topic in topics_list:
+        subject = topic.get('subject', '')
+        
+        # Zor ders kriterleri
+        is_difficult = (
+            subject in difficult_subjects or 
+            subject in disliked_subjects or
+            topic.get('priority') in ['ÇALIŞ', 'ACİL']
+        )
+        
+        # Kolay ders kriterleri  
+        is_easy = (
+            subject in favorite_subjects and 
+            topic.get('priority') in ['İYİ', 'NORMAL']
+        )
+        
+        if is_difficult:
+            hard_topics.append(topic)
+        elif is_easy:
+            easy_topics.append(topic)
+        else:
+            normal_topics.append(topic)
+    
+    # Çalışma stiline göre sıralama
+    if "🍰 En güzel kısmı sona saklarım" in study_style:
+        # Kolay → Normal → Zor sıralaması
+        organized_topics = easy_topics + normal_topics + hard_topics
+        
+    elif "🔥 En güzelinden başlarım" in study_style:
+        # Zor → Normal → Kolay sıralaması  
+        organized_topics = hard_topics + normal_topics + easy_topics
+        
+    else:  # "🍽️ Her şeyi karışık paylaşırım"
+        # Karışık sıralama - dengeli dağılım
+        import random
+        all_topics = hard_topics + normal_topics + easy_topics
+        random.shuffle(all_topics)
+        organized_topics = all_topics
+    
+    # Günlük ders sayısını uygula
+    try:
+        max_daily = int(daily_subjects)
+        if len(organized_topics) > max_daily:
+            organized_topics = organized_topics[:max_daily]
+    except:
+        pass
+    
+    return organized_topics
+
+def get_study_time_by_sleep_schedule(survey_data):
+    """🕰️ Uyku saatine göre çalışma saatleri önerir"""
+    sleep_time = survey_data.get('sleep_time', '')
+    
+    if "21:00-22:00" in sleep_time:
+        return ["06:00-08:00", "16:00-20:00"]  # Erken yatan, erken kalkan
+    elif "22:00-23:00" in sleep_time:
+        return ["07:00-09:00", "17:00-21:00"]  # Normal uyku
+    elif "23:00-00:00" in sleep_time:
+        return ["08:00-10:00", "18:00-22:00"]  # Geç yatan
+    elif "00:00+" in sleep_time:
+        return ["09:00-11:00", "19:00-23:00"]  # Çok geç yatan
+    else:
+        return ["08:00-10:00", "18:00-21:00"]  # Varsayılan
 
 def get_subject_priority_score_by_net(avg_net):
     """Ders ortalama netine göre öncelik puanı"""
