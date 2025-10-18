@@ -277,7 +277,7 @@ def load_users_from_firebase():
     """Firebase'den kullanıcı verilerini yükler (Fallback destekli)"""
     try:
         if firebase_connected and db_ref:
-            users_data = db_ref.child("users").get()
+            users_data = db_ref.get()  # ✅ DÜZELTME: /users yolu zaten tanımlı
             return users_data if users_data else {}
         else:
             # FALLBACK: Local test kullanıcıları
