@@ -11485,15 +11485,15 @@ def get_study_time_by_sleep_schedule(survey_data):
     sleep_time = survey_data.get('sleep_time', '')
     
     if "21:00-22:00" in sleep_time:
-        return ["06:00-08:00", "16:00-20:00"]  # Erken yatan, erken kalkan
+        return ["06:00-11:00", "16:00-19:00"]  # Erken yatan, erken kalkan
     elif "22:00-23:00" in sleep_time:
-        return ["07:00-09:00", "17:00-21:00"]  # Normal uyku
+        return ["06:00-11:00", "17:00-20:00"]  # Normal uyku  
     elif "23:00-00:00" in sleep_time:
-        return ["08:00-10:00", "18:00-22:00"]  # Geç yatan
+        return ["07:00-12:00", "18:00-21:00"]  # Geç yatan
     elif "00:00+" in sleep_time:
-        return ["09:00-11:00", "19:00-23:00"]  # Çok geç yatan
+        return ["08:00-13:00", "19:00-22:00"]  # Çok geç yatan
     else:
-        return ["08:00-10:00", "18:00-21:00"]  # Varsayılan
+        return ["06:00-11:00", "17:00-20:00"]  # Varsayılan
 
 def get_subject_priority_score_by_net(avg_net):
     """Ders ortalama netine göre öncelik puanı"""
