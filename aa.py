@@ -18068,7 +18068,6 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
         time_systems = []
         if procrastination_score > 3.0:
             time_systems.extend([
-                "• **Pomodoro Tekniği:** 25 dakika çalış, 5 dakika mola ver. Her 4 turda 20 dakika büyük mola.",
                 "• **\"2 Dakika Kuralı\":** 2 dakikada bitecek işleri hemen yap, erteleme.",
                 "• **Erteleme kilidi:** Telefonu başka odaya bırak, dikkat dağıtıcıları kaldır."
             ])
