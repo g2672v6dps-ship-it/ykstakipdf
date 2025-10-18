@@ -21991,6 +21991,31 @@ YKS_2025_TABAN_PUANLARI = {
             "Boğaziçi Üniversitesi": {"taban_puan": 505, "kontenjan": 90, "puan_turu": "EA"},
             "ODTÜ": {"taban_puan": 500, "kontenjan": 100, "puan_turu": "EA"},
             "Ankara Üniversitesi": {"taban_puan": 485, "kontenjan": 110, "puan_turu": "EA"}
+        },
+        "Mimarlık": {
+            "İTÜ": {"taban_puan": 520, "kontenjan": 80, "puan_turu": "EA"},
+            "ODTÜ": {"taban_puan": 515, "kontenjan": 85, "puan_turu": "EA"},
+            "Gazi Üniversitesi": {"taban_puan": 485, "kontenjan": 100, "puan_turu": "EA"},
+            "Yıldız Teknik Üniversitesi": {"taban_puan": 470, "kontenjan": 120, "puan_turu": "EA"},
+            "Bahçeşehir Vakıf Üniversitesi": {"taban_puan": 420, "kontenjan": 60, "puan_turu": "EA"},
+            "İstanbul Vakıf Üniversitesi": {"taban_puan": 380, "kontenjan": 40, "puan_turu": "EA"}
+        },
+        "İç Mimarlık": {
+            "Hacettepe Üniversitesi": {"taban_puan": 480, "kontenjan": 70, "puan_turu": "EA"},
+            "Gazi Üniversitesi": {"taban_puan": 465, "kontenjan": 80, "puan_turu": "EA"},
+            "Başkent Vakıf Üniversitesi": {"taban_puan": 400, "kontenjan": 50, "puan_turu": "EA"},
+            "Atılım Vakıf Üniversitesi": {"taban_puan": 380, "kontenjan": 45, "puan_turu": "EA"}
+        },
+        "İstatistik": {
+            "Hacettepe Üniversitesi": {"taban_puan": 485, "kontenjan": 60, "puan_turu": "EA"},
+            "Ankara Üniversitesi": {"taban_puan": 470, "kontenjan": 75, "puan_turu": "EA"},
+            "Gazi Üniversitesi": {"taban_puan": 455, "kontenjan": 80, "puan_turu": "EA"}
+        },
+        "Matematik": {
+            "Boğaziçi Üniversitesi": {"taban_puan": 495, "kontenjan": 60, "puan_turu": "EA"},
+            "ODTÜ": {"taban_puan": 490, "kontenjan": 70, "puan_turu": "EA"},
+            "Hacettepe Üniversitesi": {"taban_puan": 480, "kontenjan": 80, "puan_turu": "EA"},
+            "Ankara Üniversitesi": {"taban_puan": 465, "kontenjan": 90, "puan_turu": "EA"}
         }
     }
 }
@@ -22120,8 +22145,18 @@ def show_target_department_roadmap(user_data):
     """🎯 Hedef Bölüm Bilgileri"""
     st.subheader("🎯 Hedef Bölüm Bilgileri")
     
-    field = user_data.get('field', 'Sayısal')
+    field_raw = user_data.get('field', 'Sayısal')
     target_department = user_data.get('target_department', None)
+    
+    # Alan formatını normalize et
+    if 'Sayısal' in field_raw or 'MF' in field_raw:
+        field = 'Sayısal'
+    elif 'Sözel' in field_raw or 'TM' in field_raw:
+        field = 'Sözel'
+    elif 'Eşit' in field_raw or 'EA' in field_raw:
+        field = 'Eşit Ağırlık'
+    else:
+        field = field_raw
     
     if not target_department or target_department == 'Belirlenmedi':
         st.warning("⚠️ Henüz hedef bölüm belirlenmemiş. Lütfen profil ayarlarınızdan hedef bölümünüzü seçin.")
@@ -22136,7 +22171,7 @@ def show_target_department_roadmap(user_data):
         
         for uni_name, info in department_data.items():
             puan = info["taban_puan"]
-            if 'vakıf' in uni_name.lower() or 'medipol' in uni_name.lower() or 'koç' in uni_name.lower() or 'sabancı' in uni_name.lower() or 'bilkent' in uni_name.lower() or 'atilim' in uni_name.lower() or 'bahcesehir' in uni_name.lower():
+            if 'vakıf' in uni_name.lower() or 'medipol' in uni_name.lower() or 'koç' in uni_name.lower() or 'sabancı' in uni_name.lower() or 'bilkent' in uni_name.lower() or 'atılım' in uni_name.lower() or 'bahçeşehir' in uni_name.lower() or 'başkent' in uni_name.lower() or 'istanbul vakıf' in uni_name.lower():
                 vakif_unis.append((puan, uni_name))
             else:
                 devlet_unis.append((puan, uni_name))
@@ -22162,16 +22197,16 @@ def show_target_department_roadmap(user_data):
         
         # Zorluk derecesi belirleme (gerçek verilerden)
         if max_puan >= 500:
-            difficulty = "Çok Zor"
-            difficulty_color = "🔴"
-        elif max_puan >= 400:
             difficulty = "Zor"
-            difficulty_color = "🟠"
-        elif max_puan >= 300:
+            difficulty_color = "🔴"
+        elif max_puan >= 450:
             difficulty = "Orta-Zor"
-            difficulty_color = "🟡"
-        elif max_puan >= 200:
+            difficulty_color = "🟠"
+        elif max_puan >= 400:
             difficulty = "Orta"
+            difficulty_color = "🟡"
+        elif max_puan >= 350:
+            difficulty = "Orta-Kolay"
             difficulty_color = "🟢"
         else:
             difficulty = "Kolay"
@@ -22577,9 +22612,9 @@ def show_progress_analytics(user_data):
         if weekly_completion_rate >= 80:
             st.success(f"🚀 Mükemmel Tempo: %{weekly_completion_rate:.1f}")
         elif weekly_completion_rate >= 60:
-            st.warning(f"📈 Normal Tempo: %{weekly_completion_rate:.1f}")
+            st.info(f"📈 Normal Tempo: %{weekly_completion_rate:.1f}")
         else:
-            st.error(f"⚠️ Yavaş Tempo: %{weekly_completion_rate:.1f}")
+            st.info(f"📈 Mevcut Tempo: %{weekly_completion_rate:.1f}")
     
     with col2:
         st.metric("🎯 Haftalık Konu Bitirme Hızı", f"{topics_per_week:.1f} konu/hafta")
@@ -22602,30 +22637,57 @@ def show_dynamic_topic_calendar(user_data, topics_per_week, weekly_plan_start, d
     from datetime import datetime, timedelta
     
     # Öğrenci alanını al
-    student_field = user_data.get('field', 'Sayısal')
+    student_field_raw = user_data.get('field', 'Sayısal')
     
-    # Alan bazlı temel konu listesi
-    if student_field == 'Sayısal (MF)':
+    # Alan formatını normalize et
+    if 'Sayısal' in student_field_raw or 'MF' in student_field_raw:
+        student_field = 'Sayısal'
+    elif 'Sözel' in student_field_raw or 'TM' in student_field_raw:
+        student_field = 'Sözel'
+    elif 'Eşit' in student_field_raw or 'EA' in student_field_raw:
+        student_field = 'Eşit Ağırlık'
+    else:
+        student_field = student_field_raw
+    
+    # Alan bazlı detaylı konu listesi
+    if student_field == 'Sayısal':
         all_topics = [
-            "TYT Matematik Temelleri", "TYT Türkçe", "TYT Fen Bilimleri", "TYT Sosyal Bilimler",
-            "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji",
-            "Matematik İleri Konular", "Fizik İleri Konular", "Kimya İleri Konular", "Biyoloji İleri Konular"
+            "TYT Temel Matematik - Sayılar", "TYT Temel Matematik - Cebirsel İfadeler", "TYT Temel Matematik - Denklemler",
+            "TYT Türkçe - Anlam", "TYT Türkçe - Cümle Bilgisi", "TYT Türkçe - Paragraf",
+            "TYT Fen - Fizik Hareket", "TYT Fen - Kimya Atom", "TYT Fen - Biyoloji Hücre",
+            "TYT Sosyal - Türk Tarihi", "TYT Sosyal - Coğrafya", "TYT Sosyal - Vatandaşlık",
+            "AYT Matematik - Fonksiyonlar", "AYT Matematik - Logaritma", "AYT Matematik - Diziler",
+            "AYT Fizik - Kuvvet Hareket", "AYT Fizik - Enerji", "AYT Fizik - Elektrik",
+            "AYT Kimya - Kimyasal Türler", "AYT Kimya - Asit Baz", "AYT Kimya - Organik",
+            "AYT Biyoloji - Üreme", "AYT Biyoloji - Kalıtım", "AYT Biyoloji - Ekoloji"
         ]
-    elif student_field == 'Sözel (TM)':
+    elif student_field == 'Sözel':
         all_topics = [
-            "TYT Matematik Temelleri", "TYT Türkçe", "TYT Fen Bilimleri", "TYT Sosyal Bilimler", 
-            "AYT Türk Dili ve Edebiyatı", "AYT Tarih-1", "AYT Coğrafya-1", "AYT Felsefe",
-            "Edebiyat İleri Konular", "Tarih İleri Konular", "Coğrafya İleri Konular"
+            "TYT Temel Matematik - Sayılar", "TYT Temel Matematik - Geometri", "TYT Temel Matematik - Veri",
+            "TYT Türkçe - Anlam", "TYT Türkçe - Cümle Bilgisi", "TYT Türkçe - Paragraf",
+            "TYT Fen - Fizik Temel", "TYT Fen - Kimya Temel", "TYT Fen - Biyoloji Temel",
+            "TYT Sosyal - Türk Tarihi", "TYT Sosyal - Coğrafya", "TYT Sosyal - Vatandaşlık",
+            "AYT Türk Dili - Ses Bilgisi", "AYT Türk Dili - Sözcük", "AYT Türk Dili - Cümle",
+            "AYT Edebiyat - Eski Türk", "AYT Edebiyat - Divan", "AYT Edebiyat - Tanzimat",
+            "AYT Tarih - İlk Çağ", "AYT Tarih - Orta Çağ", "AYT Tarih - Yeni Çağ",
+            "AYT Coğrafya - Fiziki", "AYT Coğrafya - Beşeri", "AYT Coğrafya - Türkiye",
+            "AYT Felsefe - Bilgi", "AYT Felsefe - Varlık", "AYT Felsefe - Ahlak"
         ]
     else:  # Eşit Ağırlık
         all_topics = [
-            "TYT Matematik Temelleri", "TYT Türkçe", "TYT Fen Bilimleri", "TYT Sosyal Bilimler",
-            "AYT Matematik", "AYT Türk Dili ve Edebiyatı", "AYT Tarih-1", "AYT Coğrafya-1",
-            "Matematik İleri Konular", "Sosyal Bilimler İleri Konular"
+            "TYT Temel Matematik - Sayılar", "TYT Temel Matematik - Cebirsel İfadeler", "TYT Temel Matematik - Geometri",
+            "TYT Türkçe - Anlam", "TYT Türkçe - Cümle Bilgisi", "TYT Türkçe - Paragraf",
+            "TYT Fen - Fizik Temel", "TYT Fen - Kimya Temel", "TYT Fen - Biyoloji Temel",
+            "TYT Sosyal - Türk Tarihi", "TYT Sosyal - Coğrafya", "TYT Sosyal - Vatandaşlık",
+            "AYT Matematik - Fonksiyonlar", "AYT Matematik - Logaritma", "AYT Matematik - Türev",
+            "AYT Türk Dili - Ses Bilgisi", "AYT Türk Dili - Sözcük", "AYT Türk Dili - Cümle",
+            "AYT Edebiyat - Eski Türk", "AYT Edebiyat - Divan", "AYT Edebiyat - Tanzimat",
+            "AYT Tarih - İlk Çağ", "AYT Tarih - Orta Çağ", "AYT Tarih - Osmanlı",
+            "AYT Coğrafya - Fiziki", "AYT Coğrafya - Beşeri", "AYT Coğrafya - Türkiye"
         ]
     
-    # Tamamlanan konuları al (varsayılan olarak ilk 2 konu tamamlanmış kabul edelim)
-    completed_topics = user_data.get('completed_topics_list', all_topics[:2])
+    # Tamamlanan konuları al (varsayılan olarak ilk 3 konu tamamlanmış kabul edelim)
+    completed_topics = user_data.get('completed_topics_list', all_topics[:3])
     remaining_topics = [topic for topic in all_topics if topic not in completed_topics]
     
     # Başlangıç tarihini parse et
@@ -22658,7 +22720,8 @@ def show_dynamic_topic_calendar(user_data, topics_per_week, weekly_plan_start, d
         topics_this_month = max(1, min(topics_this_month, len(remaining_topics) - topic_index))
         
         month_topics = remaining_topics[topic_index:topic_index + topics_this_month]
-        monthly_plan[month_name] = month_topics
+        if month_topics:  # Sadece konu varsa ekle
+            monthly_plan[month_name] = month_topics
         
         topic_index += topics_this_month
         current_date += timedelta(days=30)  # Bir sonraki ay
@@ -22666,22 +22729,42 @@ def show_dynamic_topic_calendar(user_data, topics_per_week, weekly_plan_start, d
     # Takvimi göster
     st.markdown("**🎯 Mevcut temponuza göre konu bitiş tahmini:**")
     
+    if not monthly_plan:
+        st.info("📝 Tüm konularınız tamamlanmış görünüyor!")
+        return
+    
     for month, topics in monthly_plan.items():
         if topics:
             with st.expander(f"📅 **{month}** ({len(topics)} konu)"):
                 for i, topic in enumerate(topics, 1):
                     st.write(f"{i}. ✅ {topic}")
     
+    # TYT/AYT ilerleme hesaplama
+    tyt_topics = [t for t in all_topics if "TYT" in t]
+    ayt_topics = [t for t in all_topics if "AYT" in t]
+    
+    completed_tyt = [t for t in completed_topics if "TYT" in t]
+    completed_ayt = [t for t in completed_topics if "AYT" in t]
+    
+    tyt_progress = len(completed_tyt) / len(tyt_topics) * 100 if tyt_topics else 0
+    ayt_progress = len(completed_ayt) / len(ayt_topics) * 100 if ayt_topics else 0
+    
+    # İlerleme durumu göster
+    st.markdown("---")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("📚 TYT İlerleme", f"%{tyt_progress:.1f}")
+    with col2:
+        st.metric("📖 AYT İlerleme", f"%{ayt_progress:.1f}")
+    
     # Deneme sınavları tahmini
     total_months = len(monthly_plan)
     if total_months >= 6:
-        deneme_start_month = list(monthly_plan.keys())[-2] if len(monthly_plan) >= 2 else list(monthly_plan.keys())[-1]
-        st.info(f"🎯 **Bu hızda gidersen {deneme_start_month}'da denemelere başlayacaksın!**")
-    elif total_months >= 4:
+        deneme_start_month = list(monthly_plan.keys())[-3] if len(monthly_plan) >= 3 else list(monthly_plan.keys())[-1]
+        st.info(f"🎯 **Bu hızda gidersen {deneme_start_month}'da denemelere başlayabilirsin!**")
+    elif total_months >= 3:
         deneme_start_month = list(monthly_plan.keys())[-1]
-        st.warning(f"⚡ **Bu tempoda {deneme_start_month}'da denemelere başlayabilirsin, ama biraz hızlanman iyi olur!**")
-    else:
-        st.error("🚨 **Mevcut tempo çok yavaş! Deneme sınavları için tempo artırmalısın!**")
+        st.info(f"📝 **Bu tempoda {deneme_start_month}'da denemelere başlayabilirsin.**")
 
 
 def show_scientific_life_coaching(user_data):
