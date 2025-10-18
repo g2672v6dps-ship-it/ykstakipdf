@@ -7650,8 +7650,6 @@ def show_time_strategy_dashboard(weekly_plan):
     recommendations = weekly_plan.get('period_recommendations', [])
     focus_areas = weekly_plan.get('focus_areas', {})
     
-    st.markdown("### 🎯 DÖNEM STRATEJİNİZ")
-    
     # Ana strateji bilgileri
     col1, col2, col3 = st.columns(3)
     
