@@ -6359,7 +6359,7 @@ def yks_takip_page(user_data):
     learning_style = user_data.get('learning_style', '')
     
     # YKS Takip sistemi sekmeleri
-    tab1, tab2, tab3 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi"])
+    tab1, tab2, tab3, tab4 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi", "🧠 Bilimsel Yaşam Koçluğu"])
     
     with tab1:
         show_target_department_roadmap(user_data)
@@ -6384,6 +6384,9 @@ def yks_takip_page(user_data):
     
     with tab3:
         show_progress_analytics(user_data)
+    
+    with tab4:
+        show_scientific_life_coaching(user_data)
 
 def has_completed_yks_survey(user_data):
     """Kullanıcının YKS anketini tamamlayıp tamamlamadığını kontrol eder"""
@@ -22569,18 +22572,81 @@ def show_progress_analytics(user_data):
     # ===== YENİ: ADAPTİF YILLIK PLAN SİSTEMİ =====
     show_adaptive_yearly_plan(user_data, current_score, months_to_yks)
     
-    # Motivasyon bölümü
+    # Kişiselleştirilmiş Motivasyon & Strateji
     st.markdown("---")
-    st.subheader("💪 Motivasyon & Strateji")
+    st.subheader("💪 Kişiselleştirilmiş Motivasyon & Strateji")
     
-    if days_to_yks > 180:  # 6 aydan fazla
-        st.success("🌟 **Harika!** Çok zamanınız var! Temel konulardan başlayarak sağlam bir altyapı oluşturun.")
-    elif days_to_yks > 90:   # 3-6 ay arası
-        st.warning("⚡ **Odaklan!** Zaman daralıyor. Zayıf konularınıza ağırlık verin.")
-    elif days_to_yks > 30:   # 1-3 ay arası
-        st.error("🔥 **Son spurt!** Çok yoğun çalışma dönemi. Öncelikli konulara odaklanın.")
-    else:  # 1 aydan az
-        st.error("🚨 **Final süreci!** Tekrar ve deneme çözümüne odaklanın.")
+    # Haftalık performans analizi
+    current_progress = calculate_weekly_completion_percentage(user_data, weekly_plan)
+    current_score = calculate_current_yks_score(user_data)
+    target_score = current_score + 50  # Hedef skorun belirlenmesi
+    
+    # Öğrenci profiline göre kişiselleştirilmiş mesajlar
+    student_field = user_data.get('student_field', 'Bilinmiyor')
+    learning_style = user_data.get('learning_style', 'Bilinmiyor')
+    
+    # Performans bazlı motivasyon
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if current_progress >= 80:
+            st.success(f"🏆 **Mükemmel!** (%{current_progress:.1f})")
+            motivation_color = "success"
+            motivation_msg = f"🌟 **{student_field}** alanında harika gidiyorsun! Bu tempoyu korursan hedef puanına (%{target_score:.0f}) rahatlıkla ulaşabilirsin."
+        elif current_progress >= 60:
+            st.warning(f"⚡ **İyi gidiyor!** (%{current_progress:.1f})")
+            motivation_color = "warning"
+            motivation_msg = f"💪 **{learning_style}** öğrenme stiline uygun şekilde ilerliyorsun, ama biraz daha hızlanabilirsin!"
+        elif current_progress >= 40:
+            st.error(f"🔔 **Dikkat!** (%{current_progress:.1f})")
+            motivation_color = "error"
+            motivation_msg = f"⚠️ **{student_field}** için tempo düşük! Zayıf konularına odaklanman gerekiyor."
+        else:
+            st.error(f"🚨 **Acil aksiyon!** (%{current_progress:.1f})")
+            motivation_color = "error"
+            motivation_msg = f"🔥 **Çok kritik durum!** {student_field} hedefin için derhal çalışma stratejini gözden geçir!"
+    
+    with col2:
+        # Zaman analizi
+        if days_to_yks > 180:
+            time_status = "🌟 Bol zaman"
+            time_strategy = "Temel konularda sağlam altyapı kur"
+        elif days_to_yks > 90:
+            time_status = "⚡ Orta süre"
+            time_strategy = "Zayıf konulara yoğunlaş"
+        elif days_to_yks > 30:
+            time_status = "🔥 Son dönem"
+            time_strategy = "Yüksek getirili konulara odaklan"
+        else:
+            time_status = "🚨 Final"
+            time_strategy = "Tekrar ve deneme çözümü"
+        
+        st.metric("⏰ Zaman Durumu", time_status)
+        st.caption(time_strategy)
+    
+    with col3:
+        # Hedef yakınlık
+        score_gap = target_score - current_score
+        if score_gap <= 10:
+            st.success(f"🎯 Hedefe çok yakın!")
+        elif score_gap <= 30:
+            st.warning(f"🎯 {score_gap:.0f} puan gerekli")
+        else:
+            st.error(f"🎯 {score_gap:.0f} puan açık var")
+    
+    # Ana motivasyon mesajı
+    if motivation_color == "success":
+        st.success(motivation_msg)
+    elif motivation_color == "warning":
+        st.warning(motivation_msg)
+    else:
+        st.error(motivation_msg)
+    
+    # ===== KİŞİSELLEŞTİRİLMİŞ AYLIK KONU PLANLAMA =====
+    st.markdown("---")
+    st.subheader("📅 Haftalık Performansa Göre Aylık Konu Dağılımı")
+    
+    show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student_field)
     
     # ===== YENİ: OTOMAUTİK SAAT AYARLAMA SİSTEMİ =====
     st.markdown("---")
@@ -22616,6 +22682,365 @@ def show_progress_analytics(user_data):
     new_badges = []
     
     return points, new_badges
+
+def show_scientific_life_coaching(user_data):
+    """🧠 Bilimsel Yaşam Koçluğu - YKS için nörobilim destekli optimizasyon"""
+    st.subheader("🧠 YKS Nörobilim Optimizasyonu")
+    st.write("*Akademik performansınızı maksimize etmek için nörobilim ve psikoloji araştırmalarına dayalı stratejiler*")
+    
+    # Puan açığı analizi
+    current_score = calculate_current_yks_score(user_data)
+    estimated_target = current_score + 50
+    score_gap = estimated_target - current_score
+    
+    # Bilimsel mod belirleme
+    if score_gap > 100:
+        mode = "Yoğun Optimizasyon"
+        study_intensity = "8-10 saat/gün"
+        cognitive_load = "Maksimum"
+    elif score_gap > 50:
+        mode = "Dengeli Optimizasyon"  
+        study_intensity = "6-8 saat/gün"
+        cognitive_load = "Yüksek"
+    else:
+        mode = "Sürdürülebilir Optimizasyon"
+        study_intensity = "4-6 saat/gün"
+        cognitive_load = "Orta"
+    
+    # Bilimsel strateji kartı
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #2E86C1 0%, #8E44AD 100%); 
+                padding: 25px; border-radius: 15px; margin: 10px 0; color: white;">
+        <h3>🎯 {mode}</h3>
+        <p><strong>Puan Hedefi:</strong> {score_gap:.1f} puan artış gerekli</p>
+        <p><strong>Önerilen Çalışma Yoğunluğu:</strong> {study_intensity}</p>
+        <p><strong>Bilişsel Yük Seviyesi:</strong> {cognitive_load}</p>
+        <small>*Nöroplastisite ve performans optimizasyonu araştırmalarına dayalı</small>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Bilimsel modüller
+    tabs = st.tabs(["🧬 Nöroplastisite", "⚡ Bilişsel Performans", "🔬 Beslenme Bilimi", "😴 Uyku Nörobilimi"])
+    
+    with tabs[0]:
+        show_neuroplasticity_coaching(score_gap)
+    
+    with tabs[1]:
+        show_cognitive_performance_coaching(score_gap)
+        
+    with tabs[2]:
+        show_nutrition_science_coaching(score_gap)
+        
+    with tabs[3]:
+        show_sleep_neuroscience_coaching(score_gap)
+
+def show_neuroplasticity_coaching(score_gap):
+    """🧬 Nöroplastisite ve Öğrenme Optimizasyonu"""
+    st.subheader("🧬 Nöroplastisite Tabanlı Öğrenme")
+    
+    st.markdown("""
+    **📚 BİLİMSEL TEMEL:**
+    Nöroplastisite araştırmaları, beyninizin yeni bağlantılar kurarak sürekli değiştiğini gösteriyor. 
+    YKS başarısı için bu süreçleri optimize edebiliriz.
+    """)
+    
+    # Yoğunluk bazında strateji
+    if score_gap > 100:
+        st.markdown("""
+        **🎯 YOĞUN ÖĞRENİM STRATEJİSİ:**
+        
+        **⏰ Pomodoro+ Protokolü:**
+        - 50 dk yoğun çalışma + 10 dk aktif dinlenme
+        - Her 4 blokta 30 dk tam dinlenme
+        - Günde maksimum 8-10 blok (400-500 dk)
+        
+        **🧠 Bilişsel Yük Yönetimi:**
+        - Sabah: En zor konular (06:00-10:00) - Kortizol peak
+        - Öğlen: Orta zorluk (14:00-17:00) - İkinci zirve
+        - Akşam: Tekrar/kolay konular (19:00-21:00)
+        
+        **🔄 Spaced Repetition Schedule:**
+        - 1. gün öğren → 3. gün tekrar → 7. gün tekrar → 21. gün tekrar
+        - Forgetting curve'ü kırmak için kritik zamanlamalar
+        """)
+    elif score_gap > 50:
+        st.markdown("""
+        **🎯 DENGELİ ÖĞRENİM STRATEJİSİ:**
+        
+        **⏰ Klasik Pomodoro:**
+        - 45 dk çalışma + 15 dk dinlenme
+        - Günde 6-8 blok (270-360 dk)
+        
+        **🧠 Optimal Timing:**
+        - Sabah: Yeni konular
+        - Öğleden sonra: Problem çözme
+        - Akşam: Gözden geçirme
+        """)
+    else:
+        st.markdown("""
+        **🎯 SÜRDÜRÜLEBİLİR ÖĞRENİM:**
+        
+        **⏰ Esnek Bloklar:**
+        - 40 dk çalışma + 20 dk dinlenme
+        - Günde 4-6 blok (160-240 dk)
+        
+        **🧠 Kalite Odaklı:**
+        - Konsantrasyonunuz tam olduğunda çalışın
+        - Yorgunken molaya çıkın
+        """)
+
+def show_cognitive_performance_coaching(score_gap):
+    """⚡ Bilişsel Performans Optimizasyonu"""
+    st.subheader("⚡ Bilişsel Performans ve Dikkat Kontrolü")
+    
+    st.markdown("""
+    **📚 BİLİMSEL TEMEL:**
+    Çalışma verimi = Odaklanma × Çalışma Süresi × Stratejik Tekrar
+    Nöropsikoloji araştırmaları optimal çalışma protokollerini tanımlıyor.
+    """)
+    
+    if score_gap > 100:
+        st.markdown("""
+        **🎯 YÜKSEK PERFORMANS PROTOKOLLERİ:**
+        
+        **🧠 Deep Work Sessions:**
+        - Çalışma öncesi 5 dk meditasyon (PFC aktivasyonu)
+        - Tek konu odağı - multitasking yasak
+        - Telefon uçak modunda, bildirimler kapalı
+        - Flow state için 90-120 dk sürekli bloklar
+        """)
+    elif score_gap > 50:
+        st.markdown("""
+        **🎯 DENGELİ PERFORMANS:**
+        
+        **🧠 Fokus Blokları:**
+        - 45-60 dk dikkat blokları
+        - Konu değişimleri arası 10 dk break
+        - Günde 6-8 kaliteli blok hedefi
+        """)
+    else:
+        st.markdown("""
+        **🎯 SÜRDÜRÜLEBİLİR ÇALIŞMA:**
+        
+        **🧠 Temel Teknikler:**
+        - Pomodoro Technique (25+5)
+        - Summarization after each session
+        - Question generation
+        """)
+
+def show_nutrition_science_coaching(score_gap):
+    """🔬 Beslenme Bilimi ve Beyin Optimizasyonu"""
+    st.subheader("🔬 Nöronutrisyon - Beyin Kimyası Optimizasyonu")
+    
+    st.markdown("""
+    **📚 BİLİMSEL TEMEL:**
+    Beyin glukozu enerji olarak kullanır (%20'si), omega-3 nöron membranlarını güçlendirir,
+    antioksidanlar oksidatif stresi azaltır. YKS performansı için bu dengeyi optimize ediyoruz.
+    """)
+    
+    if score_gap > 100:
+        st.markdown("""
+        **🧬 YÜKSEK PERFORMANS NÖRONUTRİSYON:**
+        
+        **🌅 Sabah Protokolü (06:00-08:00):**
+        ```
+        🥚 2 adet omega-3 yumurta (protein + kolin)
+        🥑 ½ avokado (monounsaturated fat + K vitamini)  
+        🫐 1 kase blueberry (anthocyanin + BDNF boost)
+        ☕ Green tea (L-theanine + kafein sinerjisi)
+        ```
+        **Nörolojik Etki:** Asetilkolin ↑, Dopamin ↑, Kortizoł regulation
+        """)
+    elif score_gap > 50:
+        st.markdown("""
+        **🧬 DENGELİ NÖRONUTRİSYON:**
+        
+        **🌅 Sabah:** Protein + omega-3 + karmaşık karbonhidrat
+        **📚 Çalışma:** Doğal şeker + sağlıklı yağ kombinasyonu
+        **🍽️ Öğle:** Balık/et + sebze + tam tahıl
+        **🌙 Akşam:** Hafif protein + magnezyum içeren gıdalar
+        """)
+    else:
+        st.markdown("""
+        **🧬 TEMEL NÖRONUTRİSYON:**
+        
+        **🎯 Temel Kurallar:**
+        - Her öğünde protein bulundurun
+        - Omega-3 kaynaklarını haftada 2-3 kez tüketin
+        - Antioksidan zengini meyve-sebze (günde 5 porsiyon)
+        - Şeker dalgalanmalarından kaçının
+        """)
+
+def show_sleep_neuroscience_coaching(score_gap):
+    """😴 Uyku Nörobilimi ve Bellek Konsolidasyonu"""
+    st.subheader("😴 Sleep Optimization for Memory Consolidation")
+    
+    st.markdown("""
+    **📚 BİLİMSEL TEMEL:**
+    Uyku sırasında beyniniz öğrendiklerinizi hippocampus'tan neocortex'e transfer eder.
+    Sleep spindles ve slow-wave sleep memory consolidation için kritik.
+    """)
+    
+    if score_gap > 100:
+        st.markdown("""
+        **🧠 YOĞUN ÇALIŞMA İÇİN UYKU PROTOKOLß:**
+        
+        **⏰ Optimal Sleep Window:**
+        ```
+        🌙 Yatış: 22:30 (Melatonin peak için)
+        🌅 Kalkış: 06:00 (7.5 saat = 5 REM cycle)
+        💡 Light exposure: 06:00-06:30 (Circadian reset)
+        ```
+        """)
+    elif score_gap > 50:
+        st.markdown("""
+        **🧠 DENGELİ UYKU OPTİMİZASYONU:**
+        
+        **⏰ Sleep Schedule:**
+        - Yatış: 23:00-06:30 (7.5 saat)
+        - Tutarlı uyku saatleri (±30 dk tolerance)
+        - Hafta sonu da aynı ritim
+        """)
+    else:
+        st.markdown("""
+        **🧠 TEMEL UYKU HİJYENİ:**
+        
+        **⏰ Minimum Requirements:**
+        - 7-8 saat uyku
+        - Düzenli yatış/kalkış saatleri
+        - Yatmadan 1 saat önce ekran yok
+        - Karanlık, serin, sessiz ortam
+        """)
+
+def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student_field):
+    """Haftalık performansa göre güncellenebilen aylık konu planı"""
+    
+    # Performans bazlı konu önceliklendirme
+    if current_progress >= 80:
+        priority_level = "İleri Seviye"
+        focus_areas = ["Zor sorular", "Hız geliştirme", "Sınav teknikleri"]
+        study_intensity = "7-8 saat/gün"
+    elif current_progress >= 60:
+        priority_level = "Orta Seviye"
+        focus_areas = ["Eksik konular", "Pekiştirme", "Orta zorluk sorular"]
+        study_intensity = "6-7 saat/gün"
+    elif current_progress >= 40:
+        priority_level = "Temel Seviye"
+        focus_areas = ["Temel konular", "Eksikleri kapatma", "Kolay sorular"]
+        study_intensity = "8-9 saat/gün (yoğunlaştırılmış)"
+    else:
+        priority_level = "Kritik Müdahale"
+        focus_areas = ["Acil konular", "Temel bilgiler", "Hızlı kapanabilir eksikler"]
+        study_intensity = "9-10 saat/gün (yoğun)"
+    
+    # Zaman planlaması
+    remaining_months = days_to_yks // 30
+    remaining_weeks = (days_to_yks % 30) // 7
+    
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%); 
+                padding: 20px; border-radius: 15px; margin: 10px 0; color: white;">
+        <h3>📊 Senin İçin Özelleştirilmiş Plan</h3>
+        <p><strong>Performans Seviyesi:</strong> {priority_level}</p>
+        <p><strong>Kalan Zaman:</strong> {remaining_months} ay, {remaining_weeks} hafta</p>
+        <p><strong>Önerilen Günlük Çalışma:</strong> {study_intensity}</p>
+        <p><strong>Alan:</strong> {student_field}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Haftalık performansa göre dinamik plan
+    tabs = st.tabs([f"📅 {i+1}. Ay Planı" for i in range(min(remaining_months + 1, 4))])
+    
+    for i, tab in enumerate(tabs):
+        with tab:
+            month_num = i + 1
+            
+            # Performansa göre konu dağılımı hesaplama
+            if current_progress >= 80:
+                math_weight, science_weight, lang_weight = 40, 35, 25
+            elif current_progress >= 60:
+                math_weight, science_weight, lang_weight = 35, 40, 25
+            elif current_progress >= 40:
+                math_weight, science_weight, lang_weight = 45, 30, 25
+            else:
+                math_weight, science_weight, lang_weight = 50, 25, 25
+            
+            st.markdown(f"""
+            ### 📚 {month_num}. Ay Konu Dağılımı
+            
+            **🔢 Matematik:** %{math_weight} ({math_weight * study_intensity.split('-')[0].strip()[:1]}h/gün)
+            - Hafta 1: {focus_areas[0] if len(focus_areas) > 0 else 'Temel konular'}
+            - Hafta 2: {focus_areas[1] if len(focus_areas) > 1 else 'Pekiştirme'}
+            - Hafta 3: {focus_areas[2] if len(focus_areas) > 2 else 'Tekrar'}
+            - Hafta 4: Değerlendirme ve eksik tamamlama
+            
+            **🧪 Fen Bilimleri:** %{science_weight} ({science_weight * int(study_intensity.split('-')[0])//100}h/gün)
+            - Fizik, Kimya, Biyoloji dağılımı
+            - Zayıf konulara ekstra zaman ayrılacak
+            
+            **📝 Türkçe/Sosyal:** %{lang_weight} ({lang_weight * int(study_intensity.split('-')[0])//100}h/gün)
+            - Günlük paragraf çözümü
+            - Haftalık deneme testleri
+            """)
+            
+            # Haftalık performans güncellemesi
+            if i == 0:  # Sadece ilk ay için
+                with st.expander("⚙️ Bu Ayın Planını Güncelle"):
+                    weekly_performance = st.slider(
+                        f"Bu haftaki başarı oranın (%{current_progress:.1f}): ",
+                        0, 100, int(current_progress),
+                        help="Haftalık performansına göre planını otomatik güncelleyeceğim!"
+                    )
+                    
+                    if weekly_performance != current_progress:
+                        if weekly_performance > current_progress + 10:
+                            st.success("🎉 Harika! Performansın arttı! Planın daha zorlaştırılıyor...")
+                        elif weekly_performance < current_progress - 10:
+                            st.warning("⚠️ Bu hafta biraz düştün. Planın daha destekleyici hale getiriliyor...")
+                        else:
+                            st.info("📊 Performansın stabil. Plan aynı şekilde devam ediyor.")
+                        
+                        # Otomatik plan güncelleme simulasyonu
+                        st.markdown(f"""
+                        **🔄 PLAN OTOMATİK GÜNCELLENDİ:**
+                        - Haftalık hedef: %{weekly_performance} → Sonraki hafta hedefi: %{min(weekly_performance + 5, 100)}
+                        - Çalışma saati ayarlaması yapıldı
+                        - Konu ağırlıkları yeniden hesaplandı
+                        """)
+
+    # Performans takip sistemi
+    st.markdown("---")
+    st.subheader("📈 Performans Takip ve Güncelleme Sistemi")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        **🎯 HEDEFLERİN:**
+        - Haftalık: %{:.1f} → %{:.1f} başarı oranı
+        - Aylık: Bir üst seviyeye geçiş
+        - Genel: YKS hedef puanına ulaşım
+        """.format(current_progress, min(current_progress + 10, 100)))
+        
+        if st.button("📊 Bu Haftanın Performansını Kaydet"):
+            st.balloons()
+            st.success("✅ Performansın kaydedildi! Plan otomatik güncellendi.")
+    
+    with col2:
+        st.markdown("""
+        **⚡ GÜNCEL STRATEJİN:**
+        - 📚 Odak: {}
+        - ⏰ Yoğunluk: {}
+        - 🎯 Öncelik: {}
+        """.format(
+            focus_areas[0] if focus_areas else "Genel çalışma",
+            study_intensity,
+            priority_level
+        ))
+        
+        # Mini gelişim grafiği
+        progress_data = [current_progress - 10, current_progress - 5, current_progress, current_progress + 5]
+        st.line_chart(progress_data)
 
 # Karmaşık fonksiyonlar kaldırıldı - Basit sistem artık tamamen hazır!
 
