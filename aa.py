@@ -22088,49 +22088,10 @@ def show_target_department_roadmap(user_data):
     
     st.markdown("---")
     
-    # Stratejik öneriler
-    st.subheader("🎯 Size Özel Strateji Önerileri")
-    
-    # Güvenli total_gap hesaplama
+    # Zayıf alan analizi için gap hesaplama
     tyt_gap = max(0, required_tyt - current_tyt_net) if required_tyt > 0 else 0
     ayt_gap = max(0, required_ayt - current_ayt_net) if required_ayt > 0 else 0
     total_gap = tyt_gap + ayt_gap
-    
-    if total_gap == 0:
-        st.success("🎉 **Mükemmel!** Hedefiniz için gerekli net seviyesini aşmışsınız!")
-        strategy_advice = [
-            "🔒 **Mevcut seviyenizi koruyun** - Düzenli tekrar yapın",
-            "🎯 **Sınav performansına odaklanın** - Sınav teknikleri geliştirin",
-            "📚 **Zor sorulara çalışın** - Üst seviye sorularla kendinizi zorlayın",
-            "🧘 **Mental hazırlık** - Sınav kaygısını azaltın, özgüven geliştirin"
-        ]
-    elif total_gap <= 15:
-        st.warning("⚠️ **Hedefe çok yakınsınız!** Son sprint zamanı!")
-        strategy_advice = [
-            f"🎯 **Öncelik 1:** En zayıf alanlarınıza odaklanın",
-            f"⏰ **Günlük hedef:** +{total_gap/30:.1f} net artış için günde 4-5 saat",
-            f"📚 **Çalışma planı:** %70 zayıf konular, %30 güçlü konular",
-            f"🔄 **Tekrar stratejisi:** Günde en az 2 saat önceki konuları tekrar edin"
-        ]
-    elif total_gap <= 40:
-        st.error("🔴 **Yoğun çalışma gerekli!** Sistematik plan şart!")
-        strategy_advice = [
-            f"💪 **Günlük hedef:** +{total_gap/60:.1f} net için günde 6-7 saat çalışma",
-            f"📚 **Odak alanları:** Temel konulardan başlayıp ileri seviyeye geçin",
-            f"🎯 **Konu dağılımı:** %80 zayıf konular, %20 pekiştirme",
-            f"⚡ **Hızlandırma:** Günde en az 3 farklı derste çalışın"
-        ]
-    else:
-        st.error("🚨 **Çok ciddi çalışma gerekli!** Alternatif hedefler de değerlendirin.")
-        strategy_advice = [
-            f"🔥 **Maksimum çaba:** Günde 8+ saat sistematik çalışma",
-            f"🎯 **Alternatif plan:** Daha düşük puanlı bölümler de değerlendirin",
-            f"📚 **Temel odak:** %90 temel konular, %10 orta seviye",
-            f"🆘 **Destek alın:** Öğretmen/mentor desteği şart"
-        ]
-    
-    for advice in strategy_advice:
-        st.write(f"• {advice}")
     
     # Zayıf alan analizi
     show_weak_subjects_analysis(user_data, field, total_gap)
