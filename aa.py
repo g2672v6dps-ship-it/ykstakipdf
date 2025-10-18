@@ -6359,7 +6359,7 @@ def yks_takip_page(user_data):
     learning_style = user_data.get('learning_style', '')
     
     # YKS Takip sistemi sekmeleri
-    tab1, tab2, tab3 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi"])
+    tab1, tab2, tab3, tab4 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi", "🧠 Bilimsel Yaşam Koçluğu"])
     
     with tab1:
         show_target_department_roadmap(user_data)
@@ -6384,6 +6384,9 @@ def yks_takip_page(user_data):
     
     with tab3:
         show_progress_analytics(user_data)
+    
+    with tab4:
+        show_scientific_life_coaching(user_data)
 
 def has_completed_yks_survey(user_data):
     """Kullanıcının YKS anketini tamamlayıp tamamlamadığını kontrol eder"""
@@ -22394,6 +22397,364 @@ def show_progress_analytics(user_data):
     - Pazartesi-Cuma: Yoğun çalışma ({daily_study_hours:.1f} saat/gün)
     - Cumartesi: Hafta tekrarı (4 saat)
     - Pazar: Dinlenme veya hafif tekrar (2 saat)
+    """)
+
+def show_scientific_life_coaching(user_data):
+    """🧠 Bilimsel Yaşam Koçluğu - Puan açığına göre akıllı yaşam stratejisi"""
+    st.subheader("🧠 Bilimsel Yaşam Koçluğu")
+    st.write("*Performansınızı maksimize etmek için bilime dayalı yaşam önerileri*")
+    
+    # Puan açığı analizi
+    current_score = calculate_current_yks_score(user_data)
+    
+    # Hedef puanı tahmin et (kullanıcının hedef bölümü yoksa genel hedef)
+    estimated_target = current_score + 50  # Basit tahmin, ileride hedef bölümden alınacak
+    score_gap = estimated_target - current_score
+    
+    # Strateji belirleme
+    if score_gap > 100:
+        mode = "🔥 YOĞUN MOD"
+        mode_color = "🔴"
+        intensity = "maksimum"
+    elif score_gap > 50:
+        mode = "⚡ ORTA MOD"
+        mode_color = "🟡"
+        intensity = "yüksek"
+    else:
+        mode = "🎯 NORMAL MOD"
+        mode_color = "🟢"
+        intensity = "dengeli"
+    
+    # Strateji kartı
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 20px; border-radius: 15px; margin: 10px 0; color: white;">
+        <h3>{mode_color} {mode}</h3>
+        <p><strong>Puan Açığı:</strong> {score_gap:.1f} puan</p>
+        <p><strong>Yaşam Stratejisi:</strong> {intensity.title()} performans odaklı yaşam</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Ana bölümler
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        show_nutrition_coaching(score_gap, mode)
+        show_sleep_coaching(score_gap, mode)
+    
+    with col2:
+        show_daily_routine_coaching(score_gap, mode)
+        show_study_environment_coaching(score_gap, mode)
+
+def show_nutrition_coaching(score_gap, mode):
+    """🍎 Beslenme Koçluğu"""
+    st.subheader("🍎 Beyin Performansı Beslenme Programı")
+    
+    # Mod bazında beslenme stratejisi
+    if score_gap > 100:  # YOĞUN MOD
+        st.markdown("""
+        **🔥 YOĞUN MOD BESLENME STRATEJİSİ:**
+        
+        **🌅 SABAH (06:00-08:00):**
+        - ✅ Protein + Karmaşık karbonhidrat (yumurta + tam buğday ekmeği)
+        - ✅ Ceviz (5-6 adet) - beyin gücü için
+        - ✅ Yeşil çay - kafein + antioksidan
+        - ❌ Şeker, işlenmiş gıdalar
+        
+        **🏫 DERS ÖNCESİ (30 dk önce):**
+        - ✅ 1 muz + 1 avuç badem
+        - ✅ Bol su (300ml)
+        
+        **🍽️ ÖĞLE (12:00-13:00):**
+        - ✅ Protein (tavuk/balık) + sebze + quinoa/bulgur
+        - ✅ Omega-3 (balık 2x/hafta)
+        - ❌ Ağır, yağlı yemekler (uyku yapar)
+        
+        **📚 ÇALIŞMA ARASI:**
+        - ✅ Kuruyemiş karışımı (az tuzlu)
+        - ✅ Dark çikolata (1-2 kare, %70+ kakao)
+        
+        **🌙 AKŞAM (18:00-19:00):**
+        - ✅ Hafif protein + sebze
+        - ✅ Magnezyum zengini (ıspanak, avokado)
+        - ❌ Kafein (16:00'dan sonra YOK!)
+        """)
+        
+    elif score_gap > 50:  # ORTA MOD
+        st.markdown("""
+        **⚡ ORTA MOD BESLENME STRATEJİSİ:**
+        
+        **🌅 SABAH:** Protein + meyve + yeşil çay
+        **🏫 DERS ÖNCESİ:** Muz + su
+        **🍽️ ÖĞLE:** Dengeli öğün, ağır değil
+        **📚 ÇALIŞMA:** Kuruyemiş + su
+        **🌙 AKŞAM:** Hafif, erken yemek
+        """)
+        
+    else:  # NORMAL MOD
+        st.markdown("""
+        **🎯 NORMAL MOD BESLENME STRATEJİSİ:**
+        
+        **🌅 SABAH:** Sağlıklı kahvaltı
+        **🍽️ ANA ÖĞÜNLER:** Düzenli, dengeli
+        **💧 SU:** Günde 2-3 litre
+        **🍎 APERATIFLER:** Meyve, kuruyemiş
+        """)
+    
+    # Su takip sistemi
+    with st.expander("💧 Günlük Su Takibi"):
+        water_goal = 8 if score_gap > 50 else 6
+        st.write(f"**Hedef:** {water_goal} bardak su (günde)")
+        
+        if f"water_count_{datetime.now().date()}" not in st.session_state:
+            st.session_state[f"water_count_{datetime.now().date()}"] = 0
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("💧 Su İçtim (+1)"):
+                st.session_state[f"water_count_{datetime.now().date()}"] += 1
+        with col2:
+            water_count = st.session_state[f"water_count_{datetime.now().date()}"]
+            progress = min(water_count / water_goal, 1.0)
+            st.progress(progress)
+            st.write(f"{water_count}/{water_goal} bardak")
+
+def show_sleep_coaching(score_gap, mode):
+    """😴 Uyku Koçluğu"""
+    st.subheader("😴 Beyin Onarımı Uyku Programı")
+    
+    if score_gap > 100:  # YOĞUN MOD
+        st.markdown("""
+        **🔥 YOĞUN MOD UYKU STRATEJİSİ:**
+        
+        **⏰ UYKU SAATLERİ:** 23:00 - 06:00 (7 saat ZORUNLU)
+        **📱 DİJİTAL DETOKS:** 22:00'dan sonra telefon YOK
+        **🌙 YATAK ODASI:** Serin (18-21°C), karanlık, sessiz
+        **☕ KAFEİN:** Son 16:00'da (uyku kalitesi için)
+        
+        **🧠 UYKU ÖNCESİ RUTİN:**
+        - 22:00: Sıcak duş
+        - 22:15: Kitap okuma/meditasyon
+        - 22:30: Yatak, derin nefes egzersizi
+        - 22:45: Uyku
+        
+        **⚠️ ÖNEMLÍ:** Uyku borcunuz olmasın! Hafta sonu da aynı saatler.
+        """)
+        
+    elif score_gap > 50:  # ORTA MOD
+        st.markdown("""
+        **⚡ ORTA MOD UYKU STRATEJİSİ:**
+        
+        **⏰ UYKU:** 23:00-06:30 (7.5 saat)
+        **📱 DETOKS:** 22:30'dan sonra telefon sınırlı
+        **🌙 YATAK ODASI:** Uyku dostu ortam
+        **📚 UYKU ÖNCESİ:** Rahatlatıcı aktiviteler
+        """)
+        
+    else:  # NORMAL MOD
+        st.markdown("""
+        **🎯 NORMAL MOD UYKU STRATEJİSİ:**
+        
+        **⏰ UYKU:** Düzenli 7-8 saat
+        **📱 DETOKS:** Yatmadan 1 saat önce
+        **🌙 ORTAM:** Rahat, sessiz
+        **📚 RUTİN:** Sakinleştirici aktiviteler
+        """)
+    
+    # Uyku takip sistemi
+    with st.expander("😴 Uyku Kalitesi Takibi"):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            sleep_time = st.time_input("🌙 Yatış Saati", value=datetime.strptime("23:00", "%H:%M").time())
+        with col2:
+            wake_time = st.time_input("🌅 Kalkış Saati", value=datetime.strptime("06:30", "%H:%M").time())
+        with col3:
+            # Uyku süresini hesapla
+            sleep_duration = (datetime.combine(datetime.today(), wake_time) - 
+                            datetime.combine(datetime.today(), sleep_time)).total_seconds() / 3600
+            if sleep_duration < 0:
+                sleep_duration += 24
+            
+            st.metric("🕐 Uyku Süresi", f"{sleep_duration:.1f} saat")
+        
+        # Uyku kalitesi değerlendirmesi
+        if sleep_duration >= 7 and sleep_duration <= 9:
+            st.success("✅ Optimal uyku süresi!")
+        elif sleep_duration < 6:
+            st.error("❌ Çok az uyku - performans düşecek!")
+        else:
+            st.warning("⚠️ Çok fazla uyku - günlük rutini etkiler")
+
+def show_daily_routine_coaching(score_gap, mode):
+    """📅 Günlük Rutin Koçluğu"""
+    st.subheader("📅 Bilimsel Günlük Rutin")
+    
+    if score_gap > 100:  # YOĞUN MOD
+        st.markdown("""
+        **🔥 YOĞUN MOD GÜNDELİK RUTİN:**
+        
+        **🌅 SABAH (06:00-08:00):**
+        - 06:00: Kalk, 500ml su iç
+        - 06:15: 10 dk egzersiz/yoga
+        - 06:30: Duş + kahvaltı
+        - 07:30: Günlük hedef belirleme
+        
+        **📚 ÇALIŞMA BLOKLARI:**
+        - 08:00-11:00: EN ZOR DERS (3 saat)
+        - 11:15-12:30: ORTA DERS (1.25 saat)
+        - 14:00-17:00: KOLAY DERS (3 saat)
+        - 19:00-21:00: TEKRAR (2 saat)
+        
+        **🌙 AKŞAM:**
+        - 21:00: Günü değerlendir
+        - 21:30: Rahatlama (müzik, kitap)
+        - 22:30: Yatağa hazırlık
+        
+        **⚠️ KRITIK:** 15 dk molalar, Pomodoro tekniği
+        """)
+        
+    elif score_gap > 50:  # ORTA MOD
+        st.markdown("""
+        **⚡ ORTA MOD GÜNDELİK RUTİN:**
+        
+        **🌅 SABAH:** Düzenli uyanma, sağlıklı başlangıç
+        **📚 ÇALIŞMA:** 6-7 saat etkili çalışma
+        **🍽️ BESLENME:** Düzenli 3 öğün
+        **🌙 AKŞAM:** Erken yatış, kaliteli dinlenme
+        """)
+        
+    else:  # NORMAL MOD
+        st.markdown("""
+        **🎯 NORMAL MOD GÜNDELİK RUTİN:**
+        
+        **🌅 SABAH:** Güne pozitif başlangıç
+        **📚 ÇALIŞMA:** 4-6 saat kaliteli çalışma
+        **⚽ AKTİVİTE:** Spor/hobi zamanı
+        **🌙 AKŞAM:** Sosyal zaman, erken uyku
+        """)
+    
+    # Günlük hedef takibi
+    with st.expander("🎯 Günlük Hedef Takibi"):
+        today = datetime.now().date()
+        
+        if f"daily_goals_{today}" not in st.session_state:
+            st.session_state[f"daily_goals_{today}"] = {
+                "study_hours": 0,
+                "water": 0,
+                "exercise": False,
+                "goals_set": False
+            }
+        
+        if not st.session_state[f"daily_goals_{today}"]["goals_set"]:
+            study_goal = st.number_input("Hedef çalışma saati:", min_value=1, max_value=12, value=8)
+            if st.button("Günlük Hedefleri Belirle"):
+                st.session_state[f"daily_goals_{today}"]["study_hours"] = study_goal
+                st.session_state[f"daily_goals_{today}"]["goals_set"] = True
+                st.success("✅ Günlük hedefler belirlendi!")
+        
+        # Hedef takibi
+        goals = st.session_state[f"daily_goals_{today}"]
+        if goals["goals_set"]:
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("📚 Hedef Çalışma", f"{goals['study_hours']} saat")
+            with col2:
+                completed = 1 if goals["exercise"] else 0
+                st.metric("💪 Egzersiz", "✅" if completed else "❌")
+
+def show_study_environment_coaching(score_gap, mode):
+    """🏠 Çalışma Ortamı Koçluğu"""
+    st.subheader("🏠 Optimal Çalışma Ortamı")
+    
+    if score_gap > 100:  # YOĞUN MOD
+        st.markdown("""
+        **🔥 YOĞUN MOD ÇALIŞMA ORTAMI:**
+        
+        **🏠 FİZİKSEL ORTAM:**
+        - 🌡️ Sıcaklık: 20-22°C (odaklanma için)
+        - 💡 Işık: Doğal ışık + masa lambası
+        - 🔇 Ses: Tamamen sessiz VEYA beyaz gürültü
+        - 🪑 Ergonomi: Düz sırt, ayaklar yerde
+        
+        **📱 DİJİTAL DETOKS:**
+        - Telefon: Başka odada VEYA uçak modu
+        - Sosyal medya: Günde MAX 30 dk
+        - Bildirimler: Tümü kapalı
+        
+        **🧘 ZİHİNSEL HAZIRLIK:**
+        - Çalışma öncesi: 5 dk derin nefes
+        - Müzik: Odaklanma müziği (sözü yok)
+        - Hedef: Net, ölçülebilir hedefler
+        
+        **⚠️ SIFIR TOLERANS:** Dikkat dağıtıcı hiçbir şey!
+        """)
+        
+    elif score_gap > 50:  # ORTA MOD
+        st.markdown("""
+        **⚡ ORTA MOD ÇALIŞMA ORTAMI:**
+        
+        **🏠 ORTAM:** Düzenli, temiz, sessiz
+        **📱 TELEFON:** Sessiz mod, uzakta
+        **💡 IŞIK:** Yeterli aydınlatma
+        **🎵 MÜZİK:** İsteğe bağlı, odak müziği
+        """)
+        
+    else:  # NORMAL MOD
+        st.markdown("""
+        **🎯 NORMAL MOD ÇALIŞMA ORTAMI:**
+        
+        **🏠 ORTAM:** Rahat, düzenli alan
+        **📱 TELEFON:** Kontrollü kullanım
+        **💡 IŞIK:** Göz yormuyor
+        **🎵 MÜZİK:** Motivasyonel müzik
+        """)
+    
+    # Çalışma ortamı değerlendirmesi
+    with st.expander("📊 Çalışma Ortamı Analizi"):
+        st.write("**Mevcut çalışma ortamınızı değerlendirin:**")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            noise_level = st.selectbox("🔊 Gürültü Seviyesi:", 
+                                     ["Tamamen sessiz", "Hafif gürültü", "Orta gürültü", "Çok gürültülü"])
+            lighting = st.selectbox("💡 Aydınlatma:", 
+                                  ["Mükemmel", "İyi", "Orta", "Kötü"])
+        
+        with col2:
+            distractions = st.selectbox("📱 Dikkat Dağıtıcılar:", 
+                                      ["Hiç yok", "Az", "Orta", "Çok fazla"])
+            comfort = st.selectbox("🪑 Rahatlık:", 
+                                 ["Çok rahat", "Rahat", "Orta", "Rahatsız"])
+        
+        # Skorlama
+        score_map = {"Tamamen sessiz": 4, "Hafif gürültü": 3, "Orta gürültü": 2, "Çok gürültülü": 1,
+                    "Mükemmel": 4, "İyi": 3, "Orta": 2, "Kötü": 1,
+                    "Hiç yok": 4, "Az": 3, "Çok fazla": 1,
+                    "Çok rahat": 4, "Rahat": 3, "Rahatsız": 1}
+        
+        total_score = (score_map.get(noise_level, 2) + score_map.get(lighting, 2) + 
+                      score_map.get(distractions, 2) + score_map.get(comfort, 2))
+        
+        percentage = (total_score / 16) * 100
+        
+        if percentage >= 80:
+            st.success(f"✅ Mükemmel çalışma ortamı! ({percentage:.0f}%)")
+        elif percentage >= 60:
+            st.warning(f"⚠️ İyi ama geliştirilebilir ({percentage:.0f}%)")
+        else:
+            st.error(f"❌ Çalışma ortamınızı iyileştirin! ({percentage:.0f}%)")
+    
+    # Motivasyon bölümü
+    st.markdown("---")
+    st.info(f"""
+    💡 **{mode} - GÜNLÜK MOTİVASYON:**
+    
+    {"🔥 Her gün hedefinize bir adım daha yaklaşıyorsunuz!" if score_gap > 100 else
+     "⚡ Kararlılığınız sizi hedefinize taşıyacak!" if score_gap > 50 else
+     "🎯 Düzenli çalışma ve sağlıklı yaşam = Başarı!"}
+     
+    **🧠 BİLİMSEL GERÇEK:** Sağlıklı yaşam tarzı beyin performansını %40'a kadar artırır!
     """)
 
 # Karmaşık fonksiyonlar kaldırıldı - Basit sistem artık tamamen hazır!
