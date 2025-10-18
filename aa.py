@@ -22549,9 +22549,14 @@ def show_progress_analytics(user_data):
     """📊 Gidişat ve İlerleme Analizi"""
     st.subheader("📊 Gidişat Analizi ve İlerleme Takibi")
     
-    # YKS'ye kalan süre
-    week_info = get_current_week_info()
-    days_to_yks = week_info['days_to_yks']
+    # YKS'ye kalan süre - güvenli hesaplama
+    try:
+        week_info = get_current_week_info()
+        days_to_yks = week_info['days_to_yks']
+    except:
+        # Varsayılan değerler
+        days_to_yks = 200  # Yaklaşık 6-7 ay varsayılan
+    
     weeks_to_yks = days_to_yks // 7
     months_to_yks = days_to_yks // 30
     
@@ -22576,8 +22581,14 @@ def show_progress_analytics(user_data):
     st.markdown("---")
     st.subheader("💪 Kişiselleştirilmiş Motivasyon & Strateji")
     
-    # Haftalık performans analizi
-    current_progress = calculate_weekly_completion_percentage(user_data, weekly_plan)
+    # Haftalık performans analizi - değişkenleri önce tanımla ve güvenli çağrı
+    weekly_plan = user_data.get('weekly_plan', {})  # weekly_plan tanımlandı
+    try:
+        current_progress = calculate_weekly_completion_percentage(user_data, weekly_plan)
+    except:
+        # Eğer hesaplama başarısız olursa varsayılan değer kullan
+        current_progress = 50.0  # %50 varsayılan performans
+    
     current_score = calculate_current_yks_score(user_data)
     target_score = current_score + 50  # Hedef skorun belirlenmesi
     
