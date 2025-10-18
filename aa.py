@@ -272,14 +272,13 @@ if not firebase_connected:
         }
     st.success("✅ Test kullanıcıları hazırlandı!")
 
-# Firebase veritabanı fonksiyonları
 def load_users_from_firebase():
     """Firebase'den kullanıcı verilerini yükler (Fallback destekli)"""
     try:
         if firebase_connected and db_ref:
             # 🔍 Firebase test satırı (PATH kontrolü)
-            data = db_ref.child("users").get().val()
-            print("Firebase test:", data is not None, list(data.keys())[:3] if data else "boş")
+            data = db_ref.child("users").get()  # .val() KULLANILMIYOR çünkü firebase_admin kullanıyorsun
+            print("🔥 Firebase test:", data is not None, list(data.keys())[:3] if data else "boş")
             return data if data else {}
 
         else:
@@ -294,7 +293,6 @@ def load_users_from_firebase():
         if hasattr(st.session_state, 'fallback_users'):
             return st.session_state.fallback_users
         return {}
-
 
 def update_user_in_firebase(username, data):
     """Firebase'de kullanıcı verilerini günceller (Fallback destekli)"""
