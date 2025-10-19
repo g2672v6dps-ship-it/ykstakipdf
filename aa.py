@@ -22683,39 +22683,63 @@ def show_progress_analytics(user_data):
 def show_smart_performance_analysis(student_name, weekly_completion_rate, user_data):
     """🤖 Akıllı Performans Analizi - Ders Bazında Detay"""
     
-    st.markdown(f"📈 **{student_name}'in Haftalık Performans Raporu**")
-    
-    # Genel performans kartı
-    if weekly_completion_rate >= 85:
-        performance_color = "#28a745"  # Yeşil
-        performance_emoji = "🚀"
-        performance_text = "Mükemmel"
-        advice = "Harika gidiyorsun! Bu tempoyu sürdür."
-    elif weekly_completion_rate >= 70:
-        performance_color = "#17a2b8"  # Mavi
-        performance_emoji = "📈"
-        performance_text = "İyi"
-        advice = "Güzel ilerleme! %85+'a çıkarmaya çalış."
-    elif weekly_completion_rate >= 50:
-        performance_color = "#ffc107"  # Sarı
-        performance_emoji = "⚠️"
-        performance_text = "Orta"
-        advice = "Daha hızlı çalışman gerekiyor."
-    else:
-        performance_color = "#dc3545"  # Kırmızı
-        performance_emoji = "🚨"
-        performance_text = "Düşük"
-        advice = "Acil olarak çalışma programını gözden geçir!"
-    
     st.markdown(f"""
-    <div style="background: {performance_color}; 
-                padding: 20px; border-radius: 12px; color: white; margin: 15px 0;">
-        <h3 style="margin: 0; color: white;">{performance_emoji} Genel Performans: {performance_text} (%{weekly_completion_rate:.1f})</h3>
-        <p style="margin: 10px 0 0 0; opacity: 0.9;">{advice}</p>
+    <div style="background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%); 
+                padding: 25px; border-radius: 20px; margin: 20px 0; color: white; text-align: center;
+                box-shadow: 0 10px 30px rgba(162, 155, 254, 0.3);">
+        <h3 style="margin: 0; color: white; font-weight: 600;">
+            📈 {student_name}'in Haftalık Performans Raporu
+        </h3>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">Ders bazında detaylı analiz</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Ders bazında performans (varsayılan değerler)
+    # Genel performans kartı - daha modern
+    if weekly_completion_rate >= 85:
+        performance_color = "linear-gradient(135deg, #00b894 0%, #00cec9 100%)"
+        performance_emoji = "🚀"
+        performance_text = "Mükemmel"
+        advice = "Harika gidiyorsun! Bu tempoyu sürdür."
+        border_color = "#00b894"
+    elif weekly_completion_rate >= 70:
+        performance_color = "linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)"
+        performance_emoji = "📈"
+        performance_text = "İyi"
+        advice = "Güzel ilerleme! %85+'a çıkarmaya çalış."
+        border_color = "#0984e3"
+    elif weekly_completion_rate >= 50:
+        performance_color = "linear-gradient(135deg, #fdcb6e 0%, #e17055 100%)"
+        performance_emoji = "⚠️"
+        performance_text = "Orta"
+        advice = "Daha hızlı çalışman gerekiyor."
+        border_color = "#e17055"
+    else:
+        performance_color = "linear-gradient(135deg, #fd79a8 0%, #e84393 100%)"
+        performance_emoji = "🚨"
+        performance_text = "Düşük"
+        advice = "Acil olarak çalışma programını gözden geçir!"
+        border_color = "#e84393"
+    
+    # Ana performans kartı
+    st.markdown(f"""
+    <div style="background: {performance_color}; 
+                padding: 25px; border-radius: 15px; color: white; margin: 15px 0;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                border: 3px solid rgba(255,255,255,0.2);
+                text-align: center;">
+        <h2 style="margin: 0 0 10px 0; color: white; font-weight: 600;">
+            {performance_emoji} Genel Performans: {performance_text}
+        </h2>
+        <div style="font-size: 32px; font-weight: bold; margin: 15px 0;">
+            %{weekly_completion_rate:.1f}
+        </div>
+        <p style="margin: 0; opacity: 0.95; font-size: 16px;">
+            {advice}
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Ders bazında performans (varsayılan değerler) - modern kartlarla
     subjects_performance = {
         "TYT Türkçe": min(100, weekly_completion_rate + 5),
         "TYT Matematik": min(100, weekly_completion_rate - 5),
@@ -22726,34 +22750,94 @@ def show_smart_performance_analysis(student_name, weekly_completion_rate, user_d
         "AYT Edebiyat": min(100, weekly_completion_rate + 3)
     }
     
+    st.markdown("### 📊 Ders Bazında Performans Detayı")
+    
     col1, col2 = st.columns(2)
+    
     with col1:
-        st.markdown("**📚 TYT Dersleri**")
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); 
+                    padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 15px;">
+            <h4 style="margin: 0; color: white;">📚 TYT Dersleri</h4>
+        </div>
+        """, unsafe_allow_html=True)
+        
         for subject, performance in subjects_performance.items():
             if "TYT" in subject:
                 if performance >= 80:
-                    st.success(f"{subject}: %{performance:.0f} 🚀")
+                    bg_color = "#d4edda"
+                    text_color = "#155724"
+                    icon = "🚀"
                 elif performance >= 60:
-                    st.info(f"{subject}: %{performance:.0f} 📈")
+                    bg_color = "#d1ecf1"
+                    text_color = "#0c5460"
+                    icon = "📈"
                 else:
-                    st.warning(f"{subject}: %{performance:.0f} ⚠️")
+                    bg_color = "#fff3cd"
+                    text_color = "#856404"
+                    icon = "⚠️"
+                
+                st.markdown(f"""
+                <div style="background: {bg_color}; padding: 12px; border-radius: 8px; margin: 8px 0;
+                            border-left: 4px solid {text_color};">
+                    <span style="color: {text_color}; font-weight: 500;">
+                        {icon} {subject}: <strong>%{performance:.0f}</strong>
+                    </span>
+                </div>
+                """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("**📖 AYT Dersleri**")
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%); 
+                    padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 15px;">
+            <h4 style="margin: 0; color: white;">📖 AYT Dersleri</h4>
+        </div>
+        """, unsafe_allow_html=True)
+        
         for subject, performance in subjects_performance.items():
             if "AYT" in subject:
                 if performance >= 80:
-                    st.success(f"{subject}: %{performance:.0f} 🚀")
+                    bg_color = "#d4edda"
+                    text_color = "#155724"
+                    icon = "🚀"
                 elif performance >= 60:
-                    st.info(f"{subject}: %{performance:.0f} 📈")
+                    bg_color = "#d1ecf1"
+                    text_color = "#0c5460"
+                    icon = "📈"
                 else:
-                    st.warning(f"{subject}: %{performance:.0f} ⚠️")
+                    bg_color = "#fff3cd"
+                    text_color = "#856404"
+                    icon = "⚠️"
+                
+                st.markdown(f"""
+                <div style="background: {bg_color}; padding: 12px; border-radius: 8px; margin: 8px 0;
+                            border-left: 4px solid {text_color};">
+                    <span style="color: {text_color}; font-weight: 500;">
+                        {icon} {subject}: <strong>%{performance:.0f}</strong>
+                    </span>
+                </div>
+                """, unsafe_allow_html=True)
 
 def show_intelligent_topic_calendar(student_name, user_data, weekly_completion_rate, weekly_start_date, days_to_yks):
     """🤖 Akıllı Konu Takvimi - Gerçek Performansa Dayalı"""
     from datetime import datetime, timedelta
     
-    st.markdown(f"📅 **{student_name} için Akıllı Konu Projeksiyonu**")
+    # Modern başlık
+    st.markdown(f"""
+    <div style="background: linear-gradient(145deg, #667eea 0%, #764ba2 100%); 
+                padding: 25px; border-radius: 20px; margin: 20px 0; 
+                box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+                border: 1px solid rgba(255,255,255,0.1);">
+        <div style="text-align: center;">
+            <h2 style="margin: 0; color: white; font-weight: 600;">
+                🎯 {student_name} için Akıllı Konu Projeksiyonu
+            </h2>
+            <p style="margin: 10px 0 0 0; opacity: 0.9; color: #f8f9ff;">
+                Performansına dayalı dinamik müfredat haritası
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Haftalık program şablonu (mevcut sistemden alınacak)
     weekly_topics = get_student_weekly_curriculum(user_data.get('field', 'Eşit Ağırlık'))
@@ -22761,27 +22845,44 @@ def show_intelligent_topic_calendar(student_name, user_data, weekly_completion_r
     # Hız hesaplama
     if weekly_completion_rate >= 85:
         speed_multiplier = 1.2
-        speed_text = "Hızlandırılmış Tempo 🚀"
+        speed_text = "Hızlandırılmış Tempo"
+        speed_emoji = "🚀"
+        speed_color = "#28a745"
     elif weekly_completion_rate >= 70:
         speed_multiplier = 1.0
-        speed_text = "Normal Tempo 📈"
+        speed_text = "Normal Tempo"
+        speed_emoji = "📈"
+        speed_color = "#17a2b8"
     elif weekly_completion_rate >= 50:
         speed_multiplier = 0.8
-        speed_text = "Yavaş Tempo ⚠️"
+        speed_text = "Yavaş Tempo"
+        speed_emoji = "⚠️"
+        speed_color = "#ffc107"
     else:
         speed_multiplier = 0.6
-        speed_text = "Çok Yavaş Tempo 🚨"
+        speed_text = "Çok Yavaş Tempo"
+        speed_emoji = "🚨"
+        speed_color = "#dc3545"
     
-    # Hız bilgisi
-    st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
-                padding: 15px; border-radius: 10px; color: white; margin: 15px 0;">
-        <p style="margin: 0; text-align: center;">
-            <strong>Mevcut Hız Analizi:</strong> {speed_text}<br>
-            <span style="opacity: 0.9;">Hız Çarpanı: {speed_multiplier}x | Haftalık Tamamlama: %{weekly_completion_rate:.1f}</span>
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    # Modern hız kartı
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown(f"""
+        <div style="background: {speed_color}; 
+                    padding: 20px; border-radius: 15px; color: white; margin: 15px 0;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                    text-align: center; border: 2px solid rgba(255,255,255,0.2);">
+            <h3 style="margin: 0; color: white; font-weight: 600;">
+                {speed_emoji} {speed_text}
+            </h3>
+            <p style="margin: 10px 0 5px 0; opacity: 0.95; font-size: 16px;">
+                Hız Çarpanı: <strong>{speed_multiplier}x</strong>
+            </p>
+            <p style="margin: 0; opacity: 0.85; font-size: 14px;">
+                Haftalık Tamamlama: <strong>%{weekly_completion_rate:.1f}</strong>
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Tarih hesaplamaları
     try:
@@ -22801,24 +22902,70 @@ def show_intelligent_topic_calendar(student_name, user_data, weekly_completion_r
             st.info("🏁 Tüm müfredat tamamlanmış veya analiz için yeterli veri yok!")
             return
         
-        # Aylık planı göster
-        st.markdown("### 🗓️ Aylara Göre Konu Dağılımı")
+        # Modern aylık plan görünümü
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+                    padding: 20px; border-radius: 15px; margin: 20px 0; color: white; text-align: center;">
+            <h3 style="margin: 0; color: white; font-weight: 600;">🗓️ Aylara Göre Konu Dağılımı</h3>
+            <p style="margin: 5px 0 0 0; opacity: 0.9;">Dinamik müfredat planlaması</p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        for month, month_data in monthly_plan.items():
+        # Aylık kartları moderne al
+        for i, (month, month_data) in enumerate(monthly_plan.items()):
             if month_data and month_data['topics']:
                 total_topics = len(month_data['topics'])
                 
-                with st.expander(f"📅 **{month}** ({total_topics} konu) - Hafta {month_data['week_range']}"):
-                    for i, topic in enumerate(month_data['topics'], 1):
+                # Her ay için farklı renk gradientleri
+                colors = [
+                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", 
+                    "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+                    "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+                    "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+                    "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+                    "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)"
+                ]
+                color = colors[i % len(colors)]
+                
+                with st.expander(f"📅 **{month}** ({total_topics} konu) - Hafta {month_data['week_range']}", expanded=i<2):
+                    st.markdown(f"""
+                    <div style="background: {color}; 
+                                padding: 15px; border-radius: 12px; margin: 10px 0; color: white;">
+                        <h4 style="margin: 0 0 15px 0; color: white; text-align: center;">
+                            📚 {month} Konuları ({total_topics} adet)
+                        </h4>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Konuları 2 kolonlu göster
+                    col1, col2 = st.columns(2)
+                    for j, topic in enumerate(month_data['topics']):
                         # Konu türüne göre emoji
                         if "TYT" in topic:
                             emoji = "📚"
+                            badge_color = "#e3f2fd"
+                            text_color = "#1976d2"
                         elif "AYT" in topic:
                             emoji = "📖"
+                            badge_color = "#f3e5f5"
+                            text_color = "#7b1fa2"
                         else:
                             emoji = "📝"
+                            badge_color = "#e8f5e8"
+                            text_color = "#388e3c"
                         
-                        st.write(f"{emoji} {i}. {topic}")
+                        target_col = col1 if j % 2 == 0 else col2
+                        with target_col:
+                            st.markdown(f"""
+                            <div style="background: {badge_color}; 
+                                        padding: 8px 12px; border-radius: 8px; margin: 5px 0;
+                                        border-left: 4px solid {text_color};">
+                                <span style="color: {text_color}; font-weight: 500;">
+                                    {emoji} {topic}
+                                </span>
+                            </div>
+                            """, unsafe_allow_html=True)
         
         # Deneme sınavı tahmini
         show_exam_prediction(monthly_plan, speed_multiplier, student_name)
@@ -22951,35 +23098,137 @@ def calculate_monthly_topic_distribution(weekly_topics, current_week, speed_mult
     return monthly_plan
 
 def show_exam_prediction(monthly_plan, speed_multiplier, student_name):
-    """Öneme sınavı başlangıç tahmini"""
+    """Akıllı Deneme Sınavı Başlangıç Tahmini - TYT ve AYT Ayrı"""
     
     if not monthly_plan:
         return
     
-    total_months = len(monthly_plan)
+    # Aylık planın ne zaman biteceğini hesapla
+    plan_months = list(monthly_plan.keys())
+    if plan_months:
+        last_month = plan_months[-1]
+        # Son ayın isminden tahmini tarih çıkar
+        if "Mart" in last_month:
+            curriculum_finish = "Mart sonu"
+            tyt_start_month = "Nisan başı"
+            ayt_start_month = "Nisan ortası"
+            revision_period = "Nisan"
+        elif "Şubat" in last_month:
+            curriculum_finish = "Şubat sonu" 
+            tyt_start_month = "Mart başı"
+            ayt_start_month = "Mart ortası"
+            revision_period = "Mart"
+        elif "Nisan" in last_month:
+            curriculum_finish = "Nisan sonu"
+            tyt_start_month = "Mayıs başı"
+            ayt_start_month = "Mayıs ortası"
+            revision_period = "Mayıs"
+        elif "Mayıs" in last_month:
+            curriculum_finish = "Mayıs sonu"
+            tyt_start_month = "Haziran başı"
+            ayt_start_month = "Haziran ortası"
+            revision_period = "Haziran"
+        else:
+            curriculum_finish = "Belirsiz"
+            tyt_start_month = "Belirsiz"
+            ayt_start_month = "Belirsiz"
+            revision_period = "Belirsiz"
+    else:
+        curriculum_finish = "Belirsiz"
+        tyt_start_month = "Belirsiz"
+        ayt_start_month = "Belirsiz"
+        revision_period = "Belirsiz"
     
+    # Hıza göre düzeltme yap
     if speed_multiplier >= 1.1:
-        exam_start = "Mart sonu - Nisan başı"
         message_type = "success"
-        icon = "🏆"
-        message = f"Harika {student_name}! Bu hızda {exam_start}'nda denemelere başlayabilirsin!"
+        main_icon = "🏆"
+        speed_advice = f"Mükemmel tempoda gidiyorsun {student_name}!"
     elif speed_multiplier >= 0.9:
-        exam_start = "Nisan ortası - Mayıs başı"
-        message_type = "info"
-        icon = "🎯"
-        message = f"{student_name}, bu tempoda {exam_start}'da denemelere başlayabilirsin."
+        message_type = "info" 
+        main_icon = "🎯"
+        speed_advice = f"Güzel bir tempoda ilerliyorsun {student_name}."
     else:
-        exam_start = "Mayıs ortası - sonrası"
         message_type = "warning"
-        icon = "⚠️"
-        message = f"{student_name}, müfredatı yetiştirmek için hızlanmalısın! En erken {exam_start} deneme yapabilirsin."
+        main_icon = "⚠️"
+        speed_advice = f"{student_name}, daha hızlı çalışman gerekiyor!"
     
+    # Modern deneme tahmini kartı
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); 
+                padding: 25px; border-radius: 20px; margin: 20px 0; color: white; text-align: center;
+                box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);">
+        <h3 style="margin: 0 0 15px 0; color: white; font-weight: 600;">
+            🎯 Deneme Sınavı Başlangıç Tahmini
+        </h3>
+        <p style="margin: 0; opacity: 0.9;">Akıllı performans analizi sonucu</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Ana tahmin mesajı
     if message_type == "success":
-        st.success(f"{icon} {message}")
+        st.success(f"{main_icon} {speed_advice}")
     elif message_type == "info":
-        st.info(f"{icon} {message}")
+        st.info(f"{main_icon} {speed_advice}")
     else:
-        st.warning(f"{icon} {message}")
+        st.warning(f"{main_icon} {speed_advice}")
+    
+    # Detaylı deneme planı
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); 
+                    padding: 20px; border-radius: 15px; color: white; text-align: center; height: 200px;">
+            <h4 style="margin: 0 0 10px 0; color: white;">📚 Müfredat Bitiş</h4>
+            <div style="font-size: 24px; margin: 15px 0; font-weight: 600;">
+                {curriculum_finish}
+            </div>
+            <p style="margin: 0; opacity: 0.9; font-size: 14px;">
+                Tüm konular tamamlanacak
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #00cec9 0%, #00b894 100%); 
+                    padding: 20px; border-radius: 15px; color: white; text-align: center; height: 200px;">
+            <h4 style="margin: 0 0 10px 0; color: white;">📋 TYT Denemeleri</h4>
+            <div style="font-size: 24px; margin: 15px 0; font-weight: 600;">
+                {tyt_start_month}
+            </div>
+            <p style="margin: 0; opacity: 0.9; font-size: 14px;">
+                TYT deneme serisine başla
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%); 
+                    padding: 20px; border-radius: 15px; color: white; text-align: center; height: 200px;">
+            <h4 style="margin: 0 0 10px 0; color: white;">📖 AYT Denemeleri</h4>
+            <div style="font-size: 24px; margin: 15px 0; font-weight: 600;">
+                {ayt_start_month}
+            </div>
+            <p style="margin: 0; opacity: 0.9; font-size: 14px;">
+                AYT deneme serisine başla
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Ek bilgi
+    st.markdown(f"""
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0; 
+                border-left: 4px solid #007bff;">
+        <p style="margin: 0; color: #495057;">
+            <strong>💡 {revision_period} Ayı Planı:</strong> 
+            Müfredat bittiğinde {revision_period} ayını <strong>tekrar + deneme</strong> odaklı kullan. 
+            Önce TYT denemeleriyle başla, sonra AYT ekle. Bu sayede sınava en iyi şekilde hazır olursun!
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
 def get_detailed_weekly_curriculum():
     """16 haftalık detaylı müfredat"""
