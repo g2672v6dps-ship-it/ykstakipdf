@@ -22556,7 +22556,7 @@ def create_adaptive_monthly_plan(student_field, ay_offset, current_score, tempo_
         """)
 
 def show_progress_analytics(user_data):
-    """📊 Gidişat ve İlerleme Analizi"""
+    """📊 Gidişat ve İlerleme Analizi - Geliştirilmiş Versiyon"""
     st.subheader("📊 Gidişat Analizi ve İlerleme Takibi")
     
     # YKS'ye kalan süre - güvenli hesaplama
@@ -22578,11 +22578,11 @@ def show_progress_analytics(user_data):
     # Zaman kartları
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("📅 Sınava Kalan Ay", months_to_yks)
-    with col2:
-        st.metric("📅 Sınava Kalan Hafta", weeks_to_yks)
-    with col3:
         st.metric("📅 Sınava Kalan Gün", days_to_yks)
+    with col2:
+        st.metric("📅 Sınava Kalan Ay", months_to_yks)
+    with col3:
+        st.metric("📅 Sınava Kalan Hafta", weeks_to_yks)
     
     st.markdown("---")
     
@@ -22600,31 +22600,36 @@ def show_progress_analytics(user_data):
     try:
         weekly_completion_rate = calculate_weekly_completion_percentage(user_data, weekly_plan)
     except:
-        weekly_completion_rate = 65.0  # Varsayılan performans
+        weekly_completion_rate = 75.0  # Varsayılan performans
     
-    # Haftalık konu bitirme hızı hesaplama (hafta başına kaç konu)
-    topics_per_week = max(1, (weekly_completion_rate / 100) * 5)  # Hafta başına maksimum 5 konu varsayımı
+    # Haftalık konu bitirme hızı hesaplama
+    topics_per_week = max(0.5, (weekly_completion_rate / 100) * 1.0)  # Hafta başına ortalama 1 haftalık program
     
     st.subheader("📈 Haftalık Performans Analizi")
     
     col1, col2 = st.columns(2)
     with col1:
-        if weekly_completion_rate >= 80:
+        if weekly_completion_rate >= 85:
             st.success(f"🚀 Mükemmel Tempo: %{weekly_completion_rate:.1f}")
-        elif weekly_completion_rate >= 60:
-            st.info(f"📈 Normal Tempo: %{weekly_completion_rate:.1f}")
+        elif weekly_completion_rate >= 70:
+            st.info(f"📈 İyi Tempo: %{weekly_completion_rate:.1f}")
+        elif weekly_completion_rate >= 50:
+            st.warning(f"⚠️ Orta Tempo: %{weekly_completion_rate:.1f}")
         else:
-            st.info(f"📈 Mevcut Tempo: %{weekly_completion_rate:.1f}")
+            st.error(f"🔻 Yavaş Tempo: %{weekly_completion_rate:.1f}")
     
     with col2:
-        st.metric("🎯 Haftalık Konu Bitirme Hızı", f"{topics_per_week:.1f} konu/hafta")
+        st.metric("🎯 Haftalık Program Bitirme Hızı", f"{weekly_completion_rate:.1f}%")
     
     st.markdown("---")
     
-    # DİNAMİK KONU BİTİŞ TAKVİMİ
-    st.subheader("📅 Haftalık Gidişatınıza Göre Konu Bitiş Takvimi")
+    # Öğrenci alanını al
+    student_field_raw = user_data.get('field', 'Eşit Ağırlık')
     
-    show_dynamic_topic_calendar(user_data, topics_per_week, weekly_plan_start, days_to_yks)
+    # DİNAMİK KONU BİTİŞ TAKVİMİ
+    st.subheader("📅 Haftalık Gidişatınıza Göre Aylık Konu Takvimi")
+    
+    show_enhanced_dynamic_calendar(user_data, weekly_completion_rate, weekly_plan_start, days_to_yks, student_field_raw)
     
     # Başarı badge'leri (boş)
     points = 0
@@ -22632,63 +22637,127 @@ def show_progress_analytics(user_data):
     
     return points, new_badges
 
-def show_dynamic_topic_calendar(user_data, topics_per_week, weekly_plan_start, days_to_yks):
-    """🗓️ Dinamik Konu Bitiş Takvimi - Haftalık performansa göre güncellenir"""
+def get_detailed_weekly_curriculum():
+    """16 haftalık detaylı müfredat"""
+    return {
+        1: {
+            "TYT Türkçe": ["📋 Sözcükte Anlam: Gerçek Anlam, Mecaz Anlam, Terim Anlam", 
+                          "📋 Cümlede Anlam: Cümle Yorumlama, Kesin Yargı, Anlatım Biçimleri, Neden-Sonuç", 
+                          "📋 Paragraf: Ana Fikir, Yardımcı Fikir, Paragraf Yapısı, Anlatım Teknikleri, Düşünceyi Geliştirme"],
+            "TYT Matematik": ["Temel Kavramlar", "Sayı Basamakları"],
+            "TYT Tarih": ["Tarih ve Zaman"],
+            "TYT Geometri": ["📋 Açılar: Doğruda Açılar, Üçgende Açılar"],
+            "TYT Coğrafya": ["Dünya Haritaları"]
+        },
+        2: {
+            "TYT Türkçe": ["📋 Ses Bilgisi"],
+            "TYT Matematik": ["Bölme ve Bölünebilme", "EBOB-EKOK", "Rasyonel Sayılar"],
+            "TYT Geometri": ["Özel Üçgenler: Dik Üçgen, Eşkenar Üçgen, İkizkenar Üçgen"],
+            "TYT Coğrafya": ["Doğa ve İnsan", "Dünya'nın Şekli ve Hareketleri (Günlük ve Yıllık Hareketler, Sonuçları)"],
+            "TYT Tarih": ["İnsanlığın İlk Dönemleri", "Ortaçağda Dünya"]
+        },
+        3: {
+            "TYT Türkçe": ["Yazım Kuralları"],
+            "TYT Matematik": ["Ondalıklı Sayılar", "Oran Orantı", "Denklem Çözme", "Problemler (Sayı Problemleri, Kesir Problemleri)"],
+            "TYT Geometri": ["Açıortay", "Kenarortay"],
+            "TYT Coğrafya": ["Coğrafi Konum", "Harita Bilgisi", "Atmosfer ve Sıcaklık"],
+            "TYT Tarih": ["İlk ve Orta Çağlarda Türk Dünyası", "İslam Medeniyetinin Doğuşu"]
+        },
+        4: {
+            "TYT Türkçe": ["Noktalama İşaretleri", "Sözcükte Yapı"],
+            "TYT Matematik": ["Basit Eşitsizlikler", "Mutlak Değer", "Problemler (Yaş Problemleri, Yüzde Problemleri, Kar-Zarar Problemleri)"],
+            "TYT Geometri": ["Eşlik ve Benzerlik", "Üçgende Alan"],
+            "TYT Coğrafya": ["İklim", "Basınç ve Rüzgarlar", "Nem Yağış ve Buharlaşma"],
+            "TYT Tarih": ["İlk Türk İslam Devletleri", "Yerleşme ve Devletleşme Sürecinde Selçuklu Türkiyesi", "Beylikten Devlete Osmanlı Siyaseti (1300-1453)"]
+        },
+        5: {
+            "TYT Türkçe": ["Sözcük Türleri (İsimler, Zamirler, Sıfatlar, Zarf, Edat)"],
+            "TYT Matematik": ["Üslü Sayılar", "Köklü Sayılar", "Problemler (Karışım Problemleri)"],
+            "TYT Geometri": ["Açı-Kenar Bağıntıları", "Çokgenler"],
+            "TYT Coğrafya": ["İç Kuvvetler/Dış Kuvvetler", "Su-Toprak ve Bitkiler", "Nüfus"],
+            "TYT Tarih": ["Dünya Gücü Osmanlı (1453-1600)", "Yeni Çağ Avrupa Tarihi"]
+        },
+        6: {
+            "TYT Türkçe": ["Fiilde Anlam", "Ek Fiil"],
+            "TYT Matematik": ["Çarpanlara Ayırma", "Problemler (Hareket Problemleri, İşçi Problemleri)"],
+            "TYT Geometri": ["Özel Dörtgenler", "Deltoid", "Paralelkenar"],
+            "TYT Coğrafya": ["Göç", "Yerleşme", "Türkiye'nin Yer Şekilleri"],
+            "TYT Tarih": ["Osmanlı Devletinde Arayış Yılları", "Osmanlı Avrupa İlişkileri", "18.YY Değişim ve Diplomasi", "En Uzun Yüzyıl", "Osmanlı Kültür ve Medeniyeti"]
+        },
+        7: {
+            "TYT Türkçe": ["Fiilimsi", "Fiilde Çatı"],
+            "AYT Matematik": ["Fonksiyonlar"],
+            "TYT Matematik": ["Problemler (Tablo-Grafik Problemleri, Rutin Olmayan Problemler)"],
+            "TYT Geometri": ["Eşkenar Dörtgen", "Diktörtgen"],
+            "TYT Coğrafya": ["Ekonomik Faaliyetler", "Bölgeler Uluslararası Ulaşım Hatları, Çevre ve Toplum", "Doğal Afetler"],
+            "TYT Tarih": ["20.YY Osmanlı Devleti", "1.Dünya Savaşı"]
+        },
+        8: {
+            "TYT Türkçe": ["Cümlenin Öğeleri", "Cümle Türleri", "Anlatım Bozukluğu"],
+            "TYT Matematik": ["Mantık", "Kümeler"],
+            "AYT Matematik": ["Polinom"],
+            "TYT Geometri": ["Kare", "Yamuk"],
+            "TYT Tarih": ["Mondros Ateşkesi, İşgaller ve Cemiyetler", "Kurtuluş Savaşına Hazırlık Dönemi", "1.TBMM Dönemi", "Kurtuluş Savaşı ve Anlaşmalar"]
+        },
+        9: {
+            "TYT Matematik": ["Olasılık"],
+            "AYT Matematik": ["2.Derece Denklemler"],
+            "TYT Geometri": ["Çemberde Açı", "Çemberde Uzunluk"],
+            "TYT Tarih": ["II.TBMM Dönemi ve Çok Partili Hayata Geçiş", "Türk İnkılabı"],
+            "AYT Edebiyat": ["Güzel Sanatlar ve Edebiyat ile İlişkisi", "Metinlerin Sınıflandırılması"],
+            "AYT Coğrafya": ["Ekosistem"]
+        },
+        10: {
+            "AYT Edebiyat": ["Edebi Sanatlar", "Edebiyat Akımları"],
+            "AYT Coğrafya": ["Biyoçeşitlilik", "Biyomlar", "Ekosistem Unsurları"],
+            "AYT Matematik": ["Karmaşık Sayılar", "2.Derece Denklem ve Eşitsizlikler"],
+            "TYT Tarih": ["Atatürk İlkeleri", "Atatürk Dönemi Türk Dış Politikası"],
+            "TYT Geometri": ["Dairede Çevre ve Alan", "Noktanın Analitiği"]
+        },
+        11: {
+            "AYT Edebiyat": ["Dünya Edebiyatı", "Anlam Bilgisi (Tekrar)", "Dil Bilgisi (Tekrar)", "Şiir Bilgisi"],
+            "AYT Matematik": ["Parabol", "Logaritma"],
+            "TYT Geometri": ["Doğrunun Analitiği", "Prizmalar"],
+            "AYT Coğrafya": ["Enerji Akışı ve Madde Döngüsü", "Nüfus Politikaları", "Türkiye'de Nüfus ve Yerleşme", "Göç ve Şehirleşme"],
+            "AYT Tarih": ["Tarih ve Zaman (Temel Kavramlar)", "İnsanlığın İlk Dönemleri", "Ortaçağda Dünya"]
+        },
+        12: {
+            "AYT Edebiyat": ["Türk Edebiyatı Dönemleri (Genel Özellikler)", "İslamiyet Öncesi Türk Edebiyatı (Sözlü ve Yazılı)", "İslamiyet Etkisindeki Geçiş Dönemi Edebiyatı"],
+            "AYT Matematik": ["Diziler", "Limit"],
+            "TYT Geometri": ["Küp", "Silindir"],
+            "AYT Coğrafya": ["Ekonomik Faaliyetler ve Doğal Kaynaklar", "Türkiye Ekonomisi", "Türkiye'nin Ekonomi Politikaları", "Türkiye Ekonomisinin Sektörel Dağılımı"],
+            "AYT Tarih": ["İlk ve Orta Çağlarda Türk Dünyası", "İslam Medeniyetinin Doğuşu", "Türklerin İslamiyeti Kabulü ve İlk Türk İslam Devletleri", "Yerleşme ve Devletleşme Sürecindeki Selçuklu Türkiyesi"]
+        },
+        13: {
+            "AYT Edebiyat": ["Halk Edebiyatı", "Divan Edebiyatı"],
+            "AYT Matematik": ["Türev"],
+            "AYT Coğrafya": ["Türkiye'de Tarım", "Türkiye'de Ulaşım", "Türkiye'de Ticaret ve Turizm", "Geçmişten Geleceğe Şehir ve Ekonomi", "Türkiye'nin İşlevsel Bölgeleri ve Kalkınma Projeleri", "Hizmet Sektörünün Ekonomideki Yeri"],
+            "AYT Tarih": ["Beylikten Devlete Osmanlı Siyaseti", "Devletleşme Sürecindeki Savaşçılar ve Askerler", "Beylikten Devlete Osmanlı Medeniyeti", "Dünya Gücü Osmanlı", "Sultan ve Osmanlı ve Merkez Teşkilatı", "Klasik Çağda Osmanlı Toplum Düzeni"],
+            "TYT Geometri": ["Piramit", "Koni", "Küre"]
+        },
+        14: {
+            "AYT Edebiyat": ["Tanzimat Dönemi Edebiyatı (1. ve 2. Kuşak)", "Servet-i Fünun Edebiyatı (Edebiyat-ı Cedide)", "Fecr-i Ati Edebiyatı"],
+            "AYT Coğrafya": ["Küresel Ticaret", "Bölgeler ve Ülkeler", "İlk Uygarlıklar", "Kültür Bölgeleri ve Türk Kültürü", "Sanayileşme Süreci: Almanya", "Tarih ve Ekonomi İlişkisi Fransa-Somali", "Ülkeler Arası Etkileşim", "Jeopolitik Konum", "Çatışma Bölgeleri", "Küresel ve Bölgesel Örgütler"],
+            "AYT Tarih": ["Değişen Dünya Dengeleri Karşısında Osmanlı Siyaseti", "Değişim Çağında Avrupa ve Osmanlı", "Uluslararası İlişkilerde Denge Stratejisi", "Devrimler Çağında ve Değişen Devlet Toplum İlişkileri", "Sermaye ve Emek", "XIX. ve XX. YY Değişen Gündelik Hayat"]
+        },
+        15: {
+            "AYT Edebiyat": ["Milli Edebiyat"],
+            "AYT Coğrafya": ["Ekstrem Doğa Olayları", "Küresel İklim Değişimi", "Çevre ve Toplum", "Çevre Sorunları ve Türleri", "Madenler ve Enerji Kaynaklarının Çevreye Etkisi", "Doğal Kaynakların Sürdürülebilir Kullanımı", "Ekolojik Ayak İzi", "Doğal Çevrenin Sınırlılığı", "Çevre Politikaları", "Çevresel Örgütler", "Çevre Anlaşmaları", "Doğal Afetler"],
+            "AYT Tarih": ["XX.YY Başlarında Osmanlı Devleti ve Dünya", "Milli Mücadele", "Atatürkçülük ve Türk İnkılabı"]
+        },
+        16: {
+            "AYT Edebiyat": ["Cumhuriyet Dönemi Edebiyatı", "Edebi Akımlar"],
+            "AYT Tarih": ["İlk Savaş Arasındaki Dönemde Türkiye ve Dünya", "II.Dünya Savaşı Sürecinde Türkiye ve Dünya", "II.Dünya Savaş Sonrasında Türkiye ve Dünya", "Toplumsal Devrim Çağında Dünya ve Türkiye", "XXI. YY Eşiğinde Türkiye ve Dünya"],
+            "AYT Matematik": ["İntegral", "Olasılık, Binom, Permütasyon Kombinasyon"]
+        }
+    }
+
+def show_enhanced_dynamic_calendar(user_data, weekly_completion_rate, weekly_plan_start, days_to_yks, student_field):
+    """🗓️ Geliştirilmiş Dinamik Konu Bitiş Takvimi"""
     from datetime import datetime, timedelta
     
-    # Öğrenci alanını al
-    student_field_raw = user_data.get('field', 'Sayısal')
-    
-    # Alan formatını normalize et
-    if 'Sayısal' in student_field_raw or 'MF' in student_field_raw:
-        student_field = 'Sayısal'
-    elif 'Sözel' in student_field_raw or 'TM' in student_field_raw:
-        student_field = 'Sözel'
-    elif 'Eşit' in student_field_raw or 'EA' in student_field_raw:
-        student_field = 'Eşit Ağırlık'
-    else:
-        student_field = student_field_raw
-    
-    # Alan bazlı detaylı konu listesi
-    if student_field == 'Sayısal':
-        all_topics = [
-            "TYT Temel Matematik - Sayılar", "TYT Temel Matematik - Cebirsel İfadeler", "TYT Temel Matematik - Denklemler",
-            "TYT Türkçe - Anlam", "TYT Türkçe - Cümle Bilgisi", "TYT Türkçe - Paragraf",
-            "TYT Fen - Fizik Hareket", "TYT Fen - Kimya Atom", "TYT Fen - Biyoloji Hücre",
-            "TYT Sosyal - Türk Tarihi", "TYT Sosyal - Coğrafya", "TYT Sosyal - Vatandaşlık",
-            "AYT Matematik - Fonksiyonlar", "AYT Matematik - Logaritma", "AYT Matematik - Diziler",
-            "AYT Fizik - Kuvvet Hareket", "AYT Fizik - Enerji", "AYT Fizik - Elektrik",
-            "AYT Kimya - Kimyasal Türler", "AYT Kimya - Asit Baz", "AYT Kimya - Organik",
-            "AYT Biyoloji - Üreme", "AYT Biyoloji - Kalıtım", "AYT Biyoloji - Ekoloji"
-        ]
-    elif student_field == 'Sözel':
-        all_topics = [
-            "TYT Temel Matematik - Sayılar", "TYT Temel Matematik - Geometri", "TYT Temel Matematik - Veri",
-            "TYT Türkçe - Anlam", "TYT Türkçe - Cümle Bilgisi", "TYT Türkçe - Paragraf",
-            "TYT Fen - Fizik Temel", "TYT Fen - Kimya Temel", "TYT Fen - Biyoloji Temel",
-            "TYT Sosyal - Türk Tarihi", "TYT Sosyal - Coğrafya", "TYT Sosyal - Vatandaşlık",
-            "AYT Türk Dili - Ses Bilgisi", "AYT Türk Dili - Sözcük", "AYT Türk Dili - Cümle",
-            "AYT Edebiyat - Eski Türk", "AYT Edebiyat - Divan", "AYT Edebiyat - Tanzimat",
-            "AYT Tarih - İlk Çağ", "AYT Tarih - Orta Çağ", "AYT Tarih - Yeni Çağ",
-            "AYT Coğrafya - Fiziki", "AYT Coğrafya - Beşeri", "AYT Coğrafya - Türkiye",
-            "AYT Felsefe - Bilgi", "AYT Felsefe - Varlık", "AYT Felsefe - Ahlak"
-        ]
-    else:  # Eşit Ağırlık
-        all_topics = [
-            "TYT Temel Matematik - Sayılar", "TYT Temel Matematik - Cebirsel İfadeler", "TYT Temel Matematik - Geometri",
-            "TYT Türkçe - Anlam", "TYT Türkçe - Cümle Bilgisi", "TYT Türkçe - Paragraf",
-            "TYT Fen - Fizik Temel", "TYT Fen - Kimya Temel", "TYT Fen - Biyoloji Temel",
-            "TYT Sosyal - Türk Tarihi", "TYT Sosyal - Coğrafya", "TYT Sosyal - Vatandaşlık",
-            "AYT Matematik - Fonksiyonlar", "AYT Matematik - Logaritma", "AYT Matematik - Türev",
-            "AYT Türk Dili - Ses Bilgisi", "AYT Türk Dili - Sözcük", "AYT Türk Dili - Cümle",
-            "AYT Edebiyat - Eski Türk", "AYT Edebiyat - Divan", "AYT Edebiyat - Tanzimat",
-            "AYT Tarih - İlk Çağ", "AYT Tarih - Orta Çağ", "AYT Tarih - Osmanlı",
-            "AYT Coğrafya - Fiziki", "AYT Coğrafya - Beşeri", "AYT Coğrafya - Türkiye"
-        ]
-    
-    # Tamamlanan konuları al (varsayılan olarak ilk 3 konu tamamlanmış kabul edelim)
-    completed_topics = user_data.get('completed_topics_list', all_topics[:3])
-    remaining_topics = [topic for topic in all_topics if topic not in completed_topics]
+    # Detaylı müfredatı al
+    curriculum = get_detailed_weekly_curriculum()
     
     # Başlangıç tarihini parse et
     try:
@@ -22696,75 +22765,137 @@ def show_dynamic_topic_calendar(user_data, topics_per_week, weekly_plan_start, d
     except:
         start_date = datetime.now()
     
-    # Ay ay konu dağılımı hesapla
-    current_date = start_date
-    end_date = current_date + timedelta(days=days_to_yks)
+    # Mevcut hafta hesaplama
+    current_date = datetime.now()
+    elapsed_weeks = max(0, (current_date - start_date).days // 7)
+    current_week = min(elapsed_weeks + 1, 16)
     
+    # Haftalık tamamlanma oranına göre gerçek hız hesaplama
+    # %85+ = 1.2 hafta/hafta (hızlandırılmış), %70-84 = 1.0 hafta/hafta (normal), %50-69 = 0.8 hafta/hafta (yavaş), <%50 = 0.6 hafta/hafta (çok yavaş)
+    if weekly_completion_rate >= 85:
+        speed_multiplier = 1.2
+    elif weekly_completion_rate >= 70:
+        speed_multiplier = 1.0
+    elif weekly_completion_rate >= 50:
+        speed_multiplier = 0.8
+    else:
+        speed_multiplier = 0.6
+    
+    # Ay isimlerini Türkçeleştir
+    month_names_tr = {
+        'January': 'Ocak', 'February': 'Şubat', 'March': 'Mart', 'April': 'Nisan',
+        'May': 'Mayıs', 'June': 'Haziran', 'July': 'Temmuz', 'August': 'Ağustos',
+        'September': 'Eylül', 'October': 'Ekim', 'November': 'Kasım', 'December': 'Aralık'
+    }
+    
+    # Ay ay planlama
     monthly_plan = {}
-    topic_index = 0
+    current_curriculum_week = current_week
+    plan_date = start_date + timedelta(weeks=elapsed_weeks)
     
-    # Her ay için konu dağılımı
-    while current_date < end_date and topic_index < len(remaining_topics):
-        month_name = current_date.strftime("%B %Y")
-        month_name_tr = {
-            'January': 'Ocak', 'February': 'Şubat', 'March': 'Mart', 'April': 'Nisan',
-            'May': 'Mayıs', 'June': 'Haziran', 'July': 'Temmuz', 'August': 'Ağustos',
-            'September': 'Eylül', 'October': 'Ekim', 'November': 'Kasım', 'December': 'Aralık'
-        }
-        
-        for eng, tr in month_name_tr.items():
+    # Her ayı hesapla
+    while current_curriculum_week <= 16 and plan_date < start_date + timedelta(days=days_to_yks):
+        month_name = plan_date.strftime("%B %Y")
+        for eng, tr in month_names_tr.items():
             month_name = month_name.replace(eng, tr)
         
-        # Bu ayda bitecek konu sayısı (4-5 hafta × haftalık tempo)
-        topics_this_month = int(4 * topics_per_week)
-        topics_this_month = max(1, min(topics_this_month, len(remaining_topics) - topic_index))
+        if month_name not in monthly_plan:
+            monthly_plan[month_name] = []
         
-        month_topics = remaining_topics[topic_index:topic_index + topics_this_month]
-        if month_topics:  # Sadece konu varsa ekle
-            monthly_plan[month_name] = month_topics
+        # Bu ayda kaç hafta sığar hesapla
+        month_start = plan_date
+        next_month = month_start + timedelta(days=32)
+        next_month = next_month.replace(day=1)
+        days_in_month = (next_month - month_start).days
+        weeks_in_month = days_in_month / 7
         
-        topic_index += topics_this_month
-        current_date += timedelta(days=30)  # Bir sonraki ay
+        # Gerçek hıza göre kaç haftalık müfredat bitecek
+        weeks_to_complete = weeks_in_month * speed_multiplier
+        
+        while weeks_to_complete >= 1.0 and current_curriculum_week <= 16:
+            if current_curriculum_week in curriculum:
+                month_info = {
+                    'week': current_curriculum_week,
+                    'topics': curriculum[current_curriculum_week]
+                }
+                monthly_plan[month_name].append(month_info)
+            
+            current_curriculum_week += 1
+            weeks_to_complete -= 1.0
+        
+        plan_date = next_month
     
     # Takvimi göster
-    st.markdown("**🎯 Mevcut temponuza göre konu bitiş tahmini:**")
+    st.markdown(f"""
+    **🎯 Haftalık %{weekly_completion_rate:.1f} tamamlama hızınıza göre aylık konu tahmini:**
+    *Hız Çarpanı: {speed_multiplier}x ({"Hızlandırılmış" if speed_multiplier > 1 else "Normal" if speed_multiplier == 1 else "Yavaşlatılmış"})*
+    """)
     
     if not monthly_plan:
-        st.info("📝 Tüm konularınız tamamlanmış görünüyor!")
+        st.info("📝 Müfredat tamamlanmış veya veri yetersiz!")
         return
     
-    for month, topics in monthly_plan.items():
-        if topics:
-            with st.expander(f"📅 **{month}** ({len(topics)} konu)"):
-                for i, topic in enumerate(topics, 1):
-                    st.write(f"{i}. ✅ {topic}")
+    # Her ay için gösterim
+    for month, month_data in monthly_plan.items():
+        if month_data:
+            total_subjects = sum(len(week_info['topics']) for week_info in month_data)
+            
+            with st.expander(f"📅 **{month}** ({len(month_data)} hafta, {total_subjects} ders)"):
+                for week_info in month_data:
+                    week_num = week_info['week']
+                    topics = week_info['topics']
+                    
+                    st.markdown(f"### 🔸 {week_num}. Hafta")
+                    
+                    for subject, subject_topics in topics.items():
+                        st.markdown(f"**{subject}:**")
+                        for topic in subject_topics:
+                            st.write(f"   • {topic}")
+                    st.markdown("---")
     
-    # TYT/AYT ilerleme hesaplama
-    tyt_topics = [t for t in all_topics if "TYT" in t]
-    ayt_topics = [t for t in all_topics if "AYT" in t]
-    
-    completed_tyt = [t for t in completed_topics if "TYT" in t]
-    completed_ayt = [t for t in completed_topics if "AYT" in t]
-    
-    tyt_progress = len(completed_tyt) / len(tyt_topics) * 100 if tyt_topics else 0
-    ayt_progress = len(completed_ayt) / len(ayt_topics) * 100 if ayt_topics else 0
-    
-    # İlerleme durumu göster
+    # İlerleme durumu ve tahminler
     st.markdown("---")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("📚 TYT İlerleme", f"%{tyt_progress:.1f}")
-    with col2:
-        st.metric("📖 AYT İlerleme", f"%{ayt_progress:.1f}")
     
     # Deneme sınavları tahmini
     total_months = len(monthly_plan)
-    if total_months >= 6:
-        deneme_start_month = list(monthly_plan.keys())[-3] if len(monthly_plan) >= 3 else list(monthly_plan.keys())[-1]
-        st.info(f"🎯 **Bu hızda gidersen {deneme_start_month}'da denemelere başlayabilirsin!**")
-    elif total_months >= 3:
-        deneme_start_month = list(monthly_plan.keys())[-1]
-        st.info(f"📝 **Bu tempoda {deneme_start_month}'da denemelere başlayabilirsin.**")
+    if total_months >= 4:
+        exam_start_month = list(monthly_plan.keys())[-2] if len(monthly_plan) >= 2 else list(monthly_plan.keys())[-1]
+        st.success(f"🎯 **Bu hızda gidersen {exam_start_month}'de denemelere başlayabilirsin!**")
+    elif total_months >= 2:
+        exam_start_month = list(monthly_plan.keys())[-1]
+        st.info(f"📝 **Bu tempoda {exam_start_month}'de denemelere başlayabilirsin.**")
+    else:
+        st.warning("⚠️ **Daha hızlı çalışman gerekiyor - müfredat yetiştirme riski var!**")
+    
+    # Performans önerileri
+    if speed_multiplier < 1.0:
+        st.error(f"""
+        🚨 **Dikkat:** Mevcut hızınız (%{weekly_completion_rate:.1f}) müfredatı yetiştirmek için yetersiz!
+        
+        **Öneriler:**
+        - Haftalık hedeflerin %85+ tamamlamaya odaklan
+        - Çalışma saatlerini artır
+        - Daha etkili çalışma teknikleri kullan
+        - Eksik konulara öncelik ver
+        """)
+    elif speed_multiplier > 1.0:
+        st.success(f"""
+        🚀 **Harika:** Mevcut hızınız (%{weekly_completion_rate:.1f}) ile müfredatı rahatlıkla yetiştiriyorsun!
+        
+        **Artılar:**
+        - Deneme sınavlarına erken başlayabilirsin
+        - Zayıf konular için ekstra zaman ayırabilirsin
+        - Tekrar programını genişletebilirsin
+        """)
+    else:
+        st.info(f"""
+        📈 **İyi:** Mevcut hızınız (%{weekly_completion_rate:.1f}) normal tempoda ilerliyor.
+        
+        **Öneriler:**
+        - Bu tempoyu koru
+        - Performansını %85+'a çıkarmaya çalış
+        - Düzenli tekrarları ihmal etme
+        """)
 
 
 def show_scientific_life_coaching(user_data):
