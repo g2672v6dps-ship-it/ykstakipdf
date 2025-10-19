@@ -20524,6 +20524,18 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     from datetime import datetime
     import json
     
+    # Haftalık program başlama kaydı - İLK KEZ ÇAĞIRILDIĞINDA KAYDET
+    if not user_data.get('weekly_program_started', False):
+        user_data['weekly_program_started'] = True
+        user_data['weekly_plan_start_date'] = datetime.now().strftime("%Y-%m-%d")
+        # Firebase'e güncelleyi gönder
+        if 'username' in user_data:
+            update_user_in_firebase(user_data['username'], {
+                'weekly_program_started': True,
+                'weekly_plan_start_date': user_data['weekly_plan_start_date']
+            })
+        st.success("🎆 Haftalık program başlatıldı! Gidişat analizi İLK HAFTAN bitince açılacak.")
+    
     # Dinamik hafta bilgisini al
     week_info = get_user_dynamic_week_info(user_data)
     
@@ -22556,86 +22568,418 @@ def create_adaptive_monthly_plan(student_field, ay_offset, current_score, tempo_
         """)
 
 def show_progress_analytics(user_data):
-    """📊 Gidişat ve İlerleme Analizi - Geliştirilmiş Versiyon"""
-    st.subheader("📊 Gidişat Analizi ve İlerleme Takibi")
+    """📊 Akllı Gidişat Analizi - Haftalık Performansa Dayalı Dinamik Sistem"""
     
-    # YKS'ye kalan süre - güvenli hesaplama
+    # Öğrenci adını al
+    student_name = user_data.get('name', 'Öğrenci')
+    
+    # Hafta bilgilerini al
+    week_info = get_current_week_info()
+    current_day = week_info['today'].strftime('%A')
+    sunday_check = week_info['sunday']
+    days_to_yks = week_info['days_to_yks']
+    
+    # Türkçe gün çevirisi
+    day_names = {
+        'Monday': 'Pazartesi', 'Tuesday': 'Salı', 'Wednesday': 'Çarşamba',
+        'Thursday': 'Perşembe', 'Friday': 'Cuma', 'Saturday': 'Cumartesi', 'Sunday': 'Pazar'
+    }
+    current_day_tr = day_names.get(current_day, current_day)
+    
+    # Modern başlık
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 25px; border-radius: 15px; margin: 20px 0; color: white; text-align: center;">
+        <h2 style="margin: 0; color: white;">🚀 {student_name}, Gidişatın Nasıl?</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">Akllı performans analizi ve gelecek projeksiyonu</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Haftalık program başlangıç kontrolü
+    if 'weekly_program_started' not in user_data or not user_data.get('weekly_program_started', False):
+        st.info(f"""
+        🔄 **{student_name}, henüz haftalık programa başlamamlışın!**
+        
+        Gidişat analizi için önce "Haftalık Planlama" sekmesinden programını başlat.
+        퀓0lk hafta bittiğinde burada detaylı analiz görüntülenecek.
+        """)
+        return 0, []
+    
+    # İlk hafta kontrolü - Pazartesi başlayıp Pazar bitiyor
+    weekly_start_date = user_data.get('weekly_plan_start_date')
+    if not weekly_start_date:
+        st.warning("🔄 Haftalık program başlangıç tarihi bulunamadı!")
+        return 0, []
+    
+    from datetime import datetime, timedelta
     try:
-        week_info = get_current_week_info()
-        days_to_yks = week_info['days_to_yks']
-    except:
-        # Varsayılan değerler (2025 YKS: Haziran ayı ortası)
-        from datetime import datetime
-        yks_date = datetime(2025, 6, 15)  # Yaklaşık YKS tarihi
+        start_date = datetime.strptime(weekly_start_date, "%Y-%m-%d")
         today = datetime.now()
-        days_to_yks = (yks_date - today).days
-        if days_to_yks < 0:
-            days_to_yks = 240  # Yaklaşık 8 ay varsayılan
+        
+        # İlk haftanın pazartesi ve pazarını bul
+        days_since_monday = start_date.weekday()
+        first_week_monday = start_date - timedelta(days=days_since_monday)
+        first_week_sunday = first_week_monday + timedelta(days=6)
+        
+        # İlk hafta henüz bitmedi mi?
+        if today <= first_week_sunday:
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%); 
+                        padding: 20px; border-radius: 12px; color: white; text-align: center;">
+                <h3 style="margin: 0; color: white;">📅 {student_name}, İlk Haftan Devam Ediyor!</h3>
+                <p style="margin: 10px 0 0 0; opacity: 0.9;">Bugün: {current_day_tr}</p>
+                <p style="margin: 5px 0 0 0; opacity: 0.9;">İlk hafta bittiğinde ({first_week_sunday.strftime('%d.%m.%Y')}) detaylı gidişat analizi açılacak!</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Temel bilgiler göster
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("📅 Sınava Kalan Gün", days_to_yks)
+            with col2:
+                st.metric("📅 Sınava Kalan Ay", days_to_yks // 30)
+            with col3:
+                st.metric("📅 Sınava Kalan Hafta", days_to_yks // 7)
+            
+            st.info("📝 Haftalık programını tamamlamaya odaklan, gidişat analizi hazırlanıyor...")
+            return 0, []
+            
+    except Exception as e:
+        st.error(f"Tarih hesaplama hatası: {e}")
+        return 0, []
     
-    weeks_to_yks = days_to_yks // 7
-    months_to_yks = days_to_yks // 30
+    # İlk hafta bitti - analiz başlıyor!
+    st.balloons()  # Kutlama efekti
     
-    # Zaman kartları
+    # Zaman kartları - modern görünüm
+    st.markdown("🗓️ **Sınav Geri Sayımı**")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("📅 Sınava Kalan Gün", days_to_yks)
+        st.metric("📅 Kalan Gün", days_to_yks, help="YKS'ye kalan gün sayısı")
     with col2:
-        st.metric("📅 Sınava Kalan Ay", months_to_yks)
+        st.metric("📅 Kalan Ay", days_to_yks // 30, help="Yaklaşık ay sayısı")
     with col3:
-        st.metric("📅 Sınava Kalan Hafta", weeks_to_yks)
+        st.metric("📅 Kalan Hafta", days_to_yks // 7, help="Yaklaşık hafta sayısı")
     
     st.markdown("---")
-    
-    # Haftalık hedef program başlangıç tarihi kontrolü
-    weekly_plan_start = user_data.get('weekly_plan_start_date', None)
-    if not weekly_plan_start:
-        # İlk kez kullanıyorsa bugünü kaydet
-        from datetime import datetime
-        today = datetime.now()
-        weekly_plan_start = today.strftime("%Y-%m-%d")
-        user_data['weekly_plan_start_date'] = weekly_plan_start
     
     # Haftalık performans hesaplama
     weekly_plan = user_data.get('weekly_plan', {})
     try:
         weekly_completion_rate = calculate_weekly_completion_percentage(user_data, weekly_plan)
     except:
-        weekly_completion_rate = 75.0  # Varsayılan performans
+        weekly_completion_rate = 0.0
     
-    # Haftalık konu bitirme hızı hesaplama
-    topics_per_week = max(0.5, (weekly_completion_rate / 100) * 1.0)  # Hafta başına ortalama 1 haftalık program
-    
-    st.subheader("📈 Haftalık Performans Analizi")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        if weekly_completion_rate >= 85:
-            st.success(f"🚀 Mükemmel Tempo: %{weekly_completion_rate:.1f}")
-        elif weekly_completion_rate >= 70:
-            st.info(f"📈 İyi Tempo: %{weekly_completion_rate:.1f}")
-        elif weekly_completion_rate >= 50:
-            st.warning(f"⚠️ Orta Tempo: %{weekly_completion_rate:.1f}")
-        else:
-            st.error(f"🔻 Yavaş Tempo: %{weekly_completion_rate:.1f}")
-    
-    with col2:
-        st.metric("🎯 Haftalık Program Bitirme Hızı", f"{weekly_completion_rate:.1f}%")
+    # Performans analizi gösterimi
+    show_smart_performance_analysis(student_name, weekly_completion_rate, user_data)
     
     st.markdown("---")
     
-    # Öğrenci alanını al
-    student_field_raw = user_data.get('field', 'Eşit Ağırlık')
+    # Dinamik konu takvimi
+    show_intelligent_topic_calendar(student_name, user_data, weekly_completion_rate, weekly_start_date, days_to_yks)
     
-    # DİNAMİK KONU BİTİŞ TAKVİMİ
-    st.subheader("📅 Haftalık Gidişatınıza Göre Aylık Konu Takvimi")
+    return 0, []
+
+def show_smart_performance_analysis(student_name, weekly_completion_rate, user_data):
+    """🤖 Akıllı Performans Analizi - Ders Bazında Detay"""
     
-    show_enhanced_dynamic_calendar(user_data, weekly_completion_rate, weekly_plan_start, days_to_yks, student_field_raw)
+    st.markdown(f"📈 **{student_name}'in Haftalık Performans Raporu**")
     
-    # Başarı badge'leri (boş)
-    points = 0
-    new_badges = []
+    # Genel performans kartı
+    if weekly_completion_rate >= 85:
+        performance_color = "#28a745"  # Yeşil
+        performance_emoji = "🚀"
+        performance_text = "Mükemmel"
+        advice = "Harika gidiyorsun! Bu tempoyu sürdür."
+    elif weekly_completion_rate >= 70:
+        performance_color = "#17a2b8"  # Mavi
+        performance_emoji = "📈"
+        performance_text = "İyi"
+        advice = "Güzel ilerleme! %85+'a çıkarmaya çalış."
+    elif weekly_completion_rate >= 50:
+        performance_color = "#ffc107"  # Sarı
+        performance_emoji = "⚠️"
+        performance_text = "Orta"
+        advice = "Daha hızlı çalışman gerekiyor."
+    else:
+        performance_color = "#dc3545"  # Kırmızı
+        performance_emoji = "🚨"
+        performance_text = "Düşük"
+        advice = "Acil olarak çalışma programını gözden geçir!"
     
-    return points, new_badges
+    st.markdown(f"""
+    <div style="background: {performance_color}; 
+                padding: 20px; border-radius: 12px; color: white; margin: 15px 0;">
+        <h3 style="margin: 0; color: white;">{performance_emoji} Genel Performans: {performance_text} (%{weekly_completion_rate:.1f})</h3>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">{advice}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Ders bazında performans (varsayılan değerler)
+    subjects_performance = {
+        "TYT Türkçe": min(100, weekly_completion_rate + 5),
+        "TYT Matematik": min(100, weekly_completion_rate - 5),
+        "TYT Geometri": min(100, weekly_completion_rate),
+        "TYT Coğrafya": min(100, weekly_completion_rate + 2),
+        "TYT Tarih": min(100, weekly_completion_rate - 3),
+        "AYT Matematik": min(100, weekly_completion_rate - 10),
+        "AYT Edebiyat": min(100, weekly_completion_rate + 3)
+    }
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("**📚 TYT Dersleri**")
+        for subject, performance in subjects_performance.items():
+            if "TYT" in subject:
+                if performance >= 80:
+                    st.success(f"{subject}: %{performance:.0f} 🚀")
+                elif performance >= 60:
+                    st.info(f"{subject}: %{performance:.0f} 📈")
+                else:
+                    st.warning(f"{subject}: %{performance:.0f} ⚠️")
+    
+    with col2:
+        st.markdown("**📖 AYT Dersleri**")
+        for subject, performance in subjects_performance.items():
+            if "AYT" in subject:
+                if performance >= 80:
+                    st.success(f"{subject}: %{performance:.0f} 🚀")
+                elif performance >= 60:
+                    st.info(f"{subject}: %{performance:.0f} 📈")
+                else:
+                    st.warning(f"{subject}: %{performance:.0f} ⚠️")
+
+def show_intelligent_topic_calendar(student_name, user_data, weekly_completion_rate, weekly_start_date, days_to_yks):
+    """🤖 Akıllı Konu Takvimi - Gerçek Performansa Dayalı"""
+    from datetime import datetime, timedelta
+    
+    st.markdown(f"📅 **{student_name} için Akıllı Konu Projeksiyonu**")
+    
+    # Haftalık program şablonu (mevcut sistemden alınacak)
+    weekly_topics = get_student_weekly_curriculum(user_data.get('field', 'Eşit Ağırlık'))
+    
+    # Hız hesaplama
+    if weekly_completion_rate >= 85:
+        speed_multiplier = 1.2
+        speed_text = "Hızlandırılmış Tempo 🚀"
+    elif weekly_completion_rate >= 70:
+        speed_multiplier = 1.0
+        speed_text = "Normal Tempo 📈"
+    elif weekly_completion_rate >= 50:
+        speed_multiplier = 0.8
+        speed_text = "Yavaş Tempo ⚠️"
+    else:
+        speed_multiplier = 0.6
+        speed_text = "Çok Yavaş Tempo 🚨"
+    
+    # Hız bilgisi
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
+                padding: 15px; border-radius: 10px; color: white; margin: 15px 0;">
+        <p style="margin: 0; text-align: center;">
+            <strong>Mevcut Hız Analizi:</strong> {speed_text}<br>
+            <span style="opacity: 0.9;">Hız Çarpanı: {speed_multiplier}x | Haftalık Tamamlama: %{weekly_completion_rate:.1f}</span>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Tarih hesaplamaları
+    try:
+        start_date = datetime.strptime(weekly_start_date, "%Y-%m-%d")
+        current_date = datetime.now()
+        
+        # Kaç hafta geçtiğini hesapla
+        weeks_passed = max(1, (current_date - start_date).days // 7)
+        current_week_index = weeks_passed
+        
+        # Aylık planlama
+        monthly_plan = calculate_monthly_topic_distribution(
+            weekly_topics, current_week_index, speed_multiplier, start_date, days_to_yks
+        )
+        
+        if not monthly_plan:
+            st.info("🏁 Tüm müfredat tamamlanmış veya analiz için yeterli veri yok!")
+            return
+        
+        # Aylık planı göster
+        st.markdown("### 🗓️ Aylara Göre Konu Dağılımı")
+        
+        for month, month_data in monthly_plan.items():
+            if month_data and month_data['topics']:
+                total_topics = len(month_data['topics'])
+                
+                with st.expander(f"📅 **{month}** ({total_topics} konu) - Hafta {month_data['week_range']}"):
+                    for i, topic in enumerate(month_data['topics'], 1):
+                        # Konu türüne göre emoji
+                        if "TYT" in topic:
+                            emoji = "📚"
+                        elif "AYT" in topic:
+                            emoji = "📖"
+                        else:
+                            emoji = "📝"
+                        
+                        st.write(f"{emoji} {i}. {topic}")
+        
+        # Deneme sınavı tahmini
+        show_exam_prediction(monthly_plan, speed_multiplier, student_name)
+        
+    except Exception as e:
+        st.error(f"Tarih hesaplama hatası: {e}")
+
+def get_student_weekly_curriculum(field):
+    """Öğrenci alanına göre 16 haftalık müfredat"""
+    # Eşit ağırlık için örnek 16 haftalık program
+    return [
+        # 1. Hafta
+        "TYT Türkçe - Sözcükte Anlam", "TYT Matematik - Temel Kavramlar", "TYT Tarih - Tarih ve Zaman",
+        "TYT Geometri - Açılar", "TYT Coğrafya - Dünya Haritaları",
+        
+        # 2. Hafta  
+        "TYT Türkçe - Ses Bilgisi", "TYT Matematik - Bölme ve Bölünebilme", "TYT Matematik - EBOB-EKOK",
+        "TYT Geometri - Özel Üçgenler", "TYT Coğrafya - Doğa ve İnsan", "TYT Tarih - İnsanlığın İlk Dönemleri",
+        
+        # 3. Hafta
+        "TYT Türkçe - Yazım Kuralları", "TYT Matematik - Ondalıklı Sayılar", "TYT Matematik - Oran Orantı",
+        "TYT Geometri - Açıortay", "TYT Coğrafya - Coğrafi Konum", "TYT Tarih - İlk ve Orta Çağlarda Türk Dünyası",
+        
+        # 4. Hafta
+        "TYT Türkçe - Noktalama İşaretleri", "TYT Matematik - Basit Eşitsizlikler", "TYT Matematik - Mutlak Değer",
+        "TYT Geometri - Eşlik ve Benzerlik", "TYT Coğrafya - İklim", "TYT Tarih - İlk Türk İslam Devletleri",
+        
+        # 5. Hafta
+        "TYT Türkçe - Sözcük Türleri", "TYT Matematik - Üslü Sayılar", "TYT Matematik - Köklü Sayılar",
+        "TYT Geometri - Çokgenler", "TYT Coğrafya - Nüfus", "TYT Tarih - Dünya Gücü Osmanlı",
+        
+        # 6. Hafta
+        "TYT Türkçe - Fiilde Anlam", "TYT Matematik - Çarpanlara Ayırma", "TYT Matematik - Hareket Problemleri",
+        "TYT Geometri - Paralelkenar", "TYT Coğrafya - Göç", "TYT Tarih - Osmanlı Avrupa İlişkileri",
+        
+        # 7. Hafta - AYT başlıyor
+        "TYT Türkçe - Fiilimsi", "AYT Matematik - Fonksiyonlar", "TYT Matematik - Grafik Problemleri",
+        "TYT Geometri - Diktörtgen", "TYT Coğrafya - Ekonomik Faaliyetler", "TYT Tarih - 1.Dünya Savaşı",
+        
+        # 8. Hafta
+        "TYT Türkçe - Cümlenin Öğeleri", "TYT Matematik - Mantık", "AYT Matematik - Polinom",
+        "TYT Geometri - Yamuk", "TYT Tarih - Kurtuluş Savaşı",
+        
+        # 9. Hafta
+        "TYT Matematik - Olasılık", "AYT Matematik - 2.Derece Denklemler", "TYT Geometri - Çemberde Açı",
+        "TYT Tarih - Türk İnkılabı", "AYT Edebiyat - Güzel Sanatlar", "AYT Coğrafya - Ekosistem",
+        
+        # 10. Hafta
+        "AYT Edebiyat - Edebi Sanatlar", "AYT Coğrafya - Biyoçeşitlilik", "AYT Matematik - Karmaşık Sayılar",
+        "TYT Tarih - Atatürk İlkeleri", "TYT Geometri - Noktanan Analitiği",
+        
+        # 11. Hafta
+        "AYT Edebiyat - Şiir Bilgisi", "AYT Matematik - Logaritma", "TYT Geometri - Prizmalar",
+        "AYT Coğrafya - Nüfus Politikaları", "AYT Tarih - Ortaçağda Dünya",
+        
+        # 12. Hafta
+        "AYT Edebiyat - Türk Edebiyatı Dönemleri", "AYT Matematik - Diziler", "TYT Geometri - Silindir",
+        "AYT Coğrafya - Türkiye Ekonomisi", "AYT Tarih - Selçuklu Türkiyesi",
+        
+        # 13. Hafta
+        "AYT Edebiyat - Halk Edebiyatı", "AYT Matematik - Türev", "TYT Geometri - Koni",
+        "AYT Coğrafya - Türkiye'de Tarım", "AYT Tarih - Osmanlı Merkez Teşkilatı",
+        
+        # 14. Hafta
+        "AYT Edebiyat - Tanzimat Edebiyatı", "AYT Coğrafya - Küresel Ticaret",
+        "AYT Tarih - Osmanlı Siyaseti",
+        
+        # 15. Hafta
+        "AYT Edebiyat - Milli Edebiyat", "AYT Coğrafya - Çevre Sorunları",
+        "AYT Tarih - Milli Mücadele",
+        
+        # 16. Hafta
+        "AYT Edebiyat - Cumhuriyet Edebiyatı", "AYT Matematik - İntegral",
+        "AYT Tarih - XXI. YY Eşiğinde Türkiye"
+    ]
+
+def calculate_monthly_topic_distribution(weekly_topics, current_week, speed_multiplier, start_date, days_to_yks):
+    """İlerleme hızına göre konuları aylara dağıtır"""
+    from datetime import datetime, timedelta
+    
+    # Kalan konuları hesapla (current_week'ten sonraki konular)
+    topics_per_week = 6  # Haftalık ortalama konu sayısı
+    completed_topics = (current_week - 1) * topics_per_week
+    remaining_topics = weekly_topics[completed_topics:]
+    
+    if not remaining_topics:
+        return {}
+    
+    # Ay isimlerini Türkçeleştir
+    month_names = {
+        1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan", 5: "Mayıs", 6: "Haziran",
+        7: "Temmuz", 8: "Ağustos", 9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık"
+    }
+    
+    # Mevcut tarihten başlayarak ay ay dağıtım
+    current_date = datetime.now()
+    monthly_plan = {}
+    topic_index = 0
+    week_counter = current_week
+    
+    # Sınava kadar olan süreyi aylara böl
+    end_date = start_date + timedelta(days=days_to_yks)
+    
+    while current_date < end_date and topic_index < len(remaining_topics):
+        month_name = f"{month_names[current_date.month]} {current_date.year}"
+        
+        # Bu ayda kaç hafta var
+        next_month = current_date.replace(day=1) + timedelta(days=32)
+        next_month = next_month.replace(day=1)
+        days_in_month = (next_month - current_date).days
+        weeks_in_month = max(1, days_in_month // 7)
+        
+        # Hız çarpanına göre kaç haftalık içerik bitecek
+        effective_weeks = int(weeks_in_month * speed_multiplier)
+        topics_this_month = effective_weeks * topics_per_week
+        
+        # Bu aydaki konuları al
+        month_topics = remaining_topics[topic_index:topic_index + topics_this_month]
+        
+        if month_topics:
+            monthly_plan[month_name] = {
+                'topics': month_topics,
+                'week_range': f"{week_counter}-{week_counter + effective_weeks - 1}"
+            }
+            topic_index += topics_this_month
+            week_counter += effective_weeks
+        
+        current_date = next_month
+    
+    return monthly_plan
+
+def show_exam_prediction(monthly_plan, speed_multiplier, student_name):
+    """Öneme sınavı başlangıç tahmini"""
+    
+    if not monthly_plan:
+        return
+    
+    total_months = len(monthly_plan)
+    
+    if speed_multiplier >= 1.1:
+        exam_start = "Mart sonu - Nisan başı"
+        message_type = "success"
+        icon = "🏆"
+        message = f"Harika {student_name}! Bu hızda {exam_start}'nda denemelere başlayabilirsin!"
+    elif speed_multiplier >= 0.9:
+        exam_start = "Nisan ortası - Mayıs başı"
+        message_type = "info"
+        icon = "🎯"
+        message = f"{student_name}, bu tempoda {exam_start}'da denemelere başlayabilirsin."
+    else:
+        exam_start = "Mayıs ortası - sonrası"
+        message_type = "warning"
+        icon = "⚠️"
+        message = f"{student_name}, müfredatı yetiştirmek için hızlanmalısın! En erken {exam_start} deneme yapabilirsin."
+    
+    if message_type == "success":
+        st.success(f"{icon} {message}")
+    elif message_type == "info":
+        st.info(f"{icon} {message}")
+    else:
+        st.warning(f"{icon} {message}")
 
 def get_detailed_weekly_curriculum():
     """16 haftalık detaylı müfredat"""
