@@ -115,7 +115,8 @@ def admin_login():
 def admin_logout():
     """Admin çıkış"""
     st.session_state.admin_logged_in = False
-    st.success("👋 Başarıyla çıkış yapıldı!")
+    st.session_state.current_user = None
+    st.success("👋 Admin panelinden başarıyla çıkış yapıldı!")
     time.sleep(1)
     st.rerun()
 
@@ -13097,6 +13098,12 @@ def login_user_secure(username, password):
     if not username or not password:
         return False
     
+    # 🔐 GİZLİ ADMİN KONTROLÜ - Normal öğrenci formunda gizli admin girişi
+    if username == "adminYKS2025" and password == "YKSadmin123!":
+        st.session_state.admin_logged_in = True
+        st.session_state.current_user = "ADMIN"
+        return True
+    
     if 'users_db' not in st.session_state:
         st.session_state.users_db = load_users_from_firebase()
     
@@ -13223,6 +13230,11 @@ def main():
                 st.warning("🔒 Bu sisteme sadece kayıtlı öğrenciler erişebilir.")
     
     else:
+        # 🔐 Admin panel kontrolü - Gizli admin girişi kontrolü
+        if st.session_state.get('admin_logged_in', False):
+            show_admin_dashboard()
+            return
+        
         user_data = get_user_data()
         
         profile_complete = user_data.get('name') and user_data.get('tyt_avg_net')
@@ -24366,16 +24378,5 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
 # Karmaşık fonksiyonlar kaldırıldı - Basit sistem artık tamamen hazır!
 
 # === ANA UYGULAMA AKIŞI ===
-
-# Admin panel kontrolü
-admin_mode = st.sidebar.checkbox("🔐 Admin Panel", help="Öğretmen/Veli girişi")
-
-if admin_mode:
-    if not check_admin_access():
-        admin_login()
-        st.stop()
-    else:
-        show_admin_dashboard()
-        st.stop()
 
 # Normal öğrenci sistemi devam eder - mevcut sistem korundu
