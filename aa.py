@@ -75,7 +75,337 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# === SESLİ UYARI FONKSİYONLARI ===
+# === ADMIN PANELİ KONTROLÜ ===
+def check_admin_access():
+    """Admin panel erişim kontrolü"""
+    if 'admin_logged_in' not in st.session_state:
+        st.session_state.admin_logged_in = False
+    
+    if st.session_state.admin_logged_in:
+        return True
+    
+    return False
+
+def admin_login():
+    """Admin giriş sayfası"""
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 30px; border-radius: 20px; margin: 20px 0; color: white; text-align: center;">
+        <h2 style="margin: 0; color: white;">🔐 YKS Admin Panel Girişi</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">Öğretmen/Veli Takip Sistemi</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    with st.form("admin_login"):
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            username = st.text_input("👤 Kullanıcı Adı", placeholder="admin")
+            password = st.text_input("🔒 Şifre", type="password", placeholder="yks2025")
+            submitted = st.form_submit_button("🚀 Giriş Yap", use_container_width=True)
+        
+        if submitted:
+            if username == "admin" and password == "yks2025":
+                st.session_state.admin_logged_in = True
+                st.success("✅ Giriş başarılı! Yönlendiriliyor...")
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.error("❌ Hatalı kullanıcı adı veya şifre!")
+
+def admin_logout():
+    """Admin çıkış"""
+    st.session_state.admin_logged_in = False
+    st.success("👋 Başarıyla çıkış yapıldı!")
+    time.sleep(1)
+    st.rerun()
+
+# === YAZDIR FONKSİYONLARI ===
+def generate_weekly_plan_pdf(user_data, week_info):
+    """Haftalık planı PDF formatında hazırla"""
+    from datetime import datetime
+    
+    # PDF içeriği oluştur
+    pdf_content = f"""
+# 📋 YKS Haftalık Çalışma Planı
+
+**Öğrenci:** {user_data.get('name', 'Öğrenci')}
+**Alan:** {user_data.get('field', 'Eşit Ağırlık')}
+**Tarih:** {datetime.now().strftime('%d.%m.%Y')}
+**Bu Hafta:** {week_info['week_range']}
+
+---
+
+## 🎯 Bu Haftanın Hedef Konuları
+
+### 📚 TYT Dersleri
+- **Türkçe:** Sözcükte Anlam, Cümlede Anlam
+- **Matematik:** Temel Kavramlar, Sayı Basamakları  
+- **Geometri:** Açılar, Doğruda Açılar
+- **Tarih:** Tarih ve Zaman, İlk Dönemler
+- **Coğrafya:** Dünya Haritaları, Konum
+
+### 📖 AYT Dersleri  
+- **Matematik:** İleri Konular
+- **Edebiyat:** Şiir Analizi
+- **Tarih:** Osmanlı Dönemi
+
+---
+
+## ⏰ Günlük Çalışma Programı
+
+**Pazartesi - Çarşamba - Cuma:**
+- 08:00-10:00: TYT Matematik (2 saat)
+- 10:15-12:15: TYT Türkçe (2 saat)  
+- 14:00-16:00: TYT Sosyal (2 saat)
+- 20:00-22:00: AYT Dersleri (2 saat)
+
+**Salı - Perşembe - Cumartesi:**
+- 08:00-10:00: TYT Geometri (2 saat)
+- 10:15-12:15: Deneme Sınavı (2 saat)
+- 14:00-16:00: Eksik Konu Tekrarı (2 saat)
+- 20:00-22:00: AYT Matematik (2 saat)
+
+**Pazar:** Dinlenme + Haftalık Değerlendirme
+
+---
+
+## 📊 Hedef Performans
+- Günlük minimum: 6 saat aktif çalışma
+- Haftalık hedef: %85 konu tamamlama
+- Deneme sınavı: Haftada 2 adet
+
+---
+
+## 💡 Motivasyon Notları
+✅ Her gün hedefini tamamla
+✅ Eksik konuları not al  
+✅ Düzenli tekrar yap
+✅ Kendine güven!
+
+**Başarılar dilerim! 🚀**
+"""
+    
+    return pdf_content
+
+def show_print_button(user_data, week_info):
+    """Yazdırma butonu göster"""
+    st.markdown("---")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("🖨️ Haftalık Planı Yazdır/İndir", use_container_width=True, type="primary"):
+            pdf_content = generate_weekly_plan_pdf(user_data, week_info)
+            
+            # Dosya adı oluştur
+            from datetime import datetime
+            file_name = f"YKS_Haftalik_Plan_{datetime.now().strftime('%d_%m_%Y')}.txt"
+            
+            # Download butonu
+            st.download_button(
+                label="📥 Planı İndir (TXT)",
+                data=pdf_content,
+                file_name=file_name,
+                mime="text/plain",
+                use_container_width=True
+            )
+            
+            st.success("✅ Plan hazırlandı! İndir butonuna tıklayın.")
+            
+            # Yazdırma talimatı
+            st.info("""
+            📋 **Yazdırma Talimatları:**
+            1. Dosyayı indirin
+            2. Not Defteri veya Word ile açın  
+            3. Ctrl+P ile yazdırın
+            4. Kağıda çıkarıp çalışma masanıza koyun!
+            """)
+
+# === ADMIN DASHBOARD FONKSİYONLARI ===
+
+def generate_mock_student_data():
+    """Örnek öğrenci verileri oluştur"""
+    import random
+    from datetime import datetime, timedelta
+    
+    names = ["Ahmet Yılmaz", "Fatma Kaya", "Mehmet Öz", "Ayşe Demir", "Ali Çelik", 
+             "Zeynep Aktaş", "Murat Şahin", "Selin Yıldız", "Emre Koç", "Büşra Arslan",
+             "Cem Özkan", "Esra Polat", "Burak Avcı", "Nur Turan", "Kaan Doğan"]
+    
+    fields = ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"]
+    
+    students = []
+    for i, name in enumerate(names):
+        last_login = datetime.now() - timedelta(days=random.randint(0, 7))
+        weekly_performance = random.randint(45, 95)
+        
+        student = {
+            "id": i+1,
+            "name": name,
+            "field": random.choice(fields),
+            "last_login": last_login,
+            "weekly_performance": weekly_performance,
+            "total_hours": random.randint(25, 65),
+            "exam_count": random.randint(2, 8),
+            "status": "Aktif" if last_login > datetime.now() - timedelta(days=3) else "Pasif"
+        }
+        students.append(student)
+    
+    return students
+
+def show_admin_dashboard():
+    """Admin dashboard ana sayfa"""
+    # Çıkış butonu
+    col1, col2, col3 = st.columns([6, 1, 1])
+    with col3:
+        if st.button("🚪 Çıkış", type="secondary"):
+            admin_logout()
+    
+    # Dashboard başlık
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 25px; border-radius: 20px; margin: 20px 0; color: white; text-align: center;">
+        <h1 style="margin: 0; color: white;">🏛️ YKS Admin Dashboard</h1>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">Öğretmen/Veli Takip Sistemi</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Örnek öğrenci verileri
+    students = generate_mock_student_data()
+    
+    # Genel İstatistikler
+    st.markdown("## 📊 Genel Durum")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    active_students = len([s for s in students if s['status'] == 'Aktif'])
+    avg_performance = sum([s['weekly_performance'] for s in students]) / len(students)
+    total_hours = sum([s['total_hours'] for s in students])
+    
+    with col1:
+        st.metric("👥 Toplam Öğrenci", len(students))
+    with col2:
+        st.metric("✅ Aktif Öğrenci", active_students, f"{active_students-5} geçen hafta")
+    with col3:
+        st.metric("📈 Ortalama Başarı", f"%{avg_performance:.1f}", "5.2%")
+    with col4:
+        st.metric("⏱️ Toplam Çalışma", f"{total_hours}h", "23h")
+    
+    # Öğrenci Listesi
+    st.markdown("---")
+    st.markdown("## 👥 Öğrenci Listesi")
+    
+    # Filtreleme
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        field_filter = st.selectbox("🎯 Alan Filtresi", ["Tümü"] + ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"])
+    with col2:
+        status_filter = st.selectbox("📊 Durum Filtresi", ["Tümü", "Aktif", "Pasif"])
+    with col3:
+        performance_filter = st.selectbox("🎯 Performans", ["Tümü", "Yüksek (80+)", "Orta (60-79)", "Düşük (<60)"])
+    
+    # Öğrenci tablosu
+    filtered_students = students.copy()
+    
+    if field_filter != "Tümü":
+        filtered_students = [s for s in filtered_students if s['field'] == field_filter]
+    if status_filter != "Tümü":
+        filtered_students = [s for s in filtered_students if s['status'] == status_filter]
+    if performance_filter != "Tümü":
+        if performance_filter == "Yüksek (80+)":
+            filtered_students = [s for s in filtered_students if s['weekly_performance'] >= 80]
+        elif performance_filter == "Orta (60-79)":
+            filtered_students = [s for s in filtered_students if 60 <= s['weekly_performance'] < 80]
+        elif performance_filter == "Düşük (<60)":
+            filtered_students = [s for s in filtered_students if s['weekly_performance'] < 60]
+    
+    # Tablo görünümü
+    if filtered_students:
+        for student in filtered_students:
+            performance = student['weekly_performance']
+            
+            # Performansa göre renk
+            if performance >= 80:
+                color = "#d4edda"
+                text_color = "#155724"
+                status_emoji = "🚀"
+            elif performance >= 60:
+                color = "#d1ecf1"
+                text_color = "#0c5460" 
+                status_emoji = "📈"
+            else:
+                color = "#fff3cd"
+                text_color = "#856404"
+                status_emoji = "⚠️"
+            
+            # Durum emoji
+            activity_emoji = "🟢" if student['status'] == 'Aktif' else "🔴"
+            
+            st.markdown(f"""
+            <div style="background: {color}; padding: 15px; border-radius: 10px; margin: 8px 0;
+                        border-left: 4px solid {text_color};">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="color: {text_color}; font-size: 16px;">
+                            {activity_emoji} {student['name']}
+                        </strong>
+                        <br>
+                        <span style="color: {text_color}; opacity: 0.8;">
+                            📚 {student['field']} | 📅 Son Giriş: {student['last_login'].strftime('%d.%m.%Y')}
+                        </span>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="color: {text_color}; font-weight: bold; font-size: 18px;">
+                            {status_emoji} %{performance}
+                        </div>
+                        <div style="color: {text_color}; opacity: 0.8; font-size: 12px;">
+                            ⏱️ {student['total_hours']}h | 📝 {student['exam_count']} deneme
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.info("Filtrelere uygun öğrenci bulunamadı.")
+    
+    # Uyarılar
+    st.markdown("---")
+    st.markdown("## 🚨 Dikkat Gerektiren Durumlar")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("### ⚠️ Düşük Performans")
+        low_performance = [s for s in students if s['weekly_performance'] < 60]
+        if low_performance:
+            for student in low_performance:
+                st.warning(f"🚨 {student['name']}: %{student['weekly_performance']}")
+        else:
+            st.success("✅ Düşük performanslı öğrenci yok")
+    
+    with col2:
+        st.markdown("### 📴 Pasif Öğrenciler")
+        inactive_students = [s for s in students if s['status'] == 'Pasif']
+        if inactive_students:
+            for student in inactive_students:
+                days_ago = (datetime.now() - student['last_login']).days
+                st.error(f"🔴 {student['name']}: {days_ago} gün önce")
+        else:
+            st.success("✅ Tüm öğrenciler aktif")
+
+# Ana uygulama akışına admin sekmesi ekle
+def main():
+    """Ana uygulama fonksiyonu"""
+    
+    # Admin panel kontrolü
+    admin_mode = st.sidebar.checkbox("🔐 Admin Panel", help="Öğretmen/Veli girişi")
+    
+    if admin_mode:
+        if not check_admin_access():
+            admin_login()
+            return
+        else:
+            show_admin_dashboard()
+            return
 
 def play_pomodoro_finished_sound():
     """Pomodoro bittiğinde çalacak ses - mobil uyumlu"""
@@ -6381,6 +6711,11 @@ def yks_takip_page(user_data):
             show_yks_survey(user_data)
         else:
             show_weekly_planner(user_data)
+            
+            # Yazdırma butonu ekle - haftalık planlama tamamlandıktan sonra
+            if user_data.get('weekly_program_started', False):
+                week_info = get_current_week_info()
+                show_print_button(user_data, week_info)
     
     with tab3:
         show_progress_analytics(user_data)
@@ -24028,5 +24363,19 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
 
 # Karmaşık fonksiyonlar kaldırıldı - Basit sistem artık tamamen hazır!
 
-if __name__ == "__main__":
-    main()
+# Karmaşık fonksiyonlar kaldırıldı - Basit sistem artık tamamen hazır!
+
+# === ANA UYGULAMA AKIŞI ===
+
+# Admin panel kontrolü
+admin_mode = st.sidebar.checkbox("🔐 Admin Panel", help="Öğretmen/Veli girişi")
+
+if admin_mode:
+    if not check_admin_access():
+        admin_login()
+        st.stop()
+    else:
+        show_admin_dashboard()
+        st.stop()
+
+# Normal öğrenci sistemi devam eder - mevcut sistem korundu
