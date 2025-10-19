@@ -24379,4 +24379,6 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
 
 # === ANA UYGULAMA AKIŞI ===
 
-# Normal öğrenci sistemi devam eder - mevcut sistem korundu
+# Ana uygulamayı başlat
+if __name__ == "__main__":
+    main()
