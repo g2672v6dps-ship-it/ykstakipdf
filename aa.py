@@ -15117,6 +15117,14 @@ def main():
                 </div>
                 """, unsafe_allow_html=True)
                 
+                # 📚 SEKME SİSTEMİ - 56.JPG'deki gibi yatay düzenleme
+                tab1, tab2, tab3, tab4 = st.tabs([
+                    "🧠 Hafıza & Hatırlama", 
+                    "📋 Organizasyon & Planlama", 
+                    "🎯 Aktif Öğrenme", 
+                    "🎨 Görsel & Yaratıcı Yöntemler"
+                ])
+                
                 # Renk paleti - her teknik için farklı renk
                 colors = [
                     "#8B5CF6",  # Mor
@@ -15136,64 +15144,254 @@ def main():
                     "#22C55E"   # Green
                 ]
                 
-                # Teknikleri 3'er 3'er grupla
-                technique_list = list(STUDY_TECHNIQUES.items())
-                
-                # Her satırda 3 kolon
-                for group_start in range(0, len(technique_list), 3):
-                    group_techniques = technique_list[group_start:group_start + 3]
-                    cols = st.columns(3)
+                # SEKME 1: Hafıza & Hatırlama Teknikleri
+                with tab1:
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); 
+                                border-radius: 15px; padding: 20px; margin-bottom: 20px; 
+                                border-left: 5px solid #8B5CF6;">
+                        <h3 style="color: #2d3748; margin-bottom: 10px;">🧠 Hafıza & Hatırlama Teknikleri</h3>
+                        <p style="color: #4a5568; margin: 0;">Öğrendiklerini kalıcı hale getiren, bilimsel olarak kanıtlanmış yöntemler</p>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
-                    for i, (technique_name, info) in enumerate(group_techniques):
-                        color = colors[(group_start + i) % len(colors)]
+                    # Bu sekmede gösterilecek teknikler
+                    memory_techniques = {
+                        "Aktif Hatırlama & Aralıklı Tekrar": STUDY_TECHNIQUES["Aktif Hatırlama & Aralıklı Tekrar"],
+                        "Leitner Kutusu Sistemi": STUDY_TECHNIQUES["Leitner Kutusu Sistemi"],
+                        "Retrieval Practice": STUDY_TECHNIQUES["Retrieval Practice"],
+                        "Uyku & Hafıza Tekniği": STUDY_TECHNIQUES["Uyku & Hafıza Tekniği"]
+                    }
+                    
+                    for i, (technique_name, info) in enumerate(memory_techniques.items()):
+                        color = colors[i % len(colors)]
                         
-                        with cols[i]:
-                            # Ana kart
-                            st.markdown(f"""
-                            <div style="background: linear-gradient(135deg, {color}, {color}CC); border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); color: white; text-align: center; transform: translateY(0); transition: all 0.3s ease;">
-                                <h3 style="margin-bottom: 15px; font-size: 1.3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">{info['icon']} {technique_name}</h3>
-                                <p style="font-size: 1rem; margin-bottom: 15px; opacity: 0.95;"><strong>🎯 Tanım:</strong> {info['description']}</p>
-                                <p style="font-size: 0.9rem; margin-bottom: 0; opacity: 0.9;"><strong>🧠 Uygun Stiller:</strong> {', '.join(info['learning_styles'])}</p>
-                            </div>
-                            """, unsafe_allow_html=True)
+                        # Ana kart
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, {color}, {color}CC); border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); color: white; text-align: center;">
+                            <h3 style="margin-bottom: 15px; font-size: 1.3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">{info['icon']} {technique_name}</h3>
+                            <p style="font-size: 1rem; margin-bottom: 15px; opacity: 0.95;"><strong>🎯 Tanım:</strong> {info['description']}</p>
+                            <p style="font-size: 0.9rem; margin-bottom: 0; opacity: 0.9;"><strong>🧠 Uygun Stiller:</strong> {', '.join(info['learning_styles'])}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Detayları göster butonu
+                        if st.button(f"📋 Detayları Gör", key=f"detail_memory_{technique_name}", use_container_width=True):
+                            st.session_state[f'show_detail_memory_{technique_name}'] = not st.session_state.get(f'show_detail_memory_{technique_name}', False)
+                        
+                        # Detaylar açıldıysa göster
+                        if st.session_state.get(f'show_detail_memory_{technique_name}', False):
                             
-                            # Detayları göster butonu
-                            if st.button(f"📋 Detayları Gör", key=f"detail_{technique_name}", use_container_width=True):
-                                st.session_state[f'show_detail_{technique_name}'] = not st.session_state.get(f'show_detail_{technique_name}', False)
+                            st.markdown("**📘 Adımlar:**")
+                            for step in info['steps']:
+                                st.write(f"• {step}")
                             
-                            # Detaylar açıldıysa göster
-                            if st.session_state.get(f'show_detail_{technique_name}', False):
+                            st.markdown("**💬 Psikolojik Etkisi:**")
+                            st.info(info['psychological_effect'])
+                            
+                            st.markdown("**🧩 En Uygun Dersler:**")
+                            if isinstance(info['best_subjects'], list):
+                                st.success(', '.join(info['best_subjects']))
+                            else:
+                                st.success(info['best_subjects'])
+                            
+                            st.markdown("**👤 Uygun Öğrenci Tipi:**")
+                            st.warning(info['suitable_student'])
+                            
+                            # Kapatma butonu
+                            if st.button(f"❌ Kapat", key=f"close_memory_{technique_name}", use_container_width=True):
+                                st.session_state[f'show_detail_memory_{technique_name}'] = False
+                                st.rerun()
                                 
-                                st.markdown("**📘 Adımlar:**")
-                                for step in info['steps']:
-                                    st.write(f"• {step}")
-                                
-                                st.markdown("**💬 Psikolojik Etkisi:**")
-                                st.info(info['psychological_effect'])
-                                
-                                st.markdown("**🧩 En Uygun Dersler:**")
-                                if isinstance(info['best_subjects'], list):
-                                    st.success(', '.join(info['best_subjects']))
-                                else:
-                                    st.success(info['best_subjects'])
-                                
-                                st.markdown("**👤 Uygun Öğrenci Tipi:**")
-                                st.warning(info['suitable_student'])
-                                
-                                # Kapatma butonu
-                                if st.button(f"❌ Kapat", key=f"close_{technique_name}", use_container_width=True):
-                                    st.session_state[f'show_detail_{technique_name}'] = False
-                                    st.rerun()
+                            st.markdown("---")
+                
+                # SEKME 2: Organizasyon & Planlama
+                with tab2:
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); 
+                                border-radius: 15px; padding: 20px; margin-bottom: 20px; 
+                                border-left: 5px solid #3B82F6;">
+                        <h3 style="color: #2d3748; margin-bottom: 10px;">📋 Organizasyon & Planlama</h3>
+                        <p style="color: #4a5568; margin: 0;">Çalışma zamanını verimli kullanmaya yardımcı olan düzen teknikleri</p>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
-                    # Grup arası boşluk
-                    if group_start + 3 < len(technique_list):
-                        st.markdown("<br>", unsafe_allow_html=True)
+                    # Bu sekmede gösterilecek teknikler
+                    organization_techniques = {
+                        "Cornell Not Alma Sistemi": STUDY_TECHNIQUES["Cornell Not Alma Sistemi"],
+                        "SMART Hedef Sistemi": STUDY_TECHNIQUES["SMART Hedef Sistemi"],
+                        "Kaizen Tekniği": STUDY_TECHNIQUES["Kaizen Tekniği"]
+                    }
+                    
+                    for i, (technique_name, info) in enumerate(organization_techniques.items()):
+                        color = colors[(i + 4) % len(colors)]
+                        
+                        # Ana kart
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, {color}, {color}CC); border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); color: white; text-align: center;">
+                            <h3 style="margin-bottom: 15px; font-size: 1.3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">{info['icon']} {technique_name}</h3>
+                            <p style="font-size: 1rem; margin-bottom: 15px; opacity: 0.95;"><strong>🎯 Tanım:</strong> {info['description']}</p>
+                            <p style="font-size: 0.9rem; margin-bottom: 0; opacity: 0.9;"><strong>🧠 Uygun Stiller:</strong> {', '.join(info['learning_styles'])}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Detayları göster butonu
+                        if st.button(f"📋 Detayları Gör", key=f"detail_org_{technique_name}", use_container_width=True):
+                            st.session_state[f'show_detail_org_{technique_name}'] = not st.session_state.get(f'show_detail_org_{technique_name}', False)
+                        
+                        # Detaylar açıldıysa göster
+                        if st.session_state.get(f'show_detail_org_{technique_name}', False):
+                            
+                            st.markdown("**📘 Adımlar:**")
+                            for step in info['steps']:
+                                st.write(f"• {step}")
+                            
+                            st.markdown("**💬 Psikolojik Etkisi:**")
+                            st.info(info['psychological_effect'])
+                            
+                            st.markdown("**🧩 En Uygun Dersler:**")
+                            if isinstance(info['best_subjects'], list):
+                                st.success(', '.join(info['best_subjects']))
+                            else:
+                                st.success(info['best_subjects'])
+                            
+                            st.markdown("**👤 Uygun Öğrenci Tipi:**")
+                            st.warning(info['suitable_student'])
+                            
+                            # Kapatma butonu
+                            if st.button(f"❌ Kapat", key=f"close_org_{technique_name}", use_container_width=True):
+                                st.session_state[f'show_detail_org_{technique_name}'] = False
+                                st.rerun()
+                                
+                            st.markdown("---")
+                
+                # SEKME 3: Aktif Öğrenme Yöntemleri
+                with tab3:
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); 
+                                border-radius: 15px; padding: 20px; margin-bottom: 20px; 
+                                border-left: 5px solid #10B981;">
+                        <h3 style="color: #2d3748; margin-bottom: 10px;">🎯 Aktif Öğrenme Yöntemleri</h3>
+                        <p style="color: #4a5568; margin: 0;">Pasif okuma yerine aktif katılımla öğrenmeyi sağlayan teknikler</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Bu sekmede gösterilecek teknikler
+                    active_techniques = {
+                        "Feynman Tekniği": STUDY_TECHNIQUES["Feynman Tekniği"],
+                        "SQ3R Tekniği": STUDY_TECHNIQUES["SQ3R Tekniği"],
+                        "Interleaving": STUDY_TECHNIQUES["Interleaving"],
+                        "Sosyal Öğrenme Tekniği": STUDY_TECHNIQUES["Sosyal Öğrenme Tekniği"]
+                    }
+                    
+                    for i, (technique_name, info) in enumerate(active_techniques.items()):
+                        color = colors[(i + 7) % len(colors)]
+                        
+                        # Ana kart
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, {color}, {color}CC); border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); color: white; text-align: center;">
+                            <h3 style="margin-bottom: 15px; font-size: 1.3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">{info['icon']} {technique_name}</h3>
+                            <p style="font-size: 1rem; margin-bottom: 15px; opacity: 0.95;"><strong>🎯 Tanım:</strong> {info['description']}</p>
+                            <p style="font-size: 0.9rem; margin-bottom: 0; opacity: 0.9;"><strong>🧠 Uygun Stiller:</strong> {', '.join(info['learning_styles'])}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Detayları göster butonu
+                        if st.button(f"📋 Detayları Gör", key=f"detail_active_{technique_name}", use_container_width=True):
+                            st.session_state[f'show_detail_active_{technique_name}'] = not st.session_state.get(f'show_detail_active_{technique_name}', False)
+                        
+                        # Detaylar açıldıysa göster
+                        if st.session_state.get(f'show_detail_active_{technique_name}', False):
+                            
+                            st.markdown("**📘 Adımlar:**")
+                            for step in info['steps']:
+                                st.write(f"• {step}")
+                            
+                            st.markdown("**💬 Psikolojik Etkisi:**")
+                            st.info(info['psychological_effect'])
+                            
+                            st.markdown("**🧩 En Uygun Dersler:**")
+                            if isinstance(info['best_subjects'], list):
+                                st.success(', '.join(info['best_subjects']))
+                            else:
+                                st.success(info['best_subjects'])
+                            
+                            st.markdown("**👤 Uygun Öğrenci Tipi:**")
+                            st.warning(info['suitable_student'])
+                            
+                            # Kapatma butonu
+                            if st.button(f"❌ Kapat", key=f"close_active_{technique_name}", use_container_width=True):
+                                st.session_state[f'show_detail_active_{technique_name}'] = False
+                                st.rerun()
+                                
+                            st.markdown("---")
+                
+                # SEKME 4: Görsel & Yaratıcı Yöntemler
+                with tab4:
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); 
+                                border-radius: 15px; padding: 20px; margin-bottom: 20px; 
+                                border-left: 5px solid #F59E0B;">
+                        <h3 style="color: #2d3748; margin-bottom: 10px;">🎨 Görsel & Yaratıcı Yöntemler</h3>
+                        <p style="color: #4a5568; margin: 0;">Görsel hafızayı güçlendiren ve yaratıcılığı geliştiren teknikleri</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Bu sekmede gösterilecek teknikler
+                    visual_techniques = {
+                        "Zihin Haritalama": STUDY_TECHNIQUES["Zihin Haritalama"],
+                        "Dual Coding": STUDY_TECHNIQUES["Dual Coding"],
+                        "Gamification": STUDY_TECHNIQUES["Gamification"],
+                        "Mindfulness": STUDY_TECHNIQUES["Mindfulness"]
+                    }
+                    
+                    for i, (technique_name, info) in enumerate(visual_techniques.items()):
+                        color = colors[(i + 11) % len(colors)]
+                        
+                        # Ana kart
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, {color}, {color}CC); border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); color: white; text-align: center;">
+                            <h3 style="margin-bottom: 15px; font-size: 1.3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">{info['icon']} {technique_name}</h3>
+                            <p style="font-size: 1rem; margin-bottom: 15px; opacity: 0.95;"><strong>🎯 Tanım:</strong> {info['description']}</p>
+                            <p style="font-size: 0.9rem; margin-bottom: 0; opacity: 0.9;"><strong>🧠 Uygun Stiller:</strong> {', '.join(info['learning_styles'])}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Detayları göster butonu
+                        if st.button(f"📋 Detayları Gör", key=f"detail_visual_{technique_name}", use_container_width=True):
+                            st.session_state[f'show_detail_visual_{technique_name}'] = not st.session_state.get(f'show_detail_visual_{technique_name}', False)
+                        
+                        # Detaylar açıldıysa göster
+                        if st.session_state.get(f'show_detail_visual_{technique_name}', False):
+                            
+                            st.markdown("**📘 Adımlar:**")
+                            for step in info['steps']:
+                                st.write(f"• {step}")
+                            
+                            st.markdown("**💬 Psikolojik Etkisi:**")
+                            st.info(info['psychological_effect'])
+                            
+                            st.markdown("**🧩 En Uygun Dersler:**")
+                            if isinstance(info['best_subjects'], list):
+                                st.success(', '.join(info['best_subjects']))
+                            else:
+                                st.success(info['best_subjects'])
+                            
+                            st.markdown("**👤 Uygun Öğrenci Tipi:**")
+                            st.warning(info['suitable_student'])
+                            
+                            # Kapatma butonu
+                            if st.button(f"❌ Kapat", key=f"close_visual_{technique_name}", use_container_width=True):
+                                st.session_state[f'show_detail_visual_{technique_name}'] = False
+                                st.rerun()
+                                
+                            st.markdown("---")
                 
                 # Alt bilgi
                 st.markdown("""
                 <div style="background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%); border-radius: 15px; padding: 25px; margin-top: 40px; border-left: 5px solid #38b2ac; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                     <h4 style="color: #2d3748; margin-bottom: 15px; font-size: 1.2rem;">💡 Kullanım Önerisi</h4>
-                    <p style="color: #4a5568; margin: 0; font-size: 1rem; line-height: 1.6;">Kendi öğrenme stilinize ve hedef bölümünüze uygun teknikleri seçin. Bir anda çok fazla teknik denemek yerine, 2-3 tanesini düzenli olarak uygulayın.</p>
+                    <p style="color: #4a5568; margin: 0; font-size: 1rem; line-height: 1.6;">Kendi öğrenme stilinize ve hedef bölümünüze uygun teknikleri seçin. Bir anda çok fazla teknik denemek yerine, her sekmeden 1-2 tanesini düzenli olarak uygulayın.</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
