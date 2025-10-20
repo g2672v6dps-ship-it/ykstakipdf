@@ -720,6 +720,27 @@ def update_user_in_firebase(username, data):
             return True
     return False
 
+def get_user_data_from_firebase(username):
+    """Firebase'den belirli kullanıcının verilerini çeker (Fallback destekli)"""
+    try:
+        if firebase_connected and db_ref:
+            # Firebase'den kullanıcının verilerini al
+            user_ref = db_ref.child('users').child(username)
+            user_data = user_ref.get()
+            if user_data:
+                return user_data
+            else:
+                # Kullanıcı yoksa varsayılan boş data döndür
+                return {}
+    except Exception as e:
+        st.error(f"Firebase veri çekme hatası: {e}")
+        # FALLBACK: Local test kullanıcılarından veri çek
+        if hasattr(st.session_state, 'fallback_users') and username in st.session_state.fallback_users:
+            return st.session_state.fallback_users[username]
+    
+    # Hiçbir şey bulunamazsa boş dict döndür
+    return {}
+
 # === HİBRİT POMODORO SİSTEMİ SABİTLERİ ===
 
 # YKS Odaklı Motivasyon Sözleri - Hibrit Sistem için
