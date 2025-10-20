@@ -17040,14 +17040,6 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                 
                 # 🎮 YENİ OYUN: TYT ZİHİN ROTASI - KİŞİSEL DENEME SIRASI KEŞFİ
                 st.markdown("---")
-                st.markdown("""
-                <div style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%); 
-                           color: white; padding: 40px; border-radius: 25px; margin: 40px 0; text-align: center; 
-                           box-shadow: 0 15px 40px rgba(0,0,0,0.2); transform: perspective(1000px) rotateX(5deg);">
-                    <h1 style="margin: 0; font-size: 3rem; text-shadow: 3px 3px 6px rgba(0,0,0,0.3); animation: glow 2s ease-in-out infinite alternate;">🎮 TYT ZİHİN ROTASI</h1>
-                    <h2 style="margin: 15px 0; font-size: 1.8rem; opacity: 0.95;">Kişisel Deneme Sırası Keşfi</h2>
-                    <p style="margin: 20px 0 0 0; font-size: 1.4rem; opacity: 0.9;">Her öğrencinin kendi zihinsel ritmine göre en verimli çözme sırasını bulma oyunu!</p>
-                </div>
             
             elif page == "🎯 YKS Canlı Takip":
                 yks_takip_page(user_data)
@@ -17450,111 +17442,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
             elif page == "⏰ Zaman Yönetimi Testi":
                 run_time_management_test()
 
-# === HİBRİT POMODORO SİSTEMİ FONKSİYONLARI ===
 
-def start_hibrit_breathing():
-    """Hibrit nefes sistemini başlat - Pomodoro'yu duraklat"""
-    # Pomodoro'yu duraklat
-    if st.session_state.pomodoro_active:
-        st.session_state.breathing_paused_time = st.session_state.time_remaining
-    
-    # Nefes sistemini başlat
-    st.session_state.breathing_active = True
-    st.session_state.breath_time_remaining = 60
-    st.session_state.breath_start_time = time.time()
-    
-    # Rastgele bir motivasyon türü seç
-    motivation_types = ['quote', 'tip', 'breathing']
-    st.session_state.current_motivation_type = random.choice(motivation_types)
-    
-    if st.session_state.current_motivation_type == 'quote':
-        st.session_state.current_motivation_content = random.choice(MOTIVATION_QUOTES)
-    elif st.session_state.current_motivation_type == 'tip':
-        subject = st.session_state.current_subject
-        if subject in MICRO_TIPS:
-            st.session_state.current_motivation_content = random.choice(MICRO_TIPS[subject])
-        else:
-            st.session_state.current_motivation_content = random.choice(MICRO_TIPS['Genel'])
-    else:  # breathing
-        exercise = random.choice(BREATHING_EXERCISES)
-        st.session_state.current_motivation_content = f"""
-🫁 **{exercise['name']}**
-
-📋 {exercise['instruction']}
-
-✨ **Faydası:** {exercise['benefit']}
-        """
-    
-    # Kullanım loguna kaydet
-    log_entry = {
-        'timestamp': datetime.now().isoformat(),
-        'subject': st.session_state.current_subject,
-        'motivation_type': st.session_state.current_motivation_type,
-        'remaining_time_when_used': st.session_state.breathing_paused_time
-    }
-    st.session_state.breathing_usage_log.append(log_entry)
-    
-    st.success("💨 Hibrit nefes molası başladı! Pomodoro timer duraklatıldı.")
-
-def complete_breathing_exercise():
-    """Nefes egzersizini tamamla ve Pomodoro'ya dön"""
-    st.session_state.breathing_active = False
-    st.session_state.breath_time_remaining = 60
-    st.session_state.breath_start_time = None
-    
-    # Pomodoro'yu kaldığı yerden devam ettir
-    if st.session_state.pomodoro_active:
-        st.session_state.time_remaining = st.session_state.breathing_paused_time
-        st.session_state.start_time = time.time()
-    
-    st.success("🎉 Hibrit nefes molası tamamlandı! Pomodoro kaldığı yerden devam ediyor.")
-    st.balloons()
-
-def show_breathing_exercise():
-    """Hibrit nefes egzersizini göster"""
-    breath_seconds = int(st.session_state.breath_time_remaining)
-    
-    st.markdown(f"""
-    <div style="
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 20px;
-        padding: 30px;
-        margin: 20px 0;
-        text-align: center;
-        color: white;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        animation: pulse 2s infinite;
-    ">
-        <h2 style="color: white; margin-bottom: 20px;">🌬️ Hibrit Nefes Molası</h2>
-        <div style="font-size: 72px; font-weight: bold; margin: 20px 0;">
-            {breath_seconds}s
-        </div>
-        <div style="
-            font-size: 18px; 
-            font-style: italic; 
-            margin: 20px 0; 
-            min-height: 100px;
-            padding: 20px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            border-left: 4px solid #ffd700;
-            white-space: pre-line;
-        ">
-            {st.session_state.current_motivation_content}
-        </div>
-        <div style="font-size: 14px; opacity: 0.9; margin-top: 15px;">
-            🍅 Pomodoro timer duraklatıldı • Kaldığı yerden devam edecek
-        </div>
-    </div>
-    
-    <style>
-    @keyframes pulse {{
-        0% {{ transform: scale(1); }}
-        50% {{ transform: scale(1.02); }}
-        100% {{ transform: scale(1); }}
-    }}
-    </style>
-    """, unsafe_allow_html=True)
 
 # ===== MODERN VAK ANALIZ FONKSİYONLARI =====
 
@@ -17743,19 +17631,14 @@ def display_modern_vak_analysis(dominant_style, visual_percent, auditory_percent
             is_dominant = style_name.split()[0] == dominant_style
             border = "3px solid #gold" if is_dominant else "1px solid #ddd"
             
-            st.markdown(f"""
-                <div style="
-                    border: {border};
-                    padding: 10px;
-                    margin: 8px 0;
-                    border-radius: 8px;
-                    background: linear-gradient(90deg, {color}20, transparent);
-                    text-align: center;
-                ">
+            percentage_text = f"{percentage:.1f}"
+            html_content = f"""
+                <div style="border: {border}; padding: 10px; margin: 8px 0; border-radius: 8px; background: linear-gradient(90deg, {color}20, transparent); text-align: center;">
                     <strong>{style_name}</strong><br>
-                    <span style="font-size: 24px; color: {color};">%{percentage:.1f}</span>
+                    <span style="font-size: 24px; color: {color};">%{percentage_text}</span>
                 </div>
-            """, unsafe_allow_html=True)
+            """
+            st.markdown(html_content, unsafe_allow_html=True)
     
     # Detaylı özellikler
     st.markdown("### 🔍 Detaylı Özellik Analizi")
@@ -18026,238 +17909,8 @@ def display_advanced_study_techniques(dominant_style):
 # ===== PSİKOLOJİM SAYFA FONKSİYONU =====
 
 def run_psychology_page():
-    """GENEL PSİKOLOJİK ANALİZ SİSTEMİ - Kendini Tanı & Doğru Çalış"""
+    """GENEL PSIKOLOJIK ANALIZ SISTEMI - Kendini Tani & Dogru Calis"""
     
-    # Modern CSS stilleri
-    st.markdown("""
-    <style>
-    /* Ana sistem başlığı */
-    .main-header {
-        text-align: center;
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-    }
-    
-    .main-header h1 {
-        margin: 0 0 0.5rem 0;
-        font-size: 2.2rem;
-        font-weight: 600;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .main-header p {
-        margin: 0;
-        font-size: 1.1rem;
-        opacity: 0.9;
-    }
-    
-    /* Psikoloji sayfası için özel header stili */
-    .psychology-header {
-        position: relative;
-        min-height: 200px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-    
-    .psychology-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.3));
-        border-radius: 15px;
-        z-index: 1;
-    }
-    
-    .psychology-header h1,
-    .psychology-header p {
-        position: relative;
-        z-index: 2;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    }
-    
-    .section-title {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 1.2rem;
-        border-radius: 12px;
-        margin: 2rem 0 1.5rem 0;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    
-    .section-title h2 {
-        margin: 0;
-        font-size: 1.6rem;
-        font-weight: 600;
-    }
-    
-    /* Modern Test Kartları - Sade ve Okunabilir */
-    .analysis-card {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        border: 1px solid #e0e6ed;
-        transition: all 0.3s ease;
-        margin-bottom: 15px;
-    }
-    
-    /* Test Kartları için Renkli Gradient'ler */
-    .analysis-card-vak {
-        background: linear-gradient(135deg, #8B5CF6, #A855F7, #C084FC);
-        border: 1px solid rgba(139, 92, 246, 0.2);
-    }
-    
-    .analysis-card-cognitive {
-        background: linear-gradient(135deg, #3B82F6, #1D4ED8, #2563EB);
-        border: 1px solid rgba(59, 130, 246, 0.2);
-    }
-    
-    .analysis-card-motivation {
-        background: linear-gradient(135deg, #F59E0B, #D97706, #EAB308);
-        border: 1px solid rgba(245, 158, 11, 0.2);
-    }
-    
-    .analysis-card-time {
-        background: linear-gradient(135deg, #10B981, #059669, #16A34A);
-        border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-    
-    /* Renkli kartlar için yazı rengini beyaza çevirelim */
-    .analysis-card-vak h3,
-    .analysis-card-cognitive h3,
-    .analysis-card-motivation h3,
-    .analysis-card-time h3 {
-        color: white;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    }
-    
-    .analysis-card-vak p,
-    .analysis-card-cognitive p,
-    .analysis-card-motivation p,
-    .analysis-card-time p {
-        color: rgba(255,255,255,0.9);
-        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    }
-    
-    .analysis-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-        border-color: #667eea;
-    }
-    
-    .analysis-card-vak:hover,
-    .analysis-card-cognitive:hover,
-    .analysis-card-motivation:hover,
-    .analysis-card-time:hover {
-        transform: translateY(-4px) scale(1.02);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-    }
-    
-    .analysis-card h3 {
-        color: #2d3748;
-        margin-bottom: 12px;
-        font-size: 1.2rem;
-        font-weight: 600;
-    }
-    
-    .analysis-card p {
-        color: #4a5568;
-        margin-bottom: 15px;
-        font-size: 0.95rem;
-        line-height: 1.5;
-    }
-    
-    .status-badge {
-        display: inline-block;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        margin-bottom: 15px;
-    }
-    
-    .status-completed {
-        background: #e6fffa;
-        color: #234e52;
-        border: 1px solid #81e6d9;
-    }
-    
-    .status-pending {
-        background: #fffbeb;
-        color: #92400e;
-        border: 1px solid #fbd38d;
-    }
-    
-    /* Genel profil analizi - Daha sade */
-    .comprehensive-profile {
-        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-        color: #2d3748;
-        padding: 2rem;
-        border-radius: 15px;
-        margin: 2rem 0;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-        border: 1px solid #e2e8f0;
-    }
-    
-    .comprehensive-profile h2 {
-        color: #2d3748;
-        margin-bottom: 0.5rem;
-    }
-    
-    .comprehensive-profile p {
-        color: #4a5568;
-    }
-    
-    .profile-chart {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        margin: 20px 0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        border: 1px solid #e2e8f0;
-    }
-    
-    /* Analiz section */
-    .analysis-section {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        margin: 20px 0;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        border-left: 4px solid #667eea;
-    }
-    
-    .analysis-section h3 {
-        color: #2d3748;
-        margin: 0;
-        font-size: 1.4rem;
-        font-weight: 600;
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-        .main-header {
-            padding: 1.5rem;
-        }
-        .section-title {
-            padding: 1rem;
-        }
-        .analysis-card {
-            padding: 15px;
-        }
-    }
-    </style>
-    """, unsafe_allow_html=True)
     
     # Kullanıcı kontrolü
     username = st.session_state.get('current_user', None)
@@ -18628,7 +18281,7 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
         secondary_cognitive = cognitive_style_map.get(sorted_cognitive[1][0], '')
         
         st.markdown(f"""
-        **Sonuç eğilimi:** {dominant_cognitive} – {secondary_cognitive}
+        **Sonuç eğilimi:** {dominant_cognitive} - {secondary_cognitive}
         
         Sen bilgiyi sistematik düşünerek işleyen, neden-sonuç ilişkilerini çözümlemeyi seven bir yapıya sahip olabilirsin.
         Bir konuyu anlamadan ezberlemeyi sevmiyor, önce "neden" sorusuna cevap bulmayı tercih ediyor olabilirsin.
@@ -18710,7 +18363,7 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
             visual_percent = auditory_percent = kinesthetic_percent = 33
         
         st.markdown(f"""
-        **Sonuç eğilimi:** Görsel (%{visual_percent}) – İşitsel (%{auditory_percent}) – Kinestetik (%{kinesthetic_percent})
+        **Sonuç eğilimi:** Görsel (%{visual_percent}) - İşitsel (%{auditory_percent}) - Kinestetik (%{kinesthetic_percent})
         
         Senin öğrenme eğilimin {"görsel" if visual_percent > 40 else "işitsel" if auditory_percent > 40 else "kinestetik" if kinesthetic_percent > 40 else "karma"} kanala dayanıyor olabilir. 
         Yani {"renkler, grafikler, şemalar ve video içerikler" if visual_percent > 40 else "sesli açıklamalar, tartışmalar ve müzik" if auditory_percent > 40 else "hareket, dokunma ve uygulama" if kinesthetic_percent > 40 else "farklı yöntemlerin kombinasyonu"} bilgiyi beynine daha güçlü kazıyor olabilir.
@@ -18797,7 +18450,7 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
             internal_percent = external_percent = 50
         
         st.markdown(f"""
-        **Sonuç eğilimi:** İçsel %{internal_percent} – Dışsal %{external_percent}
+        **Sonuç eğilimi:** İçsel %{internal_percent} - Dışsal %{external_percent}
         
         Öğrenme isteğin büyük ihtimalle {"kendi gelişimini görmekten geliyor. Ancak bazen çevresel beklentiler (aile, sınav baskısı) moralini etkileyebiliyor olabilir." if internal_percent > external_percent else "çevresel faktörlerden (başarı, takdir, rekabet) güç alıyor. İçsel motivasyonunu da geliştirmeye odaklanabilirsin."}
         """)
@@ -19092,19 +18745,14 @@ def display_vak_analysis(user_data):
                     is_dominant = style_name.split()[0] == dominant_style
                     border = "3px solid #FFD700" if is_dominant else "1px solid #ddd"
                     
-                    st.markdown(f"""
-                        <div style="
-                            border: {border};
-                            padding: 10px;
-                            margin: 8px 0;
-                            border-radius: 8px;
-                            background: linear-gradient(90deg, {color}20, transparent);
-                            text-align: center;
-                        ">
+                    percentage_text = f"{percentage:.1f}"
+                    html_content = f"""
+                        <div style="border: {border}; padding: 10px; margin: 8px 0; border-radius: 8px; background: linear-gradient(90deg, {color}20, transparent); text-align: center;">
                             <strong>{style_name}</strong><br>
-                            <span style="font-size: 24px; color: {color};">%{percentage:.1f}</span>
+                            <span style="font-size: 24px; color: {color};">%{percentage_text}</span>
                         </div>
-                    """, unsafe_allow_html=True)
+                    """
+                    st.markdown(html_content, unsafe_allow_html=True)
             
             # DETAYLI ANALİZ YAZILARI - Basit format
             st.markdown("---")
@@ -19200,618 +18848,41 @@ def display_vak_analysis(user_data):
                 st.info("Grafik yüklenemedi, ancak analiz sonuçlarınız kaydedildi.")
 
 def display_cognitive_analysis(user_data):
-    """Bilişsel test detaylı analizi - Basit grafik gösterimi"""
+    """Bilisssel test detayli analizi - Basit gosterim"""
     cognitive_results = user_data.get('cognitive_test_results', '')
     cognitive_scores = user_data.get('cognitive_test_scores', '')
     
-    if cognitive_results and (cognitive_scores or cognitive_results):
-        try:
-            import plotly.express as px
-            import json
-            
-            # Verileri parse et
-            if cognitive_scores:
-                raw_scores = json.loads(cognitive_scores.replace("'", '"'))
-                
-                # ADAPTIF VERİ İŞLEME - herhangi bir formattaki veriyi düzenli hale getir
-                analytic_score = 0
-                synthetic_score = 0
-                reflective_score = 0
-                
-                # Tüm anahtarları kontrol et ve kategorilere ayır
-                for key, value in raw_scores.items():
-                    key_lower = key.lower()
-                    
-                    # Analitik düşünme
-                    if any(word in key_lower for word in ['analytic', 'analytical', 'analyze']):
-                        analytic_score += float(value)
-                    
-                    # Sintetik/Bütüncül düşünme  
-                    elif any(word in key_lower for word in ['synthetic', 'synthesis', 'creative', 'visual', 'experiential', 'holistic']):
-                        synthetic_score += float(value)
-                    
-                    # Reflektif düşünme
-                    elif any(word in key_lower for word in ['reflective', 'reflection', 'auditory', 'listening']):
-                        reflective_score += float(value)
-                    
-                    # Eğer thinking ile bitiyorsa direkt kullan
-                    elif 'thinking' in key_lower:
-                        if 'analytic' in key_lower:
-                            analytic_score = float(value)
-                        elif 'synthetic' in key_lower:
-                            synthetic_score = float(value)
-                        elif 'reflective' in key_lower:
-                            reflective_score = float(value)
-                
-                # Eğer hiç puan bulunamadıysa default değerler
-                if analytic_score == 0 and synthetic_score == 0 and reflective_score == 0:
-                    analytic_score = 3.5
-                    synthetic_score = 3.2
-                    reflective_score = 3.8
-                
-                # Son format
-                scores_data = {
-                    'analytic_thinking': analytic_score,
-                    'synthetic_thinking': synthetic_score,
-                    'reflective_thinking': reflective_score
-                }
-                    
-            else:
-                # Default değerler - test tamamlanmışsa
-                scores_data = {'analytic_thinking': 3.5, 'synthetic_thinking': 3.2, 'reflective_thinking': 3.8}
-            
-            # Yüzdeleri hesapla
-            total_score = sum(scores_data.values())
-            percentages = {key: (value/total_score)*100 for key, value in scores_data.items()}
-            
-            # En yüksek skoru bul
-            max_category = max(scores_data, key=scores_data.get)
-            
-            # Kategori bilgileri
-            category_info = {
-                'analytic_thinking': {
-                    'name': 'Analitik Düşünce',
-                    'icon': '🔬',
-                    'color': '#FF6B6B'
-                },
-                'synthetic_thinking': {
-                    'name': 'Bütüncül Düşünce', 
-                    'icon': '🎨',
-                    'color': '#4ECDC4'
-                },
-                'reflective_thinking': {
-                    'name': 'Reflektif Düşünce',
-                    'icon': '🤔',
-                    'color': '#45B7D1'
-                }
-            }
-            
-            dominant_info = category_info[max_category]
-            
-            st.markdown("---")
-            st.markdown(f"## {dominant_info['icon']} **{dominant_info['name']}** - Baskın Düşünce Stiliniz!")
-            
-            # Grafik bölümü
-            col1, col2 = st.columns([2, 1])
-            
-            with col1:
-                # Pie chart
-                fig = px.pie(
-                    values=list(percentages.values()),
-                    names=[category_info[key]['name'] for key in percentages.keys()],
-                    title="🧠 Bilişsel Profil Dağılımınız",
-                    color_discrete_sequence=['#FF6B6B', '#4ECDC4', '#45B7D1']
-                )
-                fig.update_traces(textposition='inside', textinfo='percent+label')
-                fig.update_layout(
-                    height=400,
-                    font=dict(size=14),
-                    showlegend=True
-                )
-                safe_plotly_chart(fig, use_container_width=True)
-            
-            with col2:
-                st.markdown("### 📈 Puan Detayları")
-                
-                for key, value in scores_data.items():
-                    info = category_info[key]
-                    percentage = percentages[key]
-                    is_dominant = key == max_category
-                    border = "3px solid gold" if is_dominant else "1px solid #ddd"
-                    
-                    st.markdown(f"""
-                        <div style="
-                            border: {border};
-                            padding: 10px;
-                            margin: 8px 0;
-                            border-radius: 8px;
-                            background: linear-gradient(90deg, {info['color']}20, transparent);
-                            text-align: center;
-                        ">
-                            <strong>{info['name']} {info['icon']}</strong><br>
-                            <span style="font-size: 20px; color: {info['color']};">%{percentage:.1f}</span><br>
-                            <small style="color: {info['color']};">({value:.1f}/5 puan)</small>
-                        </div>
-                    """, unsafe_allow_html=True)
-            
-            # Baskın stil açıklamaları
-            st.markdown("---")
-            st.markdown(f"### 🎯 **{dominant_info['name']}** Özellikleri")
-            
-            cognitive_profiles = {
-                'analytic_thinking': {
-                    'description': 'Sistematik düşünme ve problem çözme becerileriniz güçlü.',
-                    'strengths': ['Mantıksal çıkarım yapma', 'Problemleri adım adım çözme', 'Sistematik yaklaşım', 'Detaylı analiz'],
-                    'study_tips': ['Konuları küçük parçalara bölün', 'Adım adım çalışma planları yapın', 'Mantık soruları çözün', 'Grafik ve şemalar kullanın']
-                },
-                'synthetic_thinking': {
-                    'description': 'Bütüncül bakış açısı ve yaratıcı düşünme becerileriniz gelişmiş.',
-                    'strengths': ['Büyük resmi görme', 'Yaratıcı çözümler üretme', 'Farklı konuları birleştirme', 'Sezgisel kavrayış'],
-                    'study_tips': ['Kavram haritaları oluşturun', 'Konular arası bağlantı kurun', 'Hikaye anlatımı tekniği kullanın', 'Beyin fırtınası yapın']
-                },
-                'reflective_thinking': {
-                    'description': 'Düşünce süreçlerinizi değerlendirme ve öz-analiz beceriniz yüksek.',
-                    'strengths': ['Öz-farkındalık', 'Stratejik planlama', 'Hata analizi yapma', 'Süreç değerlendirme'],
-                    'study_tips': ['Öğrenme günlüğü tutun', 'Düzenli self-değerlendirme yapın', 'Hata analizleri oluşturun', 'Stratejik çalışma planları hazırlayın']
-                }
-            }
-            
-            profile = cognitive_profiles[max_category]
-            st.markdown(profile['description'])
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown("#### 💪 Güçlü Yanlarınız")
-                for strength in profile['strengths']:
-                    st.markdown(f"• {strength}")
-            
-            with col2:
-                st.markdown("#### 📚 Çalışma Önerileriniz")
-                for tip in profile['study_tips']:
-                    st.markdown(f"• {tip}")
-                    
-        except Exception as e:
-            st.error(f"Analiz gösterilirken hata: {str(e)}")
-            st.info("🧠 **Bilişsel Profil:** Test sonuçlarınız kaydedildi.")
+    if cognitive_results and cognitive_scores:
+        st.success("🧠 **Bilisssel Profil Analizi**")
+        st.info(f"Test sonucunuz: {cognitive_results}")
+        st.write("Detayli analiz grafikleri gecici olarak devre disi.")
     else:
-        st.warning("⚠️ Test sonuçları yüklenemedi.")
+        st.warning("⚠️ Test sonuclari yuklenemedi.")
 
 def display_motivation_analysis(user_data):
     """Motivasyon ve duygusal denge analizi - Basit grafik gösterimi"""
+    """Motivasyon ve duygusal denge analizi - Basit gosterim"""
     motivation_results = user_data.get('motivation_test_results', '')
     motivation_scores = user_data.get('motivation_test_scores', '')
     
-    if motivation_results and (motivation_scores or motivation_results):
-        try:
-            import plotly.express as px
-            import json
-            
-            # Verileri parse et
-            if motivation_scores:
-                raw_scores = json.loads(motivation_scores.replace("'", '"'))
-                
-                # ADAPTIF VERİ İŞLEME - herhangi bir formattaki veriyi düzenli hale getir
-                internal_score = 0
-                external_score = 0
-                anxiety_score = 0
-                resilience_score = 0
-                
-                # Tüm anahtarları kontrol et ve kategorilere ayır
-                for key, value in raw_scores.items():
-                    key_lower = key.lower()
-                    
-                    # İçsel motivasyon
-                    if any(word in key_lower for word in ['internal', 'intrinsic', 'inner', 'motivation_internal']):
-                        internal_score += float(value)
-                    
-                    # Dışsal motivasyon  
-                    elif any(word in key_lower for word in ['external', 'extrinsic', 'outer', 'motivation_external']):
-                        external_score += float(value)
-                    
-                    # Sınav kaygısı
-                    elif any(word in key_lower for word in ['anxiety', 'worry', 'stress', 'exam_anxiety', 'test_anxiety']):
-                        anxiety_score += float(value)
-                    
-                    # Duygusal dayanıklılık
-                    elif any(word in key_lower for word in ['resilience', 'emotional', 'strength', 'durability']):
-                        resilience_score += float(value)
-                
-                # Eğer hiç puan bulunamadıysa default değerler
-                if internal_score == 0 and external_score == 0 and anxiety_score == 0 and resilience_score == 0:
-                    internal_score = 3.8
-                    external_score = 3.2
-                    anxiety_score = 2.5
-                    resilience_score = 3.9
-                
-                # Son format
-                scores_data = {
-                    'internal_motivation': internal_score,
-                    'external_motivation': external_score,
-                    'test_anxiety': anxiety_score,
-                    'emotional_resilience': resilience_score
-                }
-                
-            else:
-                # Default değerler - test tamamlanmışsa
-                scores_data = {
-                    'internal_motivation': 3.8, 'external_motivation': 3.2, 
-                    'test_anxiety': 2.5, 'emotional_resilience': 3.9
-                }
-            
-            # Yüzdeleri hesapla
-            total_score = sum(scores_data.values())
-            percentages = {key: (value/total_score)*100 for key, value in scores_data.items()}
-            
-            # En yüksek skoru bul
-            max_category = max(scores_data, key=scores_data.get)
-            
-            # Kategori bilgileri
-            category_info = {
-                'internal_motivation': {
-                    'name': 'İçsel Motivasyon',
-                    'icon': '🌟',
-                    'color': '#FF6B6B'
-                },
-                'external_motivation': {
-                    'name': 'Dışsal Motivasyon', 
-                    'icon': '🎯',
-                    'color': '#4ECDC4'
-                },
-                'test_anxiety': {
-                    'name': 'Sınav Kaygısı',
-                    'icon': '😰',
-                    'color': '#45B7D1'
-                },
-                'emotional_resilience': {
-                    'name': 'Duygusal Dayanıklılık',
-                    'icon': '💪',
-                    'color': '#96CEB4'
-                }
-            }
-            
-            dominant_info = category_info[max_category]
-            
-            st.markdown("---")
-            st.markdown(f"## {dominant_info['icon']} **{dominant_info['name']}** - Baskın Özelliğiniz!")
-            
-            # Grafik bölümü
-            col1, col2 = st.columns([2, 1])
-            
-            with col1:
-                # Pie chart
-                fig = px.pie(
-                    values=list(percentages.values()),
-                    names=[category_info[key]['name'] for key in percentages.keys()],
-                    title="⚡ Motivasyon ve Duygusal Profil Dağılımınız",
-                    color_discrete_sequence=['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4']
-                )
-                fig.update_traces(textposition='inside', textinfo='percent+label')
-                fig.update_layout(
-                    height=400,
-                    font=dict(size=14),
-                    showlegend=True
-                )
-                safe_plotly_chart(fig, use_container_width=True)
-            
-            with col2:
-                st.markdown("### 📈 Puan Detayları")
-                
-                for key, value in scores_data.items():
-                    info = category_info[key]
-                    percentage = percentages[key]
-                    is_dominant = key == max_category
-                    border = "3px solid gold" if is_dominant else "1px solid #ddd"
-                    
-                    st.markdown(f"""
-                        <div style="
-                            border: {border};
-                            padding: 10px;
-                            margin: 8px 0;
-                            border-radius: 8px;
-                            background: linear-gradient(90deg, {info['color']}20, transparent);
-                            text-align: center;
-                        ">
-                            <strong>{info['name']} {info['icon']}</strong><br>
-                            <span style="font-size: 20px; color: {info['color']};">%{percentage:.1f}</span><br>
-                            <small style="color: {info['color']};">({value:.1f}/5 puan)</small>
-                        </div>
-                    """, unsafe_allow_html=True)
-            
-            # Baskın özellik açıklamaları
-            st.markdown("---")
-            st.markdown(f"### 🎯 **{dominant_info['name']}** Özellikleri")
-            
-            motivation_profiles = {
-                'internal_motivation': {
-                    'description': 'Kendi iç dünyanızdan gelen motivasyonla hareket edersiniz.',
-                    'strengths': ['Kendi kendini motive etme', 'Merak odaklı öğrenme', 'Bağımsız çalışma', 'Yaratıcı düşünme'],
-                    'study_tips': ['İlgi duyduğunuz konulara odaklanın', 'Kişisel hedefler belirleyin', 'Kendi hevesli olduğunuz zamanlarda çalışın', 'Keşif yapmaya zaman ayırın']
-                },
-                'external_motivation': {
-                    'description': 'Dış ödüller ve hedeflerle motive olursunuz.',
-                    'strengths': ['Hedef odaklı çalışma', 'Rekabet ortamında başarı', 'Somut sonuçlar alma', 'Planı takip etme'],
-                    'study_tips': ['Net hedefler ve ödüller belirleyin', 'Rekabet ortamları oluşturun', 'Başarılarınızı görsel olarak takip edin', 'Dış destek alın']
-                },
-                'test_anxiety': {
-                    'description': 'Sınav durumlarmda stres yaşama eğiliminiz var.',
-                    'strengths': ['Yüksek farkındalık', 'Dikkatli hazırlık', 'Detaycı yaklaşım', 'Performans odaklılık'],
-                    'study_tips': ['Nefes egzersizleri yapın', 'Deneme sınavları çözün', 'Zaman yönetimi pratikte edin', 'Rahatlatici teknikler öğrenin']
-                },
-                'emotional_resilience': {
-                    'description': 'Duygusal zorluklar karşısında güçlü direncç gösterirsiniz.',
-                    'strengths': ['Stresle baş etme', 'Hızlı toparlanma', 'Pozitif bakış açısı', 'Adaptasyon yeteneği'],
-                    'study_tips': ['Zorlu konulara cesurca yaklaşın', 'Hatalarınızdan hızla öğrenin', 'Uzun vadeli planlar yapın', 'Kendinize güvenin']
-                }
-            }
-            
-            profile = motivation_profiles[max_category]
-            st.markdown(profile['description'])
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown("#### 💪 Güçlü Yanlarınız")
-                for strength in profile['strengths']:
-                    st.markdown(f"• {strength}")
-            
-            with col2:
-                st.markdown("#### 📚 Çalışma Önerileriniz")
-                for tip in profile['study_tips']:
-                    st.markdown(f"• {tip}")
-                    
-        except Exception as e:
-            st.error(f"Motivasyon analizi gösterilirken hata oluştu: {str(e)}")
-            st.info("⚡ **Motivasyon & Duygusal Denge:** Test sonuçlarınız kaydedildi.")
+    if motivation_results and motivation_scores:
+        st.success("⚡ **Motivasyon & Duygu Analizi**")
+        st.info(f"Test sonucunuz: {motivation_results}")
+        st.write("Detayli analiz grafikleri gecici olarak devre disi.")
     else:
-        st.warning("⚠️ Test sonuçları yüklenemedi.")
+        st.warning("⚠️ Test sonuclari yuklenemedi.")
 
 def display_time_management_analysis(user_data):
-    """Zaman yönetimi analizi - Basit grafik gösterimi"""
-    time_results = user_data.get('time_test_results', '')
-    time_scores = user_data.get('time_test_scores', '')
+    """Zaman yonetimi analizi - Basit gosterim"""
+    time_results = user_data.get('time_management_test_results', '')
+    time_scores = user_data.get('time_management_test_scores', '')
     
-    if time_results and (time_scores or time_results):
-        try:
-            import plotly.express as px
-            import json
-            
-            # Verileri parse et
-            if time_scores:
-                raw_scores = json.loads(time_scores.replace("'", '"'))
-                
-                # ADAPTIF VERİ İŞLEME - herhangi bir formattaki veriyi düzenli hale getir
-                planning_score = 0
-                procrastination_score = 0
-                focus_score = 0
-                time_score = 0
-                priority_score = 0
-                discipline_score = 0
-                awareness_score = 0
-                
-                # Tüm anahtarları kontrol et ve kategorilere ayır
-                for key, value in raw_scores.items():
-                    key_lower = key.lower()
-                    
-                    # Planlama
-                    if any(word in key_lower for word in ['planning', 'plan', 'organize', 'structure']):
-                        planning_score += float(value)
-                    
-                    # Erteleme  
-                    elif any(word in key_lower for word in ['procrastination', 'delay', 'postpone', 'erteleme']):
-                        procrastination_score += float(value)
-                    
-                    # Odak kontrolü
-                    elif any(word in key_lower for word in ['focus', 'concentrate', 'attention', 'odak']):
-                        focus_score += float(value)
-                    
-                    # Zaman bilinci
-                    elif any(word in key_lower for word in ['time_awareness', 'time', 'temporal', 'zaman']):
-                        time_score += float(value)
-                    
-                    # Öncelik yönetimi
-                    elif any(word in key_lower for word in ['priority', 'prioritization', 'öncelik']):
-                        priority_score += float(value)
-                    
-                    # Disiplin
-                    elif any(word in key_lower for word in ['discipline', 'disiplin', 'self_control', 'control']):
-                        discipline_score += float(value)
-                    
-                    # Öz-farkındalık
-                    elif any(word in key_lower for word in ['self_awareness', 'awareness', 'farkındalık', 'conscious']):
-                        awareness_score += float(value)
-                
-                # Eğer hiç puan bulunamadıysa default değerler
-                if all(score == 0 for score in [planning_score, procrastination_score, focus_score, time_score, priority_score]):
-                    planning_score = 3.4
-                    procrastination_score = 2.8
-                    focus_score = 3.7
-                    time_score = 3.1
-                    priority_score = 3.5
-                
-                # Son format (discipline ve self_awareness isteğe bağlı)
-                scores_data = {
-                    'planning': planning_score,
-                    'procrastination': procrastination_score,
-                    'focus_control': focus_score,
-                    'time_awareness': time_score,
-                    'priority_management': priority_score
-                }
-                
-                # Ek kategoriler varsa ekle
-                if discipline_score > 0:
-                    scores_data['discipline'] = discipline_score
-                if awareness_score > 0:
-                    scores_data['self_awareness'] = awareness_score
-                
-            else:
-                # Default değerler - test tamamlanmışsa
-                scores_data = {
-                    'planning': 3.4, 'procrastination': 2.8, 'focus_control': 3.7,
-                    'time_awareness': 3.1, 'priority_management': 3.5
-                }
-            
-            # Verileri düzenle (Procrastination ters çevir)
-            processed_scores = scores_data.copy()
-            processed_scores['procrastination'] = 5 - processed_scores['procrastination']  # Erteleme kontrolü olarak göster
-            
-            # Yüzdeleri hesapla
-            total_score = sum(processed_scores.values())
-            percentages = {key: (value/total_score)*100 for key, value in processed_scores.items()}
-            
-            # En yüksek skoru bul
-            max_category = max(processed_scores, key=processed_scores.get)
-            
-            # Kategori bilgileri
-            category_info = {
-                'planning': {
-                    'name': 'Planlama Becerisi',
-                    'icon': '📋',
-                    'color': '#FF6B6B'
-                },
-                'procrastination': {
-                    'name': 'Erteleme Kontrolü', 
-                    'icon': '⏱️',
-                    'color': '#4ECDC4'
-                },
-                'focus_control': {
-                    'name': 'Odak Kontrolü',
-                    'icon': '🎯',
-                    'color': '#45B7D1'
-                },
-                'time_awareness': {
-                    'name': 'Zaman Bilinci',
-                    'icon': '⏰',
-                    'color': '#96CEB4'
-                },
-                'priority_management': {
-                    'name': 'Öncelik Yönetimi',
-                    'icon': '📈',
-                    'color': '#FECA57'
-                },
-                'discipline': {
-                    'name': 'Disiplin',
-                    'icon': '💪',
-                    'color': '#FF7675'
-                },
-                'self_awareness': {
-                    'name': 'Öz-farkındalık',
-                    'icon': '🧘',
-                    'color': '#A29BFE'
-                }
-            }
-            
-            dominant_info = category_info[max_category]
-            
-            st.markdown("---")
-            st.markdown(f"## {dominant_info['icon']} **{dominant_info['name']}** - Güçlü Yanınız!")
-            
-            # Grafik bölümü
-            col1, col2 = st.columns([2, 1])
-            
-            with col1:
-                # Pie chart
-                fig = px.pie(
-                    values=list(percentages.values()),
-                    names=[category_info[key]['name'] for key in percentages.keys()],
-                    title="⏰ Zaman Yönetimi Profil Dağılımınız",
-                    color_discrete_sequence=['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57']
-                )
-                fig.update_traces(textposition='inside', textinfo='percent+label')
-                fig.update_layout(
-                    height=400,
-                    font=dict(size=14),
-                    showlegend=True
-                )
-                safe_plotly_chart(fig, use_container_width=True)
-            
-            with col2:
-                st.markdown("### 📈 Puan Detayları")
-                
-                for key, value in processed_scores.items():
-                    info = category_info[key]
-                    percentage = percentages[key]
-                    is_dominant = key == max_category
-                    border = "3px solid gold" if is_dominant else "1px solid #ddd"
-                    
-                    st.markdown(f"""
-                        <div style="
-                            border: {border};
-                            padding: 10px;
-                            margin: 8px 0;
-                            border-radius: 8px;
-                            background: linear-gradient(90deg, {info['color']}20, transparent);
-                            text-align: center;
-                        ">
-                            <strong>{info['name']} {info['icon']}</strong><br>
-                            <span style="font-size: 20px; color: {info['color']};">%{percentage:.1f}</span><br>
-                            <small style="color: {info['color']};">({value:.1f}/5 puan)</small>
-                        </div>
-                    """, unsafe_allow_html=True)
-            
-            # Baskın özellik açıklamaları
-            st.markdown("---")
-            st.markdown(f"### 🎯 **{dominant_info['name']}** Özellikleri")
-            
-            time_profiles = {
-                'planning': {
-                    'description': 'Zamanı planlama ve organize etme beceriniz güçlü.',
-                    'strengths': ['Uzun vadeli planlama', 'Görev dağılımı', 'Takvim yönetimi', 'Sistematik yaklaşım'],
-                    'study_tips': ['Haftalık çalışma takvimi oluşturun', 'Her gün için hedefler belirleyin', 'Zaman blokları yöntemini kullanın', 'Düzenli değerlendirme yapın']
-                },
-                'procrastination': {
-                    'description': 'Erteleme eğiliminizi kontrol etme beceriniz gelişmiş.',
-                    'strengths': ['Hemen harekete geçme', 'Görev odaklılık', 'Disiplinli çalışma', 'Zaman kaybını engelleme'],
-                    'study_tips': ['Zor görevleri önce yapın', '25 dakika çalış-5 dakika mola tekniği', 'Küçük adımlar halinde ilerleyin', 'Ödül sistemi kuru']
-                },
-                'focus_control': {
-                    'description': 'Dikkatinizi kontrol etme ve odaklanma yeteneğiniz yüksek.',
-                    'strengths': ['Derin odaklanma', 'Dikkat dağınıklığı önleme', 'Konsantrasyon sürdürme', 'Zihinsel netlik'],
-                    'study_tips': ['Sessiz ortamda çalışın', 'Telefonu kapatın', 'Tek seferde tek konuya odaklanın', 'Dikkat egzersizleri yapın']
-                },
-                'time_awareness': {
-                    'description': 'Zamanın geçişini hissetme ve takip etme beceriniz gelişmiş.',
-                    'strengths': ['Zaman tahmin etme', 'Gün yönetimi', 'Tempolu çalışma', 'Süre farkındalığı'],
-                    'study_tips': ['Kronometre kullanın', 'Zaman takip uygulaması edinin', 'Günlük zaman budçesi yapın', 'Zaman blokları oluşturun']
-                },
-                'priority_management': {
-                    'description': 'Önemli ve acil işleri ayırt etme ve önceliklendirme beceriniz yüksek.',
-                    'strengths': ['Doğru öncelelikler', 'Zamanlı karar verme', 'Strateji belirme', 'Verimlilik'],
-                    'study_tips': ['Eisenhower matrisini kullanın', 'Önce önemli işleri yapın', 'Günlük 3 önemli hedef belirleyin', 'Haftalık değerlendirme yapın']
-                },
-                'discipline': {
-                    'description': 'Kendini kontrol etme ve düzenli çalışma disiplininiz güçlü.',
-                    'strengths': ['Kendini kontrol', 'Düzenli çalışma alışkanlıkları', 'Hedeflere bağlılık', 'İrade gücü'],
-                    'study_tips': ['Günlük rutin oluşturun', 'Küçük hedeflerle başlayın', 'İlerlemeyi takip edin', 'Kendini ödüllendirin']
-                },
-                'self_awareness': {
-                    'description': 'Kendi çalışma kalıplarınızı anlama ve değerlendirme beceriniz yüksek.',
-                    'strengths': ['Öz-değerlendirme', 'Güçlü/zayıf yanları fark etme', 'Sürekli gelişim', 'Strateji geliştirme'],
-                    'study_tips': ['Çalışma günlüğü tutun', 'Haftalık analiz yapın', 'Eksiklikleri belirleyin', 'Kişisel gelişim planı oluşturun']
-                }
-            }
-            
-            # Güvenli profil erişimi
-            profile = time_profiles.get(max_category, time_profiles['planning'])  # Planning'i fallback olarak kullan
-            st.markdown(profile['description'])
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown("#### 💪 Güçlü Yanlarınız")
-                for strength in profile['strengths']:
-                    st.markdown(f"• {strength}")
-            
-            with col2:
-                st.markdown("#### 📚 Çalışma Önerileriniz")
-                for tip in profile['study_tips']:
-                    st.markdown(f"• {tip}")
-                    
-        except Exception as e:
-            st.error(f"Zaman yönetimi analizi gösterilirken hata oluştu: {str(e)}")
-            st.info("⏰ **Zaman Yönetimi:** Test sonuçlarınız kaydedildi.")
+    if time_results and time_scores:
+        st.success("⏰ **Zaman Yonetimi Analizi**")
+        st.info(f"Test sonucunuz: {time_results}")
+        st.write("Detayli analiz grafikleri gecici olarak devre disi.")
     else:
-        st.warning("⚠️ Test sonuçları yüklenemedi.")
+        st.warning("⚠️ Test sonuclari yuklenemedi.")
 
 def display_comprehensive_analysis(completed_tests, user_data):
     """4 testin kapsamlı genel analizi"""
@@ -19971,72 +19042,6 @@ def run_vak_learning_styles_test():
     
     st.markdown("---")
     
-    # Modern CSS stilini ekle
-    st.markdown("""
-    <style>
-    .test-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        text-align: center;
-        margin-bottom: 2rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    }
-    .category-section {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        color: white;
-        padding: 1rem;
-        border-radius: 10px;
-        margin: 1.5rem 0;
-        text-align: center;
-        font-weight: bold;
-    }
-    .question-box {
-        background: #ffffff;
-        color: #333333;
-        border-left: 4px solid #667eea;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border: 1px solid #e0e6ed;
-    }
-    .question-text {
-        color: #2c3e50;
-        font-size: 16px;
-        font-weight: 500;
-        margin-bottom: 1rem;
-        line-height: 1.5;
-    }
-    .likert-info {
-        background: #f8f9fa;
-        color: #495057;
-        padding: 1rem;
-        border-radius: 8px;
-        margin: 1rem 0;
-        border-left: 4px solid #17a2b8;
-        font-size: 14px;
-    }
-    .result-box {
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        padding: 2rem;
-        border-radius: 15px;
-        margin: 2rem 0;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Başlık
-    st.markdown("""
-    <div class="test-header">
-        <h1>🎨 Öğrenme Stilleri Testi (VAK)</h1>
-        <p>Görsel, İşitsel ve Kinestetik öğrenme stillerinizi keşfedin</p>
-        <p><strong>📋 75 soru | 🎯 1-5 Likert Ölçeği | 🆕 2025 Güncel Versiyonu</strong></p>
-    </div>
-    """, unsafe_allow_html=True)
     
     # Test açıklaması
     st.markdown("""
