@@ -16229,7 +16229,7 @@ def main():
                         <p><strong>💡 Not:</strong> Bu anket eğlence amaçlıdır ve size uygun öğrenme stillerini keşfetmenize yardımcı olmak için tasarlanmıştır. Farklı karakterlerin özelliklerini deneyerek çalışma verimliliğinizi artırabilirsiniz!</p>
                     </div>
                     """, unsafe_allow_html=True)
-                        elif page == "🎯 YKS Canlı Takip":
+            elif page == "🎯 YKS Canlı Takip":
                 yks_takip_page(user_data)
             
             elif page == "🍅 Pomodoro Timer":
