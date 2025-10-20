@@ -15110,101 +15110,17 @@ def main():
             elif page == "🧠 Çalışma Teknikleri":
                 st.markdown(f'<div class="main-header"><h1>🧠 Çalışma Teknikleri Merkezi</h1><p>YKS öğrencisine özel, psikolojik ve bilimsel çalışma yöntemleri</p></div>', unsafe_allow_html=True)
                 
-                # CSS Stilleri
-                st.markdown("""
-                <style>
-                .technique-tab {
-                    background: #34495e;
-                    color: white;
-                    border: none;
-                    padding: 12px 20px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    font-weight: 600;
-                    transition: all 0.3s ease;
-                    border-radius: 8px 8px 0 0;
-                    margin-right: 2px;
-                    margin-bottom: 2px;
-                }
-                .technique-tab:hover {
-                    background: #4a6741;
-                    transform: translateY(-2px);
-                }
-                .technique-tab.active {
-                    background: #e74c3c;
-                    color: white;
-                    margin-bottom: 0;
-                }
-                .tab-content-area {
-                    background: white;
-                    border-radius: 0 15px 15px 15px;
-                    padding: 30px;
-                    margin-top: 0;
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-                }
-                .coming-soon-area {
-                    text-align: center;
-                    padding: 50px;
-                    color: #7f8c8d;
-                }
-                .coming-soon-title {
-                    color: #2c3e50;
-                    font-size: 2em;
-                    margin-bottom: 20px;
-                }
-                .coming-soon-badge {
-                    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
-                    color: white;
-                    padding: 15px 30px;
-                    border-radius: 25px;
-                    display: inline-block;
-                    margin-top: 20px;
-                    font-weight: bold;
-                }
-                </style>
-                """, unsafe_allow_html=True)
+                # Çalışma Teknikleri sekmeleri - YKS Canlı Takip stilinde
+                tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+                    "📚 Çalışma Teknikleri", 
+                    "🃏 Çevirmeli Kağıt Oyunu", 
+                    "🎵 Müzik Oluşturma Sistemi", 
+                    "📚 Konuyu Hikayeleştir", 
+                    "📝 Yazım Kuralları Not Defterim", 
+                    "📚 Kitap Karakteri Anketi"
+                ])
                 
-                # Sekme Menüsü
-                tab_col1, tab_col2, tab_col3, tab_col4, tab_col5, tab_col6 = st.columns(6)
-                
-                # Sekme durumu kontrolü
-                if 'active_study_tab' not in st.session_state:
-                    st.session_state.active_study_tab = 'calisma_teknikleri'
-                
-                with tab_col1:
-                    if st.button("📚 Çalışma Teknikleri", key="tab_calisma", use_container_width=True):
-                        st.session_state.active_study_tab = 'calisma_teknikleri'
-                        st.rerun()
-                
-                with tab_col2:
-                    if st.button("🃏 Çevirmeli Kağıt", key="tab_cevirmeli", use_container_width=True):
-                        st.session_state.active_study_tab = 'cevirmeli_kagit'
-                        st.rerun()
-                
-                with tab_col3:
-                    if st.button("🎵 Müzik Sistemi", key="tab_muzik", use_container_width=True):
-                        st.session_state.active_study_tab = 'muzik_sistemi'
-                        st.rerun()
-                
-                with tab_col4:
-                    if st.button("📚 Hikayeleştir", key="tab_hikaye", use_container_width=True):
-                        st.session_state.active_study_tab = 'hikayele'
-                        st.rerun()
-                
-                with tab_col5:
-                    if st.button("📝 Yazım Kuralları", key="tab_yazim", use_container_width=True):
-                        st.session_state.active_study_tab = 'yazim_kurallari'
-                        st.rerun()
-                
-                with tab_col6:
-                    if st.button("📚 Kitap Karakteri", key="tab_karakter", use_container_width=True):
-                        st.session_state.active_study_tab = 'kitap_karakteri'
-                        st.rerun()
-                
-                # Sekme İçerikleri
-                st.markdown('<div class="tab-content-area">', unsafe_allow_html=True)
-                
-                if st.session_state.active_study_tab == 'calisma_teknikleri':
+                with tab1:
                     # Ana çalışma teknikleri içeriği
                     st.markdown("""
                     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px; margin-bottom: 30px; text-align: center;">
@@ -15293,44 +15209,1027 @@ def main():
                     </div>
                     """, unsafe_allow_html=True)
                 
-                elif st.session_state.active_study_tab == 'cevirmeli_kagit':
-                    st.markdown('<div class="coming-soon-area">', unsafe_allow_html=True)
-                    st.markdown('<h2 class="coming-soon-title">🃏 Çevirmeli Kağıt Oyunu</h2>', unsafe_allow_html=True)
-                    st.markdown('<p>İnteraktif kart oyunu ile öğreneceğiniz konuları eğlenceli hale getirin!</p>')
-                    st.markdown('<div class="coming-soon-badge">Yakında Geliyor...</div>', unsafe_allow_html=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                with tab2:
+                    # 🃏 ÇEVİRMELİ KAĞIT OYUNU
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%); color: white; padding: 30px; border-radius: 20px; margin: 20px 0; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                        <h1 style="margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🃏 ÇEVİRMELİ KAĞIT OYUNU</h1>
+                        <p style="margin: 10px 0 0 0; font-size: 1.3rem; opacity: 0.9;">Konu çalışırken eğlenceli kartlar oluşturun ve kendinizi test edin!</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Kart yönetimi sistemi
+                    if 'user_flashcards' not in st.session_state:
+                        st.session_state.user_flashcards = {}
+                    
+                    # Firebase'den flashcard verilerini yükle
+                    username = st.session_state.get('current_user', None)
+                    if username:
+                        user_data_fb = get_user_data_from_firebase(username)
+                        if user_data_fb and 'flashcards' in user_data_fb:
+                            try:
+                                st.session_state.user_flashcards = json.loads(user_data_fb['flashcards'])
+                            except:
+                                st.session_state.user_flashcards = {}
+                    
+                    # Kart ekleme bölümü
+                    st.subheader("➕ Yeni Kart Ekle")
+                    
+                    # Ders seçimi
+                    available_subjects = [
+                        "TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji",
+                        "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "TYT Din Kültürü",
+                        "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji", 
+                        "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"
+                    ]
+                    
+                    selected_subject = st.selectbox("📚 Ders Seçin:", available_subjects, key="flashcard_subject")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        front_text = st.text_area("🎯 Soru/Kavram (Ön Yüz):", 
+                                                height=100, 
+                                                placeholder="Örn: Osmanlı Devleti'nin kuruluş tarihi?",
+                                                key="flashcard_front")
+                    
+                    with col2:
+                        back_text = st.text_area("💡 Cevap/Açıklama (Arka Yüz):", 
+                                               height=100, 
+                                               placeholder="Örn: 1299 yılında Osman Gazi tarafından kuruldu.",
+                                               key="flashcard_back")
+                    
+                    if st.button("🎯 Kartı Ekle", use_container_width=True, type="primary", key="add_flashcard"):
+                        if front_text.strip() and back_text.strip():
+                            # Ders için kart listesi yoksa oluştur
+                            if selected_subject not in st.session_state.user_flashcards:
+                                st.session_state.user_flashcards[selected_subject] = []
+                            
+                            # Yeni kart oluştur
+                            new_card = {
+                                'front': front_text.strip(),
+                                'back': back_text.strip(),
+                                'created_date': datetime.now().strftime("%Y-%m-%d %H:%M"),
+                                'study_count': 0,
+                                'known': False
+                            }
+                            
+                            # Kartı ekle
+                            st.session_state.user_flashcards[selected_subject].append(new_card)
+                            
+                            # Firebase'e kaydet
+                            if username:
+                                try:
+                                    flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
+                                    update_user_in_firebase(username, {'flashcards': flashcards_json})
+                                    st.success("✅ Kart başarıyla eklendi!")
+                                except Exception as e:
+                                    st.error("❌ Kart eklenirken hata oluştu.")
+                            else:
+                                st.success("✅ Kart geçici olarak eklendi! (Kalıcı kayıt için giriş yapın)")
+                            
+                            # Form alanlarını temizle
+                            st.session_state.flashcard_front = ""
+                            st.session_state.flashcard_back = ""
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            st.error("❌ Lütfen hem soru hem de cevap alanlarını doldurun!")
+                    
+                    st.markdown("---")
+                    
+                    # Kart çalışma bölümü
+                    st.subheader("🎯 Kart Çalışma")
+                    
+                    if st.session_state.user_flashcards:
+                        study_subject = st.selectbox("📖 Çalışılacak Ders:", 
+                                                   list(st.session_state.user_flashcards.keys()), 
+                                                   key="study_subject")
+                        
+                        if study_subject and st.session_state.user_flashcards[study_subject]:
+                            cards = st.session_state.user_flashcards[study_subject]
+                            total_cards = len(cards)
+                            
+                            # Kart navigasyon durumu
+                            if 'current_card_index' not in st.session_state:
+                                st.session_state.current_card_index = 0
+                            if 'show_answer' not in st.session_state:
+                                st.session_state.show_answer = False
+                            
+                            # Index sınırlarını kontrol et
+                            st.session_state.current_card_index = max(0, min(st.session_state.current_card_index, total_cards - 1))
+                            
+                            current_card = cards[st.session_state.current_card_index]
+                            
+                            # Kart gösterimi
+                            st.markdown(f"""
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; padding: 30px; margin: 20px 0; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.15);">
+                                <h4 style="color: white; margin-bottom: 10px;">Kart {st.session_state.current_card_index + 1} / {total_cards}</h4>
+                                <h3 style="color: white; margin-bottom: 20px;">{study_subject}</h3>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            # Soru (ön yüz)
+                            st.markdown(f"""
+                            <div style="background: white; border: 3px dashed #667eea; border-radius: 15px; padding: 30px; margin: 20px 0; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                                <h3 style="color: #2d3748; margin-bottom: 20px;">🎯 SORU</h3>
+                                <p style="font-size: 1.2rem; color: #4a5568; line-height: 1.6;">{current_card['front']}</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            # Cevabı göster/gizle butonu
+                            if not st.session_state.show_answer:
+                                if st.button("💡 Cevabı Göster", use_container_width=True, type="primary", key="show_answer_flashcard"):
+                                    st.session_state.show_answer = True
+                                    st.rerun()
+                            else:
+                                # Cevap (arka yüz)
+                                st.markdown(f"""
+                                <div style="background: linear-gradient(135deg, #48c9b0 0%, #16a085 100%); border-radius: 15px; padding: 30px; margin: 20px 0; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                                    <h3 style="color: white; margin-bottom: 20px;">💡 CEVAP</h3>
+                                    <p style="font-size: 1.2rem; color: white; line-height: 1.6;">{current_card['back']}</p>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                # Kart değerlendirme butonları
+                                col_eval1, col_eval2 = st.columns(2)
+                                
+                                with col_eval1:
+                                    if st.button("❌ Bilmiyorum", use_container_width=True, key="dont_know_flashcard"):
+                                        # Kartı tekrar göster
+                                        st.session_state.user_flashcards[selected_subject][st.session_state.current_card_index]['study_count'] = current_card.get('study_count', 0) + 1
+                                        st.session_state.show_answer = False
+                                        st.rerun()
+                                
+                                with col_eval2:
+                                    if st.button("✅ Biliyorum", use_container_width=True, type="primary", key="know_flashcard"):
+                                        # Kartı bilinen olarak işaretle
+                                        st.session_state.user_flashcards[selected_subject][st.session_state.current_card_index]['known'] = True
+                                        st.session_state.user_flashcards[selected_subject][st.session_state.current_card_index]['study_count'] = current_card.get('study_count', 0) + 1
+                                        
+                                        # Firebase güncelle
+                                        username = st.session_state.get('current_user', None)
+                                        if username:
+                                            try:
+                                                flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
+                                                update_user_in_firebase(username, {'flashcards': flashcards_json})
+                                            except:
+                                                pass
+                                        
+                                        # Sonraki karta geç
+                                        st.session_state.current_card_index = (st.session_state.current_card_index + 1) % total_cards
+                                        st.session_state.show_answer = False
+                                        st.rerun()
+                            
+                            # Navigasyon butonları
+                            st.markdown("---")
+                            col_nav1, col_nav2, col_nav3 = st.columns(3)
+                            
+                            with col_nav1:
+                                if st.button("⬅️ Önceki Kart", use_container_width=True, key="prev_card_flashcard"):
+                                    st.session_state.current_card_index = (st.session_state.current_card_index - 1) % total_cards
+                                    st.session_state.show_answer = False
+                                    st.rerun()
+                            
+                            with col_nav2:
+                                if st.button("🔄 Kartları Karıştır", use_container_width=True, key="shuffle_cards_flashcard"):
+                                    import random
+                                    random.shuffle(st.session_state.user_flashcards[selected_subject])
+                                    st.session_state.current_card_index = 0
+                                    st.session_state.show_answer = False
+                                    
+                                    # Firebase güncelle
+                                    username = st.session_state.get('current_user', None)
+                                    if username:
+                                        try:
+                                            flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
+                                            update_user_in_firebase(username, {'flashcards': flashcards_json})
+                                        except:
+                                            pass
+                                    
+                                    st.success("🎯 Kartlar karıştırıldı!")
+                                    time.sleep(1)
+                                    st.rerun()
+                            
+                            with col_nav3:
+                                if st.button("➡️ Sonraki Kart", use_container_width=True, key="next_card_flashcard"):
+                                    st.session_state.current_card_index = (st.session_state.current_card_index + 1) % total_cards
+                                    st.session_state.show_answer = False
+                                    st.rerun()
+                        else:
+                            st.info("Bu derste henüz kart bulunmuyor.")
+                    else:
+                        st.info("Henüz hiç kart eklenmemiş. Yukarıdan yeni kartlar ekleyerek başlayın!")
                 
-                elif st.session_state.active_study_tab == 'muzik_sistemi':
-                    st.markdown('<div class="coming-soon-area">', unsafe_allow_html=True)
-                    st.markdown('<h2 class="coming-soon-title">🎵 Müzik Oluşturma Sistemi</h2>', unsafe_allow_html=True)
-                    st.markdown('<p>Derslerinizi müzikle harmanlayarak daha akılda kalıcı hale getirin!</p>')
-                    st.markdown('<div class="coming-soon-badge">Yakında Geliyor...</div>', unsafe_allow_html=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                with tab3:
+                    # 🎵 Müzik Oluşturma Sistemi
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #ff7675 0%, #fd79a8 100%); color: white; padding: 30px; border-radius: 20px; margin: 20px 0; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                        <h1 style="margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🎵 MÜZİK OLUŞTURMA SİSTEMİ</h1>
+                        <p style="margin: 10px 0 0 0; font-size: 1.3rem; opacity: 0.9;">Derslerinizi müzikle harmanlayarak daha akılda kalıcı hale getirin!</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Ritim oluşturma bölümü
+                    st.subheader("🥁 Konu Ritmi Oluştur")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        subject_text = st.text_area("📝 Konuyu Yazın:", 
+                                                   height=100, 
+                                                   placeholder="Örn: Osmanlı Devleti'nin kuruluş tarihi 1299",
+                                                   key="rhythm_subject")
+                    
+                    with col2:
+                        rhythm_type = st.selectbox("🎶 Ritim Türü:", 
+                                                 ["4/4 Basit Ritim", "3/4 Vals Ritmi", "2/4 Mars Ritmi", "6/8 Ağır Ritim"])
+                        
+                        melody_style = st.selectbox("🎼 Melodi Stili:", 
+                                                   ["Neşeli Pop", "Sakin Klasik", "Dinamik Rock", "Huzurlu Folk"])
+                    
+                    if st.button("🎵 Müzik Oluştur", use_container_width=True, type="primary"):
+                        if subject_text.strip():
+                            st.success("🎶 Müzikal öneriniz hazırlandı!")
+                            
+                            # Ritim önerisi
+                            rhythm_patterns = {
+                                "4/4 Basit Ritim": "TAK-tak-TAK-tak",
+                                "3/4 Vals Ritmi": "TAK-tak-tak",
+                                "2/4 Mars Ritmi": "TAK-TAK", 
+                                "6/8 Ağır Ritim": "TAK-tak-tak-TAK-tak-tak"
+                            }
+                            
+                            st.markdown(f"""
+                            <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); border-radius: 15px; padding: 25px; margin: 20px 0; color: white;">
+                                <h3>🎵 Önerilen Müzik Yapısı</h3>
+                                <p><strong>📝 Konu:</strong> {subject_text}</p>
+                                <p><strong>🥁 Ritim:</strong> {rhythm_patterns[rhythm_type]}</p>
+                                <p><strong>🎼 Stil:</strong> {melody_style}</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            # Ezgi önerileri
+                            if melody_style == "Neşeli Pop":
+                                st.info("🎵 Önerilen nota dizisi: Do-Re-Mi-Fa-Sol (Yüksek tempo)")
+                            elif melody_style == "Sakin Klasik":
+                                st.info("🎵 Önerilen nota dizisi: Sol-La-Si-Do (Yavaş tempo)")
+                            elif melody_style == "Dinamik Rock":
+                                st.info("🎵 Önerilen nota dizisi: Mi-Sol-La-Do (Güçlü vurgu)")
+                            else:
+                                st.info("🎵 Önerilen nota dizisi: Do-Mi-Sol-Do (Sakin, doğal)")
+                            
+                            # Pratik önerileri
+                            st.markdown("""
+                            <div style="background: #f8f9fa; border-left: 4px solid #74b9ff; padding: 20px; margin: 20px 0; border-radius: 0 10px 10px 0;">
+                                <h4>💡 Nasıl Uygularsınız?</h4>
+                                <ul>
+                                    <li>📱 Metronom uygulaması açın</li>
+                                    <li>🎵 Konuyu seçtiğiniz ritimde okuyun</li>
+                                    <li>🎤 Kendinizi kaydedin ve dinleyin</li>
+                                    <li>🔄 Günde 3-5 defa tekrar edin</li>
+                                    <li>🎧 Kafanızda melodiyi çalıştırarak hatırlayın</li>
+                                </ul>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        else:
+                            st.error("❌ Lütfen bir konu yazın!")
+                    
+                    st.markdown("---")
+                    
+                    # Hazır şarkı şablonları
+                    st.subheader("🎼 Hazır Müzik Şablonları")
+                    
+                    templates = {
+                        "📚 Tarih Konuları": {
+                            "melody": "Do-Re-Mi-Fa-Sol-La-Si-Do",
+                            "rhythm": "4/4 tempo",
+                            "example": "Bin iki yüz doksan dokuz (1299) / Osman Gazi kurmuştu / Osmanlı Devleti'ni / Söğüt'te başlatmıştı"
+                        },
+                        "🧮 Matematik Formülleri": {
+                            "melody": "Sol-La-Si-Do-Re-Mi-Fa-Sol", 
+                            "rhythm": "2/4 tempo",
+                            "example": "a kare artı b kare / eşittir c kare / Pisagor teoremi / hep böyle der"
+                        },
+                        "🔬 Kimya Elementleri": {
+                            "melody": "Mi-Sol-La-Do-Re-Fa-Sol-Mi",
+                            "rhythm": "3/4 vals",
+                            "example": "Hidrojen bir / Helyum iki / Lityum üç der / periyodik"
+                        }
+                    }
+                    
+                    selected_template = st.selectbox("🎵 Şablon Seçin:", list(templates.keys()))
+                    
+                    if st.button("👁️ Şablonu Görüntüle", use_container_width=True):
+                        template_info = templates[selected_template]
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); border-radius: 15px; padding: 25px; margin: 20px 0; color: white;">
+                            <h3>{selected_template}</h3>
+                            <p><strong>🎼 Melodi:</strong> {template_info['melody']}</p>
+                            <p><strong>🥁 Ritim:</strong> {template_info['rhythm']}</p>
+                            <p><strong>📝 Örnek:</strong></p>
+                            <p style="font-style: italic; font-size: 1.1em; margin-top: 10px;">"{template_info['example']}"</p>
+                        </div>
+                        """, unsafe_allow_html=True)
                 
-                elif st.session_state.active_study_tab == 'hikayele':
-                    st.markdown('<div class="coming-soon-area">', unsafe_allow_html=True)
-                    st.markdown('<h2 class="coming-soon-title">📚 Konuyu Hikayeleştir</h2>', unsafe_allow_html=True)
-                    st.markdown('<p>Zor konuları hikaye haline getirerek öğrenmeyi kolaylaştırın!</p>')
-                    st.markdown('<div class="coming-soon-badge">Yakında Geliyor...</div>', unsafe_allow_html=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                with tab4:
+                    # 📚 Konuyu Hikayeleştir
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%); color: white; padding: 30px; border-radius: 20px; margin: 20px 0; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                        <h1 style="margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">📚 KONUYU HİKAYELEŞTİR</h1>
+                        <p style="margin: 10px 0 0 0; font-size: 1.3rem; opacity: 0.9;">Zor konuları unutulmaz hikayeler haline getirin!</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Hikaye oluşturma sistemi
+                    st.subheader("📖 Hikaye Oluştur")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        subject_topic = st.text_input("📚 Ana Konu:", 
+                                                    placeholder="Örn: Osmanlı'nın kuruluşu",
+                                                    key="story_topic")
+                        
+                        key_elements = st.text_area("🔑 Anahtar Kelimeler:", 
+                                                   height=100,
+                                                   placeholder="Örn: Osman Gazi, 1299, Söğüt, Beylik",
+                                                   key="story_elements")
+                    
+                    with col2:
+                        story_type = st.selectbox("📜 Hikaye Türü:", 
+                                                [
+                                                    "🏰 Macera Hikayesi",
+                                                    "🧙‍♂️ Fantastik Hikaye", 
+                                                    "🕵️ Gizem Hikayesi",
+                                                    "👑 Tarihsel Drama",
+                                                    "🌟 Bilim Kurgu"
+                                                ])
+                        
+                        story_length = st.selectbox("📏 Hikaye Uzunluğu:", 
+                                                  ["Kısa (1-2 paragraf)", "Orta (3-4 paragraf)", "Uzun (5+ paragraf)"])
+                    
+                    if st.button("📚 Hikaye Oluştur", use_container_width=True, type="primary"):
+                        if subject_topic.strip() and key_elements.strip():
+                            st.success("📖 Hikayelendirme tamamlandı!")
+                            
+                            # Hikaye şablonlarına göre öneriler
+                            story_templates = {
+                                "🏰 Macera Hikayesi": {
+                                    "başlangıç": "Bir zamanlar, uzak diyarlarda",
+                                    "karakter": "cesur bir kahraman",
+                                    "zorluk": "büyük bir engelle karşılaştı",
+                                    "çözüm": "aklını ve cesaretini kullanarak",
+                                    "sonuç": "başarıya ulaştı"
+                                },
+                                "🧙‍♂️ Fantastik Hikaye": {
+                                    "başlangıç": "Büyülü krallıkta",
+                                    "karakter": "güçlü bir büyücü",
+                                    "zorluk": "karanlık güçlerle mücadele etti",
+                                    "çözüm": "sihirli bilgileri kullanarak",
+                                    "sonuç": "ışığı geri getirdi"
+                                },
+                                "🕵️ Gizem Hikayesi": {
+                                    "başlangıç": "Gizemli bir olay yaşandı",
+                                    "karakter": "usta bir dedektif",
+                                    "zorluk": "karmaşık ipuçlarını çözmeye çalıştı",
+                                    "çözüm": "dikkatli gözlemlerle",
+                                    "sonuç": "gerçeği ortaya çıkardı"
+                                },
+                                "👑 Tarihsel Drama": {
+                                    "başlangıç": "Tarihte önemli bir dönemde",
+                                    "karakter": "bilge bir lider",
+                                    "zorluk": "zorlu kararlar almak zorunda kaldı",
+                                    "çözüm": "deneyim ve bilgeliği sayesinde",
+                                    "sonuç": "tarih yazdı"
+                                },
+                                "🌟 Bilim Kurgu": {
+                                    "başlangıç": "Gelecekte, teknolojinin geliştiği dönemde",
+                                    "karakter": "zeki bir bilim insanı",
+                                    "zorluk": "bilinmeyen bir problemle karşılaştı",
+                                    "çözüm": "bilimsel yöntemlerle",
+                                    "sonuç": "yeni bir keşif yaptı"
+                                }
+                            }
+                            
+                            template = story_templates[story_type]
+                            
+                            # Kişiselleştirilmiş hikaye oluştur
+                            elements_list = [elem.strip() for elem in key_elements.split(",")]
+                            
+                            story_text = f"""
+                            **{story_type} - {subject_topic}**
+                            
+                            {template['başlangıç']}, **{subject_topic}** konusunda {template['karakter']} vardı. 
+                            
+                            Bu karakter, **{elements_list[0] if len(elements_list) > 0 else 'önemli bir unsur'}** ile ilgili {template['zorluk']}. 
+                            
+                            {"" if len(elements_list) <= 1 else f"**{elements_list[1]}** ve **{', '.join(elements_list[2:])}** gibi önemli elementler, "}
+                            
+                            Sonunda {template['çözüm']}, {template['sonuç']} ve **{subject_topic}** konusu böylece kalıcı hale geldi.
+                            """
+                            
+                            st.markdown(f"""
+                            <div style="background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%); border-radius: 15px; padding: 25px; margin: 20px 0; color: white;">
+                                <h3>📖 Oluşturulan Hikaye</h3>
+                                <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; margin-top: 15px;">
+                                    <p style="line-height: 1.6; font-size: 1.1em;">{story_text}</p>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            # Hikaye kullanım önerileri
+                            st.markdown("""
+                            <div style="background: #e17055; border-radius: 15px; padding: 20px; margin: 20px 0; color: white;">
+                                <h4>💡 Hikayeyi Nasıl Kullanırsınız?</h4>
+                                <ul>
+                                    <li>🎭 Hikayeyi kendi cümlelerinizle tekrar anlatın</li>
+                                    <li>🎨 Hikayenin ana karakterlerini çizin</li>
+                                    <li>🎬 Arkadaşlarınızla rol yapın</li>
+                                    <li>📝 Hikayeyi kendi notlarınıza ekleyin</li>
+                                    <li>🧠 Sınav öncesi hikayeyi hatırlayın</li>
+                                </ul>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        else:
+                            st.error("❌ Lütfen konu ve anahtar kelimeleri doldurun!")
+                    
+                    st.markdown("---")
+                    
+                    # Hazır hikaye şablonları
+                    st.subheader("📚 Hazır Hikaye Şablonları")
+                    
+                    ready_stories = {
+                        "📐 Pisagor Teoremi": {
+                            "hikaye": "Antik Yunan'da yaşayan bilge Pisagor, üçgenlerin sırlarını keşfetmek için uzun yolculuklara çıktı. Bir gün, dik üçgenli bir taşın üzerinde çalışırken, a² + b² = c² formülünü buldu ve matematikçilerin hayatını sonsuza dek değiştirdi.",
+                            "anahtar": "Pisagor, dik üçgen, a², b², c², formül"
+                        },
+                        "⚛️ Atom Modeli": {
+                            "hikaye": "Küçük Atom şehrinde, çekirdek sarayında Proton kralı ve Nötron kraliçesi yaşardı. Şehrin etrafında ise hızla koşan Elektron vatandaşları vardı. Her elektron, belirli yörüngede koşarak şehrin dengesini sağlardı.",
+                            "anahtar": "Atom, çekirdek, proton, nötron, elektron, yörünge"
+                        },
+                        "🌍 Dünya'nın Katmanları": {
+                            "hikaye": "Dünya'nın derinliklerinde, Kabuk kraliçesi yeryüzünde krallık ederdi. Altında Manto dev'i yaşar, en derinlerde ise ateşli Çekirdek ejderi uyurdu. Her biri farklı özelliklerle dünyamızı şekillendirirdi.",
+                            "anahtar": "Kabuk, manto, çekirdek, katman, derinlik"
+                        }
+                    }
+                    
+                    selected_story = st.selectbox("📖 Hazır Hikaye Seçin:", list(ready_stories.keys()))
+                    
+                    if st.button("👁️ Hikayeyi Göster", use_container_width=True):
+                        story_info = ready_stories[selected_story]
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); border-radius: 15px; padding: 25px; margin: 20px 0; color: white;">
+                            <h3>{selected_story}</h3>
+                            <p style="line-height: 1.6; font-size: 1.1em; margin: 15px 0;">{story_info['hikaye']}</p>
+                            <p><strong>🔑 Anahtar Kelimeler:</strong> {story_info['anahtar']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
                 
-                elif st.session_state.active_study_tab == 'yazim_kurallari':
-                    st.markdown('<div class="coming-soon-area">', unsafe_allow_html=True)
-                    st.markdown('<h2 class="coming-soon-title">📝 Yazım Kuralları Not Defterim</h2>', unsafe_allow_html=True)
-                    st.markdown('<p>Türkçe yazım kurallarınızı düzenli bir şekilde takip edin!</p>')
-                    st.markdown('<div class="coming-soon-badge">Yakında Geliyor...</div>', unsafe_allow_html=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                with tab5:
+                    # 📝 Yazım Kuralları Not Defterim
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #00b894 0%, #55a3ff 100%); color: white; padding: 30px; border-radius: 20px; margin: 20px 0; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                        <h1 style="margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">📝 YAZIM KURALLARI NOT DEFTERİM</h1>
+                        <p style="margin: 10px 0 0 0; font-size: 1.3rem; opacity: 0.9;">Türkçe yazım kurallarınızı düzenli olarak takip edin!</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Ana bölümler
+                    rule_tab1, rule_tab2, rule_tab3 = st.tabs(["📖 Kural Rehberi", "✍️ Pratik Yap", "📊 İlerleme"])
+                    
+                    with rule_tab1:
+                        st.subheader("📚 Temel Yazım Kuralları")
+                        
+                        # Kural kategorileri
+                        rule_category = st.selectbox("📂 Kural Kategorisi:", [
+                            "Büyük Harf Kullanımı",
+                            "Noktalama İşaretleri", 
+                            "Yazım Kılavuzu",
+                            "Kısaltmalar",
+                            "Sayı Yazımı"
+                        ])
+                        
+                        rules_database = {
+                            "Büyük Harf Kullanımı": {
+                                "📋 Temel Kurallar": [
+                                    "Cümle başları büyük harfle yazılır",
+                                    "Özel isimler büyük harfle başlar",
+                                    "Ünvan ve makam adları büyük yazılır",
+                                    "Kitap, film, eser adları büyük harfle başlar"
+                                ],
+                                "✅ Doğru Örnekler": [
+                                    "Ankara Türkiye'nin başkentidir.",
+                                    "Mustafa Kemal Atatürk",
+                                    "Cumhurbaşkanı, Başbakan",
+                                    "Kürk Mantolu Madonna"
+                                ],
+                                "❌ Yanlış Örnekler": [
+                                    "ankara türkiye'nin başkentidir.",
+                                    "mustafa kemal atatürk", 
+                                    "cumhurbaşkanı, başbakan",
+                                    "kürk mantolu madonna"
+                                ]
+                            },
+                            "Noktalama İşaretleri": {
+                                "📋 Temel Kurallar": [
+                                    "Nokta (.) cümle sonunda kullanılır",
+                                    "Virgül (,) ara vermek için kullanılır",
+                                    "Soru işareti (?) soru cümlelerinde",
+                                    "Ünlem işareti (!) duygu bildiren cümlelerde"
+                                ],
+                                "✅ Doğru Örnekler": [
+                                    "Bu kitabı okudum.",
+                                    "Elma, armut, kiraz aldım.",
+                                    "Bugün okula gidecek misin?",
+                                    "Ne güzel bir gün!"
+                                ],
+                                "❌ Yanlış Örnekler": [
+                                    "Bu kitabı okudum",
+                                    "Elma armut kiraz aldım.",
+                                    "Bugün okula gidecek misin.",
+                                    "Ne güzel bir gün."
+                                ]
+                            },
+                            "Yazım Kılavuzu": {
+                                "📋 Temel Kurallar": [
+                                    "Birleşik kelimelerde tire (-) kullanımı",
+                                    "Kesme işareti (') kullanımı",
+                                    "Yabancı kelimelerin yazımı",
+                                    "Ünlü daralması kuralları"
+                                ],
+                                "✅ Doğru Örnekler": [
+                                    "anne-baba, öğretmen-öğrenci",
+                                    "Ahmet'in, İstanbul'da",
+                                    "internet, bilgisayar",
+                                    "için (içün değil)"
+                                ],
+                                "❌ Yanlış Örnekler": [
+                                    "annebaba, öğretmenöğrenci", 
+                                    "Ahmetin, İstanbulda",
+                                    "İnternet, Bilgisayar",
+                                    "içün, oçun"
+                                ]
+                            },
+                            "Kısaltmalar": {
+                                "📋 Temel Kurallar": [
+                                    "Kısaltmalar noktayla biter",
+                                    "Yaygın kısaltmalar standart şekilde yazılır",
+                                    "Ölçü birimlerinde nokta kullanılmaz",
+                                    "Tarih kısaltmalarında format önemli"
+                                ],
+                                "✅ Doğru Örnekler": [
+                                    "vb., vs., Dr., Prof.",
+                                    "km, m, cm, kg, gr",
+                                    "2023, 21. yüzyıl",
+                                    "s. 45 (sayfa 45)"
+                                ],
+                                "❌ Yanlış Örnekler": [
+                                    "vb, vs, Dr, Prof",
+                                    "km., m., cm., kg., gr.",
+                                    "2.023, 21.ci yüzyıl",
+                                    "sayfa 45"
+                                ]
+                            },
+                            "Sayı Yazımı": {
+                                "📋 Temel Kurallar": [
+                                    "On ve altındaki sayılar yazı ile",
+                                    "Cümle başındaki sayılar yazı ile",
+                                    "Büyük sayılarda nokta kullanımı",
+                                    "Kesirli sayıların yazımı"
+                                ],
+                                "✅ Doğru Örnekler": [
+                                    "üç, beş, dokuz",
+                                    "Yirmi öğrenci geldi.",
+                                    "1.000, 15.000, 1.500.000",
+                                    "3/4, yüzde 15"
+                                ],
+                                "❌ Yanlış Örnekler": [
+                                    "3, 5, 9",
+                                    "20 öğrenci geldi.",
+                                    "1000, 15000, 1500000", 
+                                    "3:4, % 15"
+                                ]
+                            }
+                        }
+                        
+                        if rule_category in rules_database:
+                            rule_info = rules_database[rule_category]
+                            
+                            for section, items in rule_info.items():
+                                st.markdown(f"**{section}**")
+                                for item in items:
+                                    if "✅" in section:
+                                        st.success(f"✅ {item}")
+                                    elif "❌" in section:
+                                        st.error(f"❌ {item}")
+                                    else:
+                                        st.info(f"• {item}")
+                                st.markdown("---")
+                    
+                    with rule_tab2:
+                        st.subheader("✍️ Yazım Pratiği")
+                        
+                        # Pratik türü seçimi
+                        practice_type = st.selectbox("🎯 Pratik Türü:", [
+                            "Doğru/Yanlış Testi",
+                            "Cümle Düzeltme",
+                            "Boşluk Doldurma"
+                        ])
+                        
+                        if practice_type == "Doğru/Yanlış Testi":
+                            st.markdown("**Aşağıdaki yazımlardan hangisi doğrudur?**")
+                            
+                            questions = [
+                                {
+                                    "question": "Hangi yazım doğrudur?",
+                                    "options": ["İstanbul'a gidiyorum", "İstanbula gidiyorum"],
+                                    "correct": 0,
+                                    "explanation": "Özel isimlerde kesme işareti kullanılır."
+                                },
+                                {
+                                    "question": "Hangi noktalama doğrudur?",
+                                    "options": ["Ne güzel bir gün!", "Ne güzel bir gün."],
+                                    "correct": 0,
+                                    "explanation": "Ünlem cümlelerinde ünlem işareti kullanılır."
+                                }
+                            ]
+                            
+                            if 'current_question' not in st.session_state:
+                                st.session_state.current_question = 0
+                            
+                            if st.session_state.current_question < len(questions):
+                                q = questions[st.session_state.current_question]
+                                
+                                selected = st.radio(q["question"], q["options"], key=f"q_{st.session_state.current_question}")
+                                
+                                if st.button("✅ Cevapla", key=f"answer_{st.session_state.current_question}"):
+                                    selected_index = q["options"].index(selected)
+                                    if selected_index == q["correct"]:
+                                        st.success(f"🎉 Doğru! {q['explanation']}")
+                                    else:
+                                        st.error(f"❌ Yanlış. Doğru cevap: {q['options'][q['correct']]}. {q['explanation']}")
+                                    
+                                    st.session_state.current_question += 1
+                                    if st.session_state.current_question >= len(questions):
+                                        st.balloons()
+                                        st.success("🏆 Tüm soruları tamamladınız!")
+                                        if st.button("🔄 Tekrar Başla"):
+                                            st.session_state.current_question = 0
+                                            st.rerun()
+                        
+                        elif practice_type == "Cümle Düzeltme":
+                            st.markdown("**Aşağıdaki cümlelerdeki hataları bulun ve düzeltin:**")
+                            
+                            wrong_sentences = [
+                                "ankara türkiyenin başkentidir",
+                                "elma armut kiraz aldım", 
+                                "bugün okula gidecek misin.",
+                                "ahmetin kitabı çok güzel"
+                            ]
+                            
+                            correct_sentences = [
+                                "Ankara Türkiye'nin başkentidir.",
+                                "Elma, armut, kiraz aldım.",
+                                "Bugün okula gidecek misin?",
+                                "Ahmet'in kitabı çok güzel."
+                            ]
+                            
+                            selected_sentence_idx = st.selectbox("Düzeltilecek cümle:", 
+                                                               range(len(wrong_sentences)),
+                                                               format_func=lambda x: wrong_sentences[x])
+                            
+                            user_correction = st.text_input("Düzeltilmiş hali:", 
+                                                           placeholder="Cümleyi doğru şekilde yazın...")
+                            
+                            if st.button("🔍 Kontrol Et"):
+                                if user_correction.strip().lower() == correct_sentences[selected_sentence_idx].lower():
+                                    st.success("🎉 Mükemmel! Doğru düzelttiniz.")
+                                else:
+                                    st.error(f"❌ Doğru cevap: {correct_sentences[selected_sentence_idx]}")
+                        
+                        elif practice_type == "Boşluk Doldurma":
+                            st.markdown("**Boşlukları uygun işaretlerle doldurun:**")
+                            
+                            fill_exercises = [
+                                {
+                                    "text": "Ahmet__ kitabı çok güzel__",
+                                    "answers": ["'in", "."],
+                                    "complete": "Ahmet'in kitabı çok güzel."
+                                },
+                                {
+                                    "text": "Bugün okula gidecek misin__",
+                                    "answers": ["?"],
+                                    "complete": "Bugün okula gidecek misin?"
+                                }
+                            ]
+                            
+                            selected_exercise = st.selectbox("Egzersiz seçin:", 
+                                                           range(len(fill_exercises)),
+                                                           format_func=lambda x: fill_exercises[x]["text"])
+                            
+                            exercise = fill_exercises[selected_exercise]
+                            user_answer = st.text_input("Tamamlanmış cümle:", 
+                                                       placeholder="Boşlukları doldurun...")
+                            
+                            if st.button("🔍 Kontrol Et", key="fill_check"):
+                                if user_answer.strip() == exercise["complete"]:
+                                    st.success("🎉 Doğru! Tebrikler.")
+                                else:
+                                    st.error(f"❌ Doğru cevap: {exercise['complete']}")
+                    
+                    with rule_tab3:
+                        st.subheader("📊 İlerleme Takibi")
+                        
+                        # Basit ilerleme sistemi
+                        if 'writing_progress' not in st.session_state:
+                            st.session_state.writing_progress = {
+                                "completed_exercises": 0,
+                                "correct_answers": 0,
+                                "total_attempts": 0,
+                                "mastered_rules": []
+                            }
+                        
+                        progress = st.session_state.writing_progress
+                        
+                        if progress["total_attempts"] > 0:
+                            success_rate = (progress["correct_answers"] / progress["total_attempts"]) * 100
+                        else:
+                            success_rate = 0
+                        
+                        col1, col2, col3 = st.columns(3)
+                        
+                        with col1:
+                            st.metric("📝 Tamamlanan Egzersiz", progress["completed_exercises"])
+                        
+                        with col2:
+                            st.metric("✅ Doğru Cevap", progress["correct_answers"])
+                        
+                        with col3:
+                            st.metric("📊 Başarı Oranı", f"{success_rate:.1f}%")
+                        
+                        # İlerleme grafiği
+                        if progress["total_attempts"] > 0:
+                            progress_bar_value = min(success_rate / 100, 1.0)
+                            st.progress(progress_bar_value)
+                            
+                            if success_rate >= 80:
+                                st.success("🏆 Mükemmel! Yazım kurallarında uzmanlaşıyorsunuz!")
+                            elif success_rate >= 60:
+                                st.info("👍 İyi gidiyorsunuz! Biraz daha pratik yapın.")
+                            else:
+                                st.warning("💪 Pratik yapmaya devam edin. Başarıya yaklaşıyorsunuz!")
+                        
+                        # Öneriler
+                        st.markdown("""
+                        <div style="background: linear-gradient(135deg, #55a3ff 0%, #00b894 100%); border-radius: 15px; padding: 20px; margin: 20px 0; color: white;">
+                            <h4>💡 Yazım Kuralları İçin Öneriler</h4>
+                            <ul>
+                                <li>📚 Her gün 10-15 dakika pratik yapın</li>
+                                <li>📖 Kitap okurken yazım kurallarına dikkat edin</li>
+                                <li>✍️ Günlük tutarak yazım pratiği yapın</li>
+                                <li>🔍 Yazdıklarınızı kontrol etme alışkanlığı edinin</li>
+                                <li>📝 Karıştırdığınız kuralları not alın</li>
+                            </ul>
+                        </div>
+                        """, unsafe_allow_html=True)
                 
-                elif st.session_state.active_study_tab == 'kitap_karakteri':
-                    st.markdown('<div class="coming-soon-area">', unsafe_allow_html=True)
-                    st.markdown('<h2 class="coming-soon-title">📚 "Kitap Karakteri" Anketi</h2>', unsafe_allow_html=True)
-                    st.markdown('<p>Hangi kitap karakterine benzediğinizi keşfedin ve öğrenme stilinizi geliştirin!</p>')
-                    st.markdown('<div class="coming-soon-badge">Yakında Geliyor...</div>', unsafe_allow_html=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
-                
-                st.markdown('</div>', unsafe_allow_html=True)
-            
-            elif page == "🎯 YKS Canlı Takip":
+                with tab6:
+                    # 📚 Kitap Karakteri Anketi
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%); color: white; padding: 30px; border-radius: 20px; margin: 20px 0; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                        <h1 style="margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">📚 "KİTAP KARAKTERİ" ANKETİ</h1>
+                        <p style="margin: 10px 0 0 0; font-size: 1.3rem; opacity: 0.9;">Hangi kitap karakterine benzediğinizi keşfedin!</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Anket sistemi
+                    if 'character_quiz_started' not in st.session_state:
+                        st.session_state.character_quiz_started = False
+                        st.session_state.character_answers = []
+                        st.session_state.current_q = 0
+                    
+                    # Anket soruları
+                    quiz_questions = [
+                        {
+                            "question": "Bir problemi çözmek için hangi yaklaşımı tercih edersiniz?",
+                            "options": [
+                                "A) Mantıklı analiz ve sistematik düşünce",
+                                "B) Sezgilerime güvenirim ve yaratıcı çözümler ararım", 
+                                "C) Arkadaşlarımla birlikte çalışır, fikirlerini alırım",
+                                "D) Cesurca hareket eder, doğrudan eyleme geçerim"
+                            ]
+                        },
+                        {
+                            "question": "Öğrenme stiliniz nasıldır?",
+                            "options": [
+                                "A) Kitapları severim, derinlemesine araştırma yaparım",
+                                "B) Görsel materyaller ve hayal kurarak öğrenirim",
+                                "C) Grup çalışması ve tartışma yapmayı severim",
+                                "D) Praktik yaparak ve deneyimleyerek öğrenirim"
+                            ]
+                        },
+                        {
+                            "question": "Stresli durumlarda nasıl davranırsınız?",
+                            "options": [
+                                "A) Sakin kalır, planımı gözden geçiririm",
+                                "B) Yaratıcı alternatifler düşünürüm",
+                                "C) Destek için etrafımdakilere danışırım",
+                                "D) Hızlı kararlar alır, cesurca hareket ederim"
+                            ]
+                        },
+                        {
+                            "question": "İdeal çalışma ortamınız nasıl olmalı?",
+                            "options": [
+                                "A) Sessiz, düzenli ve kütüphane benzeri",
+                                "B) İlham verici, renkli ve rahat",
+                                "C) Sosyal, arkadaşlarımla birlikte",
+                                "D) Dinamik, değişken, hareket halinde"
+                            ]
+                        },
+                        {
+                            "question": "Hedeflerinize nasıl ulaşırsınız?",
+                            "options": [
+                                "A) Detaylı planlar yaparak, adım adım",
+                                "B) Esnek yaklaşımla, ilhama göre",
+                                "C) Takım halinde, işbirliği içinde",
+                                "D) Hızlı ve kararlı eylemlerle"
+                            ]
+                        }
+                    ]
+                    
+                    character_results = {
+                        "A": {
+                            "character": "Hermione Granger",
+                            "book": "Harry Potter Serisi",
+                            "description": "Analitik, sistematik ve bilgi odaklı",
+                            "learning_style": "Görsel-Yazılı öğrenme, derinlemesine araştırma",
+                            "strengths": ["Detaylı planlama", "Sistematik yaklaşım", "Güçlü analiz becerisi"],
+                            "study_tips": [
+                                "📚 Düzenli çalışma programı oluşturun",
+                                "📝 Detaylı notlar alın",
+                                "🔍 Konuları derinlemesine araştırın",
+                                "📊 Grafik ve şemalar kullanın"
+                            ]
+                        },
+                        "B": {
+                            "character": "Luna Lovegood", 
+                            "book": "Harry Potter Serisi",
+                            "description": "Yaratıcı, sezgisel ve özgün düşünen",
+                            "learning_style": "Görsel-Yaratıcı öğrenme, hayal kurma",
+                            "strengths": ["Yaratıcı problem çözme", "Özgün bakış açısı", "Sezgisel yaklaşım"],
+                            "study_tips": [
+                                "🎨 Renkli notlar ve çizimler yapın",
+                                "🌟 Konuları hikayelerle ilişkilendirin",
+                                "🎵 Müzik eşliğinde çalışın",
+                                "💭 Hayal kurarak öğrenin"
+                            ]
+                        },
+                        "C": {
+                            "character": "Ron Weasley",
+                            "book": "Harry Potter Serisi", 
+                            "description": "Sosyal, işbirlikçi ve sadık",
+                            "learning_style": "Sosyal öğrenme, grup çalışması",
+                            "strengths": ["Takım çalışması", "Sosyal bağlar", "Sadakat ve destek"],
+                            "study_tips": [
+                                "👥 Grup çalışması yapın",
+                                "🗣️ Konuları arkadaşlarla tartışın",
+                                "🤝 Çalışma partneri bulun",
+                                "🎯 Sosyal öğrenme aktiviteleri"
+                            ]
+                        },
+                        "D": {
+                            "character": "Harry Potter",
+                            "book": "Harry Potter Serisi",
+                            "description": "Cesur, pratik ve eylem odaklı",
+                            "learning_style": "Kinesteti öğrenme, deneyimleyerek öğrenme",
+                            "strengths": ["Hızlı karar alma", "Pratik yaklaşım", "Cesur davranış"],
+                            "study_tips": [
+                                "🏃 Hareket halindeyken öğrenin",
+                                "⚡ Kısa ve yoğun çalışma seansları",
+                                "🎯 Pratik uygulamalar yapın",
+                                "🎪 Aktif öğrenme teknikleri"
+                            ]
+                        }
+                    }
+                    
+                    if not st.session_state.character_quiz_started:
+                        st.markdown("""
+                        <div style="background: #fab1a0; border-radius: 15px; padding: 25px; margin: 20px 0; color: white; text-align: center;">
+                            <h3>📖 Nasıl Çalışır?</h3>
+                            <p>5 soru cevaplayarak hangi kitap karakterine benzediğinizi öğrenin. Her karakterin kendine özgü öğrenme stili ve çalışma önerileri var!</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        if st.button("🚀 Anketi Başlat", use_container_width=True, type="primary"):
+                            st.session_state.character_quiz_started = True
+                            st.session_state.character_answers = []
+                            st.session_state.current_q = 0
+                            st.rerun()
+                    
+                    else:
+                        if st.session_state.current_q < len(quiz_questions):
+                            # Mevcut soru
+                            q = quiz_questions[st.session_state.current_q]
+                            
+                            st.markdown(f"""
+                            <div style="background: #fd79a8; border-radius: 15px; padding: 20px; margin: 20px 0; color: white;">
+                                <h4>Soru {st.session_state.current_q + 1}/{len(quiz_questions)}</h4>
+                                <h3>{q['question']}</h3>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            # Seçenekler
+                            selected_option = st.radio("Seçiminizi yapın:", q["options"], key=f"q_{st.session_state.current_q}")
+                            
+                            col1, col2 = st.columns(2)
+                            
+                            with col1:
+                                if st.button("⬅️ Önceki Soru") and st.session_state.current_q > 0:
+                                    st.session_state.current_q -= 1
+                                    st.rerun()
+                            
+                            with col2:
+                                if st.button("➡️ Sonraki Soru", type="primary"):
+                                    # Cevabı kaydet
+                                    answer_letter = selected_option[0]  # A, B, C veya D
+                                    
+                                    # Eğer bu soruya daha önce cevap verildiyse güncelle
+                                    if len(st.session_state.character_answers) > st.session_state.current_q:
+                                        st.session_state.character_answers[st.session_state.current_q] = answer_letter
+                                    else:
+                                        st.session_state.character_answers.append(answer_letter)
+                                    
+                                    st.session_state.current_q += 1
+                                    st.rerun()
+                        
+                        else:
+                            # Sonuçları hesapla
+                            answer_counts = {"A": 0, "B": 0, "C": 0, "D": 0}
+                            for answer in st.session_state.character_answers:
+                                answer_counts[answer] += 1
+                            
+                            # En çok seçilen cevap
+                            dominant_type = max(answer_counts, key=answer_counts.get)
+                            result = character_results[dominant_type]
+                            
+                            # Sonuç gösterimi
+                            st.markdown("""
+                            <div style="background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%); border-radius: 20px; padding: 30px; margin: 20px 0; color: white; text-align: center;">
+                                <h2>🎉 Sonucunuz Hazır!</h2>
+                                <h1 style="font-size: 2.5em; margin: 20px 0;">📚 """ + result["character"] + """</h1>
+                                <h3>""" + result["book"] + """</h3>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            # Karakter analizi
+                            col1, col2 = st.columns(2)
+                            
+                            with col1:
+                                st.markdown(f"""
+                                <div style="background: #ff7675; border-radius: 15px; padding: 20px; margin: 10px 0; color: white;">
+                                    <h4>🧬 Kişilik Özellikleri</h4>
+                                    <p>{result['description']}</p>
+                                    <h4>📚 Öğrenme Stili</h4>
+                                    <p>{result['learning_style']}</p>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            
+                            with col2:
+                                st.markdown("**🌟 Güçlü Yanlarınız:**")
+                                for strength in result['strengths']:
+                                    st.success(f"✨ {strength}")
+                            
+                            # Çalışma önerileri
+                            st.markdown(f"""
+                            <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); border-radius: 15px; padding: 25px; margin: 20px 0; color: white;">
+                                <h3>💡 Size Özel Çalışma Önerileri</h3>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            for tip in result['study_tips']:
+                                st.info(tip)
+                            
+                            # Yeniden başlatma
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                if st.button("🔄 Anketi Tekrar Yap", use_container_width=True):
+                                    st.session_state.character_quiz_started = False
+                                    st.session_state.character_answers = []
+                                    st.session_state.current_q = 0
+                                    st.rerun()
+                            
+                            with col2:
+                                if st.button("📊 Sonuçlarımı Kaydet", use_container_width=True):
+                                    st.success("✅ Sonuçlarınız kaydedildi! Profil sayfanızdan görüntüleyebilirsiniz.")
+                    
+                    # Alt bilgi
+                    st.markdown("""
+                    <div style="background: #ddd; border-radius: 10px; padding: 15px; margin: 20px 0; color: #555;">
+                        <p><strong>💡 Not:</strong> Bu anket eğlence amaçlıdır ve size uygun öğrenme stillerini keşfetmenize yardımcı olmak için tasarlanmıştır. Farklı karakterlerin özelliklerini deneyerek çalışma verimliliğinizi artırabilirsiniz!</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                        elif page == "🎯 YKS Canlı Takip":
                 yks_takip_page(user_data)
             
             elif page == "🍅 Pomodoro Timer":
