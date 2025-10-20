@@ -69,7 +69,7 @@ def safe_plotly_chart(fig, **kwargs):
 
 # Sayfa yapılandırması
 st.set_page_config(
-    page_title="Senin Alanın YKS Takip Sistemi",
+    page_title="YKS Takip Sistemi",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -507,11 +507,6 @@ def play_pomodoro_finished_sound():
     @keyframes slideIn {
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-20px); }
-        to { opacity: 1; transform: translateY(0); }
     }
     </style>
     
@@ -13172,7 +13167,7 @@ def main():
     
     if st.session_state.current_user is None:
         st.markdown(get_custom_css("Varsayılan"), unsafe_allow_html=True)
-        st.markdown('<div class="main-header"><h1>🎯 Senin Alanın YKS Takip Sistemi</h1><p>Hedefine Bilimsel Yaklaşım</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="main-header"><h1>🎯 YKS Takip Sistemi</h1><p>Hedefine Bilimsel Yaklaşım</p></div>', unsafe_allow_html=True)
         
         st.subheader("🔐 Güvenli Giriş")
         
@@ -13190,61 +13185,8 @@ def main():
         
         if st.button("Giriş Yap", type="primary", use_container_width=True):
             if login_user_secure(username, password):
-                # Sıcak karşılama mesajı
-                # Kullanıcı adını al (current_user sadece username string'i)
-                current_username = st.session_state.get('current_user')
-                
-                # Kullanıcı verilerini veritabanından al
-                users_db = st.session_state.get('users_db', {})
-                user_data = users_db.get(current_username, {})
-                
-                # İsim bilgisini al
-                user_name = user_data.get('name', current_username)
-                if not user_name or user_name.strip() == '':
-                    user_name = current_username
-                
-                # Karşılama balloon animasyonu
-                st.balloons()
-                
-                # BÜYÜK KARŞILAMA PENCERESİ - STREAMLIT NATİVE
-                st.markdown("### ")
-                st.markdown("### ")
-                
-                # Büyük başlık
-                st.markdown(f"# 🎉 Hoşgeldin {user_name}! 🎉")
-                
-                # Ana mesaj kutuları
-                st.success("🏠 **Ailemize Hoşgeldin!** Artık burası tamamen senin için ayrılmış bir alan.")
-                
-                st.info("🎯 **Hedefine beraber yürüyeceğiz!** Başarıya giden yolda yanındayız.")
-                
-                st.warning("✨ **Şimdi hemen YKS yolculuğunuza başlayabilirsiniz!** ✨")
-                
-                # Güzel bir gradient kutu
-                st.markdown(f"""
-                <div style="
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    padding: 30px;
-                    border-radius: 20px;
-                    text-align: center;
-                    color: white;
-                    margin: 20px 0;
-                    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-                ">
-                    <h2 style="color: white; margin: 0 0 15px 0;">🌟 {user_name} 🌟</h2>
-                    <p style="font-size: 18px; margin: 10px 0;">Senin hikayenin başladığı alan!</p>
-                    <p style="font-size: 16px; opacity: 0.9;">YKS yolculuğunda yanındayız 🚀</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Devam butonu
-                col1, col2, col3 = st.columns([1, 2, 1])
-                with col2:
-                    if st.button("🚀 Hemen Başla!", use_container_width=True, type="primary", key="start_journey"):
-                        st.rerun()
-                
-                # Otomatik yönlendirme için kısa bekleme
-                time.sleep(3)
+                st.success("Giriş başarılı! Hoş geldiniz! 🎯")
+                time.sleep(1)
                 st.rerun()
             else:
                 st.error("❌ Hatalı kullanıcı adı veya şifre!")
