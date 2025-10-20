@@ -15309,9 +15309,7 @@ def main():
                             else:
                                 st.success("✅ Kart geçici olarak eklendi! (Kalıcı kayıt için giriş yapın)")
                             
-                            # Form alanlarını temizle
-                            st.session_state.flashcard_front = ""
-                            st.session_state.flashcard_back = ""
+                            # Form otomatik olarak temizlenecek
                             time.sleep(1)
                             st.rerun()
                         else:
