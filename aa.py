@@ -13206,147 +13206,45 @@ def main():
                 # Karşılama balloon animasyonu
                 st.balloons()
                 
-                # BÜYÜK MODAL PENCERE KARŞILAMA MESAJI
+                # BÜYÜK KARŞILAMA PENCERESİ - STREAMLIT NATİVE
+                st.markdown("### ")
+                st.markdown("### ")
+                
+                # Büyük başlık
+                st.markdown(f"# 🎉 Hoşgeldin {user_name}! 🎉")
+                
+                # Ana mesaj kutuları
+                st.success("🏠 **Ailemize Hoşgeldin!** Artık burası tamamen senin için ayrılmış bir alan.")
+                
+                st.info("🎯 **Hedefine beraber yürüyeceğiz!** Başarıya giden yolda yanındayız.")
+                
+                st.warning("✨ **Şimdi hemen YKS yolculuğunuza başlayabilirsiniz!** ✨")
+                
+                # Güzel bir gradient kutu
                 st.markdown(f"""
-                <div id="welcomeModal" style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100vw;
-                    height: 100vh;
-                    background: rgba(0, 0, 0, 0.8);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 99999;
-                    animation: modalFadeIn 0.8s ease-out;
+                <div style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    padding: 30px;
+                    border-radius: 20px;
+                    text-align: center;
+                    color: white;
+                    margin: 20px 0;
+                    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
                 ">
-                    <div style="
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        padding: 60px 40px;
-                        border-radius: 25px;
-                        color: white;
-                        text-align: center;
-                        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-                        max-width: 600px;
-                        width: 90%;
-                        animation: modalSlideIn 0.8s ease-out;
-                        position: relative;
-                    ">
-                        <div style="font-size: 80px; margin-bottom: 20px;">🎉</div>
-                        <h1 style="
-                            margin: 0 0 25px 0; 
-                            color: white; 
-                            font-size: 42px;
-                            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-                        ">🌟 Hoşgeldin {user_name}! 🌟</h1>
-                        
-                        <p style="
-                            font-size: 24px; 
-                            margin: 20px 0; 
-                            line-height: 1.6;
-                            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-                        ">
-                            🏠 <strong>Ailemize hoşgeldin!</strong>
-                        </p>
-                        
-                        <p style="
-                            font-size: 20px; 
-                            margin: 20px 0; 
-                            line-height: 1.6;
-                            opacity: 0.95;
-                        ">
-                            Artık burası senin hikayenin başladığı,<br>
-                            <strong>tamamen senin için ayrılmış bir alan.</strong>
-                        </p>
-                        
-                        <p style="
-                            font-size: 18px; 
-                            margin: 25px 0; 
-                            opacity: 0.9;
-                            padding: 15px;
-                            background: rgba(255,255,255,0.1);
-                            border-radius: 10px;
-                        ">
-                            🎯 <strong>Hedefine beraber yürüyeceğiz,</strong><br>
-                            başarıya giden yolda yanındayız!
-                        </p>
-                        
-                        <div style="
-                            margin-top: 30px;
-                            font-size: 16px;
-                            opacity: 0.8;
-                            animation: pulse 2s infinite;
-                        ">
-                            ✨ Şimdi hemen YKS yolculuğunuza başlayabilirsiniz! ✨
-                        </div>
-                        
-                        <div style="
-                            position: absolute;
-                            bottom: 15px;
-                            right: 20px;
-                            font-size: 12px;
-                            opacity: 0.6;
-                        ">
-                            5 saniye sonra otomatik kapanacak...
-                        </div>
-                    </div>
+                    <h2 style="color: white; margin: 0 0 15px 0;">🌟 {user_name} 🌟</h2>
+                    <p style="font-size: 18px; margin: 10px 0;">Senin hikayenin başladığı alan!</p>
+                    <p style="font-size: 16px; opacity: 0.9;">YKS yolculuğunda yanındayız 🚀</p>
                 </div>
-                
-                <style>
-                    @keyframes modalFadeIn {{
-                        from {{ opacity: 0; }}
-                        to {{ opacity: 1; }}
-                    }}
-                    
-                    @keyframes modalSlideIn {{
-                        from {{ 
-                            transform: translateY(-50px) scale(0.8); 
-                            opacity: 0; 
-                        }}
-                        to {{ 
-                            transform: translateY(0) scale(1); 
-                            opacity: 1; 
-                        }}
-                    }}
-                    
-                    @keyframes modalFadeOut {{
-                        from {{ opacity: 1; }}
-                        to {{ opacity: 0; }}
-                    }}
-                    
-                    @keyframes pulse {{
-                        0%, 100% {{ transform: scale(1); }}
-                        50% {{ transform: scale(1.05); }}
-                    }}
-                </style>
-                
-                <script>
-                    // 5 saniye sonra modal'i kapat
-                    setTimeout(function() {{
-                        const modal = document.getElementById('welcomeModal');
-                        if (modal) {{
-                            modal.style.animation = 'modalFadeOut 0.5s ease-out';
-                            setTimeout(function() {{
-                                modal.style.display = 'none';
-                            }}, 500);
-                        }}
-                    }}, 5000);
-                    
-                    // Modal'e tıklanınca da kapanır
-                    document.getElementById('welcomeModal').addEventListener('click', function(e) {{
-                        if (e.target === this) {{
-                            this.style.animation = 'modalFadeOut 0.5s ease-out';
-                            setTimeout(() => {{
-                                this.style.display = 'none';
-                            }}, 500);
-                        }}
-                    }});
-                </script>
                 """, unsafe_allow_html=True)
                 
-                # Kısa bir bekleme ve yönlendirme
-                time.sleep(1)
+                # Devam butonu
+                col1, col2, col3 = st.columns([1, 2, 1])
+                with col2:
+                    if st.button("🚀 Hemen Başla!", use_container_width=True, type="primary", key="start_journey"):
+                        st.rerun()
+                
+                # Otomatik yönlendirme için kısa bekleme
+                time.sleep(3)
                 st.rerun()
             else:
                 st.error("❌ Hatalı kullanıcı adı veya şifre!")
