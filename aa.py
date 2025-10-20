@@ -13191,7 +13191,17 @@ def main():
         if st.button("Giriş Yap", type="primary", use_container_width=True):
             if login_user_secure(username, password):
                 # Sıcak karşılama mesajı
-                user_name = st.session_state.get('current_user', {}).get('name', username)
+                # Kullanıcı adını al (current_user sadece username string'i)
+                current_username = st.session_state.get('current_user')
+                
+                # Kullanıcı verilerini veritabanından al
+                users_db = st.session_state.get('users_db', {})
+                user_data = users_db.get(current_username, {})
+                
+                # İsim bilgisini al
+                user_name = user_data.get('name', current_username)
+                if not user_name or user_name.strip() == '':
+                    user_name = current_username
                 
                 # Karşılama balloon animasyonu
                 st.balloons()
