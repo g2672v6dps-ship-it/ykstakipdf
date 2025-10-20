@@ -69,7 +69,7 @@ def safe_plotly_chart(fig, **kwargs):
 
 # Sayfa yapılandırması
 st.set_page_config(
-    page_title="YKS Takip Sistemi",
+    page_title="Senin Alanın YKS Takip Sistemi",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -507,6 +507,11 @@ def play_pomodoro_finished_sound():
     @keyframes slideIn {
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     </style>
     
@@ -13167,7 +13172,7 @@ def main():
     
     if st.session_state.current_user is None:
         st.markdown(get_custom_css("Varsayılan"), unsafe_allow_html=True)
-        st.markdown('<div class="main-header"><h1>🎯 YKS Takip Sistemi</h1><p>Hedefine Bilimsel Yaklaşım</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="main-header"><h1>🏠 Senin Alanın YKS Takip Sistemi</h1><p>Hedefine Bilimsel Yaklaşım</p></div>', unsafe_allow_html=True)
         
         st.subheader("🔐 Güvenli Giriş")
         
@@ -13185,8 +13190,43 @@ def main():
         
         if st.button("Giriş Yap", type="primary", use_container_width=True):
             if login_user_secure(username, password):
-                st.success("Giriş başarılı! Hoş geldiniz! 🎯")
-                time.sleep(1)
+                # Sıcak karşılama mesajı
+                user_name = st.session_state.get('current_user', {}).get('name', username)
+                
+                # Karşılama balloon animasyonu
+                st.balloons()
+                
+                # Sıcak karşılama bildirimi
+                st.success(f"🎉 Hoşgeldin {user_name}!")
+                
+                # Özel karşılama mesajı
+                st.markdown(f"""
+                <div style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    padding: 25px;
+                    border-radius: 15px;
+                    margin: 20px 0;
+                    color: white;
+                    text-align: center;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+                    animation: fadeIn 1s ease-in;
+                ">
+                    <h2 style="margin: 0 0 15px 0; color: white;">🌟 Hoşgeldin {user_name}! 🌟</h2>
+                    <p style="font-size: 18px; margin: 10px 0; line-height: 1.6;">
+                        🏠 Ailemize hoşgeldin! Artık burası senin hikayenin başladığı, 
+                        tamamen senin için ayrılmış bir alan.
+                    </p>
+                    <p style="font-size: 16px; margin: 10px 0; opacity: 0.9;">
+                        🎯 Hedefine beraber yürüyeceğiz, başarıya giden yolda yanındayız!
+                    </p>
+                    <p style="font-size: 14px; margin: 15px 0 0 0; opacity: 0.8;">
+                        ✨ Şimdi hemen YKS yolculuğunuza başlayabilirsiniz! ✨
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Kısa bir bekleme ve yönlendirme
+                time.sleep(2)
                 st.rerun()
             else:
                 st.error("❌ Hatalı kullanıcı adı veya şifre!")
