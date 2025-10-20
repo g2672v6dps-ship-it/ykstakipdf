@@ -15197,6 +15197,187 @@ def main():
                 </div>
                 """, unsafe_allow_html=True)
                 
+                # 🎮 YENİ SİSTEM: TYT ZİHİN ROTASI OYUNU
+                st.markdown("---")
+                st.markdown("🎮 **TYT ZİHİN ROTASI - Kişisel Deneme Sırası Keşfi**")
+                st.write("🎯 **Amaç:** Her öğrencinin kendi zihinsel ritmine göre TYT'de en verimli çözme sırasını bulmak")
+                
+                # Basit tab sistemi
+                mind_tab1, mind_tab2, mind_tab3 = st.tabs(["🧠 Profilim", "🎮 Deneme Sıralamaları", "📊 Sonuçlarım"])
+                
+                with mind_tab1:
+                    st.subheader("🧠 Zihin Profilini Belirle")
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        dikkat_suresi = st.selectbox(
+                            "🎯 Dikkat Süren Nasıl?",
+                            ["Kısa (15-20 dk)", "Orta (25-35 dk)", "Uzun (40+ dk)"],
+                            key="mind_attention"
+                        )
+                        
+                        stres_tepki = st.selectbox(
+                            "😰 Stres Altında Nasıl Çalışırsın?",
+                            ["Zorlanırım", "Orta", "Daha iyi odaklanırım"],
+                            key="mind_stress"
+                        )
+                    
+                    with col2:
+                        karar_hizi = st.selectbox(
+                            "⚡ Karar Verme Hızın?",
+                            ["Yavaş", "Orta", "Hızlı"],
+                            key="mind_speed"
+                        )
+                        
+                        motivasyon = st.selectbox(
+                            "💪 Neyle Motive Olursun?",
+                            ["Zor sorularla", "İlerlememi görünce", "Rutin çalışmayla"],
+                            key="mind_motivation"
+                        )
+                    
+                    if st.button("💾 Profilimi Kaydet", type="primary"):
+                        # Session state'e kaydet
+                        if 'zihin_profili' not in st.session_state:
+                            st.session_state.zihin_profili = {}
+                        
+                        st.session_state.zihin_profili = {
+                            'dikkat': dikkat_suresi,
+                            'stres': stres_tepki,
+                            'karar': karar_hizi,
+                            'motivasyon': motivasyon,
+                            'profil_tamamlandi': True
+                        }
+                        st.success("🎉 Zihin profilin kaydedildi!")
+                        st.rerun()
+                
+                with mind_tab2:
+                    st.subheader("🎮 Deneme Sıralamalarını Test Et")
+                    
+                    # Profil kontrolü
+                    if 'zihin_profili' not in st.session_state or not st.session_state.zihin_profili.get('profil_tamamlandi', False):
+                        st.warning("⚠️ Önce zihin profilini belirle!")
+                    else:
+                        st.info("📊 Her sıralamayı test et, hangi sırada daha başarılı olduğunu gör!")
+                        
+                        # Deneme sıralamaları
+                        siralamalar = {
+                            "TMFS": "Türkçe → Matematik → Fen → Sosyal",
+                            "MFST": "Matematik → Fen → Sosyal → Türkçe",
+                            "FTSM": "Fen → Türkçe → Sosyal → Matematik",
+                            "STMF": "Sosyal → Türkçe → Matematik → Fen"
+                        }
+                        
+                        if 'deneme_sonuclari' not in st.session_state:
+                            st.session_state.deneme_sonuclari = {}
+                        
+                        for kod, aciklama in siralamalar.items():
+                            col1, col2, col3 = st.columns([2, 1, 1])
+                            
+                            with col1:
+                                st.write(f"🔄 **{aciklama}**")
+                            
+                            with col2:
+                                if st.button(f"🎮 {kod} Dene", key=f"test_{kod}"):
+                                    # Basit skor simülasyonu (kullanıcı profiline göre)
+                                    base_score = 70
+                                    
+                                    # Profil bonus hesaplama
+                                    profil = st.session_state.zihin_profili
+                                    
+                                    if kod == "TMFS" and "Uzun" in profil['dikkat']:
+                                        base_score += 10
+                                    elif kod == "MFST" and "Hızlı" in profil['karar']:
+                                        base_score += 8
+                                    elif kod == "FTSM" and "Zor sorularla" in profil['motivasyon']:
+                                        base_score += 12
+                                    elif kod == "STMF" and "Rutin" in profil['motivasyon']:
+                                        base_score += 7
+                                    
+                                    # Random varyasyon ekle
+                                    import random
+                                    final_score = base_score + random.randint(-5, 15)
+                                    final_score = min(100, max(60, final_score))
+                                    
+                                    st.session_state.deneme_sonuclari[kod] = final_score
+                                    st.success(f"✅ {kod} Sıralaması: {final_score} puan!")
+                                    st.rerun()
+                            
+                            with col3:
+                                if kod in st.session_state.deneme_sonuclari:
+                                    skor = st.session_state.deneme_sonuclari[kod]
+                                    st.metric("📊 Skor", f"{skor}")
+                
+                with mind_tab3:
+                    st.subheader("📊 Sonuçlarım ve Öneriler")
+                    
+                    if 'deneme_sonuclari' not in st.session_state or len(st.session_state.deneme_sonuclari) < 2:
+                        st.warning("⚠️ En az 2 sıralama test et!")
+                    else:
+                        sonuclar = st.session_state.deneme_sonuclari
+                        en_iyi = max(sonuclar, key=sonuclar.get)
+                        en_iyi_skor = sonuclar[en_iyi]
+                        
+                        st.success(f"🏆 **En İyi Sıralaman:** {en_iyi}")
+                        st.metric("📊 En Yüksek Skor", f"{en_iyi_skor}/100")
+                        
+                        # Sonuç tablosu
+                        st.markdown("### 📈 Tüm Sonuçların")
+                        for kod, skor in sorted(sonuclar.items(), key=lambda x: x[1], reverse=True):
+                            if skor >= 85:
+                                renk = "green"
+                                ikon = "🌟"
+                            elif skor >= 75:
+                                renk = "blue"
+                                ikon = "💪"
+                            else:
+                                renk = "orange"
+                                ikon = "🔄"
+                            
+                            st.markdown(f":{renk}[{ikon} **{kod}:** {skor} puan]")
+                        
+                        # Psikolojik öneri
+                        st.markdown("### 🧠 Sana Özel Öneri")
+                        
+                        if 'zihin_profili' in st.session_state:
+                            profil = st.session_state.zihin_profili
+                            
+                            if "Uzun" in profil['dikkat'] and en_iyi_skor >= 80:
+                                oneri = "Uzun dikkat süren sayesinde zor derslerle başlayabilirsin!"
+                            elif "Hızlı" in profil['karar'] and en_iyi.startswith('M'):
+                                oneri = "Hızlı karar verme yeteneğin matematik ile başlamana uygun!"
+                            elif "Stres" in profil['stres'] and "daha iyi" in profil['stres'].lower():
+                                oneri = "Stres altında iyi çalıştığın için zor bölümlerle başla!"
+                            else:
+                                oneri = "Profiline en uygun sıralama bulundu. Test sonucuna güven!"
+                            
+                            st.info(f"💡 {oneri}")
+                        
+                        # Kaydet butonu
+                        if st.button("💾 Sonuçlarımı Kaydet", type="primary"):
+                            # Firebase'e kaydet
+                            username = st.session_state.get('current_user', None)
+                            if username:
+                                try:
+                                    import json
+                                    from datetime import datetime
+                                    
+                                    zihin_raporu = {
+                                        'profil': st.session_state.zihin_profili,
+                                        'sonuclar': st.session_state.deneme_sonuclari,
+                                        'en_iyi_siralama': en_iyi,
+                                        'en_iyi_skor': en_iyi_skor,
+                                        'tarih': datetime.now().strftime("%Y-%m-%d %H:%M")
+                                    }
+                                    
+                                    rapor_json = json.dumps(zihin_raporu, ensure_ascii=False)
+                                    update_user_in_firebase(username, {'zihin_rotasi_raporu': rapor_json})
+                                    st.success("🎉 Zihin rotası raporu kaydedildi!")
+                                    st.balloons()
+                                except Exception as e:
+                                    st.warning("⚠️ Rapor bu oturum boyunca saklandı.")
+                            else:
+                                st.warning("⚠️ Giriş yapın ki raporunuz kalıcı olarak saklansın!")
+                
                 # 🃏 ÇEVİRMELİ KAĞIT OYUNU - YENİ!
                 st.markdown("---")
                 st.markdown("""
@@ -16867,392 +17048,6 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                     <h2 style="margin: 15px 0; font-size: 1.8rem; opacity: 0.95;">Kişisel Deneme Sırası Keşfi</h2>
                     <p style="margin: 20px 0 0 0; font-size: 1.4rem; opacity: 0.9;">Her öğrencinin kendi zihinsel ritmine göre en verimli çözme sırasını bulma oyunu!</p>
                 </div>
-                
-                <style>
-                @keyframes glow {
-                    0% { text-shadow: 3px 3px 6px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.2); }
-                    100% { text-shadow: 3px 3px 6px rgba(0,0,0,0.3), 0 0 30px rgba(255,255,255,0.4); }
-                }
-                </style>
-                """, unsafe_allow_html=True)
-                
-                # Sistem menüsü
-                mind_route_tab1, mind_route_tab2, mind_route_tab3, mind_route_tab4 = st.tabs(["🧠 Zihin Testi", "🎮 Mini Denemeler", "📊 Analiz Motoru", "🎯 Sonuç Raporu"])
-                
-                # Ortak değişkenler - tüm sekmelerde kullanılacak
-                sequence_options = {
-                    "TMFS": "🔤 Türkçe → Matematik → Fen → Sosyal",
-                    "MFST": "🔢 Matematik → Fen → Sosyal → Türkçe", 
-                    "FTSM": "🔬 Fen → Türkçe → Sosyal → Matematik",
-                    "STMF": "🌍 Sosyal → Türkçe → Matematik → Fen",
-                    "TSMF": "📝 Türkçe → Sosyal → Matematik → Fen",
-                    "MSTF": "🎯 Matematik → Sosyal → Türkçe → Fen"
-                }
-                
-                with mind_route_tab1:
-                    st.markdown("""
-                    <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); 
-                               border-radius: 20px; padding: 30px; margin: 20px 0; text-align: center;">
-                        <h2 style="color: #2d3748; margin-bottom: 20px;">🧠 1. VERİ TOPLAMA AŞAMASI</h2>
-                        <p style="color: #4a5568; font-size: 1.1rem;">Bu testler öğrencinin bilişsel profilini çıkarır</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Kullanıcının test verilerini sakla
-                    if 'mind_route_data' not in st.session_state:
-                        st.session_state.mind_route_data = {
-                            'attention_score': 0,
-                            'decision_speed': 0,
-                            'stress_tolerance': 0,
-                            'motivation_type': '',
-                            'test_completed': False
-                        }
-                    
-                    # Test 1: Dikkat Süresi Testi
-                    st.markdown("### 🎯 Dikkat Süresi Testi")
-                    st.info("Ekranda beliren sayıları artan hızla seçme testi → sürekli dikkat süresi ölçülür")
-                    
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if st.button("▶️ Dikkat Testini Başlat", use_container_width=True, type="primary"):
-                            # Basit dikkat testi simülasyonu
-                            test_duration = st.slider("Test süresi (saniye)", 10, 60, 30)
-                            attention_result = random.randint(45, 95)
-                            st.session_state.mind_route_data['attention_score'] = attention_result
-                            st.success(f"✅ Dikkat Puanınız: {attention_result}/100")
-                    
-                    with col2:
-                        st.metric("📊 Dikkat Puanı", f"{st.session_state.mind_route_data['attention_score']}/100")
-                    
-                    # Test 2: Karar Hızı Testi
-                    st.markdown("### ⚡ Karar Hızı Testi")
-                    st.info("Basit mantık soruları, cevaplama hızı kaydedilir")
-                    
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if st.button("⚡ Karar Hızı Testini Başlat", use_container_width=True, type="secondary"):
-                            # Basit karar hızı testi
-                            decision_result = random.randint(40, 90)
-                            st.session_state.mind_route_data['decision_speed'] = decision_result
-                            st.success(f"✅ Karar Hızı Puanınız: {decision_result}/100")
-                    
-                    with col2:
-                        st.metric("⚡ Karar Hızı", f"{st.session_state.mind_route_data['decision_speed']}/100")
-                    
-                    # Test 3: Stres Tepkisi Testi
-                    st.markdown("### 😰 Stres Toleransı Testi")
-                    st.info("Geri sayım altında sorular → stresli durumda doğruluk ölçülür")
-                    
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if st.button("🔥 Stres Testini Başlat", use_container_width=True, type="secondary"):
-                            stress_result = random.randint(35, 85)
-                            st.session_state.mind_route_data['stress_tolerance'] = stress_result
-                            st.success(f"✅ Stres Toleransınız: {stress_result}/100")
-                    
-                    with col2:
-                        st.metric("🛡️ Stres Toleransı", f"{st.session_state.mind_route_data['stress_tolerance']}/100")
-                    
-                    # Test 4: Motivasyon Profili
-                    st.markdown("### 💪 Motivasyon Profili")
-                    motivation_questions = [
-                        "Zor sorular seni motive eder mi?",
-                        "Başarıyı görünce mi motive olursun, yoksa sürece mi?",
-                        "Hangi durumda daha iyi performans gösterirsin?"
-                    ]
-                    
-                    motivation_type = st.radio(
-                        "Bu sorulara göre kendini nasıl tanımlarsın?",
-                        ["🔥 Challenge (Zorluklardan beslenirim)", 
-                         "📈 Progress (İlerlemeden motive olurum)", 
-                         "🎯 Stability (Düzenli çalışmayı severim)"]
-                    )
-                    
-                    if motivation_type:
-                        st.session_state.mind_route_data['motivation_type'] = motivation_type.split(' ')[1]
-                    
-                    # Test tamamlama kontrolü
-                    if (st.session_state.mind_route_data['attention_score'] > 0 and 
-                        st.session_state.mind_route_data['decision_speed'] > 0 and 
-                        st.session_state.mind_route_data['stress_tolerance'] > 0 and 
-                        st.session_state.mind_route_data['motivation_type']):
-                        
-                        st.session_state.mind_route_data['test_completed'] = True
-                        st.success("🎉 Tüm testleri tamamladınız! Artık mini denemelere geçebilirsiniz.")
-                        st.balloons()
-                
-                with mind_route_tab2:
-                    st.markdown("""
-                    <div style="background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%); 
-                               border-radius: 20px; padding: 30px; margin: 20px 0; text-align: center;">
-                        <h2 style="color: #2d3748; margin-bottom: 20px;">🧩 2. DENEME SİMÜLASYONU AŞAMASI</h2>
-                        <p style="color: #4a5568; font-size: 1.1rem;">10-15 soruluk mini TYT prototip denemeleri</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    if not st.session_state.mind_route_data.get('test_completed', False):
-                        st.warning("⚠️ Önce zihin testlerini tamamlayın!")
-                    else:
-                        st.markdown("### 🎲 Farklı Sıralamalarla Mini Denemeler")
-                        
-                        # Session state başlatma
-                        if 'sequence_results' not in st.session_state:
-                            st.session_state.sequence_results = {}
-                        
-                        # Her sıralama için deneme butonu
-                        for seq_code, seq_desc in sequence_options.items():
-                            col1, col2, col3 = st.columns([2, 1, 1])
-                            
-                            with col1:
-                                st.write(f"**{seq_desc}**")
-                            
-                            with col2:
-                                if st.button(f"▶️ {seq_code} Dene", key=f"try_{seq_code}"):
-                                    # Mini deneme simülasyonu
-                                    accuracy = random.uniform(60, 95)
-                                    avg_time = random.uniform(1.2, 2.8)
-                                    indecision_rate = random.uniform(5, 25)
-                                    focus_decay = random.uniform(10, 40)
-                                    
-                                    st.session_state.sequence_results[seq_code] = {
-                                        'accuracy_rate': accuracy,
-                                        'avg_time_per_question': avg_time,
-                                        'indecision_rate': indecision_rate,
-                                        'focus_decay_rate': focus_decay,
-                                        'energy_drop_rate': random.uniform(15, 35)
-                                    }
-                                    
-                                    st.success(f"✅ {seq_code} tamamlandı! Doğruluk: {accuracy:.1f}%")
-                            
-                            with col3:
-                                if seq_code in st.session_state.sequence_results:
-                                    result = st.session_state.sequence_results[seq_code]
-                                    st.metric("📊 Başarı", f"{result['accuracy_rate']:.1f}%")
-                        
-                        # Tüm denemeler tamamlandıysa analizi göster
-                        if len(st.session_state.sequence_results) >= 3:
-                            st.success("🎉 Yeterli deneme tamamlandı! Analiz sekmesine geçebilirsiniz.")
-                
-                with mind_route_tab3:
-                    st.markdown("""
-                    <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); 
-                               color: white; border-radius: 20px; padding: 30px; margin: 20px 0; text-align: center;">
-                        <h2 style="margin-bottom: 20px;">📊 3. ANALİZ MOTORU</h2>
-                        <p style="font-size: 1.1rem;">Psikolojik analiz algoritması çalışıyor...</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Session state kontrolü ve başlatma
-                    if 'sequence_results' not in st.session_state:
-                        st.session_state.sequence_results = {}
-                    
-                    if len(st.session_state.sequence_results) < 3:
-                        st.warning("⚠️ En az 3 farklı sıralama denemesi yapın!")
-                    else:
-                        # Analiz hesaplama
-                        mind_data = st.session_state.mind_route_data
-                        
-                        st.markdown("### 🧠 Dikkat ve Enerji Uyumu Analizi")
-                        
-                        # En iyi sıralamayı hesapla
-                        best_sequence = None
-                        best_score = 0
-                        
-                        for seq_code, results in st.session_state.sequence_results.items():
-                            # Kombine skor hesaplama
-                            score = (results['accuracy_rate'] * 0.5 + 
-                                   (100 - results['focus_decay_rate']) * 0.3 + 
-                                   mind_data['decision_speed'] * 0.2)
-                            
-                            if score > best_score:
-                                best_score = score
-                                best_sequence = seq_code
-                        
-                        # Analiz sonuçları
-                        col1, col2 = st.columns(2)
-                        
-                        with col1:
-                            st.markdown("#### 🎯 Dikkat Profil Analizi")
-                            if mind_data['attention_score'] > 70:
-                                st.success("✅ Uzun süre odaklanabiliyorsun → Paragraf/Problem ile başlayabilirsin")
-                            else:
-                                st.warning("⚠️ Dikkatin erken düşüyor → Zor derse başlamamalı")
-                            
-                            st.markdown("#### ⚡ Karar Hızı - Stres Uyumu")
-                            if mind_data['decision_speed'] < 50 and mind_data['stress_tolerance'] < 50:
-                                st.info("💡 Başlangıçta basit, rutin sorular çözmelisin")
-                            else:
-                                st.success("🚀 Analitik problemlerle başlayabilirsin")
-                        
-                        with col2:
-                            st.markdown("#### 🏆 En İyi Sıralaman")
-                            if best_sequence:
-                                sequence_name = sequence_options.get(best_sequence, best_sequence)
-                                st.success(f"🎯 **{sequence_name}**")
-                                st.metric("📊 Başarı Skoru", f"{best_score:.1f}/100")
-                            
-                            st.markdown("#### 💪 Motivasyon Tipin")
-                            motivation_text = {
-                                'Challenge': '🔥 Zorluklardan besleniyorsun',
-                                'Progress': '📈 İlerlemeden motive oluyorsun', 
-                                'Stability': '🎯 Düzenli çalışmayı seviyorsun'
-                            }
-                            
-                            mot_type = mind_data.get('motivation_type', 'Challenge')
-                            st.info(motivation_text.get(mot_type, '🎯 Düzenli tip'))
-                
-                with mind_route_tab4:
-                    st.markdown("""
-                    <div style="background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); 
-                               color: white; border-radius: 20px; padding: 30px; margin: 20px 0; text-align: center;">
-                        <h2 style="margin-bottom: 20px;">🎯 4. SONUÇ RAPORU ÜRETİMİ</h2>
-                        <p style="font-size: 1.1rem;">Kişisel deneme sırası ve psikolojik analiz raporu</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Session state kontrolü ve başlatma
-                    if 'sequence_results' not in st.session_state:
-                        st.session_state.sequence_results = {}
-                    
-                    if len(st.session_state.sequence_results) < 3:
-                        st.warning("⚠️ Rapor için tüm aşamaları tamamlayın!")
-                    else:
-                        mind_data = st.session_state.mind_route_data
-                        
-                        # En iyi sıralamayı bul
-                        best_sequence = None
-                        best_score = 0
-                        
-                        for seq_code, results in st.session_state.sequence_results.items():
-                            score = (results['accuracy_rate'] * 0.5 + 
-                                   (100 - results['focus_decay_rate']) * 0.3 + 
-                                   mind_data['decision_speed'] * 0.2)
-                            
-                            if score > best_score:
-                                best_score = score
-                                best_sequence = seq_code
-                        
-                        # Kişisel Rapor
-                        st.markdown("### 🧬 Zihin Profili")
-                        
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            st.metric("🎯 Dikkat Süresi", f"{mind_data['attention_score']}/100")
-                        with col2:
-                            st.metric("🛡️ Stres Toleransı", f"{mind_data['stress_tolerance']}/100")
-                        with col3:
-                            st.metric("⚡ Karar Hızı", f"{mind_data['decision_speed']}/100")
-                        
-                        # Öğrenme tipi belirleme
-                        if mind_data['decision_speed'] > 70 and mind_data['attention_score'] < 60:
-                            learning_type = "Analitik – düşük stres altında yüksek performans"
-                        elif mind_data['stress_tolerance'] > 70:
-                            learning_type = "Stres Altında Başarılı – basınçla daha iyi çalışır"
-                        elif mind_data['attention_score'] > 75:
-                            learning_type = "Odaklanma Uzmanı – uzun süreli dikkatte güçlü"
-                        else:
-                            learning_type = "Dengeli Tip – orta seviye performans"
-                        
-                        st.markdown(f"**🧠 Öğrenme Tipin:** {learning_type}")
-                        
-                        # En Verimli Deneme Sırası
-                        st.markdown("### 🎯 En Verimli Deneme Sırası Önerisi")
-                        
-                        if best_sequence:
-                            sequence_map = {
-                                "TMFS": "Türkçe → Matematik → Fen → Sosyal",
-                                "MFST": "Matematik → Fen → Sosyal → Türkçe", 
-                                "FTSM": "Fen → Türkçe → Sosyal → Matematik",
-                                "STMF": "Sosyal → Türkçe → Matematik → Fen",
-                                "TSMF": "Türkçe → Sosyal → Matematik → Fen",
-                                "MSTF": "Matematik → Sosyal → Türkçe → Fen"
-                            }
-                            
-                            best_sequence_name = sequence_map.get(best_sequence, best_sequence)
-                            
-                            st.success(f"🏆 **{best_sequence_name}**")
-                            
-                            # Psikolojik Gerekçe
-                            st.markdown("### 💭 Psikolojik Gerekçe")
-                            
-                            if mind_data['decision_speed'] > 70 and mind_data['attention_score'] < 60:
-                                explanation = "Senin karar hızı yüksek ama dikkat süren kısa. Bu yüzden analitik dersle başlamak seni ısıtır, sonra sözel bölüme geçmen zihinsel denge sağlar."
-                            elif mind_data['stress_tolerance'] > 70:
-                                explanation = "Stres altında iyi performans gösteriyorsun. Zor derslerle başlayıp momentum kazanman, sonraki bölümlerde kendine güvenini artırır."
-                            elif mind_data['attention_score'] > 75:
-                                explanation = "Uzun süre odaklanabildiğin için, en zorlu dersleri başa alıp enerjin yüksekken tüketmen mantıklı."
-                            else:
-                                explanation = "Dengeli bir profile sahipsin. Orta zorlukta derslerle başlayıp ritim yakalaman, sonra zor bölümlere geçmen uygun."
-                            
-                            st.info(f"🧠 {explanation}")
-                            
-                            # Tahmini doğruluk oranı
-                            accuracy_estimate = min(85, 70 + (best_score - 60) * 0.5)
-                            st.markdown(f"### 🎯 Tahmini Doğruluk Oranı: **%{accuracy_estimate:.0f}**")
-                            
-                            # Raporu kaydet
-                            if st.button("💾 Raporu Kaydet", use_container_width=True, type="primary"):
-                                # Firebase'e kaydet
-                                username = st.session_state.get('current_user', None)
-                                if username:
-                                    try:
-                                        mind_route_report = {
-                                            'mind_profile': mind_data,
-                                            'best_sequence': best_sequence,
-                                            'best_sequence_name': best_sequence_name,
-                                            'learning_type': learning_type,
-                                            'explanation': explanation,
-                                            'accuracy_estimate': accuracy_estimate,
-                                            'report_date': datetime.now().strftime("%Y-%m-%d %H:%M")
-                                        }
-                                        
-                                        report_json = json.dumps(mind_route_report, ensure_ascii=False)
-                                        update_user_in_firebase(username, {'mind_route_report': report_json})
-                                        st.success("🎉 Zihin Rotası raporu başarıyla kaydedildi!")
-                                        st.balloons()
-                                    except Exception as e:
-                                        st.warning("⚠️ Rapor bu oturum boyunca saklandı.")
-                                else:
-                                    st.warning("⚠️ Giriş yapın ki raporunuz kalıcı olarak saklansın!")
-                
-                # Psikolojik Temel Dayanaklar
-                st.markdown("---")
-                st.markdown("""
-                <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
-                           border-radius: 20px; padding: 30px; margin: 30px 0; border-left: 5px solid #6c757d;">
-                    <h3 style="color: #2d3748; margin-bottom: 20px;">🧠 Psikolojik Temel Dayanaklar</h3>
-                    
-                    <div style="margin: 15px 0;">
-                        <h4 style="color: #495057;">📊 Yerkes–Dodson Yasası</h4>
-                        <p style="color: #6c757d;">Orta düzey stres en yüksek performansı doğurur.</p>
-                    </div>
-                    
-                    <div style="margin: 15px 0;">
-                        <h4 style="color: #495057;">🍅 Pomodoro Prensibi</h4>
-                        <p style="color: #6c757d;">Dikkat döngüsü 25–30 dakikadır.</p>
-                    </div>
-                    
-                    <div style="margin: 15px 0;">
-                        <h4 style="color: #495057;">🧩 Çoklu Zeka & Öğrenme Stili Kuramı</h4>
-                        <p style="color: #6c757d;">Her bireyin bilişsel enerjisi farklı zaman dilimlerinde farklı yoğunlaşır.</p>
-                    </div>
-                    
-                    <div style="margin: 15px 0;">
-                        <h4 style="color: #495057;">⚖️ Kognitif Yük Teorisi</h4>
-                        <p style="color: #6c757d;">Zihinsel enerji sınırlıdır; ders sırası bu yükün dağılımını etkiler.</p>
-                    </div>
-                    
-                    <div style="background: #d1ecf1; padding: 20px; border-radius: 10px; margin-top: 20px;">
-                        <h4 style="color: #0c5460;">💡 Sistem Özeti:</h4>
-                        <ol style="color: #0c5460; margin: 10px 0; padding-left: 20px;">
-                            <li>Öğrenciden psikolojik + performans verisi topla</li>
-                            <li>Mini denemelerle farklı sıralamaları test et</li>
-                            <li>Bilişsel ve duygusal verileri birleştirip analiz et</li>
-                            <li>En verimli sıralamayı öner, her denemede öğren</li>
-                        </ol>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
             
             elif page == "🎯 YKS Canlı Takip":
                 yks_takip_page(user_data)
