@@ -16879,6 +16879,16 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                 # Sistem menüsü
                 mind_route_tab1, mind_route_tab2, mind_route_tab3, mind_route_tab4 = st.tabs(["🧠 Zihin Testi", "🎮 Mini Denemeler", "📊 Analiz Motoru", "🎯 Sonuç Raporu"])
                 
+                # Ortak değişkenler - tüm sekmelerde kullanılacak
+                sequence_options = {
+                    "TMFS": "🔤 Türkçe → Matematik → Fen → Sosyal",
+                    "MFST": "🔢 Matematik → Fen → Sosyal → Türkçe", 
+                    "FTSM": "🔬 Fen → Türkçe → Sosyal → Matematik",
+                    "STMF": "🌍 Sosyal → Türkçe → Matematik → Fen",
+                    "TSMF": "📝 Türkçe → Sosyal → Matematik → Fen",
+                    "MSTF": "🎯 Matematik → Sosyal → Türkçe → Fen"
+                }
+                
                 with mind_route_tab1:
                     st.markdown("""
                     <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); 
@@ -16983,18 +16993,9 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                     if not st.session_state.mind_route_data.get('test_completed', False):
                         st.warning("⚠️ Önce zihin testlerini tamamlayın!")
                     else:
-                        # Deneme sıralamaları
-                        sequence_options = {
-                            "TMFS": "🔤 Türkçe → Matematik → Fen → Sosyal",
-                            "MFST": "🔢 Matematik → Fen → Sosyal → Türkçe", 
-                            "FTSM": "🔬 Fen → Türkçe → Sosyal → Matematik",
-                            "STMF": "🌍 Sosyal → Türkçe → Matematik → Fen",
-                            "TSMF": "📝 Türkçe → Sosyal → Matematik → Fen",
-                            "MSTF": "🎯 Matematik → Sosyal → Türkçe → Fen"
-                        }
-                        
                         st.markdown("### 🎲 Farklı Sıralamalarla Mini Denemeler")
                         
+                        # Session state başlatma
                         if 'sequence_results' not in st.session_state:
                             st.session_state.sequence_results = {}
                         
@@ -17040,6 +17041,10 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                         <p style="font-size: 1.1rem;">Psikolojik analiz algoritması çalışıyor...</p>
                     </div>
                     """, unsafe_allow_html=True)
+                    
+                    # Session state kontrolü ve başlatma
+                    if 'sequence_results' not in st.session_state:
+                        st.session_state.sequence_results = {}
                     
                     if len(st.session_state.sequence_results) < 3:
                         st.warning("⚠️ En az 3 farklı sıralama denemesi yapın!")
@@ -17104,6 +17109,10 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                         <p style="font-size: 1.1rem;">Kişisel deneme sırası ve psikolojik analiz raporu</p>
                     </div>
                     """, unsafe_allow_html=True)
+                    
+                    # Session state kontrolü ve başlatma
+                    if 'sequence_results' not in st.session_state:
+                        st.session_state.sequence_results = {}
                     
                     if len(st.session_state.sequence_results) < 3:
                         st.warning("⚠️ Rapor için tüm aşamaları tamamlayın!")
