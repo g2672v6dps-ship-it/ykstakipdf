@@ -13196,7 +13196,7 @@ def main():
                 # Balloon animasyonu
                 st.balloons()
                 
-                # BİLDİRİM PENCERESI - Ekranın Ortasında Küçük Kutu
+                # PROFESYONEL BİLDİRİM POPUP PENCERESI
                 modal_html = f"""
                 <!DOCTYPE html>
                 <html>
@@ -13213,148 +13213,192 @@ def main():
                             margin: 0;
                             padding: 0;
                             overflow: hidden;
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
                         }}
                         
-                        .notification-overlay {{
+                        .popup-overlay {{
                             position: fixed;
                             top: 0;
                             left: 0;
-                            width: 100vw;
-                            height: 100vh;
-                            background: rgba(0, 0, 0, 0.6);
+                            width: 100%;
+                            height: 100%;
+                            background: rgba(0, 0, 0, 0.75);
                             display: flex;
                             justify-content: center;
                             align-items: center;
-                            z-index: 99999;
-                            animation: fadeIn 0.4s ease-out;
+                            z-index: 999999;
+                            animation: overlayFadeIn 0.3s ease-out;
                         }}
                         
-                        .notification-box {{
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            padding: 40px 35px;
-                            border-radius: 20px;
-                            text-align: center;
-                            color: white;
-                            width: 450px;
-                            max-width: 85vw;
-                            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-                            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-                            border: 3px solid rgba(255,255,255,0.3);
+                        .popup-window {{
+                            background: #ffffff;
+                            width: 500px;
+                            max-width: 90%;
+                            border-radius: 12px;
+                            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                            overflow: hidden;
+                            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                             position: relative;
                         }}
                         
-                        .emoji {{
-                            font-size: 60px;
-                            margin-bottom: 15px;
-                            animation: bounce 1.2s ease-in-out infinite;
+                        .popup-header {{
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            padding: 35px 30px;
+                            text-align: center;
+                            position: relative;
                         }}
                         
-                        h1 {{
-                            font-size: 28px;
-                            margin: 0 0 12px 0;
-                            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-                            font-weight: 700;
-                        }}
-                        
-                        h2 {{
-                            font-size: 20px;
-                            margin: 0 0 15px 0;
-                            opacity: 0.95;
-                            font-weight: 600;
-                        }}
-                        
-                        p {{
-                            font-size: 16px;
-                            line-height: 1.6;
-                            margin: 0;
-                            opacity: 0.9;
-                        }}
-                        
-                        .countdown {{
+                        .close-btn {{
                             position: absolute;
-                            top: 10px;
+                            top: 15px;
                             right: 15px;
-                            background: rgba(255,255,255,0.25);
-                            padding: 6px 12px;
+                            width: 30px;
+                            height: 30px;
+                            background: rgba(255, 255, 255, 0.2);
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            cursor: pointer;
+                            transition: all 0.3s;
+                            font-size: 18px;
+                            color: white;
+                        }}
+                        
+                        .close-btn:hover {{
+                            background: rgba(255, 255, 255, 0.3);
+                            transform: rotate(90deg);
+                        }}
+                        
+                        .timer {{
+                            position: absolute;
+                            top: 15px;
+                            left: 15px;
+                            background: rgba(255, 255, 255, 0.2);
+                            padding: 5px 12px;
                             border-radius: 15px;
-                            font-size: 13px;
+                            font-size: 12px;
+                            color: white;
                             font-weight: 600;
                         }}
                         
-                        @keyframes fadeIn {{
+                        .popup-icon {{
+                            font-size: 70px;
+                            margin-bottom: 15px;
+                            animation: iconBounce 1s ease-in-out infinite;
+                        }}
+                        
+                        .popup-title {{
+                            font-size: 32px;
+                            font-weight: 700;
+                            color: white;
+                            margin: 0;
+                            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+                        }}
+                        
+                        .popup-body {{
+                            padding: 35px 30px;
+                            text-align: center;
+                        }}
+                        
+                        .welcome-subtitle {{
+                            font-size: 20px;
+                            font-weight: 600;
+                            color: #333;
+                            margin-bottom: 20px;
+                        }}
+                        
+                        .welcome-message {{
+                            font-size: 15px;
+                            line-height: 1.7;
+                            color: #666;
+                            margin: 0;
+                        }}
+                        
+                        @keyframes overlayFadeIn {{
                             from {{ opacity: 0; }}
                             to {{ opacity: 1; }}
                         }}
                         
-                        @keyframes popIn {{
-                            0% {{ 
-                                transform: scale(0.3);
+                        @keyframes slideDown {{
+                            from {{
                                 opacity: 0;
+                                transform: translateY(-50px) scale(0.9);
                             }}
-                            50% {{
-                                transform: scale(1.05);
-                            }}
-                            100% {{ 
-                                transform: scale(1);
+                            to {{
                                 opacity: 1;
+                                transform: translateY(0) scale(1);
                             }}
                         }}
                         
-                        @keyframes bounce {{
+                        @keyframes iconBounce {{
                             0%, 100% {{ transform: translateY(0); }}
-                            50% {{ transform: translateY(-10px); }}
+                            50% {{ transform: translateY(-8px); }}
                         }}
                         
                         @keyframes fadeOut {{
-                            from {{ opacity: 1; transform: scale(1); }}
-                            to {{ opacity: 0; transform: scale(0.8); }}
+                            to {{
+                                opacity: 0;
+                                transform: scale(0.95);
+                            }}
                         }}
                     </style>
                 </head>
                 <body>
-                    <div class="notification-overlay" id="welcomeModal">
-                        <div class="notification-box">
-                            <div class="countdown" id="countdown">⏰ 5</div>
-                            <div class="emoji">🎉</div>
-                            <h1>Hoşgeldin {user_name}</h1>
-                            <h2>Ailemize hoşgeldin</h2>
-                            <p>
-                                Burası senin hikayenin başladığı<br>
-                                tamamen senin için ayrılmış bir alan<br>
-                                hedefine beraber yürüyelim
-                            </p>
+                    <div class="popup-overlay" id="popupOverlay">
+                        <div class="popup-window">
+                            <div class="popup-header">
+                                <div class="timer" id="timer">⏰ 5s</div>
+                                <div class="close-btn" onclick="closePopup()">✕</div>
+                                <div class="popup-icon">🎉</div>
+                                <h1 class="popup-title">Hoşgeldin {user_name}!</h1>
+                            </div>
+                            <div class="popup-body">
+                                <p class="welcome-subtitle">Ailemize hoşgeldin</p>
+                                <p class="welcome-message">
+                                    Burası senin hikayenin başladığı tamamen senin için ayrılmış bir alan.<br>
+                                    Hedefine beraber yürüyelim!
+                                </p>
+                            </div>
                         </div>
                     </div>
                     
                     <script>
-                        // Geri sayım
                         let timeLeft = 5;
-                        const countdownEl = document.getElementById('countdown');
+                        const timerEl = document.getElementById('timer');
+                        const overlay = document.getElementById('popupOverlay');
                         
-                        const countdownInterval = setInterval(function() {{
+                        // Geri sayım
+                        const countdown = setInterval(function() {{
                             timeLeft--;
                             if (timeLeft > 0) {{
-                                countdownEl.textContent = '⏰ ' + timeLeft;
+                                timerEl.textContent = '⏰ ' + timeLeft + 's';
                             }} else {{
-                                clearInterval(countdownInterval);
+                                clearInterval(countdown);
+                                closePopup();
                             }}
                         }}, 1000);
                         
-                        // 5 saniye sonra otomatik kapat
-                        setTimeout(function() {{
-                            const modal = document.getElementById('welcomeModal');
-                            modal.style.animation = 'fadeOut 0.5s ease-out';
+                        // Pencereyi kapat
+                        function closePopup() {{
+                            overlay.style.animation = 'fadeOut 0.3s ease-out forwards';
                             setTimeout(function() {{
-                                modal.style.display = 'none';
-                            }}, 500);
-                        }}, 5000);
+                                overlay.style.display = 'none';
+                            }}, 300);
+                        }}
+                        
+                        // Overlay'e tıklanınca kapat
+                        overlay.addEventListener('click', function(e) {{
+                            if (e.target === overlay) {{
+                                closePopup();
+                            }}
+                        }});
                     </script>
                 </body>
                 </html>
                 """
                 
-                # Bildirim penceresini göster
+                # Popup penceresini göster
                 st.components.v1.html(modal_html, height=600, scrolling=False)
                 
                 # 5 saniye bekle
