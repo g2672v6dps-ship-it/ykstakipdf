@@ -69,7 +69,7 @@ def safe_plotly_chart(fig, **kwargs):
 
 # Sayfa yapılandırması
 st.set_page_config(
-    page_title="🎯 Senin Alanın YKS Takip Sistemi",
+    page_title="YKS Takip Sistemi",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -13196,7 +13196,7 @@ def main():
                 # Balloon animasyonu
                 st.balloons()
                 
-                # PROFESYONEL BİLDİRİM POPUP PENCERESI
+                # RESMEKİ GİBİ BASIT POPUP PENCERESİ
                 modal_html = f"""
                 <!DOCTYPE html>
                 <html>
@@ -13213,7 +13213,7 @@ def main():
                             margin: 0;
                             padding: 0;
                             overflow: hidden;
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                         }}
                         
                         .popup-overlay {{
@@ -13222,144 +13222,106 @@ def main():
                             left: 0;
                             width: 100%;
                             height: 100%;
-                            background: rgba(0, 0, 0, 0.75);
+                            background: rgba(0, 0, 0, 0.7);
                             display: flex;
                             justify-content: center;
                             align-items: center;
                             z-index: 999999;
-                            animation: overlayFadeIn 0.3s ease-out;
+                            animation: fadeIn 0.3s ease-out;
                         }}
                         
-                        .popup-window {{
-                            background: #ffffff;
-                            width: 500px;
+                        .popup-box {{
+                            background: linear-gradient(180deg, #8B7FDB 0%, #9D93E3 100%);
+                            width: 400px;
                             max-width: 90%;
-                            border-radius: 12px;
-                            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-                            overflow: hidden;
-                            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-                            position: relative;
-                        }}
-                        
-                        .popup-header {{
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            padding: 35px 30px;
+                            padding: 40px 30px;
+                            border-radius: 16px;
+                            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+                            animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                             text-align: center;
                             position: relative;
-                        }}
-                        
-                        .close-btn {{
-                            position: absolute;
-                            top: 15px;
-                            right: 15px;
-                            width: 30px;
-                            height: 30px;
-                            background: rgba(255, 255, 255, 0.2);
-                            border-radius: 50%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            cursor: pointer;
-                            transition: all 0.3s;
-                            font-size: 18px;
-                            color: white;
-                        }}
-                        
-                        .close-btn:hover {{
-                            background: rgba(255, 255, 255, 0.3);
-                            transform: rotate(90deg);
                         }}
                         
                         .timer {{
                             position: absolute;
-                            top: 15px;
-                            left: 15px;
-                            background: rgba(255, 255, 255, 0.2);
-                            padding: 5px 12px;
-                            border-radius: 15px;
-                            font-size: 12px;
+                            top: 12px;
+                            right: 15px;
+                            background: rgba(255, 255, 255, 0.25);
+                            padding: 4px 10px;
+                            border-radius: 12px;
+                            font-size: 11px;
                             color: white;
                             font-weight: 600;
                         }}
                         
-                        .popup-icon {{
-                            font-size: 70px;
-                            margin-bottom: 15px;
-                            animation: iconBounce 1s ease-in-out infinite;
+                        .icon {{
+                            font-size: 80px;
+                            margin-bottom: 20px;
+                            animation: bounce 1.5s ease-in-out infinite;
                         }}
                         
-                        .popup-title {{
-                            font-size: 32px;
+                        .title {{
+                            font-size: 28px;
                             font-weight: 700;
                             color: white;
-                            margin: 0;
-                            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+                            margin: 0 0 15px 0;
+                            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
                         }}
                         
-                        .popup-body {{
-                            padding: 35px 30px;
-                            text-align: center;
-                        }}
-                        
-                        .welcome-subtitle {{
-                            font-size: 20px;
+                        .subtitle {{
+                            font-size: 18px;
                             font-weight: 600;
-                            color: #333;
-                            margin-bottom: 20px;
+                            color: rgba(255, 255, 255, 0.95);
+                            margin: 0 0 15px 0;
                         }}
                         
-                        .welcome-message {{
-                            font-size: 15px;
-                            line-height: 1.7;
-                            color: #666;
+                        .message {{
+                            font-size: 14px;
+                            line-height: 1.6;
+                            color: rgba(255, 255, 255, 0.9);
                             margin: 0;
                         }}
                         
-                        @keyframes overlayFadeIn {{
+                        @keyframes fadeIn {{
                             from {{ opacity: 0; }}
                             to {{ opacity: 1; }}
                         }}
                         
-                        @keyframes slideDown {{
+                        @keyframes popUp {{
                             from {{
                                 opacity: 0;
-                                transform: translateY(-50px) scale(0.9);
+                                transform: scale(0.7) translateY(-30px);
                             }}
                             to {{
                                 opacity: 1;
-                                transform: translateY(0) scale(1);
+                                transform: scale(1) translateY(0);
                             }}
                         }}
                         
-                        @keyframes iconBounce {{
+                        @keyframes bounce {{
                             0%, 100% {{ transform: translateY(0); }}
-                            50% {{ transform: translateY(-8px); }}
+                            50% {{ transform: translateY(-10px); }}
                         }}
                         
                         @keyframes fadeOut {{
                             to {{
                                 opacity: 0;
-                                transform: scale(0.95);
+                                transform: scale(0.9);
                             }}
                         }}
                     </style>
                 </head>
                 <body>
                     <div class="popup-overlay" id="popupOverlay">
-                        <div class="popup-window">
-                            <div class="popup-header">
-                                <div class="timer" id="timer">⏰ 5s</div>
-                                <div class="close-btn" onclick="closePopup()">✕</div>
-                                <div class="popup-icon">🎉</div>
-                                <h1 class="popup-title">Hoşgeldin {user_name}!</h1>
-                            </div>
-                            <div class="popup-body">
-                                <p class="welcome-subtitle">Ailemize hoşgeldin</p>
-                                <p class="welcome-message">
-                                    Burası senin hikayenin başladığı tamamen senin için ayrılmış bir alan.<br>
-                                    Hedefine beraber yürüyelim!
-                                </p>
-                            </div>
+                        <div class="popup-box">
+                            <div class="timer" id="timer">⏰ 5s</div>
+                            <div class="icon">🎉</div>
+                            <h1 class="title">Hoşgeldin {user_name}!</h1>
+                            <p class="subtitle">Ailemize hoşgeldin</p>
+                            <p class="message">
+                                Burası senin hikayenin başladığı tamamen senin için ayrılmış bir alan.<br>
+                                Hedefine beraber yürüyelim!
+                            </p>
                         </div>
                     </div>
                     
@@ -13368,7 +13330,6 @@ def main():
                         const timerEl = document.getElementById('timer');
                         const overlay = document.getElementById('popupOverlay');
                         
-                        // Geri sayım
                         const countdown = setInterval(function() {{
                             timeLeft--;
                             if (timeLeft > 0) {{
@@ -13379,7 +13340,6 @@ def main():
                             }}
                         }}, 1000);
                         
-                        // Pencereyi kapat
                         function closePopup() {{
                             overlay.style.animation = 'fadeOut 0.3s ease-out forwards';
                             setTimeout(function() {{
@@ -13387,7 +13347,6 @@ def main():
                             }}, 300);
                         }}
                         
-                        // Overlay'e tıklanınca kapat
                         overlay.addEventListener('click', function(e) {{
                             if (e.target === overlay) {{
                                 closePopup();
