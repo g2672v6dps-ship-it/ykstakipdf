@@ -13233,8 +13233,9 @@ def main():
                         
                         /* Ana pencere container */
                         .window-container {{
-                            width: 550px;
-                            max-width: 95%;
+                            width: 80vw;  /* Ekranın %80'i */
+                            max-width: 90vw;
+                            height: 80vh;  /* Ekranın %80'i yükseklik */
                             background: white;
                             border-radius: 12px;
                             overflow: hidden;
