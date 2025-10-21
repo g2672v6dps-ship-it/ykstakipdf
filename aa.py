@@ -110,7 +110,7 @@ def show_welcome_popup(username):
         <h1 style="color: white; margin: 20px 0; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); font-size: 36px;">Hoşgeldin {student_name}!</h1>
         <p style="color: white; font-size: 18px; line-height: 1.6; margin: 25px 0; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);">
             Hoşgeldin ailemize! Burası senin hayallerine giden yolda<br/>
-            sana yoldaş olacak. <strong>"{student_field}"</strong> artık burası senin ❤️
+            sana arkadaş olacak. Unutma burası <strong>"{student_field}"</strong> ❤️
         </p>
     </div>
     
