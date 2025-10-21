@@ -13196,7 +13196,7 @@ def main():
                 # Balloon animasyonu
                 st.balloons()
                 
-                # RESMEKİ GİBİ BASIT POPUP PENCERESİ
+                # GERÇEK PENCERE TASARIMI - WINDOW STYLE POPUP
                 modal_html = f"""
                 <!DOCTYPE html>
                 <html>
@@ -13213,16 +13213,17 @@ def main():
                             margin: 0;
                             padding: 0;
                             overflow: hidden;
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Segoe UI Emoji', sans-serif;
                         }}
                         
+                        /* Koyu arka plan overlay */
                         .popup-overlay {{
                             position: fixed;
                             top: 0;
                             left: 0;
                             width: 100%;
                             height: 100%;
-                            background: rgba(0, 0, 0, 0.7);
+                            background: rgba(0, 0, 0, 0.6);
                             display: flex;
                             justify-content: center;
                             align-items: center;
@@ -13230,98 +13231,163 @@ def main():
                             animation: fadeIn 0.3s ease-out;
                         }}
                         
-                        .popup-box {{
-                            background: linear-gradient(180deg, #8B7FDB 0%, #9D93E3 100%);
-                            width: 400px;
-                            max-width: 90%;
-                            padding: 40px 30px;
-                            border-radius: 16px;
-                            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
-                            animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                            text-align: center;
-                            position: relative;
+                        /* Ana pencere container */
+                        .window-container {{
+                            width: 550px;
+                            max-width: 95%;
+                            background: white;
+                            border-radius: 12px;
+                            overflow: hidden;
+                            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                            animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                         }}
                         
-                        .timer {{
-                            position: absolute;
-                            top: 12px;
-                            right: 15px;
+                        /* Başlık çubuğu (Title bar) */
+                        .window-titlebar {{
+                            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+                            padding: 15px 20px;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+                        }}
+                        
+                        .window-title {{
+                            color: white;
+                            font-size: 16px;
+                            font-weight: 600;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }}
+                        
+                        .window-controls {{
+                            display: flex;
+                            gap: 8px;
+                            align-items: center;
+                        }}
+                        
+                        .timer-badge {{
                             background: rgba(255, 255, 255, 0.25);
+                            color: white;
                             padding: 4px 10px;
                             border-radius: 12px;
                             font-size: 11px;
-                            color: white;
                             font-weight: 600;
                         }}
                         
-                        .icon {{
-                            font-size: 80px;
-                            margin-bottom: 20px;
+                        .close-btn {{
+                            width: 30px;
+                            height: 30px;
+                            border-radius: 6px;
+                            background: rgba(255, 255, 255, 0.2);
+                            border: none;
+                            color: white;
+                            font-size: 18px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            transition: all 0.2s;
+                        }}
+                        
+                        .close-btn:hover {{
+                            background: rgba(255, 77, 77, 0.9);
+                            transform: scale(1.1);
+                        }}
+                        
+                        /* Pencere içeriği - beyaz arka plan */
+                        .window-content {{
+                            background: white;
+                            padding: 50px 35px;
+                            text-align: center;
+                        }}
+                        
+                        .welcome-icon {{
+                            font-size: 90px;
+                            margin-bottom: 25px;
                             animation: bounce 1.5s ease-in-out infinite;
                         }}
                         
-                        .title {{
-                            font-size: 28px;
+                        .welcome-title {{
+                            font-size: 32px;
                             font-weight: 700;
-                            color: white;
-                            margin: 0 0 15px 0;
-                            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                            color: #2d3748;
+                            margin: 0 0 18px 0;
                         }}
                         
-                        .subtitle {{
-                            font-size: 18px;
+                        .welcome-subtitle {{
+                            font-size: 20px;
                             font-weight: 600;
-                            color: rgba(255, 255, 255, 0.95);
-                            margin: 0 0 15px 0;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            -webkit-background-clip: text;
+                            -webkit-text-fill-color: transparent;
+                            background-clip: text;
+                            margin: 0 0 25px 0;
                         }}
                         
-                        .message {{
-                            font-size: 14px;
-                            line-height: 1.6;
-                            color: rgba(255, 255, 255, 0.9);
+                        .welcome-message {{
+                            font-size: 16px;
+                            line-height: 1.7;
+                            color: #4a5568;
                             margin: 0;
                         }}
                         
+                        /* Animasyonlar */
                         @keyframes fadeIn {{
                             from {{ opacity: 0; }}
                             to {{ opacity: 1; }}
                         }}
                         
-                        @keyframes popUp {{
+                        @keyframes slideDown {{
                             from {{
                                 opacity: 0;
-                                transform: scale(0.7) translateY(-30px);
+                                transform: translateY(-50px) scale(0.9);
                             }}
                             to {{
                                 opacity: 1;
-                                transform: scale(1) translateY(0);
+                                transform: translateY(0) scale(1);
                             }}
                         }}
                         
                         @keyframes bounce {{
                             0%, 100% {{ transform: translateY(0); }}
-                            50% {{ transform: translateY(-10px); }}
+                            50% {{ transform: translateY(-12px); }}
                         }}
                         
                         @keyframes fadeOut {{
                             to {{
                                 opacity: 0;
-                                transform: scale(0.9);
+                                transform: translateY(-30px) scale(0.95);
                             }}
                         }}
                     </style>
                 </head>
                 <body>
                     <div class="popup-overlay" id="popupOverlay">
-                        <div class="popup-box">
-                            <div class="timer" id="timer">⏰ 5s</div>
-                            <div class="icon">🎉</div>
-                            <h1 class="title">Hoşgeldin {user_name}!</h1>
-                            <p class="subtitle">Ailemize hoşgeldin</p>
-                            <p class="message">
-                                Burası senin hikayenin başladığı tamamen senin için ayrılmış bir alan.<br>
-                                Hedefine beraber yürüyelim!
-                            </p>
+                        <div class="window-container" id="windowContainer">
+                            <!-- Başlık çubuğu -->
+                            <div class="window-titlebar">
+                                <div class="window-title">
+                                    <span>🎓</span>
+                                    <span>YKS Asistan - Hoşgeldin</span>
+                                </div>
+                                <div class="window-controls">
+                                    <span class="timer-badge" id="timer">⏰ 5s</span>
+                                    <button class="close-btn" onclick="closePopup()" title="Kapat">✕</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Pencere içeriği - beyaz arka plan -->
+                            <div class="window-content">
+                                <div class="welcome-icon">🎉</div>
+                                <h1 class="welcome-title">Hoşgeldin {user_name}!</h1>
+                                <p class="welcome-subtitle">Ailemize hoşgeldin</p>
+                                <p class="welcome-message">
+                                    Burası senin hikayenin başladığı tamamen senin için ayrılmış bir alan.<br>
+                                    Hedefine beraber yürüyelim! 🚀
+                                </p>
+                            </div>
                         </div>
                     </div>
                     
@@ -13329,7 +13395,9 @@ def main():
                         let timeLeft = 5;
                         const timerEl = document.getElementById('timer');
                         const overlay = document.getElementById('popupOverlay');
+                        const windowEl = document.getElementById('windowContainer');
                         
+                        // Geri sayım
                         const countdown = setInterval(function() {{
                             timeLeft--;
                             if (timeLeft > 0) {{
@@ -13340,13 +13408,16 @@ def main():
                             }}
                         }}, 1000);
                         
+                        // Pencereyi kapat
                         function closePopup() {{
+                            windowEl.style.animation = 'fadeOut 0.3s ease-out forwards';
                             overlay.style.animation = 'fadeOut 0.3s ease-out forwards';
                             setTimeout(function() {{
                                 overlay.style.display = 'none';
                             }}, 300);
                         }}
                         
+                        // Overlay'e tıklanınca pencereyi kapat
                         overlay.addEventListener('click', function(e) {{
                             if (e.target === overlay) {{
                                 closePopup();
