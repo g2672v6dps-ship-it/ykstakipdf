@@ -69,7 +69,7 @@ def safe_plotly_chart(fig, **kwargs):
 
 # Sayfa yapılandırması
 st.set_page_config(
-    page_title="YKS Takip Sistemi",
+    page_title="Senin Alanın YKS Takip Sistemi",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -507,6 +507,11 @@ def play_pomodoro_finished_sound():
     @keyframes slideIn {
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     </style>
     
@@ -13167,7 +13172,7 @@ def main():
     
     if st.session_state.current_user is None:
         st.markdown(get_custom_css("Varsayılan"), unsafe_allow_html=True)
-        st.markdown('<div class="main-header"><h1>🎯 YKS Takip Sistemi</h1><p>Hedefine Bilimsel Yaklaşım</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="main-header"><h1>🎯 Senin Alanın YKS Takip Sistemi</h1><p>Hedefine Bilimsel Yaklaşım</p></div>', unsafe_allow_html=True)
         
         st.subheader("🔐 Güvenli Giriş")
         
@@ -13185,8 +13190,67 @@ def main():
         
         if st.button("Giriş Yap", type="primary", use_container_width=True):
             if login_user_secure(username, password):
-                st.success("Giriş başarılı! Hoş geldiniz! 🎯")
-                time.sleep(1)
+                # Sıcak karşılama mesajı
+                # Kullanıcı adını al (current_user sadece username string'i)
+                current_username = st.session_state.get('current_user')
+                
+                # Kullanıcı verilerini veritabanından al
+                users_db = st.session_state.get('users_db', {})
+                user_data = users_db.get(current_username, {})
+                
+                # İsim bilgisini al
+                user_name = user_data.get('name', current_username)
+                if not user_name or user_name.strip() == '':
+                    user_name = current_username
+                
+                # Karşılama balloon animasyonu
+                st.balloons()
+                
+                # MODAL PENCERE - 5 SANİYE DURACAK
+                modal_placeholder = st.empty()
+                
+                with modal_placeholder.container():
+                    # Üst boşluk
+                    st.markdown("<br><br><br>", unsafe_allow_html=True)
+                    
+                    # Ortalı kolon
+                    col1, col2, col3 = st.columns([1, 2, 1])
+                    
+                    with col2:
+                        # Modal pencere kutusu
+                        st.markdown(f"""
+                        <div style="
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            padding: 40px;
+                            border-radius: 20px;
+                            text-align: center;
+                            color: white;
+                            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+                            border: 2px solid rgba(255,255,255,0.2);
+                        ">
+                            <h1 style="color: white; margin: 0 0 20px 0; font-size: 32px;">
+                                Hoşgeldin {user_name}
+                            </h1>
+                            <h2 style="color: white; margin: 0 0 25px 0; font-size: 24px;">
+                                Ailemize hoşgeldin
+                            </h2>
+                            <p style="color: white; font-size: 18px; line-height: 1.6; margin: 0;">
+                                Burası senin hikayenin başladığı tamamen senin için ayrılmış bir alan<br>
+                                hedefine beraber yürüyelim
+                            </p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    # Alt boşluk  
+                    st.markdown("<br><br><br>", unsafe_allow_html=True)
+                
+                # 5 saniye bekle
+                time.sleep(5)
+                
+                # Modal'ı kapat
+                modal_placeholder.empty()
+                
+                # Ana sayfaya yönlendir
                 st.rerun()
             else:
                 st.error("❌ Hatalı kullanıcı adı veya şifre!")
