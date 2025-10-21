@@ -75,6 +75,65 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# === HOŞ GELDİN POPUP FONKSİYONU ===
+@st.dialog("🎉 Hoş Geldin!")
+def show_welcome_popup(username):
+    """
+    Kullanıcı giriş yaptıktan sonra gösterilecek gerçek modal popup
+    Ekranın üstüne çıkan, arka planı karartacak popup
+    """
+    # Gradient arka plan ve güzel stil
+    st.markdown(f"""
+    <style>
+    /* Dialog için özel stiller */
+    div[data-testid="stDialog"] {{
+        background: rgba(0, 0, 0, 0.7) !important;
+    }}
+    div[data-testid="stDialog"] > div {{
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        border-radius: 20px !important;
+        padding: 30px !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+    }}
+    </style>
+    
+    <div style="text-align: center; color: white;">
+        <div style="font-size: 60px; animation: bounce 1s infinite;">🎉</div>
+        <h1 style="color: white; margin: 20px 0; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">Hoş geldin {username}!</h1>
+        <h3 style="color: white; margin: 15px 0; opacity: 0.95;">Ailemize hoş geldin 💫</h3>
+        <p style="color: white; font-size: 16px; opacity: 0.9;">Başarı yolculuğuna bizimle devam et!</p>
+    </div>
+    
+    <style>
+    @keyframes bounce {{
+        0%, 100% {{ transform: translateY(0); }}
+        50% {{ transform: translateY(-10px); }}
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Kapatma butonu
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("✨ Başlayalım!", type="primary", use_container_width=True):
+            st.session_state.welcome_popup_shown = True
+            st.rerun()
+
+def check_and_show_welcome_popup(username):
+    """
+    Popup gösterilmesi gerekiyorsa göster
+    Sadece bir kez gösterilir (session_state ile kontrol edilir)
+    """
+    # İlk kez mi kontrol et
+    if 'welcome_popup_shown' not in st.session_state:
+        st.session_state.welcome_popup_shown = False
+    
+    # Eğer daha önce gösterilmediyse popup'ı aç
+    if not st.session_state.welcome_popup_shown:
+        show_welcome_popup(username)
+
 # === ADMIN PANELİ KONTROLÜ ===
 def check_admin_access():
     """Admin panel erişim kontrolü"""
@@ -13193,6 +13252,10 @@ def main():
                 st.warning("🔒 Bu sisteme sadece kayıtlı öğrenciler erişebilir.")
     
     else:
+        # Hoş geldin popup'ını göster (sadece admin değilse)
+        if not st.session_state.get('admin_logged_in', False):
+            check_and_show_welcome_popup(st.session_state.current_user)
+        
         # 🔐 Admin panel kontrolü - Gizli admin girişi kontrolü
         if st.session_state.get('admin_logged_in', False):
             show_admin_dashboard()
