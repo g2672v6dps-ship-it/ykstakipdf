@@ -13196,17 +13196,24 @@ def main():
                 # Balloon animasyonu
                 st.balloons()
                 
-                # TAM EKRAN MODAL PENCERE - STREAMLIT COMPONENTS İLE
+                # EKRANIN ORTASINDA BÜYÜK PENCERE MODAL
                 modal_html = f"""
                 <!DOCTYPE html>
                 <html>
                 <head>
                     <meta charset="UTF-8">
                     <style>
+                        * {{
+                            margin: 0;
+                            padding: 0;
+                            box-sizing: border-box;
+                        }}
+                        
                         body {{
                             margin: 0;
                             padding: 0;
                             overflow: hidden;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
                         }}
                         
                         .modal-overlay {{
@@ -13215,50 +13222,66 @@ def main():
                             left: 0;
                             width: 100vw;
                             height: 100vh;
-                            background: rgba(0, 0, 0, 0.85);
+                            background: rgba(0, 0, 0, 0.8);
                             display: flex;
                             justify-content: center;
                             align-items: center;
                             z-index: 99999;
-                            animation: fadeIn 0.8s ease-out;
+                            animation: fadeIn 0.5s ease-out;
                         }}
                         
-                        .modal-content {{
+                        .modal-window {{
                             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            padding: 50px 40px;
-                            border-radius: 25px;
+                            padding: 60px 50px;
+                            border-radius: 30px;
                             text-align: center;
                             color: white;
-                            max-width: 600px;
-                            width: 90%;
-                            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-                            animation: slideIn 0.8s ease-out;
-                            border: 3px solid rgba(255,255,255,0.2);
+                            width: 700px;
+                            max-width: 90vw;
+                            box-shadow: 0 25px 80px rgba(0,0,0,0.6);
+                            animation: zoomIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                            border: 4px solid rgba(255,255,255,0.3);
                         }}
                         
                         .emoji {{
-                            font-size: 80px;
-                            margin-bottom: 20px;
-                            animation: bounce 1s infinite;
+                            font-size: 100px;
+                            margin-bottom: 25px;
+                            animation: bounce 1.5s ease-in-out infinite;
+                            display: block;
                         }}
                         
                         h1 {{
-                            font-size: 42px;
-                            margin: 0 0 20px 0;
-                            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                            font-size: 48px;
+                            margin: 0 0 25px 0;
+                            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+                            font-weight: 700;
+                            letter-spacing: 1px;
                         }}
                         
                         h2 {{
-                            font-size: 28px;
-                            margin: 0 0 25px 0;
+                            font-size: 32px;
+                            margin: 0 0 30px 0;
                             opacity: 0.95;
+                            font-weight: 600;
                         }}
                         
                         p {{
-                            font-size: 20px;
-                            line-height: 1.6;
+                            font-size: 22px;
+                            line-height: 1.8;
                             margin: 0;
-                            opacity: 0.9;
+                            opacity: 0.95;
+                            font-weight: 400;
+                        }}
+                        
+                        .countdown {{
+                            position: absolute;
+                            bottom: 20px;
+                            right: 30px;
+                            background: rgba(255,255,255,0.2);
+                            padding: 10px 20px;
+                            border-radius: 20px;
+                            font-size: 16px;
+                            font-weight: 600;
                         }}
                         
                         @keyframes fadeIn {{
@@ -13266,31 +13289,31 @@ def main():
                             to {{ opacity: 1; }}
                         }}
                         
-                        @keyframes slideIn {{
+                        @keyframes zoomIn {{
                             from {{ 
-                                transform: translateY(-50px) scale(0.8);
+                                transform: scale(0.5);
                                 opacity: 0;
                             }}
                             to {{ 
-                                transform: translateY(0) scale(1);
+                                transform: scale(1);
                                 opacity: 1;
                             }}
                         }}
                         
                         @keyframes bounce {{
                             0%, 100% {{ transform: translateY(0); }}
-                            50% {{ transform: translateY(-10px); }}
+                            50% {{ transform: translateY(-15px); }}
                         }}
                         
                         @keyframes fadeOut {{
-                            from {{ opacity: 1; }}
-                            to {{ opacity: 0; }}
+                            from {{ opacity: 1; transform: scale(1); }}
+                            to {{ opacity: 0; transform: scale(0.9); }}
                         }}
                     </style>
                 </head>
                 <body>
                     <div class="modal-overlay" id="welcomeModal">
-                        <div class="modal-content">
+                        <div class="modal-window">
                             <div class="emoji">🎉</div>
                             <h1>Hoşgeldin {user_name}</h1>
                             <h2>Ailemize hoşgeldin</h2>
@@ -13299,25 +13322,40 @@ def main():
                                 tamamen senin için ayrılmış bir alan<br>
                                 hedefine beraber yürüyelim
                             </p>
+                            <div class="countdown" id="countdown">⏰ 5</div>
                         </div>
                     </div>
                     
                     <script>
+                        // Geri sayım
+                        let timeLeft = 5;
+                        const countdownEl = document.getElementById('countdown');
+                        
+                        const countdownInterval = setInterval(function() {{
+                            timeLeft--;
+                            if (timeLeft > 0) {{
+                                countdownEl.textContent = '⏰ ' + timeLeft;
+                            }} else {{
+                                clearInterval(countdownInterval);
+                                countdownEl.textContent = '👋';
+                            }}
+                        }}, 1000);
+                        
                         // 5 saniye sonra otomatik kapat
                         setTimeout(function() {{
                             const modal = document.getElementById('welcomeModal');
-                            modal.style.animation = 'fadeOut 0.5s ease-out';
+                            modal.style.animation = 'fadeOut 0.6s ease-out';
                             setTimeout(function() {{
                                 modal.style.display = 'none';
-                            }}, 500);
+                            }}, 600);
                         }}, 5000);
                     </script>
                 </body>
                 </html>
                 """
                 
-                # Modal'ı göster
-                st.components.v1.html(modal_html, height=600, scrolling=False)
+                # Modal'ı göster - Daha büyük yükseklik
+                st.components.v1.html(modal_html, height=800, scrolling=False)
                 
                 # 5 saniye bekle
                 time.sleep(5)
