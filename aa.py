@@ -69,7 +69,7 @@ def safe_plotly_chart(fig, **kwargs):
 
 # Sayfa yapılandırması
 st.set_page_config(
-    page_title="YKS Takip Sistemi",
+    page_title="🎯 Senin Alanın YKS Takip Sistemi",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -13185,8 +13185,144 @@ def main():
         
         if st.button("Giriş Yap", type="primary", use_container_width=True):
             if login_user_secure(username, password):
-                st.success("Giriş başarılı! Hoş geldiniz! 🎯")
-                time.sleep(1)
+                # Kullanıcı adını al
+                current_username = st.session_state.get('current_user')
+                users_db = st.session_state.get('users_db', {})
+                user_data = users_db.get(current_username, {})
+                user_name = user_data.get('name', current_username)
+                if not user_name or user_name.strip() == '':
+                    user_name = current_username
+                
+                # Balloon animasyonu
+                st.balloons()
+                
+                # TAM EKRAN MODAL PENCERE - STREAMLIT COMPONENTS İLE
+                modal_html = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body {{
+                            margin: 0;
+                            padding: 0;
+                            overflow: hidden;
+                        }}
+                        
+                        .modal-overlay {{
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            width: 100vw;
+                            height: 100vh;
+                            background: rgba(0, 0, 0, 0.85);
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            z-index: 99999;
+                            animation: fadeIn 0.8s ease-out;
+                        }}
+                        
+                        .modal-content {{
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            padding: 50px 40px;
+                            border-radius: 25px;
+                            text-align: center;
+                            color: white;
+                            max-width: 600px;
+                            width: 90%;
+                            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+                            animation: slideIn 0.8s ease-out;
+                            border: 3px solid rgba(255,255,255,0.2);
+                        }}
+                        
+                        .emoji {{
+                            font-size: 80px;
+                            margin-bottom: 20px;
+                            animation: bounce 1s infinite;
+                        }}
+                        
+                        h1 {{
+                            font-size: 42px;
+                            margin: 0 0 20px 0;
+                            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                        }}
+                        
+                        h2 {{
+                            font-size: 28px;
+                            margin: 0 0 25px 0;
+                            opacity: 0.95;
+                        }}
+                        
+                        p {{
+                            font-size: 20px;
+                            line-height: 1.6;
+                            margin: 0;
+                            opacity: 0.9;
+                        }}
+                        
+                        @keyframes fadeIn {{
+                            from {{ opacity: 0; }}
+                            to {{ opacity: 1; }}
+                        }}
+                        
+                        @keyframes slideIn {{
+                            from {{ 
+                                transform: translateY(-50px) scale(0.8);
+                                opacity: 0;
+                            }}
+                            to {{ 
+                                transform: translateY(0) scale(1);
+                                opacity: 1;
+                            }}
+                        }}
+                        
+                        @keyframes bounce {{
+                            0%, 100% {{ transform: translateY(0); }}
+                            50% {{ transform: translateY(-10px); }}
+                        }}
+                        
+                        @keyframes fadeOut {{
+                            from {{ opacity: 1; }}
+                            to {{ opacity: 0; }}
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div class="modal-overlay" id="welcomeModal">
+                        <div class="modal-content">
+                            <div class="emoji">🎉</div>
+                            <h1>Hoşgeldin {user_name}</h1>
+                            <h2>Ailemize hoşgeldin</h2>
+                            <p>
+                                Burası senin hikayenin başladığı<br>
+                                tamamen senin için ayrılmış bir alan<br>
+                                hedefine beraber yürüyelim
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        // 5 saniye sonra otomatik kapat
+                        setTimeout(function() {{
+                            const modal = document.getElementById('welcomeModal');
+                            modal.style.animation = 'fadeOut 0.5s ease-out';
+                            setTimeout(function() {{
+                                modal.style.display = 'none';
+                            }}, 500);
+                        }}, 5000);
+                    </script>
+                </body>
+                </html>
+                """
+                
+                # Modal'ı göster
+                st.components.v1.html(modal_html, height=600, scrolling=False)
+                
+                # 5 saniye bekle
+                time.sleep(5)
+                
+                # Ana sayfaya yönlendir
                 st.rerun()
             else:
                 st.error("❌ Hatalı kullanıcı adı veya şifre!")
