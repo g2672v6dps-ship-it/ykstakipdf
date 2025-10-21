@@ -80,28 +80,38 @@ st.set_page_config(
 def show_welcome_popup(username):
     """
     Kullanıcı giriş yaptıktan sonra gösterilecek gerçek modal popup
-    Ekranın üstüne çıkan, arka planı karartacak popup
+    Ekranın üstüne çıkan, arka planı şeffaf popup
     """
-    # Gradient arka plan ve güzel stil
+    # Kullanıcı verisini al
+    user_data = get_user_data()
+    student_name = user_data.get('name', username)
+    student_field = user_data.get('field', 'YKS')
+    
+    # Şeffaf arka plan ve güzel stil
     st.markdown(f"""
     <style>
-    /* Dialog için özel stiller */
+    /* Dialog için özel stiller - Şeffaf arka plan */
     div[data-testid="stDialog"] {{
         background: rgba(0, 0, 0, 0.7) !important;
     }}
     div[data-testid="stDialog"] > div {{
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        background: rgba(255, 255, 255, 0.15) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
         border-radius: 20px !important;
-        padding: 30px !important;
+        padding: 40px !important;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
     }}
     </style>
     
     <div style="text-align: center; color: white;">
         <div style="font-size: 60px; animation: bounce 1s infinite;">🎉</div>
-        <h1 style="color: white; margin: 20px 0; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">Hoş geldin {username}!</h1>
-        <h3 style="color: white; margin: 15px 0; opacity: 0.95;">Ailemize hoş geldin 💫</h3>
-        <p style="color: white; font-size: 16px; opacity: 0.9;">Başarı yolculuğuna bizimle devam et!</p>
+        <h1 style="color: white; margin: 20px 0; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); font-size: 36px;">Hoşgeldin {student_name}!</h1>
+        <p style="color: white; font-size: 18px; line-height: 1.6; margin: 25px 0; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);">
+            Hoşgeldin ailemize! Burası senin hayallerine giden yolda<br/>
+            sana yoldaş olacak. <strong>"{student_field}"</strong> artık burası senin ❤️
+        </p>
     </div>
     
     <style>
