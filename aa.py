@@ -8175,8 +8175,6 @@ def show_time_strategy_dashboard(weekly_plan):
         st.warning(f"🔥 {days_to_yks} gün kaldı! Yoğun deneme dönemi!")
     elif days_to_yks <= 120:
         st.info(f"💪 {days_to_yks} gün kaldı! Eksikleri kapatma zamanı!")
-    else:
-        st.success(f"📚 {days_to_yks} gün var! Sağlam temel atma dönemi!")
 
 def show_time_based_progress_analysis(user_data, week_info):
     """Günlük/Haftalık/Aylık ilerleme analizi - YKS odaklı"""
