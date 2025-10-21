@@ -13454,8 +13454,8 @@ def main():
                 </html>
                 """
                 
-                # Popup penceresini göster
-                st.components.v1.html(modal_html, height=600, scrolling=False)
+                # Popup penceresini göster - OVERLAY olarak mevcut sayfanın üzerine gelecek
+                st.components.v1.html(modal_html, height=1000, scrolling=False)
                 
                 # 5 saniye bekle
                 time.sleep(5)
