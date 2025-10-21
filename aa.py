@@ -75,6 +75,163 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# === HOŞ GELDİN POPUP FONKSİYONU ===
+def show_welcome_popup(username):
+    """
+    Kullanıcı giriş yaptıktan sonra gösterilecek hoş geldin popup'ı
+    Sadece bir kez gösterilir (session_state ile kontrol edilir)
+    """
+    # Popup gösterildi mi kontrolü
+    if 'welcome_popup_shown' not in st.session_state:
+        st.session_state.welcome_popup_shown = False
+    
+    # Popup kapatma durumu
+    if 'popup_closed' not in st.session_state:
+        st.session_state.popup_closed = False
+    
+    # Eğer popup daha önce gösterilmediyse ve kapatılmadıysa göster
+    if not st.session_state.welcome_popup_shown and not st.session_state.popup_closed:
+        popup_html = f"""
+        <style>
+        /* Arka plan overlay - saydam siyah */
+        .popup-overlay {{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-in;
+        }}
+        
+        /* Popup kartı */
+        .popup-card {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px 50px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            animation: slideDown 0.5s ease-out;
+            text-align: center;
+            color: white;
+        }}
+        
+        /* Kapatma butonu */
+        .close-btn {{
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }}
+        
+        .close-btn:hover {{
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }}
+        
+        /* Popup içeriği */
+        .popup-emoji {{
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }}
+        
+        .popup-title {{
+            font-size: 32px;
+            font-weight: bold;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }}
+        
+        .popup-subtitle {{
+            font-size: 18px;
+            margin: 10px 0;
+            opacity: 0.95;
+        }}
+        
+        .popup-message {{
+            font-size: 16px;
+            margin-top: 15px;
+            opacity: 0.9;
+        }}
+        
+        /* Animasyonlar */
+        @keyframes fadeIn {{
+            from {{ opacity: 0; }}
+            to {{ opacity: 1; }}
+        }}
+        
+        @keyframes slideDown {{
+            from {{
+                transform: translateY(-100px);
+                opacity: 0;
+            }}
+            to {{
+                transform: translateY(0);
+                opacity: 1;
+            }}
+        }}
+        
+        @keyframes bounce {{
+            0%, 100% {{ transform: translateY(0); }}
+            50% {{ transform: translateY(-10px); }}
+        }}
+        </style>
+        
+        <div class="popup-overlay" id="welcomePopup">
+            <div class="popup-card">
+                <button class="close-btn" onclick="closePopup()">×</button>
+                <div class="popup-emoji">🎉</div>
+                <div class="popup-title">Hoş geldin {username}!</div>
+                <div class="popup-subtitle">Ailemize hoş geldin 💫</div>
+                <div class="popup-message">Başarı yolculuğuna bizimle devam et!</div>
+            </div>
+        </div>
+        
+        <script>
+        function closePopup() {{
+            document.getElementById('welcomePopup').style.display = 'none';
+        }}
+        
+        document.getElementById('welcomePopup').addEventListener('click', function(e) {{
+            if (e.target.id === 'welcomePopup') {{
+                closePopup();
+            }}
+        }});
+        
+        setTimeout(function() {{
+            closePopup();
+        }}, 10000);
+        </script>
+        """
+        
+        st.components.v1.html(popup_html, height=600)
+        st.session_state.welcome_popup_shown = True
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("✨ Devam Et", key="close_popup_btn", type="primary", use_container_width=True):
+                st.session_state.popup_closed = True
+                st.rerun()
+
 # === ADMIN PANELİ KONTROLÜ ===
 def check_admin_access():
     """Admin panel erişim kontrolü"""
@@ -13185,288 +13342,18 @@ def main():
         
         if st.button("Giriş Yap", type="primary", use_container_width=True):
             if login_user_secure(username, password):
-                # Kullanıcı adını al
-                current_username = st.session_state.get('current_user')
-                users_db = st.session_state.get('users_db', {})
-                user_data = users_db.get(current_username, {})
-                user_name = user_data.get('name', current_username)
-                if not user_name or user_name.strip() == '':
-                    user_name = current_username
-                
-                # Balloon animasyonu
-                st.balloons()
-                
-                # GERÇEK PENCERE TASARIMI - WINDOW STYLE POPUP
-                modal_html = f"""
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <style>
-                        * {{
-                            margin: 0;
-                            padding: 0;
-                            box-sizing: border-box;
-                        }}
-                        
-                        body {{
-                            margin: 0;
-                            padding: 0;
-                            overflow: hidden;
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Segoe UI Emoji', sans-serif;
-                        }}
-                        
-                        /* Koyu arka plan overlay */
-                        .popup-overlay {{
-                            position: fixed;
-                            top: 0;
-                            left: 0;
-                            width: 100%;
-                            height: 100%;
-                            background: rgba(0, 0, 0, 0.6);
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            z-index: 999999;
-                            animation: fadeIn 0.3s ease-out;
-                        }}
-                        
-                        /* Ana pencere container */
-                        .window-container {{
-                            width: 500px;
-                            max-width: 90%;
-                            background: white;
-                            border-radius: 16px;
-                            overflow: hidden;
-                            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
-                            animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                        }}
-                        
-                        /* Başlık çubuğu (Title bar) */
-                        .window-titlebar {{
-                            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-                            padding: 15px 20px;
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-                        }}
-                        
-                        .window-title {{
-                            color: white;
-                            font-size: 16px;
-                            font-weight: 600;
-                            display: flex;
-                            align-items: center;
-                            gap: 8px;
-                        }}
-                        
-                        .window-controls {{
-                            display: flex;
-                            gap: 8px;
-                            align-items: center;
-                        }}
-                        
-                        .timer-badge {{
-                            background: rgba(255, 255, 255, 0.25);
-                            color: white;
-                            padding: 4px 10px;
-                            border-radius: 12px;
-                            font-size: 11px;
-                            font-weight: 600;
-                        }}
-                        
-                        .close-btn {{
-                            width: 30px;
-                            height: 30px;
-                            border-radius: 6px;
-                            background: rgba(255, 255, 255, 0.2);
-                            border: none;
-                            color: white;
-                            font-size: 18px;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            transition: all 0.2s;
-                        }}
-                        
-                        .close-btn:hover {{
-                            background: rgba(255, 77, 77, 0.9);
-                            transform: scale(1.1);
-                        }}
-                        
-                        /* Üst bölüm - Renkli başlık alanı */
-                        .window-header {{
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            padding: 50px 40px;
-                            text-align: center;
-                        }}
-                        
-                        .window-header .welcome-icon {{
-                            font-size: 70px;
-                            margin-bottom: 20px;
-                            animation: bounce 1.5s ease-in-out infinite;
-                        }}
-                        
-                        .window-header .welcome-title {{
-                            font-size: 32px;
-                            font-weight: 700;
-                            color: white;
-                            margin: 0;
-                            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-                        }}
-                        
-                        /* Alt bölüm - Beyaz içerik alanı */
-                        .window-content {{
-                            background: white;
-                            padding: 40px 40px 50px;
-                            text-align: center;
-                        }}
-                        
-                        .welcome-icon {{
-                            font-size: 90px;
-                            margin-bottom: 25px;
-                            animation: bounce 1.5s ease-in-out infinite;
-                        }}
-                        
-                        .welcome-title {{
-                            font-size: 32px;
-                            font-weight: 700;
-                            color: #2d3748;
-                            margin: 0 0 18px 0;
-                        }}
-                        
-                        .welcome-subtitle {{
-                            font-size: 20px;
-                            font-weight: 600;
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            -webkit-background-clip: text;
-                            -webkit-text-fill-color: transparent;
-                            background-clip: text;
-                            margin: 0 0 25px 0;
-                        }}
-                        
-                        .welcome-message {{
-                            font-size: 16px;
-                            line-height: 1.7;
-                            color: #4a5568;
-                            margin: 0;
-                        }}
-                        
-                        /* Animasyonlar */
-                        @keyframes fadeIn {{
-                            from {{ opacity: 0; }}
-                            to {{ opacity: 1; }}
-                        }}
-                        
-                        @keyframes slideDown {{
-                            from {{
-                                opacity: 0;
-                                transform: translateY(-50px) scale(0.9);
-                            }}
-                            to {{
-                                opacity: 1;
-                                transform: translateY(0) scale(1);
-                            }}
-                        }}
-                        
-                        @keyframes bounce {{
-                            0%, 100% {{ transform: translateY(0); }}
-                            50% {{ transform: translateY(-12px); }}
-                        }}
-                        
-                        @keyframes fadeOut {{
-                            to {{
-                                opacity: 0;
-                                transform: translateY(-30px) scale(0.95);
-                            }}
-                        }}
-                    </style>
-                </head>
-                <body>
-                    <div class="popup-overlay" id="popupOverlay">
-                        <div class="window-container" id="windowContainer">
-                            <!-- Başlık çubuğu -->
-                            <div class="window-titlebar">
-                                <div class="window-title">
-                                    <span>🎓</span>
-                                    <span>YKS Asistan - Hoşgeldin</span>
-                                </div>
-                                <div class="window-controls">
-                                    <span class="timer-badge" id="timer">⏰ 5s</span>
-                                    <button class="close-btn" onclick="closePopup()" title="Kapat">✕</button>
-                                </div>
-                            </div>
-                            
-                            <!-- Pencere içeriği - beyaz arka plan -->
-                            <!-- Üst bölüm - Renkli -->
-                            <div class="window-header">
-                                <div class="welcome-icon">🎉</div>
-                                <h1 class="welcome-title">Hoşgeldin {user_name}!</h1>
-                            </div>
-                            
-                            <!-- Alt bölüm - Beyaz -->
-                            <div class="window-content">
-                                <p class="welcome-subtitle">Ailemize hoşgeldin</p>
-                                <p class="welcome-message">
-                                    Burası senin hikayenin başladığı tamamen senin için ayrılmış bir alan.<br>
-                                    Hedefine beraber yürüyelim! 🚀
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <script>
-                        let timeLeft = 5;
-                        const timerEl = document.getElementById('timer');
-                        const overlay = document.getElementById('popupOverlay');
-                        const windowEl = document.getElementById('windowContainer');
-                        
-                        // Geri sayım
-                        const countdown = setInterval(function() {{
-                            timeLeft--;
-                            if (timeLeft > 0) {{
-                                timerEl.textContent = '⏰ ' + timeLeft + 's';
-                            }} else {{
-                                clearInterval(countdown);
-                                closePopup();
-                            }}
-                        }}, 1000);
-                        
-                        // Pencereyi kapat
-                        function closePopup() {{
-                            windowEl.style.animation = 'fadeOut 0.3s ease-out forwards';
-                            overlay.style.animation = 'fadeOut 0.3s ease-out forwards';
-                            setTimeout(function() {{
-                                overlay.style.display = 'none';
-                            }}, 300);
-                        }}
-                        
-                        // Overlay'e tıklanınca pencereyi kapat
-                        overlay.addEventListener('click', function(e) {{
-                            if (e.target === overlay) {{
-                                closePopup();
-                            }}
-                        }});
-                    </script>
-                </body>
-                </html>
-                """
-                
-                # Popup penceresini göster - OVERLAY olarak mevcut sayfanın üzerine gelecek
-                st.components.v1.html(modal_html, height=1000, scrolling=False)
-                
-                # 5 saniye bekle
-                time.sleep(5)
-                
-                # Ana sayfaya yönlendir
+                st.success("Giriş başarılı! Hoş geldiniz! 🎯")
+                time.sleep(1)
                 st.rerun()
             else:
                 st.error("❌ Hatalı kullanıcı adı veya şifre!")
                 st.warning("🔒 Bu sisteme sadece kayıtlı öğrenciler erişebilir.")
     
     else:
+        # Hoş geldin popup'ını göster (sadece admin değilse)
+        if not st.session_state.get('admin_logged_in', False):
+            show_welcome_popup(st.session_state.current_user)
+        
         # 🔐 Admin panel kontrolü - Gizli admin girişi kontrolü
         if st.session_state.get('admin_logged_in', False):
             show_admin_dashboard()
