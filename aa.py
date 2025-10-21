@@ -13233,13 +13233,12 @@ def main():
                         
                         /* Ana pencere container */
                         .window-container {{
-                            width: 80vw;  /* Ekranın %80'i */
-                            max-width: 90vw;
-                            height: 80vh;  /* Ekranın %80'i yükseklik */
+                            width: 500px;
+                            max-width: 90%;
                             background: white;
-                            border-radius: 12px;
+                            border-radius: 16px;
                             overflow: hidden;
-                            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
                             animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                         }}
                         
@@ -13297,10 +13296,31 @@ def main():
                             transform: scale(1.1);
                         }}
                         
-                        /* Pencere içeriği - beyaz arka plan */
+                        /* Üst bölüm - Renkli başlık alanı */
+                        .window-header {{
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            padding: 50px 40px;
+                            text-align: center;
+                        }}
+                        
+                        .window-header .welcome-icon {{
+                            font-size: 70px;
+                            margin-bottom: 20px;
+                            animation: bounce 1.5s ease-in-out infinite;
+                        }}
+                        
+                        .window-header .welcome-title {{
+                            font-size: 32px;
+                            font-weight: 700;
+                            color: white;
+                            margin: 0;
+                            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+                        }}
+                        
+                        /* Alt bölüm - Beyaz içerik alanı */
                         .window-content {{
                             background: white;
-                            padding: 50px 35px;
+                            padding: 40px 40px 50px;
                             text-align: center;
                         }}
                         
@@ -13380,9 +13400,14 @@ def main():
                             </div>
                             
                             <!-- Pencere içeriği - beyaz arka plan -->
-                            <div class="window-content">
+                            <!-- Üst bölüm - Renkli -->
+                            <div class="window-header">
                                 <div class="welcome-icon">🎉</div>
                                 <h1 class="welcome-title">Hoşgeldin {user_name}!</h1>
+                            </div>
+                            
+                            <!-- Alt bölüm - Beyaz -->
+                            <div class="window-content">
                                 <p class="welcome-subtitle">Ailemize hoşgeldin</p>
                                 <p class="welcome-message">
                                     Burası senin hikayenin başladığı tamamen senin için ayrılmış bir alan.<br>
