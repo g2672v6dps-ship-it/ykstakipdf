@@ -13167,7 +13167,7 @@ def main():
     
     if st.session_state.current_user is None:
         st.markdown(get_custom_css("Varsayılan"), unsafe_allow_html=True)
-        st.markdown('<div class="main-header"><h1>🎯 YKS Takip Sistemi</h1><p>Hedefine Bilimsel Yaklaşım</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="main-header"><h1>🎯"Senin Alanın" YKS Takip Sistemi</h1><p>Hedefine Bilimsel Yaklaşım</p></div>', unsafe_allow_html=True)
         
         st.subheader("🔐 Güvenli Giriş")
         
