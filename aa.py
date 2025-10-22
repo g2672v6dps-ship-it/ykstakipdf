@@ -777,6 +777,10 @@ def update_user_in_firebase(username, data):
             if 'users_db' in st.session_state and username in st.session_state.users_db:
                 st.session_state.users_db[username].update(data)
             
+            # 🔥 EKSTRA: Haftalık plan cache'ini sil
+            if 'weekly_plan_cache' in st.session_state:
+                del st.session_state.weekly_plan_cache
+            
             return True
         else:
             # FALLBACK: Local test kullanıcıları
@@ -788,6 +792,10 @@ def update_user_in_firebase(username, data):
             # 🆕 FALLBACK için de session state güncelle
             if 'users_db' in st.session_state and username in st.session_state.users_db:
                 st.session_state.users_db[username].update(data)
+            
+            # 🔥 EKSTRA: Haftalık plan cache'ini sil
+            if 'weekly_plan_cache' in st.session_state:
+                del st.session_state.weekly_plan_cache
             
             return True
     except Exception as e:
@@ -801,6 +809,10 @@ def update_user_in_firebase(username, data):
         # 🆕 Hata durumunda bile session state güncelle
         if 'users_db' in st.session_state and username in st.session_state.users_db:
             st.session_state.users_db[username].update(data)
+        
+        # 🔥 EKSTRA: Haftalık plan cache'ini sil
+        if 'weekly_plan_cache' in st.session_state:
+            del st.session_state.weekly_plan_cache
         
         return True
     return False
