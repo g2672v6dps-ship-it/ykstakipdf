@@ -12479,8 +12479,8 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             equal_weight_week = 1
         
         # Eşit Ağırlık için 16 haftalık detay planı kullan
-        completed_topics = get_user_pending_topics(user_data)
-        pending_topics = [t for t in completed_topics if t.get('status') == 'incomplete']
+        completed_topics = get_completed_topics_from_user_data(user_data)  # 🆕 DÜZELTİLDİ: Gerçek tamamlanmış konuları al
+        pending_topics = get_user_pending_topics(user_data)  # Bekleyen konuları al
         
         equal_weight_topics = get_equal_weight_weekly_topics(equal_weight_week, completed_topics, pending_topics)
         
@@ -12523,8 +12523,8 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             numerical_week = 1
         
         # Sayısal için 18 haftalık detay planı kullan
-        completed_topics = get_user_pending_topics(user_data)
-        pending_topics = [t for t in completed_topics if t.get('status') == 'incomplete']
+        completed_topics = get_completed_topics_from_user_data(user_data)  # 🆕 DÜZELTİLDİ: Gerçek tamamlanmış konuları al
+        pending_topics = get_user_pending_topics(user_data)  # Bekleyen konuları al
         
         numerical_topics = get_numerical_weekly_topics(numerical_week, completed_topics, pending_topics)
         
@@ -12561,8 +12561,8 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             tyt_msu_week = 1
         
         # TYT & MSÜ için 9 haftalık detay planı kullan
-        completed_topics = get_user_pending_topics(user_data)
-        pending_topics = [t for t in completed_topics if t.get('status') == 'incomplete']
+        completed_topics = get_completed_topics_from_user_data(user_data)  # 🆕 DÜZELTİLDİ: Gerçek tamamlanmış konuları al
+        pending_topics = get_user_pending_topics(user_data)  # Bekleyen konuları al
         
         tyt_msu_topics = get_tyt_msu_weekly_topics(tyt_msu_week, completed_topics, pending_topics, user_data)
         
@@ -12599,8 +12599,8 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             verbal_week = 1
         
         # Sözel için 14 haftalık detay planı kullan
-        completed_topics = get_user_pending_topics(user_data)
-        pending_topics = [t for t in completed_topics if t.get('status') == 'incomplete']
+        completed_topics = get_completed_topics_from_user_data(user_data)  # 🆕 DÜZELTİLDİ: Gerçek tamamlanmış konuları al
+        pending_topics = get_user_pending_topics(user_data)  # Bekleyen konuları al
         
         verbal_topics = get_verbal_weekly_topics(verbal_week, completed_topics, pending_topics)
         
