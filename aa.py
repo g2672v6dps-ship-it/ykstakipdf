@@ -767,10 +767,16 @@ def load_users_from_firebase():
         return {}
 
 def update_user_in_firebase(username, data):
-    """Firebase'de kullanıcı verilerini günceller (Fallback destekli)"""
+    """Firebase'de kullanıcı verilerini günceller (Fallback destekli) + SESSION STATE SENKRONIZASYONU"""
     try:
         if firebase_connected and db_ref:
             db_ref.child(username).update(data)  # ✅ DÜZELTME: /users yolu zaten tanımlı
+            
+            # 🆕 KRİTİK FİX: SESSION STATE'İ ANINDA SENKRONIZE ET!
+            # Bu sayede F5'e basmadan güncel veri görünür
+            if 'users_db' in st.session_state and username in st.session_state.users_db:
+                st.session_state.users_db[username].update(data)
+            
             return True
         else:
             # FALLBACK: Local test kullanıcıları
@@ -778,7 +784,12 @@ def update_user_in_firebase(username, data):
                 if username not in st.session_state.fallback_users:
                     st.session_state.fallback_users[username] = {}
                 st.session_state.fallback_users[username].update(data)
-                return True
+            
+            # 🆕 FALLBACK için de session state güncelle
+            if 'users_db' in st.session_state and username in st.session_state.users_db:
+                st.session_state.users_db[username].update(data)
+            
+            return True
     except Exception as e:
         st.error(f"Firebase veri güncelleme hatası: {e}")
         # FALLBACK: Local test kullanıcıları
@@ -786,7 +797,12 @@ def update_user_in_firebase(username, data):
             if username not in st.session_state.fallback_users:
                 st.session_state.fallback_users[username] = {}
             st.session_state.fallback_users[username].update(data)
-            return True
+        
+        # 🆕 Hata durumunda bile session state güncelle
+        if 'users_db' in st.session_state and username in st.session_state.users_db:
+            st.session_state.users_db[username].update(data)
+        
+        return True
     return False
 
 # === HİBRİT POMODORO SİSTEMİ SABİTLERİ ===
