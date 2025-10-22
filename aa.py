@@ -12726,6 +12726,20 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         
         equal_weight_topics = get_equal_weight_weekly_topics(equal_weight_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
+        # 🆕 ÇÖZÜM B: Eğer tüm konular tamamlanmışsa ve weekly_topics boşsa, otomatik 2. haftaya geç
+        if not equal_weight_topics and equal_weight_week < 16:
+            # Tüm konular tamamlanmış, bir sonraki haftaya geç
+            equal_weight_week += 1
+            user_data['equal_weight_current_week'] = equal_weight_week
+            # Firebase'e kaydet
+            if 'username' in user_data:
+                update_user_in_firebase(user_data['username'], {
+                    'equal_weight_current_week': equal_weight_week
+                })
+            st.success(f"🎉 Tebrikler! {equal_weight_week-1}. haftayı tamamladın! Otomatik olarak {equal_weight_week}. haftaya geçildi.")
+            # Yeni hafta konularını al
+            equal_weight_topics = get_equal_weight_weekly_topics(equal_weight_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
+        
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
             len([t for t in completed_topics_list if t.get('week') == equal_weight_week and t.get('status') == 'completed']),
@@ -12770,6 +12784,20 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         
         numerical_topics = get_numerical_weekly_topics(numerical_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
+        # 🆕 ÇÖZÜM B: Eğer tüm konular tamamlanmışsa ve weekly_topics boşsa, otomatik sonraki haftaya geç
+        if not numerical_topics and numerical_week < 18:
+            # Tüm konular tamamlanmış, bir sonraki haftaya geç
+            numerical_week += 1
+            user_data['numerical_current_week'] = numerical_week
+            # Firebase'e kaydet
+            if 'username' in user_data:
+                update_user_in_firebase(user_data['username'], {
+                    'numerical_current_week': numerical_week
+                })
+            st.success(f"🎉 Tebrikler! {numerical_week-1}. haftayı tamamladın! Otomatik olarak {numerical_week}. haftaya geçildi.")
+            # Yeni hafta konularını al
+            numerical_topics = get_numerical_weekly_topics(numerical_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
+        
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
             len([t for t in completed_topics_list if t.get('week') == numerical_week and t.get('status') == 'completed']),
@@ -12808,6 +12836,20 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         
         tyt_msu_topics = get_tyt_msu_weekly_topics(tyt_msu_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
+        # 🆕 ÇÖZÜM B: Eğer tüm konular tamamlanmışsa ve weekly_topics boşsa, otomatik sonraki haftaya geç
+        if not tyt_msu_topics and tyt_msu_week < 9:
+            # Tüm konular tamamlanmış, bir sonraki haftaya geç
+            tyt_msu_week += 1
+            user_data['tyt_msu_current_week'] = tyt_msu_week
+            # Firebase'e kaydet
+            if 'username' in user_data:
+                update_user_in_firebase(user_data['username'], {
+                    'tyt_msu_current_week': tyt_msu_week
+                })
+            st.success(f"🎉 Tebrikler! {tyt_msu_week-1}. haftayı tamamladın! Otomatik olarak {tyt_msu_week}. haftaya geçildi.")
+            # Yeni hafta konularını al
+            tyt_msu_topics = get_tyt_msu_weekly_topics(tyt_msu_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
+        
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
             len([t for t in completed_topics_list if t.get('week') == tyt_msu_week and t.get('status') == 'completed']),
@@ -12845,6 +12887,20 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         pending_topics = get_user_pending_topics(user_data)  # Bekleyen konuları al
         
         verbal_topics = get_verbal_weekly_topics(verbal_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
+        
+        # 🆕 ÇÖZÜM B: Eğer tüm konular tamamlanmışsa ve weekly_topics boşsa, otomatik sonraki haftaya geç
+        if not verbal_topics and verbal_week < 14:
+            # Tüm konular tamamlanmış, bir sonraki haftaya geç
+            verbal_week += 1
+            user_data['verbal_current_week'] = verbal_week
+            # Firebase'e kaydet
+            if 'username' in user_data:
+                update_user_in_firebase(user_data['username'], {
+                    'verbal_current_week': verbal_week
+                })
+            st.success(f"🎉 Tebrikler! {verbal_week-1}. haftayı tamamladın! Otomatik olarak {verbal_week}. haftaya geçildi.")
+            # Yeni hafta konularını al
+            verbal_topics = get_verbal_weekly_topics(verbal_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
         # TYT Matematik seçeneğini kontrol et
         include_math = st.session_state.get('verbal_include_math', False)
@@ -21256,12 +21312,17 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     # Dinamik hafta bilgisini al
     week_info = get_user_dynamic_week_info(user_data)
     
+    # 🆕 FİX: TYT/AYT ilerleme hesaplaması için projections hesapla
+    days_to_yks = get_current_week_info()['days_to_yks']
+    projections = calculate_completion_projections(user_data, student_field, days_to_yks)
+    
     # Mevcut haftalık plan sistemindeki temel bilgileri al
     base_weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     
     # Dinamik bilgileri ekle
     base_weekly_plan['dynamic_week_info'] = week_info
     base_weekly_plan['is_dynamic'] = True
+    base_weekly_plan['projections'] = projections  # 🆕 FİX: Projections ekle
     
     # Özel dinamik başlık ve açıklama
     base_weekly_plan['dynamic_title'] = f"🔁 {week_info['current_week']}. Haftanız - Gün {week_info['current_day_in_week']}/7"
