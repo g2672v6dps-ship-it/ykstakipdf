@@ -5430,7 +5430,7 @@ YKS_TOPICS = {
         }
     },
     "TYT Matematik": {
-        "Temel Kavramlar":["Sayılar", "Sayı Basamakları","Bölme ve Bölünebilme", "EBOB – EKOK."],
+        "Temel Kavramlar Genel":["Temel Kavramlar","Sayılar", "Sayı Basamakları","Bölme ve Bölünebilme", "EBOB – EKOK."],
         "Temel İşlemler": ["Rasyonel Sayılar", "Basit Eşitsizlikler","Mutlak Değer", "Üslü Sayılar", "Köklü Sayılar"],
         "Problemler":[
 
