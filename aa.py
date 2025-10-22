@@ -7233,7 +7233,7 @@ def has_completed_yks_survey(user_data):
             data = json.loads(survey_data)
             return all(key in data for key in ['program_type', 'daily_subjects', 'study_style', 
                                               'difficult_subjects', 'favorite_subjects', 'sleep_time', 'disliked_subjects', 
-                                              'book_type', 'rest_day'])
+                                              'rest_day'])
         except:
             return False
     return False
@@ -7297,18 +7297,18 @@ def show_yks_survey(user_data):
             "En az sevdiğiniz dersleri seçin (max 3):", all_subjects, max_selections=3
         )
         
-        # Kitap tercihleri
-        st.markdown("### 📖 Kitap Önerileri")
-        book_type = st.selectbox(
-            "Hangi tür kitapları okumayı seversiniz?",
-            list(BOOK_RECOMMENDATIONS.keys())
-        )
-        
-        # Tatil günü
+        # Tatil günü - Tam ve Yarım Gün Seçenekleri
         st.markdown("### 🌴 Dinlenme Günü")
+        st.info("💡 **Tam Gün**: O gün hiç çalışma yapmayacaksınız | **Yarım Gün**: O gün sadece yarım gün çalışacaksınız")
         rest_day = st.selectbox(
-            "Haftanın hangi günü tamamen dinlenmek istersiniz?",
-            ["Pazar", "Cumartesi", "Cuma", "Pazartesi", "Salı", "Çarşamba", "Perşembe"]
+            "Haftanın hangi günü dinlenmek istersiniz?",
+            ["Pazar (Tam Gün)", "Pazar (Yarım Gün)",
+             "Cumartesi (Tam Gün)", "Cumartesi (Yarım Gün)",
+             "Cuma (Tam Gün)", "Cuma (Yarım Gün)",
+             "Pazartesi (Tam Gün)", "Pazartesi (Yarım Gün)",
+             "Salı (Tam Gün)", "Salı (Yarım Gün)",
+             "Çarşamba (Tam Gün)", "Çarşamba (Yarım Gün)",
+             "Perşembe (Tam Gün)", "Perşembe (Yarım Gün)"]
         )
         
         # Form submit
@@ -7321,7 +7321,6 @@ def show_yks_survey(user_data):
                 'favorite_subjects': favorite_subjects,
                 'sleep_time': sleep_option,
                 'disliked_subjects': disliked_subjects,
-                'book_type': book_type,
                 'rest_day': rest_day,
                 'created_at': datetime.now().isoformat()
             }
@@ -8929,7 +8928,15 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
     
     # Günler
     days = ["PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ", "PAZAR"]
-    rest_day = survey_data.get('rest_day', 'Pazar')
+    rest_day_full = survey_data.get('rest_day', 'Pazar (Tam Gün)')
+    
+    # Rest day'i parse et (örn: "Pazar (Tam Gün)" -> "Pazar" ve "Tam Gün")
+    if '(' in rest_day_full:
+        rest_day = rest_day_full.split('(')[0].strip()
+        rest_type = 'Tam Gün' if 'Tam Gün' in rest_day_full else 'Yarım Gün'
+    else:
+        rest_day = rest_day_full
+        rest_type = 'Tam Gün'
     
     # Session state'te planları tut
     if 'day_plans' not in st.session_state:
@@ -8943,7 +8950,10 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
             # Gün başlığı
             if day.title() == rest_day:
                 st.markdown(f"**{day}** 🌴")
-                st.info("🌴 Dinlenme Günü")
+                if rest_type == 'Tam Gün':
+                    st.info("🌴 Tam Dinlenme Günü")
+                else:
+                    st.warning("⚡ Yarım Gün Dinlenme")
             else:
                 st.markdown(f"**{day}**")
                 
