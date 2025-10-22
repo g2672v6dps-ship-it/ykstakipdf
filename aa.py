@@ -5430,7 +5430,7 @@ YKS_TOPICS = {
         }
     },
     "TYT Matematik": {
-        "Temel Kavramlar Genel":["Temel Kavramlar","Sayılar", "Sayı Basamakları","Bölme ve Bölünebilme", "EBOB – EKOK."],
+        "Temel Kavramlar":["Sayılar", "Sayı Basamakları","Bölme ve Bölünebilme", "EBOB – EKOK."],
         "Temel İşlemler": ["Rasyonel Sayılar", "Basit Eşitsizlikler","Mutlak Değer", "Üslü Sayılar", "Köklü Sayılar"],
         "Problemler":[
 
@@ -21416,69 +21416,70 @@ def show_dynamic_week_dashboard(weekly_plan, user_data):
 # ===== DİNAMİK HAFTALIK PLAN ENTEGRASYONU =====
 
 def calculate_weekly_completion_percentage(user_data, weekly_plan):
-    """Bu haftanın hedef konularının tamamlanma yüzdesini hesaplar"""
+    """Bu haftanın hedef konularının tamamlanma yüzdesini hesaplar - DÜZELTİLDİ"""
     import json
     from datetime import datetime, timedelta
     
     try:
-        # Bu hafta programlanmış konuları session'dan al
-        if 'weekly_schedule' not in st.session_state:
-            st.session_state.weekly_schedule = {}
+        # Haftalık plandaki yeni konuları al
+        new_topics = weekly_plan.get('new_topics', [])
+        review_topics = weekly_plan.get('review_topics', [])
+        all_topics = new_topics + review_topics
         
-        weekly_schedule = st.session_state.weekly_schedule
+        if not all_topics:
+            return 50.0  # Varsayılan orta seviye
         
-        # Toplam programlanmış konu sayısı
-        total_scheduled = 0
-        completed_topics = 0
+        # Kullanıcının topic_progress verisini al
+        topic_progress_str = user_data.get('topic_progress', '{}')
+        topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
         
-        # Tüm günlerdeki programlanmış konuları say
-        for day, topics in weekly_schedule.items():
-            for topic in topics:
-                total_scheduled += 1
-                
-                # Konunun tamamlanıp tamamlanmadığını kontrol et
-                topic_key = f"{topic.get('subject', '')}_{topic.get('topic', '')}_{topic.get('detail', '')}"
-                
-                # Session state'de tamamlanma durumu
-                if f"completed_{topic_key}" in st.session_state:
-                    if st.session_state[f"completed_{topic_key}"]:
-                        completed_topics += 1
+        # Tamamlanan konuları say
+        total_topics = len(all_topics)
+        completed_count = 0
         
-        # Eğer hiç program yoksa varsayılan hesaplama
-        if total_scheduled == 0:
-            # Tekrar konularını kontrol et
-            review_topics = weekly_plan.get('review_topics', [])
-            total_scheduled = len(review_topics)
+        for topic in all_topics:
+            subject = topic.get('subject', '')
+            topic_name = topic.get('topic', '')
+            detail = topic.get('detail', '')
             
-            if total_scheduled == 0:
-                return 50.0  # Varsayılan orta seviye
+            # Konunun tamamlanma durumunu kontrol et
+            # Net değeri 14 veya üzeri ise tamamlanmış sayılır
+            net_value = topic.get('net', 0)  # Haftalık plandan direkt net değerini al
             
-            # Tekrar konularının kaçı tamamlandı
-            topic_progress = json.loads(user_data.get('topic_progress', '{}'))
-            for topic in review_topics:
-                topic_key = f"{topic.get('subject', '')}_{topic.get('topic', '')}_{topic.get('detail', '')}"
-                if topic_key in topic_progress:
-                    # Son 7 gün içinde çalışılmış mı?
-                    last_study = topic_progress[topic_key].get('last_study_date', '')
-                    if last_study:
-                        try:
-                            last_date = datetime.fromisoformat(last_study.split('T')[0])
-                            today = datetime.now()
-                            if (today - last_date).days <= 7:
-                                completed_topics += 1
-                        except:
-                            pass
+            # Eğer haftalık planda net yoksa topic_progress'ten kontrol et
+            if net_value == 0:
+                # Olası topic key formatları
+                possible_keys = [
+                    f"{subject} | {topic_name} | {detail}",
+                    f"{subject} | {topic_name}",
+                    topic_name,
+                    detail
+                ]
+                
+                for key in possible_keys:
+                    if key in topic_progress:
+                        topic_data = topic_progress[key]
+                        if isinstance(topic_data, dict):
+                            net_value = int(float(topic_data.get('net', 0)))
+                        else:
+                            try:
+                                net_value = int(float(str(topic_data)))
+                            except:
+                                net_value = 0
+                        break
+            
+            # 14 net ve üzeri tamamlanmış sayılır
+            if net_value >= 14:
+                completed_count += 1
         
         # Tamamlanma yüzdesini hesapla
-        if total_scheduled > 0:
-            completion_percentage = (completed_topics / total_scheduled) * 100
-        else:
-            completion_percentage = 0.0
-            
+        completion_percentage = (completed_count / total_topics) * 100 if total_topics > 0 else 0.0
+        
         return min(completion_percentage, 100.0)  # Max %100
         
     except Exception as e:
         # Hata durumunda güvenli varsayılan
+        print(f"Haftalık tamamlanma hesaplama hatası: {e}")
         return 25.0
 
 def get_next_week_topics(user_data, student_field, survey_data):
@@ -22704,6 +22705,26 @@ YKS_2025_TABAN_PUANLARI = {
         }
     },
     "Eşit Ağırlık": {
+        "Psikoloji": {
+            "Boğaziçi Üniversitesi": {"taban_puan": 500, "kontenjan": 80, "puan_turu": "EA"},
+            "ODTÜ": {"taban_puan": 495, "kontenjan": 90, "puan_turu": "EA"},
+            "Hacettepe Üniversitesi": {"taban_puan": 490, "kontenjan": 100, "puan_turu": "EA"},
+            "Ankara Üniversitesi": {"taban_puan": 485, "kontenjan": 110, "puan_turu": "EA"},
+            "İstanbul Üniversitesi": {"taban_puan": 480, "kontenjan": 95, "puan_turu": "EA"},
+            "Ege Üniversitesi": {"taban_puan": 470, "kontenjan": 85, "puan_turu": "EA"}
+        },
+        "Hukuk": {
+            "İstanbul Üniversitesi": {"taban_puan": 520, "kontenjan": 180, "puan_turu": "EA"},
+            "Ankara Üniversitesi": {"taban_puan": 515, "kontenjan": 200, "puan_turu": "EA"},
+            "Hacettepe Üniversitesi": {"taban_puan": 510, "kontenjan": 160, "puan_turu": "EA"},
+            "Gazi Üniversitesi": {"taban_puan": 490, "kontenjan": 150, "puan_turu": "EA"}
+        },
+        "Öğretmenlik": {
+            "Hacettepe Üniversitesi": {"taban_puan": 480, "kontenjan": 120, "puan_turu": "EA"},
+            "Ankara Üniversitesi": {"taban_puan": 470, "kontenjan": 140, "puan_turu": "EA"},
+            "Gazi Üniversitesi": {"taban_puan": 455, "kontenjan": 160, "puan_turu": "EA"},
+            "Marmara Üniversitesi": {"taban_puan": 445, "kontenjan": 150, "puan_turu": "EA"}
+        },
         "İktisat": {
             "Boğaziçi Üniversitesi": {"taban_puan": 510, "kontenjan": 110, "puan_turu": "EA"},
             "ODTÜ": {"taban_puan": 505, "kontenjan": 120, "puan_turu": "EA"},
