@@ -15152,6 +15152,8 @@ def main():
                                                 # 14+ net ise tamamlama tarihini kaydet
                                                 check_and_update_completion_dates()
                                                 st.session_state.topic_updates.append((detail, new_net))
+                                                # 🔥 KRİTİK: Haftalık hedef konular listesini anında güncelle
+                                                st.rerun()
                                 elif isinstance(sub_topics, list):
                                     # Alt konular liste
                                     for detail in sub_topics:
@@ -15229,6 +15231,8 @@ def main():
                                             # 14+ net ise tamamlama tarihini kaydet
                                             check_and_update_completion_dates()
                                             st.session_state.topic_updates.append((detail, new_net))
+                                            # 🔥 KRİTİK: Haftalık hedef konular listesini anında güncelle
+                                            st.rerun()
                     elif isinstance(subject_content, list):
                         # Ana içerik liste formatındaysa
                         with st.expander(f"📂 {selected_subject} Konuları", expanded=True):
@@ -15307,6 +15311,8 @@ def main():
                                     # 14+ net ise tamamlama tarihini kaydet
                                     check_and_update_completion_dates()
                                     st.session_state.topic_updates.append((detail, new_net))
+                                    # 🔥 KRİTİK: Haftalık hedef konular listesini anında güncelle
+                                    st.rerun()
                     
                     # Toplu güncelleme bildirimi - DOM güvenli
                     if len(st.session_state.topic_updates) > 0:
