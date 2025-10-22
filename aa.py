@@ -3656,7 +3656,7 @@ def get_grade_based_strategy(grade, target_department):
     
     return adjusted_strategy
 
-def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics):
+def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics, user_data=None):
     """Eşit Ağırlık için haftalık konuları getirir - SON DÜZELTİLDİ"""
     if week_number > 16:
         week_number = 16  # Max 16 hafta
@@ -3676,6 +3676,13 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
                 if topic_name:
                     completed_topic_names.add(topic_name)
     
+    # 🔥 KRİTİK: topic_progress'den gerçek net değerlerini al
+    topic_progress = {}
+    if user_data:
+        import json
+        topic_progress_str = user_data.get('topic_progress', '{}')
+        topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
+    
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
     
@@ -3686,6 +3693,20 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
             if topic in completed_topic_names:
                 continue  # Bu konu zaten tamamlanmış, ekleme
             
+            # 🔥 KRİTİK: Gerçek net değerini bul (tüm olası key formatlarını dene)
+            real_net = 0
+            for key, value in topic_progress.items():
+                # "TYT Türkçe | ... | Cümlede Anlam - Neden-Sonuç" veya "Cümlede Anlam - Neden-Sonuç" formatlarını kontrol et
+                if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
+                    if isinstance(value, dict):
+                        real_net = int(float(value.get('net', 0)))
+                    else:
+                        try:
+                            real_net = int(float(str(value)))
+                        except:
+                            real_net = 0
+                    break
+            
             weekly_topics.append({
                 'subject': subject,
                 'topic': topic,
@@ -3693,7 +3714,7 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
                 'priority': 'normal',
                 'difficulty': get_topic_difficulty_by_name(topic),
                 'status': 'planned',
-                'net': 0,  # Varsayılan net sayısı
+                'net': real_net,  # 🔥 Gerçek net değeri!
                 'detail': ''  # Varsayılan detay
             })
     
@@ -3710,7 +3731,7 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
     
     return weekly_topics
 
-def get_numerical_weekly_topics(week_number, completed_topics, pending_topics):
+def get_numerical_weekly_topics(week_number, completed_topics, pending_topics, user_data=None):
     """Sayısal için haftalık konuları getirir - SON DÜZELTİLDİ"""
     if week_number > 18:
         week_number = 18  # Max 18 hafta
@@ -3730,6 +3751,13 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics):
                 if topic_name:
                     completed_topic_names.add(topic_name)
     
+    # 🔥 KRİTİK: topic_progress'den gerçek net değerlerini al
+    topic_progress = {}
+    if user_data:
+        import json
+        topic_progress_str = user_data.get('topic_progress', '{}')
+        topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
+    
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
     
@@ -3740,6 +3768,19 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics):
             if topic in completed_topic_names:
                 continue
             
+            # 🔥 KRİTİK: Gerçek net değerini bul
+            real_net = 0
+            for key, value in topic_progress.items():
+                if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
+                    if isinstance(value, dict):
+                        real_net = int(float(value.get('net', 0)))
+                    else:
+                        try:
+                            real_net = int(float(str(value)))
+                        except:
+                            real_net = 0
+                    break
+            
             weekly_topics.append({
                 'subject': subject,
                 'topic': topic,
@@ -3747,7 +3788,7 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics):
                 'priority': 'normal',
                 'difficulty': get_topic_difficulty_by_name(topic),
                 'status': 'planned',
-                'net': 0,  # Varsayılan net sayısı
+                'net': real_net,  # 🔥 Gerçek net değeri!
                 'detail': ''  # Varsayılan detay
             })
     
@@ -3787,6 +3828,13 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
     # Alt kategori bilgisini al
     sub_category = user_data.get('tyt_msu_sub_category', '') if user_data else ''
     
+    # 🔥 KRİTİK: topic_progress'den gerçek net değerlerini al
+    topic_progress = {}
+    if user_data:
+        import json
+        topic_progress_str = user_data.get('topic_progress', '{}')
+        topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
+    
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
     
@@ -3811,6 +3859,19 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
                 if topic in completed_topic_names:
                     continue
                 
+                # 🔥 KRİTİK: Gerçek net değerini bul
+                real_net = 0
+                for key, value in topic_progress.items():
+                    if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
+                        if isinstance(value, dict):
+                            real_net = int(float(value.get('net', 0)))
+                        else:
+                            try:
+                                real_net = int(float(str(value)))
+                            except:
+                                real_net = 0
+                        break
+                
                 weekly_topics.append({
                     'subject': subject,
                     'topic': topic,
@@ -3818,7 +3879,7 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
                     'priority': 'high',  # Yüksek öncelik
                     'difficulty': get_topic_difficulty_by_name(topic),
                     'status': 'planned',
-                    'net': 0,
+                    'net': real_net,  # 🔥 Gerçek net değeri!
                     'detail': f'⭐ {sub_category} için öncelikli'
                 })
     
@@ -3830,6 +3891,19 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
                 if topic in completed_topic_names:
                     continue
                 
+                # 🔥 KRİTİK: Gerçek net değerini bul
+                real_net = 0
+                for key, value in topic_progress.items():
+                    if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
+                        if isinstance(value, dict):
+                            real_net = int(float(value.get('net', 0)))
+                        else:
+                            try:
+                                real_net = int(float(str(value)))
+                            except:
+                                real_net = 0
+                        break
+                
                 weekly_topics.append({
                     'subject': subject,
                     'topic': topic,
@@ -3837,7 +3911,7 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
                     'priority': 'normal',
                     'difficulty': get_topic_difficulty_by_name(topic),
                     'status': 'planned',
-                    'net': 0,
+                    'net': real_net,  # 🔥 Gerçek net değeri!
                     'detail': ''
                 })
     
@@ -3854,7 +3928,7 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
     
     return weekly_topics
 
-def get_verbal_weekly_topics(week_number, completed_topics, pending_topics):
+def get_verbal_weekly_topics(week_number, completed_topics, pending_topics, user_data=None):
     """Sözel için haftalık konuları getirir - SON DÜZELTİLDİ"""
     if week_number > 14:
         week_number = 14  # Max 14 hafta
@@ -3874,6 +3948,13 @@ def get_verbal_weekly_topics(week_number, completed_topics, pending_topics):
                 if topic_name:
                     completed_topic_names.add(topic_name)
     
+    # 🔥 KRİTİK: topic_progress'den gerçek net değerlerini al
+    topic_progress = {}
+    if user_data:
+        import json
+        topic_progress_str = user_data.get('topic_progress', '{}')
+        topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
+    
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
     
@@ -3884,6 +3965,19 @@ def get_verbal_weekly_topics(week_number, completed_topics, pending_topics):
             if topic in completed_topic_names:
                 continue
             
+            # 🔥 KRİTİK: Gerçek net değerini bul
+            real_net = 0
+            for key, value in topic_progress.items():
+                if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
+                    if isinstance(value, dict):
+                        real_net = int(float(value.get('net', 0)))
+                    else:
+                        try:
+                            real_net = int(float(str(value)))
+                        except:
+                            real_net = 0
+                    break
+            
             weekly_topics.append({
                 'subject': subject,
                 'topic': topic,
@@ -3891,7 +3985,7 @@ def get_verbal_weekly_topics(week_number, completed_topics, pending_topics):
                 'priority': 'normal',
                 'difficulty': get_topic_difficulty_by_name(topic),
                 'status': 'planned',
-                'net': 0,
+                'net': real_net,  # 🔥 Gerçek net değeri!
                 'detail': ''
             })
     
@@ -12630,7 +12724,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)  # 🆕 DÜZELTİLDİ
         pending_topics = get_user_pending_topics(user_data)  # Bekleyen konuları al
         
-        equal_weight_topics = get_equal_weight_weekly_topics(equal_weight_week, (completed_topics_list, completed_topic_names), pending_topics)
+        equal_weight_topics = get_equal_weight_weekly_topics(equal_weight_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
@@ -12674,7 +12768,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)  # 🆕 DÜZELTİLDİ
         pending_topics = get_user_pending_topics(user_data)  # Bekleyen konuları al
         
-        numerical_topics = get_numerical_weekly_topics(numerical_week, (completed_topics_list, completed_topic_names), pending_topics)
+        numerical_topics = get_numerical_weekly_topics(numerical_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
@@ -12750,7 +12844,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)  # 🆕 DÜZELTİLDİ
         pending_topics = get_user_pending_topics(user_data)  # Bekleyen konuları al
         
-        verbal_topics = get_verbal_weekly_topics(verbal_week, (completed_topics_list, completed_topic_names), pending_topics)
+        verbal_topics = get_verbal_weekly_topics(verbal_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
         # TYT Matematik seçeneğini kontrol et
         include_math = st.session_state.get('verbal_include_math', False)
