@@ -21409,11 +21409,28 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     return base_weekly_plan
 
 def create_weekly_calendar(week_info):
-    """📅 7 günlük döngü takvimi oluşturur"""
+    """📅 7 günlük döngü takvimi oluşturur - GERÇEK TAKVİM TARİHLERİYLE"""
+    from datetime import datetime, timedelta
+    
     calendar = []
     
+    # Türkçe gün çevirisi
+    day_translation = {
+        'Monday': 'Pazartesi', 'Tuesday': 'Salı', 'Wednesday': 'Çarşamba',
+        'Thursday': 'Perşembe', 'Friday': 'Cuma', 'Saturday': 'Cumartesi', 'Sunday': 'Pazar'
+    }
+    
+    # Bugünün tarihini al
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Kullanıcının haftasının başlangıç tarihi
+    week_start_date = week_info['week_start_date']
+    
     for day_num in range(1, 8):
-        day_name = week_info['weekday_cycle'][day_num - 1]
+        # 🔥 FİX: Her gün için GERÇEK takvim tarihini hesapla
+        actual_date = week_start_date + timedelta(days=day_num - 1)
+        day_name_english = actual_date.strftime('%A')
+        day_name = day_translation.get(day_name_english, day_name_english)
         
         # Bugün mü?
         is_today = (day_num == week_info['current_day_in_week'])
@@ -21426,7 +21443,8 @@ def create_weekly_calendar(week_info):
         
         calendar.append({
             'day_number': day_num,
-            'day_name': day_name,
+            'day_name': day_name,  # Artık gerçek tarihten geliyor!
+            'actual_date': actual_date.strftime('%d.%m'),  # Ek bilgi
             'is_today': is_today,
             'is_past': is_past,
             'is_future': is_future,
