@@ -3629,20 +3629,24 @@ def get_grade_based_strategy(grade, target_department):
     return adjusted_strategy
 
 def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics):
-    """Eşit Ağırlık için haftalık konuları getirir - DÜZELTİLDİ"""
+    """Eşit Ağırlık için haftalık konuları getirir - SON DÜZELTİLDİ"""
     if week_number > 16:
         week_number = 16  # Max 16 hafta
     
     week_plan = EQUAL_WEIGHT_WEEKLY_PLAN.get(week_number, {})
     weekly_topics = []
     
-    # 🆕 DÜZELTMİŞ: Tamamlanmış konu isimlerini al
-    completed_topic_names = set()
-    if completed_topics:
-        for topic in completed_topics:
-            topic_name = topic.get('topic', '') if isinstance(topic, dict) else str(topic)
-            if topic_name:
-                completed_topic_names.add(topic_name)
+    # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
+    if isinstance(completed_topics, tuple):
+        completed_topics_list, completed_topic_names = completed_topics
+    else:
+        # Eski format ile uyumluluk
+        completed_topic_names = set()
+        if completed_topics:
+            for topic in completed_topics:
+                topic_name = topic.get('topic', '') if isinstance(topic, dict) else str(topic)
+                if topic_name:
+                    completed_topic_names.add(topic_name)
     
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
@@ -3679,20 +3683,24 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
     return weekly_topics
 
 def get_numerical_weekly_topics(week_number, completed_topics, pending_topics):
-    """Sayısal için haftalık konuları getirir - DÜZELTİLDİ"""
+    """Sayısal için haftalık konuları getirir - SON DÜZELTİLDİ"""
     if week_number > 18:
         week_number = 18  # Max 18 hafta
     
     week_plan = NUMERICAL_WEEKLY_PLAN.get(week_number, {})
     weekly_topics = []
     
-    # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al
-    completed_topic_names = set()
-    if completed_topics:
-        for topic in completed_topics:
-            topic_name = topic.get('topic', '') if isinstance(topic, dict) else str(topic)
-            if topic_name:
-                completed_topic_names.add(topic_name)
+    # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
+    if isinstance(completed_topics, tuple):
+        completed_topics_list, completed_topic_names = completed_topics
+    else:
+        # Eski format ile uyumluluk
+        completed_topic_names = set()
+        if completed_topics:
+            for topic in completed_topics:
+                topic_name = topic.get('topic', '') if isinstance(topic, dict) else str(topic)
+                if topic_name:
+                    completed_topic_names.add(topic_name)
     
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
@@ -3729,20 +3737,24 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics):
     return weekly_topics
 
 def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, user_data=None):
-    """TYT & MSÜ için haftalık konuları getirir - DÜZELTİLDİ"""
+    """TYT & MSÜ için haftalık konuları getirir - SON DÜZELTİLDİ"""
     if week_number > 9:
         week_number = 9  # Max 9 hafta
     
     week_plan = TYT_MSU_WEEKLY_PLAN.get(week_number, {})
     weekly_topics = []
     
-    # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al
-    completed_topic_names = set()
-    if completed_topics:
-        for topic in completed_topics:
-            topic_name = topic.get('topic', '') if isinstance(topic, dict) else str(topic)
-            if topic_name:
-                completed_topic_names.add(topic_name)
+    # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
+    if isinstance(completed_topics, tuple):
+        completed_topics_list, completed_topic_names = completed_topics
+    else:
+        # Eski format ile uyumluluk
+        completed_topic_names = set()
+        if completed_topics:
+            for topic in completed_topics:
+                topic_name = topic.get('topic', '') if isinstance(topic, dict) else str(topic)
+                if topic_name:
+                    completed_topic_names.add(topic_name)
     
     # Alt kategori bilgisini al
     sub_category = user_data.get('tyt_msu_sub_category', '') if user_data else ''
@@ -3815,20 +3827,24 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
     return weekly_topics
 
 def get_verbal_weekly_topics(week_number, completed_topics, pending_topics):
-    """Sözel için haftalık konuları getirir - DÜZELTİLDİ"""
+    """Sözel için haftalık konuları getirir - SON DÜZELTİLDİ"""
     if week_number > 14:
         week_number = 14  # Max 14 hafta
     
     week_plan = VERBAL_WEEKLY_PLAN.get(week_number, {})
     weekly_topics = []
     
-    # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al
-    completed_topic_names = set()
-    if completed_topics:
-        for topic in completed_topics:
-            topic_name = topic.get('topic', '') if isinstance(topic, dict) else str(topic)
-            if topic_name:
-                completed_topic_names.add(topic_name)
+    # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
+    if isinstance(completed_topics, tuple):
+        completed_topics_list, completed_topic_names = completed_topics
+    else:
+        # Eski format ile uyumluluk
+        completed_topic_names = set()
+        if completed_topics:
+            for topic in completed_topics:
+                topic_name = topic.get('topic', '') if isinstance(topic, dict) else str(topic)
+                if topic_name:
+                    completed_topic_names.add(topic_name)
     
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
@@ -4731,31 +4747,53 @@ def get_user_pending_topics(user_data):
 
 def get_completed_topics_from_user_data(user_data):
     """
-    🆕 YENİ FONKSİYON: Kullanıcının "iyi" seviyeye getirdiği (net >= 14) konuları döndürür
-    Haftalık plan fonksiyonlarında tamamlanmış konuları filtrelemek için kullanılır
+    🆕 DÜZELTİLDİ: Kullanıcının "iyi" seviyeye getirdiği (net >= 14) konuları döndürür
+    Hem tam formatı hem de sadece konu adını içerir (karşılaştırma için)
     """
     import json
     
     completed_topics = []
+    completed_topic_names = set()  # Hızlı arama için set
     
     # topic_progress'i al
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_str = user_data.get('topic_progress', '{}')
+    if not topic_progress_str:
+        topic_progress_str = '{}'
     
-    for topic_name, topic_data in topic_progress.items():
-        if not isinstance(topic_data, dict):
-            continue
+    topic_progress = json.loads(topic_progress_str)
+    
+    for topic_key, topic_data in topic_progress.items():
+        # Veri formatını kontrol et
+        if isinstance(topic_data, dict):
+            topic_net = topic_data.get('net', 0)
+        elif isinstance(topic_data, (int, float, str)):
+            try:
+                topic_net = int(float(str(topic_data)))
+            except:
+                topic_net = 0
+        else:
+            topic_net = 0
         
         # Net sayısı 14 veya daha fazla ise "iyi" seviye (tamamlanmış)
-        topic_net = topic_data.get('net', 0)
         if topic_net >= 14:
+            # Konu adının son kısmını al (| ile ayrılmış formattan)
+            # Örnek: "TYT Matematik | Temel Kavramlar | None | Sayı Kümeleri" -> "Sayı Kümeleri"
+            topic_parts = topic_key.split(' | ')
+            topic_name_only = topic_parts[-1] if topic_parts else topic_key
+            
             completed_topics.append({
-                'topic': topic_name,
-                'subject': topic_data.get('subject', ''),
+                'topic': topic_key,  # Tam format
+                'topic_name_only': topic_name_only,  # Sadece konu adı
+                'subject': topic_data.get('subject', '') if isinstance(topic_data, dict) else '',
                 'net': topic_net,
                 'status': 'completed'
             })
+            
+            # Hem tam formatı hem de sadece konu adını set'e ekle
+            completed_topic_names.add(topic_key)  # Tam format
+            completed_topic_names.add(topic_name_only)  # Sadece konu adı
     
-    return completed_topics
+    return completed_topics, completed_topic_names
 
 # Kitap önerileri
 BOOK_RECOMMENDATIONS = {
