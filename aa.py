@@ -4207,17 +4207,38 @@ def show_grade_and_target_dashboard(weekly_plan, user_data):
     
     with col3:
         # Kaldırıldı: Sabit hedef net gösterimi
+        # Focus değerini Türkçeleştir
+        focus_raw = grade_strategy.get('focus', 'Denge')
+        focus_mapping = {
+            'eksik_kapama_ve_performans_artirma': 'Konu Tamamlama & Performans',
+            'eksik_kapama_ve_performans_artırma': 'Konu Tamamlama & Performans',
+            'konu_tamamlama': 'Konu Tamamlama',
+            'deneme_odaklı': 'Deneme Odaklı',
+            'maksimum': 'Maksimum',
+            'normal': 'Normal',
+            'rahat': 'Rahat'
+        }
+        focus_display = focus_mapping.get(focus_raw.lower(), focus_raw[:15])
         st.metric(
             "👍 Hedef Yaklaşım",
-            grade_strategy.get('focus', 'Denge')[:15],
+            focus_display,
             help="Sana özel strateji yaklaşımı"
         )
     
     with col4:
         # Kaldırıldı: Sabit hedef net gösterimi
+        # Study pace değerini Türkçeleştir
+        pace_raw = grade_strategy.get('study_pace', 'Normal')
+        pace_mapping = {
+            'maksimum': 'Maksimum',
+            'hızlı': 'Hızlı',
+            'normal': 'Normal',
+            'rahat': 'Rahat'
+        }
+        pace_display = pace_mapping.get(pace_raw.lower(), pace_raw)
         st.metric(
             "📊 Çalışma Temposu",
-            grade_strategy.get('study_pace', 'Normal'),
+            pace_display,
             help="Sana özel çalışma hızı"
         )
     
@@ -22813,13 +22834,14 @@ YKS_2025_TABAN_PUANLARI = {
             "Hacettepe Üniversitesi": {"taban_puan": 452.36, "kontenjan": 80, "puan_turu": "EA"},
             "İstanbul Üniversitesi": {"taban_puan": 447.29, "kontenjan": 95, "puan_turu": "EA"},
             "Ege Üniversitesi": {"taban_puan": 437.84, "kontenjan": 75, "puan_turu": "EA"},
-            "Bursa Uludağ Üniversitesi": {"taban_puan": 425.68, "kontenjan": 65, "puan_turu": "EA"}
+            "Bursa Uludağ Üniversitesi": {"taban_puan": 425.68, "kontenjan": 65, "puan_turu": "EA"},
+            "Ağrı İbrahim Çeçen Üniversitesi": {"taban_puan": 330.40, "kontenjan": 40, "puan_turu": "EA"}
         },
         "Hukuk": {
             "Boğaziçi Üniversitesi": {"taban_puan": 483.20, "kontenjan": 62, "puan_turu": "EA"},
             "İstanbul Üniversitesi": {"taban_puan": 468.45, "kontenjan": 180, "puan_turu": "EA"},
             "Ankara Üniversitesi": {"taban_puan": 465.78, "kontenjan": 200, "puan_turu": "EA"},
-            "Hacettepe Üniversitesi": {"taban_puan": 462.34, "kontenjan": 160, "puan_turu": "EA"},
+            "Hacettepe Üniversitesi": {"taban_puan": 454.98, "kontenjan": 160, "puan_turu": "EA"},
             "Gazi Üniversitesi": {"taban_puan": 448.92, "kontenjan": 150, "puan_turu": "EA"},
             "Bursa Uludağ Üniversitesi": {"taban_puan": 421.17, "kontenjan": 100, "puan_turu": "EA"}
         },
