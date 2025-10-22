@@ -4238,13 +4238,26 @@ def show_equal_weight_special_dashboard(weekly_plan, user_data):
             week_detail = EQUAL_WEIGHT_WEEKLY_PLAN.get(current_week, {})
             topics_by_subject = week_detail.get('topics', {})
             
+            # 🔥 KRİTİK: Tamamlanmış konuları al ve filtrele
+            completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)
+            
             for subject, topics in topics_by_subject.items():
-                st.markdown(f"**🔸 {subject}:**")
-                for topic in topics:
-                    difficulty = get_topic_difficulty_by_name(topic)
-                    difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
-                    st.write(f"• {topic} {difficulty_info['icon']}")
-                st.write("")
+                # Bu dersten gösterilecek konuları filtrele
+                filtered_topics = [t for t in topics if t not in completed_topic_names]
+                
+                if filtered_topics:  # Sadece kalan konular varsa göster
+                    st.markdown(f"**🔸 {subject}:**")
+                    for topic in filtered_topics:
+                        difficulty = get_topic_difficulty_by_name(topic)
+                        difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
+                        st.write(f"• {topic} {difficulty_info['icon']}")
+                    st.write("")
+            
+            # Eğer tüm konular tamamlanmışsa
+            all_topics_count = sum(len(topics) for topics in topics_by_subject.values())
+            remaining_topics_count = sum(len([t for t in topics if t not in completed_topic_names]) for topics in topics_by_subject.values())
+            if remaining_topics_count == 0:
+                st.success(f"🎉 {current_week}. haftanın tüm konularını tamamladınız! Tebrikler!")
     
     # DEBUG: Mevcut haftalık planı göster
     with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
@@ -4364,13 +4377,26 @@ def show_numerical_special_dashboard(weekly_plan, user_data):
             week_detail = NUMERICAL_WEEKLY_PLAN.get(current_week, {})
             topics_by_subject = week_detail.get('topics', {})
             
+            # 🔥 KRİTİK: Tamamlanmış konuları al ve filtrele
+            completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)
+            
             for subject, topics in topics_by_subject.items():
-                st.markdown(f"**🔸 {subject}:**")
-                for topic in topics:
-                    difficulty = get_topic_difficulty_by_name(topic)
-                    difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
-                    st.write(f"• {topic} {difficulty_info['icon']}")
-                st.write("")
+                # Bu dersten gösterilecek konuları filtrele
+                filtered_topics = [t for t in topics if t not in completed_topic_names]
+                
+                if filtered_topics:  # Sadece kalan konular varsa göster
+                    st.markdown(f"**🔸 {subject}:**")
+                    for topic in filtered_topics:
+                        difficulty = get_topic_difficulty_by_name(topic)
+                        difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
+                        st.write(f"• {topic} {difficulty_info['icon']}")
+                    st.write("")
+            
+            # Eğer tüm konular tamamlanmışsa
+            all_topics_count = sum(len(topics) for topics in topics_by_subject.values())
+            remaining_topics_count = sum(len([t for t in topics if t not in completed_topic_names]) for topics in topics_by_subject.values())
+            if remaining_topics_count == 0:
+                st.success(f"🎉 {current_week}. haftanın tüm konularını tamamladınız! Tebrikler!")
     
     # DEBUG: Mevcut haftalık planı göster
     with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
@@ -4515,13 +4541,26 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
             week_detail = TYT_MSU_WEEKLY_PLAN.get(current_week, {})
             topics_by_subject = week_detail.get('topics', {})
             
+            # 🔥 KRİTİK: Tamamlanmış konuları al ve filtrele
+            completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)
+            
             for subject, topics in topics_by_subject.items():
-                st.markdown(f"**🔸 {subject}:**")
-                for topic in topics:
-                    difficulty = get_topic_difficulty_by_name(topic)
-                    difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
-                    st.write(f"• {topic} {difficulty_info['icon']}")
-                st.write("")
+                # Bu dersten gösterilecek konuları filtrele
+                filtered_topics = [t for t in topics if t not in completed_topic_names]
+                
+                if filtered_topics:  # Sadece kalan konular varsa göster
+                    st.markdown(f"**🔸 {subject}:**")
+                    for topic in filtered_topics:
+                        difficulty = get_topic_difficulty_by_name(topic)
+                        difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
+                        st.write(f"• {topic} {difficulty_info['icon']}")
+                    st.write("")
+            
+            # Eğer tüm konular tamamlanmışsa
+            all_topics_count = sum(len(topics) for topics in topics_by_subject.values())
+            remaining_topics_count = sum(len([t for t in topics if t not in completed_topic_names]) for topics in topics_by_subject.values())
+            if remaining_topics_count == 0:
+                st.success(f"🎉 {current_week}. haftanın tüm konularını tamamladınız! Tebrikler!")
     
     # Alt kategoriye göre özel tavsiyeler
     if sub_category.startswith('MSÜ'):
@@ -4679,16 +4718,29 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
             week_detail = VERBAL_WEEKLY_PLAN.get(current_week, {})
             topics_by_subject = week_detail.get('topics', {})
             
+            # 🔥 KRİTİK: Tamamlanmış konuları al ve filtrele
+            completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)
+            
             for subject, topics in topics_by_subject.items():
                 if subject == "TYT Matematik" and not st.session_state.verbal_include_math:
                     continue  # Matematik seçili değilse atla
-                    
-                st.markdown(f"**🔸 {subject}:**")
-                for topic in topics:
-                    difficulty = get_topic_difficulty_by_name(topic)
-                    difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
-                    st.write(f"• {topic} {difficulty_info['icon']}")
-                st.write("")
+                
+                # Bu dersten gösterilecek konuları filtrele
+                filtered_topics = [t for t in topics if t not in completed_topic_names]
+                
+                if filtered_topics:  # Sadece kalan konular varsa göster
+                    st.markdown(f"**🔸 {subject}:**")
+                    for topic in filtered_topics:
+                        difficulty = get_topic_difficulty_by_name(topic)
+                        difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
+                        st.write(f"• {topic} {difficulty_info['icon']}")
+                    st.write("")
+            
+            # Eğer tüm konular tamamlanmışsa
+            all_topics_count = sum(len(topics) for subject, topics in topics_by_subject.items() if subject != "TYT Matematik" or st.session_state.verbal_include_math)
+            remaining_topics_count = sum(len([t for t in topics if t not in completed_topic_names]) for subject, topics in topics_by_subject.items() if subject != "TYT Matematik" or st.session_state.verbal_include_math)
+            if remaining_topics_count == 0:
+                st.success(f"🎉 {current_week}. haftanın tüm konularını tamamladınız! Tebrikler!")
     
     # Sözel için özel tavsiyeler
     st.info("📚 **Sözel Alan Tavsiyeleri:** Felsefe ve Din dersleri kritik önceliğe sahip. Türkçe, Tarih ve Coğrafya ile bütünleşik çalışın. Analitik düşünce ve yorumlama becerilerinizi geliştirin.")
@@ -4775,13 +4827,19 @@ def get_user_pending_topics(user_data):
 
 def get_completed_topics_from_user_data(user_data):
     """
-    🆕 DÜZELTİLDİ: Kullanıcının "iyi" seviyeye getirdiği (net >= 14) konuları döndürür
-    Hem tam formatı hem de sadece konu adını içerir (karşılaştırma için)
+    🔥 TAMAMEN DÜZELTİLDİ: Kullanıcının "iyi" seviyeye getirdiği (net >= 14) konuları döndürür
+    Haftalık plan ile tam uyumlu - tüm olası format kombinasyonları eklenir
     """
     import json
+    import streamlit as st
     
     completed_topics = []
     completed_topic_names = set()  # Hızlı arama için set
+    
+    # 🔍 DEBUG: Fonksiyon çağrıldı
+    debug_mode = st.session_state.get('debug_completed_topics', False)
+    if debug_mode:
+        st.write("🔍 DEBUG: get_completed_topics_from_user_data çağrıldı")
     
     # topic_progress'i al
     topic_progress_str = user_data.get('topic_progress', '{}')
@@ -4804,22 +4862,46 @@ def get_completed_topics_from_user_data(user_data):
         
         # Net sayısı 14 veya daha fazla ise "iyi" seviye (tamamlanmış)
         if topic_net >= 14:
-            # Konu adının son kısmını al (| ile ayrılmış formattan)
-            # Örnek: "TYT Matematik | Temel Kavramlar | None | Sayı Kümeleri" -> "Sayı Kümeleri"
+            # Konu formatını parse et
+            # Format: "TYT Türkçe | Anlam Bilgisi | Cümlede Anlam | Neden-Sonuç"
             topic_parts = topic_key.split(' | ')
-            topic_name_only = topic_parts[-1] if topic_parts else topic_key
             
             completed_topics.append({
                 'topic': topic_key,  # Tam format
-                'topic_name_only': topic_name_only,  # Sadece konu adı
+                'topic_name_only': topic_parts[-1] if topic_parts else topic_key,
                 'subject': topic_data.get('subject', '') if isinstance(topic_data, dict) else '',
                 'net': topic_net,
                 'status': 'completed'
             })
             
-            # Hem tam formatı hem de sadece konu adını set'e ekle
-            completed_topic_names.add(topic_key)  # Tam format
-            completed_topic_names.add(topic_name_only)  # Sadece konu adı
+            # 🔥 KRİTİK: Haftalık plan ile eşleşme için TÜM olası formatları ekle
+            completed_topic_names.add(topic_key)  # Tam format: "TYT Türkçe | Anlam Bilgisi | Cümlede Anlam | Neden-Sonuç"
+            
+            if len(topic_parts) >= 1:
+                completed_topic_names.add(topic_parts[-1])  # Sadece detail: "Neden-Sonuç"
+            
+            if len(topic_parts) >= 3 and topic_parts[-2] != "None":
+                # Main topic - detail kombinasyonu: "Cümlede Anlam - Neden-Sonuç"
+                main_topic_detail = f"{topic_parts[-2]} - {topic_parts[-1]}"
+                completed_topic_names.add(main_topic_detail)
+                
+                # 🔍 DEBUG
+                if debug_mode and "Neden-Sonuç" in topic_parts[-1]:
+                    st.write(f"✅ Eklendi: {main_topic_detail} (net={topic_net})")
+            
+            if len(topic_parts) >= 2:
+                # Category - detail kombinasyonu: "Anlam Bilgisi - Neden-Sonuç"
+                if topic_parts[-3] != "None" if len(topic_parts) > 2 else False:
+                    category_detail = f"{topic_parts[-3]} - {topic_parts[-1]}"
+                    completed_topic_names.add(category_detail)
+    
+    # 🔍 DEBUG: Tamamlanmış konuları göster
+    if debug_mode:
+        st.write(f"📊 Toplam {len(completed_topics)} tamamlanmış konu bulundu")
+        if completed_topic_names:
+            st.write("🔎 Tamamlanmış konu formatları:")
+            for name in sorted(list(completed_topic_names)[:20]):
+                st.write(f"  • {name}")
     
     return completed_topics, completed_topic_names
 
