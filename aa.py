@@ -7854,6 +7854,12 @@ def get_current_week_info():
         7: "Temmuz", 8: "Ağustos", 9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık"
     }
     
+    # 🔥 FİX: Türkçe gün çevirisi ekle
+    day_translation = {
+        'Monday': 'Pazartesi', 'Tuesday': 'Salı', 'Wednesday': 'Çarşamba',
+        'Thursday': 'Perşembe', 'Friday': 'Cuma', 'Saturday': 'Cumartesi', 'Sunday': 'Pazar'
+    }
+    
     # Bu haftanın pazartesini bul
     days_since_monday = today.weekday()  # 0=Pazartesi, 6=Pazar
     monday_this_week = today - timedelta(days=days_since_monday)
@@ -7864,13 +7870,17 @@ def get_current_week_info():
     sunday_str = f"{sunday_this_week.day} {turkish_months[sunday_this_week.month]} {sunday_this_week.year}"
     week_range = f"{monday_str} - {sunday_str}"
     
+    # 🔥 FİX: Bugünün gününü Türkçe döndür
+    current_day_english = today.strftime('%A')
+    current_day_turkish = day_translation.get(current_day_english, current_day_english)
+    
     return {
         'today': today,
         'monday': monday_this_week,
         'sunday': sunday_this_week,
         'week_range': week_range,
         'week_number': today.isocalendar()[1],  # Yılın kaçıncı haftası
-        'current_day': today.strftime('%A'),  # Günün adı
+        'current_day': current_day_turkish,  # 🔥 Artık Türkçe!
         'days_to_yks': calculate_days_to_yks(),  # YKS'ye kalan gün
     }
 
