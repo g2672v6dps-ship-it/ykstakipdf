@@ -13716,10 +13716,6 @@ def main():
                 st.warning("🔒 Bu sisteme sadece kayıtlı öğrenciler erişebilir.")
     
     else:
-        # Hoş geldin popup'ını göster (sadece admin değilse)
-        if not st.session_state.get('admin_logged_in', False):
-            check_and_show_welcome_popup(st.session_state.current_user)
-        
         # 🔐 Admin panel kontrolü - Gizli admin girişi kontrolü
         if st.session_state.get('admin_logged_in', False):
             show_admin_dashboard()
@@ -14277,6 +14273,10 @@ def main():
 
 
         else:
+            # ✨ Hoş geldin popup'ını göster - SADECE prof il tamamlandıktan sonra!
+            if not st.session_state.get('admin_logged_in', False):
+                check_and_show_welcome_popup(st.session_state.current_user)
+            
             target_dept = user_data.get('target_department', 'Varsayılan')
             
             st.markdown(get_custom_css(target_dept), unsafe_allow_html=True)
@@ -21313,25 +21313,24 @@ def get_user_dynamic_week_info(user_data):
         # Bu haftada kalan gün sayısı
         days_left_in_week = 7 - current_day_in_week + 1
         
-        # Gün adları listesi (kayıt gününden başlayarak)
-        weekday_names = [
-            registration_date.strftime('%A'),  # Kayıt günü
-            (registration_date + timedelta(days=1)).strftime('%A'),
-            (registration_date + timedelta(days=2)).strftime('%A'),
-            (registration_date + timedelta(days=3)).strftime('%A'),
-            (registration_date + timedelta(days=4)).strftime('%A'),
-            (registration_date + timedelta(days=5)).strftime('%A'),
-            (registration_date + timedelta(days=6)).strftime('%A')
-        ]
-        
-        # Türkçe gün adlarına çevir
+        # Türkçe gün çevirisi
         day_translation = {
             'Monday': 'Pazartesi', 'Tuesday': 'Salı', 'Wednesday': 'Çarşamba',
             'Thursday': 'Perşembe', 'Friday': 'Cuma', 'Saturday': 'Cumartesi', 'Sunday': 'Pazar'
         }
         
-        turkish_weekdays = [day_translation.get(day, day) for day in weekday_names]
-        current_day_name = turkish_weekdays[current_day_in_week - 1]
+        # 🔥 FİX: Her gün için GERÇEK takvim gününü hesapla (kayıt tarihinden itibaren)
+        turkish_weekdays = []
+        for day_offset in range(7):
+            # Bu hafta döngüsündeki günün gerçek tarihini hesapla
+            actual_date = week_start_date + timedelta(days=day_offset)
+            day_name_english = actual_date.strftime('%A')
+            day_name_turkish = day_translation.get(day_name_english, day_name_english)
+            turkish_weekdays.append(day_name_turkish)
+        
+        # Bugünün gerçek gün ismini al
+        current_day_name = today.strftime('%A')
+        current_day_name = day_translation.get(current_day_name, current_day_name)
         
         return {
             'registration_date': registration_date,
@@ -23447,18 +23446,14 @@ def show_progress_analytics(user_data):
     # Öğrenci adını al
     student_name = user_data.get('name', 'Öğrenci')
     
-    # Hafta bilgilerini al
+    # 🔥 FİX: Kullanıcının KENDİ dinamik hafta bilgisini kullan
+    week_info_dynamic = get_user_dynamic_week_info(user_data)
+    current_day_tr = week_info_dynamic['current_day_name']  # Gerçek gün adı
+    
+    # Genel hafta bilgisi (YKS geri sayımı için)
     week_info = get_current_week_info()
-    current_day = week_info['today'].strftime('%A')
     sunday_check = week_info['sunday']
     days_to_yks = week_info['days_to_yks']
-    
-    # Türkçe gün çevirisi
-    day_names = {
-        'Monday': 'Pazartesi', 'Tuesday': 'Salı', 'Wednesday': 'Çarşamba',
-        'Thursday': 'Perşembe', 'Friday': 'Cuma', 'Saturday': 'Cumartesi', 'Sunday': 'Pazar'
-    }
-    current_day_tr = day_names.get(current_day, current_day)
     
     # Modern başlık
     st.markdown(f"""
