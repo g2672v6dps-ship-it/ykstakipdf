@@ -21306,8 +21306,8 @@ def get_user_dynamic_week_info(user_data):
         current_week = (days_since_registration // 7) + 1  # 1. hafta, 2. hafta...
         current_day_in_week = (days_since_registration % 7) + 1  # Haftanın 1-7. günü
         
-        # Hafta başlanğıç ve bitiş tarihleri
-        week_start_date = registration_date + timedelta(days=(current_week - 1) * 7)
+        # 🔥 TAMAMEN YENİ FİX: Hafta başlangıcını BUGÜNDEN geriye hesapla (gerçek takvim!)
+        week_start_date = today - timedelta(days=current_day_in_week - 1)
         week_end_date = week_start_date + timedelta(days=6)
         
         # Bu haftada kalan gün sayısı
