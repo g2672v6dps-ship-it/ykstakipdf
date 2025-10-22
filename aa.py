@@ -7149,6 +7149,16 @@ def clear_outdated_session_data():
             st.session_state.day_plans = {day: [] for day in ["PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ", "PAZAR"]}
 
 def yks_takip_page(user_data):
+    # 🆕 FİX: Fresh user data çek - Her sayfa yüklenmesinde güncel veri
+    current_user = st.session_state.get('current_user')
+    if current_user:
+        # Firebase'den güncel veriyi çek
+        if 'users_db' in st.session_state:
+            fresh_users_db = load_users_from_firebase()
+            if fresh_users_db and current_user in fresh_users_db:
+                user_data = fresh_users_db[current_user]
+                st.session_state.users_db = fresh_users_db  # Session state'i de güncelle
+    
     # Eski session verilerini temizle - her gün güncel sistem!
     clear_outdated_session_data()
     
@@ -12726,19 +12736,26 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         
         equal_weight_topics = get_equal_weight_weekly_topics(equal_weight_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
-        # 🆕 ÇÖZÜM B: Eğer tüm konular tamamlanmışsa ve weekly_topics boşsa, otomatik 2. haftaya geç
-        if not equal_weight_topics and equal_weight_week < 16:
-            # Tüm konular tamamlanmış, bir sonraki haftaya geç
-            equal_weight_week += 1
-            user_data['equal_weight_current_week'] = equal_weight_week
-            # Firebase'e kaydet
-            if 'username' in user_data:
-                update_user_in_firebase(user_data['username'], {
-                    'equal_weight_current_week': equal_weight_week
-                })
-            st.success(f"🎉 Tebrikler! {equal_weight_week-1}. haftayı tamamladın! Otomatik olarak {equal_weight_week}. haftaya geçildi.")
-            # Yeni hafta konularını al
-            equal_weight_topics = get_equal_weight_weekly_topics(equal_weight_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
+        # 🆕 %80 İLERLEME KONTROLÜ: O haftanın konularında %80 ilerleme varsa otomatik geçiş
+        # O haftanın tamamlanmış konu sayısını hesapla
+        completed_in_week = len([t for t in completed_topics_list if t.get('week') == equal_weight_week and t.get('status') == 'completed'])
+        total_in_week = len([t for t in equal_weight_topics if t.get('week') == equal_weight_week])
+        
+        if total_in_week > 0:  # Bölme hatasını önle
+            week_completion = (completed_in_week / total_in_week) * 100
+            
+            if week_completion >= 80 and equal_weight_week < 16:
+                # %80 veya üstü tamamlanmış, otomatik bir sonraki haftaya geç
+                equal_weight_week += 1
+                user_data['equal_weight_current_week'] = equal_weight_week
+                # Firebase'e kaydet
+                if 'username' in user_data:
+                    update_user_in_firebase(user_data['username'], {
+                        'equal_weight_current_week': equal_weight_week
+                    })
+                st.success(f"🎉 Tebrikler! {equal_weight_week-1}. haftanın %{week_completion:.1f}'ini tamamladın! Otomatik olarak {equal_weight_week}. haftaya geçildi.")
+                # Yeni hafta konularını al
+                equal_weight_topics = get_equal_weight_weekly_topics(equal_weight_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
@@ -12784,19 +12801,26 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         
         numerical_topics = get_numerical_weekly_topics(numerical_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
-        # 🆕 ÇÖZÜM B: Eğer tüm konular tamamlanmışsa ve weekly_topics boşsa, otomatik sonraki haftaya geç
-        if not numerical_topics and numerical_week < 18:
-            # Tüm konular tamamlanmış, bir sonraki haftaya geç
-            numerical_week += 1
-            user_data['numerical_current_week'] = numerical_week
-            # Firebase'e kaydet
-            if 'username' in user_data:
-                update_user_in_firebase(user_data['username'], {
-                    'numerical_current_week': numerical_week
-                })
-            st.success(f"🎉 Tebrikler! {numerical_week-1}. haftayı tamamladın! Otomatik olarak {numerical_week}. haftaya geçildi.")
-            # Yeni hafta konularını al
-            numerical_topics = get_numerical_weekly_topics(numerical_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
+        # 🆕 %80 İLERLEME KONTROLÜ: O haftanın konularında %80 ilerleme varsa otomatik geçiş
+        # O haftanın tamamlanmış konu sayısını hesapla
+        completed_in_week = len([t for t in completed_topics_list if t.get('week') == numerical_week and t.get('status') == 'completed'])
+        total_in_week = len([t for t in numerical_topics if t.get('week') == numerical_week])
+        
+        if total_in_week > 0:  # Bölme hatasını önle
+            week_completion = (completed_in_week / total_in_week) * 100
+            
+            if week_completion >= 80 and numerical_week < 18:
+                # %80 veya üstü tamamlanmış, otomatik bir sonraki haftaya geç
+                numerical_week += 1
+                user_data['numerical_current_week'] = numerical_week
+                # Firebase'e kaydet
+                if 'username' in user_data:
+                    update_user_in_firebase(user_data['username'], {
+                        'numerical_current_week': numerical_week
+                    })
+                st.success(f"🎉 Tebrikler! {numerical_week-1}. haftanın %{week_completion:.1f}'ini tamamladın! Otomatik olarak {numerical_week}. haftaya geçildi.")
+                # Yeni hafta konularını al
+                numerical_topics = get_numerical_weekly_topics(numerical_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
@@ -12836,19 +12860,26 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         
         tyt_msu_topics = get_tyt_msu_weekly_topics(tyt_msu_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
-        # 🆕 ÇÖZÜM B: Eğer tüm konular tamamlanmışsa ve weekly_topics boşsa, otomatik sonraki haftaya geç
-        if not tyt_msu_topics and tyt_msu_week < 9:
-            # Tüm konular tamamlanmış, bir sonraki haftaya geç
-            tyt_msu_week += 1
-            user_data['tyt_msu_current_week'] = tyt_msu_week
-            # Firebase'e kaydet
-            if 'username' in user_data:
-                update_user_in_firebase(user_data['username'], {
-                    'tyt_msu_current_week': tyt_msu_week
-                })
-            st.success(f"🎉 Tebrikler! {tyt_msu_week-1}. haftayı tamamladın! Otomatik olarak {tyt_msu_week}. haftaya geçildi.")
-            # Yeni hafta konularını al
-            tyt_msu_topics = get_tyt_msu_weekly_topics(tyt_msu_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
+        # 🆕 %80 İLERLEME KONTROLÜ: O haftanın konularında %80 ilerleme varsa otomatik geçiş
+        # O haftanın tamamlanmış konu sayısını hesapla
+        completed_in_week = len([t for t in completed_topics_list if t.get('week') == tyt_msu_week and t.get('status') == 'completed'])
+        total_in_week = len([t for t in tyt_msu_topics if t.get('week') == tyt_msu_week])
+        
+        if total_in_week > 0:  # Bölme hatasını önle
+            week_completion = (completed_in_week / total_in_week) * 100
+            
+            if week_completion >= 80 and tyt_msu_week < 9:
+                # %80 veya üstü tamamlanmış, otomatik bir sonraki haftaya geç
+                tyt_msu_week += 1
+                user_data['tyt_msu_current_week'] = tyt_msu_week
+                # Firebase'e kaydet
+                if 'username' in user_data:
+                    update_user_in_firebase(user_data['username'], {
+                        'tyt_msu_current_week': tyt_msu_week
+                    })
+                st.success(f"🎉 Tebrikler! {tyt_msu_week-1}. haftanın %{week_completion:.1f}'ini tamamladın! Otomatik olarak {tyt_msu_week}. haftaya geçildi.")
+                # Yeni hafta konularını al
+                tyt_msu_topics = get_tyt_msu_weekly_topics(tyt_msu_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
@@ -12888,19 +12919,26 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         
         verbal_topics = get_verbal_weekly_topics(verbal_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
-        # 🆕 ÇÖZÜM B: Eğer tüm konular tamamlanmışsa ve weekly_topics boşsa, otomatik sonraki haftaya geç
-        if not verbal_topics and verbal_week < 14:
-            # Tüm konular tamamlanmış, bir sonraki haftaya geç
-            verbal_week += 1
-            user_data['verbal_current_week'] = verbal_week
-            # Firebase'e kaydet
-            if 'username' in user_data:
-                update_user_in_firebase(user_data['username'], {
-                    'verbal_current_week': verbal_week
-                })
-            st.success(f"🎉 Tebrikler! {verbal_week-1}. haftayı tamamladın! Otomatik olarak {verbal_week}. haftaya geçildi.")
-            # Yeni hafta konularını al
-            verbal_topics = get_verbal_weekly_topics(verbal_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
+        # 🆕 %80 İLERLEME KONTROLÜ: O haftanın konularında %80 ilerleme varsa otomatik geçiş
+        # O haftanın tamamlanmış konu sayısını hesapla
+        completed_in_week = len([t for t in completed_topics_list if t.get('week') == verbal_week and t.get('status') == 'completed'])
+        total_in_week = len([t for t in verbal_topics if t.get('week') == verbal_week])
+        
+        if total_in_week > 0:  # Bölme hatasını önle
+            week_completion = (completed_in_week / total_in_week) * 100
+            
+            if week_completion >= 80 and verbal_week < 14:
+                # %80 veya üstü tamamlanmış, otomatik bir sonraki haftaya geç
+                verbal_week += 1
+                user_data['verbal_current_week'] = verbal_week
+                # Firebase'e kaydet
+                if 'username' in user_data:
+                    update_user_in_firebase(user_data['username'], {
+                        'verbal_current_week': verbal_week
+                    })
+                st.success(f"🎉 Tebrikler! {verbal_week-1}. haftanın %{week_completion:.1f}'ini tamamladın! Otomatik olarak {verbal_week}. haftaya geçildi.")
+                # Yeni hafta konularını al
+                verbal_topics = get_verbal_weekly_topics(verbal_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
         
         # TYT Matematik seçeneğini kontrol et
         include_math = st.session_state.get('verbal_include_math', False)
