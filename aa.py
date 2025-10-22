@@ -135,14 +135,20 @@ def check_and_show_welcome_popup(username):
     """
     Popup gösterilmesi gerekiyorsa göster
     Sadece bir kez gösterilir (session_state ile kontrol edilir)
+    🔥 FİX: try-except ile donma önlendi
     """
-    # İlk kez mi kontrol et
-    if 'welcome_popup_shown' not in st.session_state:
-        st.session_state.welcome_popup_shown = False
-    
-    # Eğer daha önce gösterilmediyse popup'ı aç
-    if not st.session_state.welcome_popup_shown:
-        show_welcome_popup(username)
+    try:
+        # İlk kez mi kontrol et
+        if 'welcome_popup_shown' not in st.session_state:
+            st.session_state.welcome_popup_shown = False
+        
+        # Eğer daha önce gösterilmediyse popup'ı aç
+        if not st.session_state.welcome_popup_shown:
+            show_welcome_popup(username)
+    except Exception as e:
+        # Popup hatası durumunda direkt işaretle ve devam et
+        st.session_state.welcome_popup_shown = True
+        pass  # Donmayı önle
 
 # === ADMIN PANELİ KONTROLÜ ===
 def check_admin_access():
@@ -13658,9 +13664,10 @@ def backup_user_data_before_changes(username, operation_name):
     return False
 
 def get_user_data():
-    """Mevcut kullanıcının verilerini döndürür."""
-    if 'users_db' not in st.session_state:
-        st.session_state.users_db = load_users_from_firebase()
+    """Mevcut kullanıcının verilerini döndürür - FRESH VERİ HER SEFERINDE!"""
+    # 🔥 KRİTİK FİX: Her çağrıda Firebase'den FRESH veri çek!
+    # Bu sayede tarih bilgileri HER ZAMAN GÜNCEL olur
+    st.session_state.users_db = load_users_from_firebase()
     
     if 'current_user' not in st.session_state or st.session_state.current_user is None:
         return {}
@@ -13677,8 +13684,9 @@ def main():
     # Veri kalıcılığını garanti altına al
     ensure_data_persistence()
     
-    if 'users_db' not in st.session_state:
-        st.session_state.users_db = load_users_from_firebase()
+    # 🔥 KRİTİK FİX: Her sayfa yüklemede Firebase'den FRESH veri çek!
+    # Bu sayede tarih bilgileri ANINDA güncellenir
+    st.session_state.users_db = load_users_from_firebase()
     
     if 'current_user' not in st.session_state:
         st.session_state.current_user = None
