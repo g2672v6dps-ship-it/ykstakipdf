@@ -4206,18 +4206,19 @@ def show_grade_and_target_dashboard(weekly_plan, user_data):
         )
     
     with col3:
-        target_nets = grade_strategy.get('target_nets', {})
+        # Kaldırıldı: Sabit hedef net gösterimi
         st.metric(
-            "🎯 Hedef TYT Net",
-            f"{target_nets.get('TYT', 75)}",
-            help="Bu bölüm için gerekli TYT net"
+            "👍 Hedef Yaklaşım",
+            grade_strategy.get('focus', 'Denge')[:15],
+            help="Sana özel strateji yaklaşımı"
         )
     
     with col4:
+        # Kaldırıldı: Sabit hedef net gösterimi
         st.metric(
-            "🎯 Hedef AYT Net", 
-            f"{target_nets.get('AYT', 35)}",
-            help="Bu bölüm için gerekli AYT net"
+            "📊 Çalışma Temposu",
+            grade_strategy.get('study_pace', 'Normal'),
+            help="Sana özel çalışma hızı"
         )
     
     # Strateji detayları
@@ -22741,14 +22742,15 @@ def complete_topic_with_gamification(subject, topic_name, difficulty_level):
 YKS_2025_TABAN_PUANLARI = {
     "Sayısal": {
         "Tıp Fakültesi": {
-            "İstanbul Üniversitesi": {"taban_puan": 585, "kontenjan": 110, "puan_turu": "SAY"},
-            "Hacettepe Üniversitesi": {"taban_puan": 580, "kontenjan": 165, "puan_turu": "SAY"},
-            "Ankara Üniversitesi": {"taban_puan": 575, "kontenjan": 120, "puan_turu": "SAY"},
-            "Ege Üniversitesi": {"taban_puan": 570, "kontenjan": 140, "puan_turu": "SAY"},
-            "Gazi Üniversitesi": {"taban_puan": 565, "kontenjan": 125, "puan_turu": "SAY"},
-            "Dokuz Eylül Üniversitesi": {"taban_puan": 560, "kontenjan": 130, "puan_turu": "SAY"},
-            "Erciyes Üniversitesi": {"taban_puan": 515, "kontenjan": 110, "puan_turu": "SAY"},
-            "Süleyman Demirel Üniversitesi": {"taban_puan": 500, "kontenjan": 95, "puan_turu": "SAY"}
+            "Hacettepe Üniversitesi": {"taban_puan": 537.19, "kontenjan": 280, "puan_turu": "SAY"},
+            "İstanbul Üniversitesi-Cerrahpaşa": {"taban_puan": 536.62, "kontenjan": 350, "puan_turu": "SAY"},
+            "Ankara Üniversitesi": {"taban_puan": 527.84, "kontenjan": 320, "puan_turu": "SAY"},
+            "Ege Üniversitesi": {"taban_puan": 518.45, "kontenjan": 290, "puan_turu": "SAY"},
+            "Gazi Üniversitesi": {"taban_puan": 515.28, "kontenjan": 300, "puan_turu": "SAY"},
+            "Dokuz Eylül Üniversitesi": {"taban_puan": 512.67, "kontenjan": 270, "puan_turu": "SAY"},
+            "Erciyes Üniversitesi": {"taban_puan": 502.34, "kontenjan": 190, "puan_turu": "SAY"},
+            "Süleyman Demirel Üniversitesi": {"taban_puan": 495.78, "kontenjan": 180, "puan_turu": "SAY"},
+            "Kırıkkale Üniversitesi": {"taban_puan": 488.66, "kontenjan": 164, "puan_turu": "SAY"}
         },
         "Diş Hekimliği": {
             "İstanbul Üniversitesi": {"taban_puan": 550, "kontenjan": 60, "puan_turu": "SAY"},
@@ -22805,18 +22807,21 @@ YKS_2025_TABAN_PUANLARI = {
     },
     "Eşit Ağırlık": {
         "Psikoloji": {
-            "Boğaziçi Üniversitesi": {"taban_puan": 500, "kontenjan": 80, "puan_turu": "EA"},
-            "ODTÜ": {"taban_puan": 495, "kontenjan": 90, "puan_turu": "EA"},
-            "Hacettepe Üniversitesi": {"taban_puan": 490, "kontenjan": 100, "puan_turu": "EA"},
-            "Ankara Üniversitesi": {"taban_puan": 485, "kontenjan": 110, "puan_turu": "EA"},
-            "İstanbul Üniversitesi": {"taban_puan": 480, "kontenjan": 95, "puan_turu": "EA"},
-            "Ege Üniversitesi": {"taban_puan": 470, "kontenjan": 85, "puan_turu": "EA"}
+            "Boğaziçi Üniversitesi": {"taban_puan": 487.94, "kontenjan": 62, "puan_turu": "EA"},
+            "ODTÜ": {"taban_puan": 467.84, "kontenjan": 50, "puan_turu": "EA"},
+            "Ankara Üniversitesi": {"taban_puan": 454.87, "kontenjan": 110, "puan_turu": "EA"},
+            "Hacettepe Üniversitesi": {"taban_puan": 452.36, "kontenjan": 80, "puan_turu": "EA"},
+            "İstanbul Üniversitesi": {"taban_puan": 447.29, "kontenjan": 95, "puan_turu": "EA"},
+            "Ege Üniversitesi": {"taban_puan": 437.84, "kontenjan": 75, "puan_turu": "EA"},
+            "Bursa Uludağ Üniversitesi": {"taban_puan": 425.68, "kontenjan": 65, "puan_turu": "EA"}
         },
         "Hukuk": {
-            "İstanbul Üniversitesi": {"taban_puan": 520, "kontenjan": 180, "puan_turu": "EA"},
-            "Ankara Üniversitesi": {"taban_puan": 515, "kontenjan": 200, "puan_turu": "EA"},
-            "Hacettepe Üniversitesi": {"taban_puan": 510, "kontenjan": 160, "puan_turu": "EA"},
-            "Gazi Üniversitesi": {"taban_puan": 490, "kontenjan": 150, "puan_turu": "EA"}
+            "Boğaziçi Üniversitesi": {"taban_puan": 483.20, "kontenjan": 62, "puan_turu": "EA"},
+            "İstanbul Üniversitesi": {"taban_puan": 468.45, "kontenjan": 180, "puan_turu": "EA"},
+            "Ankara Üniversitesi": {"taban_puan": 465.78, "kontenjan": 200, "puan_turu": "EA"},
+            "Hacettepe Üniversitesi": {"taban_puan": 462.34, "kontenjan": 160, "puan_turu": "EA"},
+            "Gazi Üniversitesi": {"taban_puan": 448.92, "kontenjan": 150, "puan_turu": "EA"},
+            "Bursa Uludağ Üniversitesi": {"taban_puan": 421.17, "kontenjan": 100, "puan_turu": "EA"}
         },
         "Öğretmenlik": {
             "Hacettepe Üniversitesi": {"taban_puan": 480, "kontenjan": 120, "puan_turu": "EA"},
