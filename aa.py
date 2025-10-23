@@ -22916,8 +22916,8 @@ YKS_2025_TABAN_PUANLARI = {
         "Mimarlık": {
             "İTÜ": {"taban_puan": 520, "kontenjan": 80, "puan_turu": "EA"},
             "ODTÜ": {"taban_puan": 515, "kontenjan": 85, "puan_turu": "EA"},
-            "Gazi Üniversitesi": {"taban_puan": 485, "kontenjan": 100, "puan_turu": "EA"},
-            "Yıldız Teknik Üniversitesi": {"taban_puan": 470, "kontenjan": 120, "puan_turu": "EA"},
+            "Gazi Üniversitesi": {"taban_puan": 470, "kontenjan": 100, "puan_turu": "EA"},
+            "TOKAT GAZİOSMANPAŞA ÜNİVERSİTESİ": {"taban_puan": 318, "kontenjan": 120, "puan_turu": "EA"},
             "Bahçeşehir Vakıf Üniversitesi": {"taban_puan": 420, "kontenjan": 60, "puan_turu": "EA"},
             "İstanbul Vakıf Üniversitesi": {"taban_puan": 380, "kontenjan": 40, "puan_turu": "EA"}
         },
