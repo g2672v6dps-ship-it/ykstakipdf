@@ -5382,6 +5382,19 @@ def get_custom_css(target_department):
     .stProgress > div > div > div > div {{
         background-color: #654ea3 !important;
     }}
+    
+    /* Sidebar Arka Plan Rengi - Kırmızı */
+    [data-testid="stSidebar"] {{
+        background-color: #e74c3c !important;
+    }}
+    
+    [data-testid="stSidebar"] > div {{
+        background-color: #e74c3c !important;
+    }}
+    
+    [data-testid="stSidebar"] section {{
+        background-color: #e74c3c !important;
+    }}
 </style>
 """
 
