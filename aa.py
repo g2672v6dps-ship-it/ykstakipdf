@@ -75,78 +75,28 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# === HOŞ GELDİN POPUP FONKSİYONU ===
-@st.dialog("🎉 Hoş Geldin!")
-def show_welcome_popup(username):
+# === BASİT HOŞ GELDİN MESAJI FONKSİYONU ===
+def check_and_show_welcome_message(username):
     """
-    Kullanıcı giriş yaptıktan sonra gösterilecek gerçek modal popup
-    Ekranın üstüne çıkan, arka planı şeffaf popup
-    """
-    # Kullanıcı verisini al
-    user_data = get_user_data()
-    student_name = user_data.get('name', username)
-    student_field = user_data.get('field', 'YKS')
-    
-    # Şeffaf arka plan ve güzel stil
-    st.markdown(f"""
-    <style>
-    /* Dialog için özel stiller - Beyaz arka plan */
-    div[data-testid="stDialog"] {{
-        background: rgba(220, 53, 69, 0.8) !important;
-    }}
-    div[data-testid="stDialog"] > div {{
-        background: #ffffff !important;
-        border: 1px solid rgba(220, 53, 69, 0.2) !important;
-        border-radius: 20px !important;
-        padding: 40px !important;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
-    }}
-    </style>
-    
-    <div style="text-align: center; color: #212529;">
-        <div style="font-size: 60px; animation: bounce 1s infinite;">🎉</div>
-        <h1 style="color: #dc3545; margin: 20px 0; font-size: 36px;">Hoşgeldin {student_name}!</h1>
-        <p style="color: #495057; font-size: 18px; line-height: 1.6; margin: 25px 0;">
-            Hoşgeldin ailemize! Burası senin hayallerine giden yolda<br/>
-            sana arkadaş olacak. Unutma burası <strong>"Senin Alanın"</strong> ❤️
-        </p>
-    </div>
-    
-    <style>
-    @keyframes bounce {{
-        0%, 100% {{ transform: translateY(0); }}
-        50% {{ transform: translateY(-10px); }}
-    }}
-    </style>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # Kapatma butonu
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("✨ Başlayalım!", type="primary", use_container_width=True):
-            st.session_state.welcome_popup_shown = True
-            st.rerun()
-
-def check_and_show_welcome_popup(username):
-    """
-    Popup gösterilmesi gerekiyorsa göster
-    Sadece bir kez gösterilir (session_state ile kontrol edilir)
-    🔥 FİX: try-except ile donma önlendi
+    Kullanıcı giriş yaptıktan sonra basit başarı mesajı göster
+    Popup yerine st.success() kullanarak donma sorunu çözüldü
     """
     try:
         # İlk kez mi kontrol et
-        if 'welcome_popup_shown' not in st.session_state:
-            st.session_state.welcome_popup_shown = False
+        if 'welcome_message_shown' not in st.session_state:
+            st.session_state.welcome_message_shown = False
         
-        # Eğer daha önce gösterilmediyse popup'ı aç
-        if not st.session_state.welcome_popup_shown:
-            show_welcome_popup(username)
-    except Exception as e:
-        # Popup hatası durumunda direkt işaretle ve devam et
-        st.session_state.welcome_popup_shown = True
-        pass  # Donmayı önle
+        # Eğer daha önce gösterilmediyse mesajı göster
+        if not st.session_state.welcome_message_shown:
+            user_data = get_user_data()
+            student_name = user_data.get('name', username)
+            st.success(f"Hoşgeldin {student_name}! Sisteme başarıyla giriş yaptın.", icon="🎉")
+            st.session_state.welcome_message_shown = True
+    except Exception:
+        # Hata durumunda da basit mesaj göster
+        if not st.session_state.get('welcome_message_shown', False):
+            st.success(f"Hoşgeldin {username}! Sisteme başarıyla giriş yaptın.", icon="🎉")
+            st.session_state.welcome_message_shown = True
 
 # === ADMIN PANELİ KONTROLÜ ===
 def check_admin_access():
@@ -162,10 +112,10 @@ def check_admin_access():
 def admin_login():
     """Admin giriş sayfası"""
     st.markdown("""
-    <div style="background: #ffffff; 
-                padding: 30px; border-radius: 20px; margin: 20px 0; border: 2px solid #dc3545; text-align: center; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.1);">
-        <h2 style="margin: 0; color: #dc3545;">🔐 YKS Admin Panel Girişi</h2>
-        <p style="margin: 10px 0 0 0; color: #495057;">Öğretmen/Veli Takip Sistemi</p>
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 30px; border-radius: 20px; margin: 20px 0; color: white; text-align: center;">
+        <h2 style="margin: 0; color: white;">🔐 YKS Admin Panel Girişi</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">Öğretmen/Veli Takip Sistemi</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -400,10 +350,10 @@ def show_admin_dashboard():
     
     # Dashboard başlık
     st.markdown("""
-    <div style="background: #ffffff; 
-                padding: 25px; border-radius: 20px; margin: 20px 0; border: 2px solid #dc3545; text-align: center; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.1);">
-        <h1 style="margin: 0; color: #dc3545;">🏛️ YKS Admin Paneli</h1>
-        <p style="margin: 10px 0 0 0; color: #495057;">Öğretmen/Veli Takip Sistemi</p>
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 25px; border-radius: 20px; margin: 20px 0; color: white; text-align: center;">
+        <h1 style="margin: 0; color: white;">🏛️ YKS Admin Paneli</h1>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">Öğretmen/Veli Takip Sistemi</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -969,175 +919,147 @@ FIELDNAMES = ['username', 'password', 'name', 'surname', 'grade', 'field', 'targ
 BACKGROUND_STYLES = {
     "Tıp": {
         "image": "https://images.unsplash.com/photo-1551076805-e1869033e561?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🩺",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)",
+        "icon": "🩺"
     },
     "Mühendislik": {
         "image": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "⚙️",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)",
+        "icon": "⚙️"
     },
     "Hukuk": {
         "image": "https://images.unsplash.com/photo-1589391886645-d51941baf7fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "⚖️",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #556270 0%, #4ecdc4 100%)",
+        "icon": "⚖️"
     },
     "Öğretmenlik": {
         "image": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "👨‍🏫",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #ffd89b 0%, #19547b 100%)",
+        "icon": "👨‍🏫"
     },
     "İktisat": {
         "image": "https://images.unsplash.com/photo-1665686306574-1ace09918530?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "📈",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)",
+        "icon": "📈"
     },
     "Mimarlık": {
         "image": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🏛️",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #5614b0 0%, #dbd65c 100%)",
+        "icon": "🏛️"
     },
     "Psikoloji": {
         "image": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🧠",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #654ea3 0%, #eaafc8 100%)",
+        "icon": "🧠"
     },
     "Diş Hekimliği": {
         "image": "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🦷",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #ff5e62 0%, #ff9966 100%)",
+        "icon": "🦷"
     },
     # 🎖️ MSÜ (Askeri) Alt Kategorileri - Gerçek Meslek Görselleri
     "MSÜ - Kara Astsubay Meslek Yüksekokulu": {
         "image": "https://images.unsplash.com/photo-1610979467704-b5ad9b9c2a3c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🎖️",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #2d5016 0%, #4a7c59 50%, #5e8b3a 100%)",
+        "icon": "🎖️"
     },
     "MSÜ - Deniz Astsubay Yüksekokulu": {
         "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80", 
-        "gradient": "#ffffff",
-        "icon": "⚓",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #0c4a6e 0%, #0ea5e9 50%, #075985 100%)",
+        "icon": "⚓"
     },
     "MSÜ - Hava Astsubay Yüksekokulu": {
         "image": "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "✈️",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #1e40af 0%, #60a5fa 50%, #2563eb 100%)",
+        "icon": "✈️"
     },
     
     # 🎓 TYT (Meslek Yüksekokulu) Alt Kategorileri - Gerçek Meslek Görselleri
     "TYT - Bilgisayar Programcılığı": {
         "image": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "💻",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #1e1b4b 0%, #5b21b6 50%, #7c3aed 100%)",
+        "icon": "💻"
     },
     "TYT - Anestezi Teknisyenliği": {
         "image": "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🏥",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%)",
+        "icon": "🏥"
     },
     "TYT - Acil Tıp Teknisyenliği (ATT)": {
         "image": "https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🚑",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #991b1b 0%, #dc2626 50%, #ef4444 100%)",
+        "icon": "🚑"
     },
     "TYT - Çocuk Gelişimi": {
         "image": "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "👶",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #fbbf24 100%)",
+        "icon": "👶"
     },
     "TYT - Ebe": {
         "image": "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🤱",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #be185d 0%, #ec4899 50%, #f9a8d4 100%)",
+        "icon": "🤱"
     },
     "TYT - Hemato terapilişi": {
         "image": "https://images.unsplash.com/photo-1615461066159-fea0960485d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🩸",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #fecaca 100%)",
+        "icon": "🩸"
     },
     "TYT - Tıbbi Laboratuvar Teknikleri": {
         "image": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🔬",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #065f46 0%, #059669 50%, #a7f3d0 100%)",
+        "icon": "🔬"
     },
     "TYT - Tıbbi Görüntüleme Teknikleri": {
         "image": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "📱",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #374151 0%, #6b7280 50%, #d1d5db 100%)",
+        "icon": "📱"
     },
     "TYT - Radyoterapi": {
         "image": "https://images.unsplash.com/photo-1538108149393-fbbd81895907?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "⚡",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #c4b5fd 100%)",
+        "icon": "⚡"
     },
     "TYT - Diyaliz": {
         "image": "https://images.unsplash.com/photo-1594824363642-eaaab4d19621?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "💧",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #99f6e4 100%)",
+        "icon": "💧"
     },
     "TYT - Diş Protés Teknisyenliği": {
         "image": "https://images.unsplash.com/photo-1609840114035-3c981960e79f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🦷",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #0369a1 0%, #0ea5e9 50%, #bae6fd 100%)",
+        "icon": "🦷"
     },
     "TYT - Otomotiv Teknolojisi": {
         "image": "https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🚗",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #374151 0%, #4b5563 50%, #9ca3af 100%)",
+        "icon": "🚗"
     },
     "TYT - Elektrik-Elektronik Teknolojisi": {
         "image": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "⚡",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
+        "icon": "⚡"
     },
     "TYT - Makine Teknolojisi": {
         "image": "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "⚙️",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #1f2937 0%, #374151 50%, #6b7280 100%)",
+        "icon": "⚙️"
     },
     "TYT - İnşaat Teknolojisi": {
         "image": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🏗️",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #a16207 0%, #d97706 50%, #fbbf24 100%)",
+        "icon": "🏗️"
     },
     "TYT - Diğer Meslek Yüksekokulu": {
         "image": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🎓",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #a5b4fc 100%)",
+        "icon": "🎓"
     },
     
     "Varsayılan": {
         "image": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
-        "gradient": "#ffffff",
-        "icon": "🎯",
-        "accent": "#dc3545"
+        "gradient": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        "icon": "🎯"
     }
 }
 
@@ -12122,7 +12044,7 @@ def show_breathing_exercise():
     
     st.markdown(f"""
     <div style="
-        background: #ffffff;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 20px;
         padding: 30px;
         margin: 20px 0;
@@ -14317,9 +14239,9 @@ def main():
 
 
         else:
-            # ✨ Hoş geldin popup'ını göster - SADECE prof il tamamlandıktan sonra!
+            # ✨ Hoş geldin mesajını göster - SADECE profil tamamlandıktan sonra!
             if not st.session_state.get('admin_logged_in', False):
-                check_and_show_welcome_popup(st.session_state.current_user)
+                check_and_show_welcome_message(st.session_state.current_user)
             
             target_dept = user_data.get('target_department', 'Varsayılan')
             
@@ -16176,7 +16098,7 @@ def main():
                     """, unsafe_allow_html=True)
                 else:
                     st.markdown("""
-                    <div style="background: linear-gradient(135deg, #dc3545 0%, #ff9999 100%); 
+                    <div style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); 
                                border-radius: 15px; padding: 20px; margin-top: 20px; text-align: center;">
                         <h4 style="color: #2d3748; margin-bottom: 15px;">⚠️ Veri Saklama Uyarısı</h4>
                         <div style="color: #2d3748; font-size: 1.1rem;">
@@ -16462,7 +16384,7 @@ Kanuni döneminde zirveye çıktık biz! 🎵""",
                 # 📚 HİKAYELEŞTİRME SİSTEMİ - YENİ!
                 st.markdown("---")
                 st.markdown("""
-                <div style="background: linear-gradient(135deg, #dc3545 0%, #ff9999 100%); color: #212529; padding: 30px; border-radius: 20px; margin: 40px 0; text-align: center; box-shadow: 0 10px 30px rgba(220, 53, 69, 0.2);">
+                <div style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%); color: white; padding: 30px; border-radius: 20px; margin: 40px 0; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
                     <h1 style="margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">📚 KONUYU HİKAYELEŞTİR</h1>
                     <p style="margin: 10px 0 0 0; font-size: 1.3rem; opacity: 0.95;">Sıkıcı konuları hayal gücünle eğlenceli hikayelere çevir!</p>
                 </div>
@@ -16665,7 +16587,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                     
                                     with story_display_col1:
                                         st.markdown(f"""
-                                        <div style="background: linear-gradient(135deg, #dc3545 0%, #ff9999 100%); 
+                                        <div style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); 
                                                    color: white; padding: 20px; border-radius: 15px; margin: 10px 0;">
                                             <h4 style="margin: 0 0 15px 0;">📖 {story['topic']} Hikayesi</h4>
                                             <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; white-space: pre-line; line-height: 1.8; font-size: 1.1rem;">
@@ -17068,7 +16990,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                 # 📚 KİTAP KARAKTERİ ANKETİ - YENİ!
                 st.markdown("---")
                 st.markdown("""
-                <div style="background: linear-gradient(135deg, #dc3545 0%, #c0392b 100%); color: #212529; padding: 30px; border-radius: 20px; margin: 40px 0; text-align: center; box-shadow: 0 10px 30px rgba(220, 53, 69, 0.2);">
+                <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #4facfe 100%); color: white; padding: 30px; border-radius: 20px; margin: 40px 0; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
                     <h1 style="margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">📚 "KİTAP KARAKTERİ" ANKETİ</h1>
                     <p style="margin: 10px 0 0 0; font-size: 1.3rem; opacity: 0.95;">YKS öğrencisi için özel: Molana hangi kitap eşlik etsin?</p>
                 </div>
@@ -17901,7 +17823,7 @@ def show_breathing_exercise():
     
     st.markdown(f"""
     <div style="
-        background: #ffffff;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 20px;
         padding: 30px;
         margin: 20px 0;
@@ -18470,7 +18392,7 @@ def run_psychology_page():
     }
     
     .section-title {
-        background: #ffffff;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 1.2rem;
         border-radius: 12px;
@@ -20360,7 +20282,7 @@ def run_vak_learning_styles_test():
     st.markdown("""
     <style>
     .test-header {
-        background: #ffffff;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 2rem;
         border-radius: 15px;
@@ -20663,7 +20585,7 @@ def run_cognitive_profile_test():
         color: black !important;
     }
     .cognitive-header {
-        background: #ffffff;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 2rem;
         border-radius: 15px;
@@ -23555,7 +23477,7 @@ def show_progress_analytics(user_data):
         # İlk hafta henüz bitmedi mi?
         if today <= first_week_sunday:
             st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #dc3545 0%, #c0392b 100%); 
+            <div style="background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%); 
                         padding: 20px; border-radius: 12px; color: white; text-align: center;">
                 <h3 style="margin: 0; color: white;">📅 {student_name}, İlk Haftan Devam Ediyor!</h3>
                 <p style="margin: 10px 0 0 0; opacity: 0.9;">Bugün: {current_day_tr}</p>
@@ -23615,7 +23537,7 @@ def show_smart_performance_analysis(student_name, weekly_completion_rate, user_d
     """🤖 Akıllı Performans Analizi - Ders Bazında Detay"""
     
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #dc3545 0%, #c0392b 100%); 
+    <div style="background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%); 
                 padding: 25px; border-radius: 20px; margin: 20px 0; color: white; text-align: center;
                 box-shadow: 0 10px 30px rgba(162, 155, 254, 0.3);">
         <h3 style="margin: 0; color: white; font-weight: 600;">
@@ -23835,7 +23757,7 @@ def show_intelligent_topic_calendar(student_name, user_data, weekly_completion_r
         
         # Modern aylık plan görünümü
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #dc3545 0%, #c0392b 100%); 
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
                     padding: 20px; border-radius: 15px; margin: 20px 0; color: white; text-align: center;">
             <h3 style="margin: 0; color: white; font-weight: 600;">🗓️ Aylara Göre Konu Dağılımı</h3>
             <p style="margin: 5px 0 0 0; opacity: 0.9;">Dinamik müfredat planlaması</p>
@@ -23850,12 +23772,12 @@ def show_intelligent_topic_calendar(student_name, user_data, weekly_completion_r
                 # Her ay için farklı renk gradientleri
                 colors = [
                     "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                    "linear-gradient(135deg, #dc3545 0%, #c0392b 100%)", 
+                    "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", 
                     "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
                     "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
                     "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
                     "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
-                    "linear-gradient(135deg, #dc3545 0%, #ff9999 100%)"
+                    "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)"
                 ]
                 color = colors[i % len(colors)]
                 
