@@ -5383,17 +5383,17 @@ def get_custom_css(target_department):
         background-color: #654ea3 !important;
     }}
     
-    /* Sidebar Arka Plan Rengi - Koyu Kırmızı */
+    /* Sidebar Arka Plan Rengi - Çok Koyu Kırmızı */
     [data-testid="stSidebar"] {{
-        background-color: #c0392b !important;
+        background-color: #8B0000 !important;
     }}
     
     [data-testid="stSidebar"] > div {{
-        background-color: #c0392b !important;
+        background-color: #8B0000 !important;
     }}
     
     [data-testid="stSidebar"] section {{
-        background-color: #c0392b !important;
+        background-color: #8B0000 !important;
     }}
     
     /* Sidebar Yazıları Daha Belirgin */
@@ -14299,7 +14299,7 @@ def main():
                 <div style="
                     text-align: center; 
                     padding: 20px; 
-                    background: #c0392b; 
+                    background: #8B0000; 
                     border-radius: 15px; 
                     margin-bottom: 20px;
                     border: 3px solid #ffffff;
