@@ -14294,7 +14294,36 @@ def main():
             progress_data = calculate_subject_progress(user_data)
             
             with st.sidebar:
-                # Sayfa seçimi - En üstte!
+                # Logo - En üstte!
+                st.markdown("""
+                <div style="
+                    text-align: center; 
+                    padding: 20px; 
+                    background: #c0392b; 
+                    border-radius: 15px; 
+                    margin-bottom: 20px;
+                    border: 3px solid #ffffff;
+                    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+                ">
+                    <div style="
+                        background: white; 
+                        padding: 15px; 
+                        border-radius: 10px;
+                        display: inline-block;
+                    ">
+                        <h2 style="
+                            color: #c0392b; 
+                            margin: 0; 
+                            font-family: 'Arial', sans-serif; 
+                            font-weight: bold;
+                            font-size: 24px;
+                            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+                        ">🎯 Psiko DF</h2>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Sayfa seçimi - Logo'dan sonra!
                 page = st.sidebar.selectbox("🌐 Sayfa Seçin", 
                                           ["🏠 Ana Sayfa", "📚 Konu Takip", "🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🏆 Rekabet Panosu", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
                 st.markdown("---")
