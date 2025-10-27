@@ -5383,17 +5383,48 @@ def get_custom_css(target_department):
         background-color: #654ea3 !important;
     }}
     
-    /* Sidebar Arka Plan Rengi - Kırmızı */
+    /* Sidebar Arka Plan Rengi - Koyu Kırmızı */
     [data-testid="stSidebar"] {{
-        background-color: #e74c3c !important;
+        background-color: #c0392b !important;
     }}
     
     [data-testid="stSidebar"] > div {{
-        background-color: #e74c3c !important;
+        background-color: #c0392b !important;
     }}
     
     [data-testid="stSidebar"] section {{
-        background-color: #e74c3c !important;
+        background-color: #c0392b !important;
+    }}
+    
+    /* Sidebar Yazıları Daha Belirgin */
+    [data-testid="stSidebar"] * {{
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }}
+    
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] h4,
+    [data-testid="stSidebar"] h5,
+    [data-testid="stSidebar"] h6 {{
+        color: #ffffff !important;
+        font-weight: bold !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
+    }}
+    
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] div,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] label {{
+        color: #ffffff !important;
+        font-weight: 500 !important;
+    }}
+    
+    [data-testid="stSidebar"] .stSelectbox label,
+    [data-testid="stSidebar"] .stCheckbox label {{
+        color: #ffffff !important;
+        font-weight: bold !important;
     }}
 </style>
 """
@@ -14263,6 +14294,11 @@ def main():
             progress_data = calculate_subject_progress(user_data)
             
             with st.sidebar:
+                # Sayfa seçimi - En üstte!
+                page = st.sidebar.selectbox("🌐 Sayfa Seçin", 
+                                          ["🏠 Ana Sayfa", "📚 Konu Takip", "🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🏆 Rekabet Panosu", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
+                st.markdown("---")
+                
                 bg_style = BACKGROUND_STYLES.get(target_dept, BACKGROUND_STYLES["Varsayılan"])
                 st.markdown(f"### {bg_style['icon']} Hoş geldin, {user_data.get('name', 'Öğrenci')}!")
                 st.markdown(f"**🎯 Hedef:** {user_data.get('target_department', 'Belirlenmedi')}")
@@ -14357,8 +14393,7 @@ def main():
                                 del st.session_state[key]
                         st.success("✅ Session state temizlendi!")
             
-            page = st.sidebar.selectbox("🌐 Sayfa Seçin", 
-                                      ["🏠 Ana Sayfa", "📚 Konu Takip", "🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🏆 Rekabet Panosu", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
+
             
             if page == "🏠 Ana Sayfa":
                 # Eski session verilerini temizle - her gün güncel sistem!
