@@ -14295,24 +14295,33 @@ def main():
             
             with st.sidebar:
                 # Logo - En üstte!
-                 <div style="
-        background-color: white;
-        border-radius: 20px;
-        width: 180px;
-        height: 220px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        margin: auto;
-    ">
-        <img src="https://raw.githubusercontent.com/g2672v6dps-ship-it/ykstakipdf/0538075040afbf31b8a262ce85d449137fbdac30/logodf.png"
-             alt="Psiko DSF Logo"
-             style="width:100px; height:100px; border-radius:15px;">
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+                st.markdown("""
+                <div style="
+                    text-align: center; 
+                    padding: 20px; 
+                    background: #8B0000; 
+                    border-radius: 15px; 
+                    margin-bottom: 20px;
+                    border: 3px solid #ffffff;
+                    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+                ">
+                    <div style="
+                        background: white; 
+                        padding: 15px; 
+                        border-radius: 10px;
+                        display: inline-block;
+                    ">
+                        <h2 style="
+                            color: #c0392b; 
+                            margin: 0; 
+                            font-family: 'Arial', sans-serif; 
+                            font-weight: bold;
+                            font-size: 24px;
+                            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+                        ">🎯 Psiko DF</h2>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
                 
                 # Sayfa seçimi - Logo'dan sonra!
                 page = st.sidebar.selectbox("🌐 Sayfa Seçin", 
