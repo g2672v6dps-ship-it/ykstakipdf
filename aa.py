@@ -14304,18 +14304,8 @@ def main():
                     margin-bottom: 50px;
                     border: 3px solid #ffffff;
                     box-shadow: 0 6px 12px rgba(0,0,0,0.4);
-                ">
-                    <div style="
-        background-color:  #8B0000;
-        border-radius: 1px;
-        width: 180px;
-        height: 220px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden; 
-        margin-bottom: -30px;
-             ">
+                
+                   
         <img src="https://raw.githubusercontent.com/g2672v6dps-ship-it/ykstakipdf/0538075040afbf31b8a262ce85d449137fbdac30/logodf.png"
              alt="Psiko DSF Logo"
              style="width:150px; height:150px; border-radius:20px;">
