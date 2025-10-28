@@ -14314,7 +14314,6 @@ def main():
         align-items: center;
         justify-content: center;
        
-        margin-left:-45px;
     ">
         <img src="https://raw.githubusercontent.com/g2672v6dps-ship-it/ykstakipdf/0538075040afbf31b8a262ce85d449137fbdac30/logodf.png"
              alt="Psiko DSF Logo"
