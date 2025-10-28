@@ -14317,7 +14317,7 @@ def main():
         margin: auto;
     ">
         <img src="https://raw.githubusercontent.com/g2672v6dps-ship-it
-                ykstakipdf/main/logodf.JPG"
+                ykstakipdf/main/logodf.png"
              alt="Psiko DSF Logo"
              style="width:100px; height:100px; border-radius:15px;">
     </div>
