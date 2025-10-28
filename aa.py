@@ -14318,7 +14318,7 @@ def main():
                             font-weight: bold;
                             font-size: 24px;
                             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-                        ">🎯 Psiko DF</h2>
+                        ">🎯 Psiko DSF</h2>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
