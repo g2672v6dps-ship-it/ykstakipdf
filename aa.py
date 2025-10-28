@@ -14295,7 +14295,7 @@ def main():
             
             with st.sidebar:
                 # Logo - En üstte!
-                <div style="
+                 <div style="
         background-color: white;
         border-radius: 20px;
         width: 180px;
