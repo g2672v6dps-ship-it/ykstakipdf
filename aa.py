@@ -14297,22 +14297,25 @@ def main():
                 # Logo - En üstte!
                 st.markdown("""
                 <div style="
-                    text-align: center; 
-                    padding: 20px; 
-                    background: #8B0000; 
-                    border-radius: 30px; 
-                    margin-bottom: 50px;
-                    border: 3px solid #ffffff;
-                    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
-                
-                   
+        background-color: white;
+        border-radius: 25px;
+        width: 220px;
+        height: 240px;
+        display: flex;
+        align-items: center;        /* dikey ortalama */
+        justify-content: center;    /* yatay ortalama */
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        margin: auto;
+        overflow: hidden;           /* dışarı taşmayı engeller */
+    ">
         <img src="https://raw.githubusercontent.com/g2672v6dps-ship-it/ykstakipdf/0538075040afbf31b8a262ce85d449137fbdac30/logodf.png"
              alt="Psiko DSF Logo"
-             style="width:150px; height:150px; border-radius:20px;">
+             style="width:160px; height:160px; border-radius:20px; object-fit: contain;">
     </div>
     """,
     unsafe_allow_html=True
 )
+
                 
                 # Sayfa seçimi - Logo'dan sonra!
                 page = st.sidebar.selectbox("🌐 Sayfa Seçin", 
