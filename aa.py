@@ -14298,10 +14298,10 @@ def main():
                 st.markdown("""
                 <div style="
                     text-align: center; 
-                    padding: 15px; 
+                    padding: 20px; 
                     background: #8B0000; 
-                    border-radius: 10px; 
-                    margin-bottom: 20px;
+                    border-radius: 30px; 
+                    margin-bottom: 30px;
                     border: 3px solid #ffffff;
                     box-shadow: 0 6px 12px rgba(0,0,0,0.4);
                 ">
