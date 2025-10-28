@@ -14307,7 +14307,7 @@ def main():
                 ">
                     <div style="
         background-color:  #8B0000;
-        border-radius: 10px;
+        border-radius: 1px;
         width: 180px;
         height: 220px;
         display: flex;
