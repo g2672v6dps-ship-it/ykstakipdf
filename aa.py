@@ -14316,8 +14316,7 @@ def main():
         box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         margin: auto;
     ">
-        <img src="https://raw.githubusercontent.com/g2672v6dps-ship-it
-                ykstakipdf/main/logodf.png"
+        <img src="https://github.com/g2672v6dps-ship-it/ykstakipdf/blob/0538075040afbf31b8a262ce85d449137fbdac30/logodf.png"
              alt="Psiko DSF Logo"
              style="width:100px; height:100px; border-radius:15px;">
     </div>
