@@ -14295,10 +14295,7 @@ def main():
             
             with st.sidebar:
                 # Logo - En üstte!
-                with open('logo_base64.txt', 'r') as f:
-                    logo_data = f.read().strip()
-                
-                st.markdown(f"""
+                st.markdown("""
                 <div style="
                     text-align: center; 
                     padding: 20px; 
@@ -14308,7 +14305,21 @@ def main():
                     border: 3px solid #ffffff;
                     box-shadow: 0 6px 12px rgba(0,0,0,0.4);
                 ">
-                    <img src="data:image/jpeg;base64,{logo_data}" alt="Psiko DF Logo" style="max-width: 200px; height: auto; border-radius: 10px;">
+                    <div style="
+                        background: white; 
+                        padding: 15px; 
+                        border-radius: 10px;
+                        display: inline-block;
+                    ">
+                        <h2 style="
+                            color: #c0392b; 
+                            margin: 0; 
+                            font-family: 'Arial', sans-serif; 
+                            font-weight: bold;
+                            font-size: 24px;
+                            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+                        ">🎯 Psiko DF</h2>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
                 
