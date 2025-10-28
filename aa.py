@@ -14306,7 +14306,7 @@ def main():
                     box-shadow: 0 6px 12px rgba(0,0,0,0.4);
                 ">
                     <div style="
-        background-color: white;
+        background-color:  #8B0000;
         border-radius: 10px;
         width: 180px;
         height: 220px;
