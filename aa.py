@@ -14301,7 +14301,7 @@ def main():
                     padding: 20px; 
                     background: #8B0000; 
                     border-radius: 30px; 
-                    margin-bottom: 30px;
+                    margin-bottom: 5px;
                     border: 3px solid #ffffff;
                     box-shadow: 0 6px 12px rgba(0,0,0,0.4);
                 ">
