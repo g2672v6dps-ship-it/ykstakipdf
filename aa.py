@@ -11,12 +11,12 @@ def refresh_users_cache():
     """Firebase'den verileri cache sistemi ile çek (optimized)"""
     cache_key = 'users_db'
     current_time = datetime.now()
-    
+
     # İlk defa çekiliyorsa veya cache süresi dolmuşsa yeniden çek
-    if (cache_key not in st.session_state or 
+    if (cache_key not in st.session_state or
         f"{cache_key}_timestamp" not in st.session_state or
         (current_time - datetime.fromisoformat(st.session_state[f"{cache_key}_timestamp"])).total_seconds() > CACHE_DURATION_MINUTES * 60):
-        
+
         # with st.spinner("💾 Veriler yükleniyor (Cache: 5 dakika)"):
         st.session_state.users_db = load_users_from_firebase()
         st.session_state[f"{cache_key}_timestamp"] = current_time.isoformat()
@@ -79,7 +79,7 @@ except ImportError:
             return self
         def line(self, *args, **kwargs):
             return self
-    
+
     px = MockPlotly()
     go = MockPlotly()
     # st.plotly_chart yerine st.warning kullanılacak
@@ -110,7 +110,7 @@ def check_and_show_welcome_message(username):
         # İlk kez mi kontrol et
         if 'welcome_message_shown' not in st.session_state:
             st.session_state.welcome_message_shown = False
-        
+
         # Eğer daha önce gösterilmediyse mesajı göster
         if not st.session_state.welcome_message_shown:
             user_data = get_user_data()
@@ -128,29 +128,29 @@ def check_admin_access():
     """Admin panel erişim kontrolü"""
     if 'admin_logged_in' not in st.session_state:
         st.session_state.admin_logged_in = False
-    
+
     if st.session_state.admin_logged_in:
         return True
-    
+
     return False
 
 def admin_login():
     """Admin giriş sayfası"""
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 padding: 30px; border-radius: 20px; margin: 20px 0; color: white; text-align: center;">
         <h2 style="margin: 0; color: white;">🔐 YKS Admin Panel Girişi</h2>
         <p style="margin: 10px 0 0 0; opacity: 0.9;">Öğretmen/Veli Takip Sistemi</p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     with st.form("admin_login"):
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             username = st.text_input("👤 Kullanıcı Adı", placeholder="admin")
             password = st.text_input("🔒 Şifre", type="password", placeholder="yks2025")
             submitted = st.form_submit_button("🚀 Giriş Yap", use_container_width=True)
-        
+
         if submitted:
             if username == "admin" and password == "yks2025":
                 st.session_state.admin_logged_in = True
@@ -172,13 +172,13 @@ def admin_logout():
 def generate_weekly_plan_pdf(user_data, week_plan):
     """Haftalık planı sadece hedef konularıyla PDF formatında hazırla"""
     from datetime import datetime
-    
+
     # Gerçek haftalık plan verilerini al
     if not week_plan or 'new_topics' not in week_plan:
         return "Haftalık plan verisi bulunamadı."
-    
+
     topics = week_plan.get('new_topics', [])
-    
+
     # Sadece hedef konuları içeren basit içerik
     pdf_content = f"""🎯 Bu Haftanın Hedef Konuları
 
@@ -187,7 +187,7 @@ Alan: {user_data.get('field', 'Eşit Ağırlık')}
 Tarih: {datetime.now().strftime('%d.%m.%Y')}
 
 """
-    
+
     if topics:
         # Konuları ders bazında gruplama
         subjects = {}
@@ -196,30 +196,30 @@ Tarih: {datetime.now().strftime('%d.%m.%Y')}
             if subject not in subjects:
                 subjects[subject] = []
             subjects[subject].append(topic.get('topic', 'Konu adı yok'))
-        
+
         # Her ders için konuları listele
         for subject, topic_list in subjects.items():
             pdf_content += f"\n📚 {subject}:\n"
             for topic in topic_list:
                 pdf_content += f"  • {topic}\n"
-    else:
-        pdf_content += "\nBu hafta için henüz konu planı oluşturulmamış.\n"
-    
+            else:
+                pdf_content += "\nBu hafta için henüz konu planı oluşturulmamış.\n"
+
     return pdf_content
 
 def show_print_button(user_data, weekly_plan):
     """Yazdırma butonu göster"""
     st.markdown("---")
-    
+
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         if st.button("🖨️ Haftalık Planı Yazdır/İndir", use_container_width=True, type="primary"):
             pdf_content = generate_weekly_plan_pdf(user_data, weekly_plan)
-            
+
             # Dosya adı oluştur
             from datetime import datetime
             file_name = f"YKS_Haftalik_Plan_{datetime.now().strftime('%d_%m_%Y')}.txt"
-            
+
             # Download butonu
             st.download_button(
                 label="📥 Planı İndir (TXT)",
@@ -228,14 +228,14 @@ def show_print_button(user_data, weekly_plan):
                 mime="text/plain",
                 use_container_width=True
             )
-            
+
             st.success("✅ Plan hazırlandı! İndir butonuna tıklayın.")
-            
+
             # Yazdırma talimatı
             st.info("""
             📋 **Yazdırma Talimatları:**
             1. Dosyayı indirin
-            2. Not Defteri veya Word ile açın  
+            2. Not Defteri veya Word ile açın
             3. Ctrl+P ile yazdırın
             4. Kağıda çıkarıp çalışma masanıza koyun!
             """)
@@ -246,36 +246,33 @@ def get_real_student_data_for_admin():
     """Gerçek öğrenci verilerini Firebase'den çek ve admin paneli için formatla"""
     from datetime import datetime, timedelta
     import json
-    
+
     # Firebase'den kullanıcı verilerini al (Cache sistemi ile)
     if 'users_db' not in st.session_state:
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-
-    users_db = st.session_state.users_db
+        users_db = st.session_state.users_db
     students = []
-    
+
     # DEBUG: Veri durumu kontrolü
     st.sidebar.write(f"📊 **Debug Info:**")
     st.sidebar.write(f"• Toplam user DB kaydı: {len(users_db) if users_db else 0}")
     if users_db:
         st.sidebar.write(f"• Kullanıcılar: {list(users_db.keys())}")
-    
+
     if not users_db:
         st.warning("⚠️ Hiç öğrenci verisi bulunamadı!")
         st.info("💡 Firebase'den veri çekilemedi veya hiç kayıt yapılmamış.")
         return []
-    
+
     for username, user_data in users_db.items():
         # Sadece gerçek öğrenci verilerini al (admin hariç)
         if username in ["admin", "adminYKS2025"]:
             continue
-            
+
         # Veri kontrolü
         name = user_data.get('name', 'İsimsiz Öğrenci')
         surname = user_data.get('surname', '')
         full_name = f"{name} {surname}".strip()
-        
+
         # Son giriş tarihi
         last_login_str = user_data.get('last_login')
         if last_login_str:
@@ -283,16 +280,16 @@ def get_real_student_data_for_admin():
                 last_login = datetime.fromisoformat(last_login_str.replace('Z', '+00:00'))
             except:
                 last_login = datetime.now() - timedelta(days=30)
-        else:
-            last_login = datetime.now() - timedelta(days=30)
-        
+            else:
+                last_login = datetime.now() - timedelta(days=30)
+
         # Haftalık performans hesaplama (varsa gerçek verilerden)
         weekly_progress = user_data.get('weekly_progress', {})
         if weekly_progress:
             # Gerçek ilerleme verisi varsa hesapla
-            completed_topics = sum([len(progress.get('completed_topics', [])) 
+            completed_topics = sum([len(progress.get('completed_topics', []))
                                   for progress in weekly_progress.values()])
-            total_topics = sum([len(progress.get('planned_topics', [])) 
+            total_topics = sum([len(progress.get('planned_topics', []))
                               for progress in weekly_progress.values()])
             if total_topics > 0:
                 weekly_performance = int((completed_topics / total_topics) * 100)
@@ -301,22 +298,22 @@ def get_real_student_data_for_admin():
         else:
             # Veri yoksa ortalama değer ver
             weekly_performance = 65
-            
+
         # Çalışma saatleri (varsa gerçek verilerden)
         total_hours = user_data.get('total_study_hours', 0)
         if total_hours == 0:
             # Veri yoksa tahmin et
             total_hours = weekly_performance // 2 + 20
-            
+
         # Deneme sayısı
         exam_count = user_data.get('exam_count', 0)
         if exam_count == 0:
             exam_count = max(1, weekly_performance // 20)
-        
+
         # Durum belirleme
         days_since_login = (datetime.now() - last_login).days
         status = "Aktif" if days_since_login <= 7 else "Pasif"
-        
+
         student = {
             "username": username,
             "name": full_name if full_name != "İsimsiz Öğrenci" else username,
@@ -330,28 +327,28 @@ def get_real_student_data_for_admin():
             "target": user_data.get('target', 'Belirtilmemiş')
         }
         students.append(student)
-    
+
     # Performansa göre sırala (yüksekten düşüğe)
     students.sort(key=lambda x: x['weekly_performance'], reverse=True)
-    
+
     return students
 
 def generate_mock_student_data():
     """Örnek öğrenci verileri oluştur"""
     import random
     from datetime import datetime, timedelta
-    
-    names = ["Ahmet Yılmaz", "Fatma Kaya", "Mehmet Öz", "Ayşe Demir", "Ali Çelik", 
+
+    names = ["Ahmet Yılmaz", "Fatma Kaya", "Mehmet Öz", "Ayşe Demir", "Ali Çelik",
              "Zeynep Aktaş", "Murat Şahin", "Selin Yıldız", "Emre Koç", "Büşra Arslan",
              "Cem Özkan", "Esra Polat", "Burak Avcı", "Nur Turan", "Kaan Doğan"]
-    
+
     fields = ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"]
-    
+
     students = []
     for i, name in enumerate(names):
         last_login = datetime.now() - timedelta(days=random.randint(0, 7))
         weekly_performance = random.randint(45, 95)
-        
+
         student = {
             "id": i+1,
             "name": name,
@@ -363,7 +360,7 @@ def generate_mock_student_data():
             "status": "Aktif" if last_login > datetime.now() - timedelta(days=3) else "Pasif"
         }
         students.append(student)
-    
+
     return students
 
 def show_admin_dashboard():
@@ -373,33 +370,33 @@ def show_admin_dashboard():
     with col3:
         if st.button("🚪 Çıkış", type="secondary"):
             admin_logout()
-    
+
     # Dashboard başlık
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 padding: 25px; border-radius: 20px; margin: 20px 0; color: white; text-align: center;">
         <h1 style="margin: 0; color: white;">🏛️ YKS Admin Paneli</h1>
         <p style="margin: 10px 0 0 0; opacity: 0.9;">Öğretmen/Veli Takip Sistemi</p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # GERÇEKFirebase verilerini çek
     students = get_real_student_data_for_admin()
-    
+
     # Genel İstatistikler
     st.markdown("## 📊 Genel Durum")
-    
+
     if not students:
         st.warning("⚠️ Hiç öğrenci verisi bulunamadı!")
         st.info("💡 Sistem henüz öğrenci kaydı yapmadığınız veya veri çekilemediği anlamına gelir.")
         return
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     active_students = len([s for s in students if s['status'] == 'Aktif'])
     avg_performance = sum([s['weekly_performance'] for s in students]) / len(students) if students else 0
     total_hours = sum([s['total_hours'] for s in students])
-    
+
     with col1:
         st.metric("👥 Toplam Öğrenci", len(students))
     with col2:
@@ -408,15 +405,15 @@ def show_admin_dashboard():
         st.metric("📈 Ortalama Başarı", f"%{avg_performance:.1f}")
     with col4:
         st.metric("⏱️ Toplam Çalışma", f"{total_hours}h")
-    
+
     # Öğrencilerin gerçek alan bilgilerini topla
     available_fields = list(set([s['field'] for s in students if s['field'] != 'Belirtilmemiş']))
     field_options = ["Tümü"] + sorted(available_fields)
-    
+
     # Öğrenci Listesi
     st.markdown("---")
     st.markdown("## 👥 Öğrenci Listesi")
-    
+
     # Filtreleme
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -425,10 +422,10 @@ def show_admin_dashboard():
         status_filter = st.selectbox("📊 Durum Filtresi", ["Tümü", "Aktif", "Pasif"])
     with col3:
         performance_filter = st.selectbox("🎯 Performans", ["Tümü", "Yüksek (80+)", "Orta (60-79)", "Düşük (<60)"])
-    
+
     # Öğrenci tablosu
     filtered_students = students.copy()
-    
+
     if field_filter != "Tümü":
         filtered_students = [s for s in filtered_students if s['field'] == field_filter]
     if status_filter != "Tümü":
@@ -440,12 +437,12 @@ def show_admin_dashboard():
             filtered_students = [s for s in filtered_students if 60 <= s['weekly_performance'] < 80]
         elif performance_filter == "Düşük (<60)":
             filtered_students = [s for s in filtered_students if s['weekly_performance'] < 60]
-    
+
     # Tablo görünümü
     if filtered_students:
         for student in filtered_students:
             performance = student['weekly_performance']
-            
+
             # Performansa göre renk
             if performance >= 80:
                 color = "#d4edda"
@@ -453,16 +450,16 @@ def show_admin_dashboard():
                 status_emoji = "🚀"
             elif performance >= 60:
                 color = "#d1ecf1"
-                text_color = "#0c5460" 
+                text_color = "#0c5460"
                 status_emoji = "📈"
             else:
                 color = "#fff3cd"
                 text_color = "#856404"
                 status_emoji = "⚠️"
-            
+
             # Durum emoji
             activity_emoji = "🟢" if student['status'] == 'Aktif' else "🔴"
-            
+
             st.markdown(f"""
             <div style="background: {color}; padding: 15px; border-radius: 10px; margin: 8px 0;
                         border-left: 4px solid {text_color};">
@@ -491,22 +488,22 @@ def show_admin_dashboard():
             """, unsafe_allow_html=True)
     else:
         st.info("Filtrelere uygun öğrenci bulunamadı.")
-    
+
     # Uyarılar
     st.markdown("---")
     st.markdown("## 🚨 Dikkat Gerektiren Durumlar")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.markdown("### ⚠️ Düşük Performans")
         low_performance = [s for s in students if s['weekly_performance'] < 60]
         if low_performance:
             for student in low_performance:
                 st.warning(f"🚨 {student['name']}: %{student['weekly_performance']}")
-        else:
-            st.success("✅ Düşük performanslı öğrenci yok")
-    
+            else:
+                st.success("✅ Düşük performanslı öğrenci yok")
+
     with col2:
         st.markdown("### 📴 Pasif Öğrenciler")
         inactive_students = [s for s in students if s['status'] == 'Pasif']
@@ -514,16 +511,16 @@ def show_admin_dashboard():
             for student in inactive_students:
                 days_ago = (datetime.now() - student['last_login']).days
                 st.error(f"🔴 {student['name']}: {days_ago} gün önce")
-        else:
-            st.success("✅ Tüm öğrenciler aktif")
+            else:
+                st.success("✅ Tüm öğrenciler aktif")
 
 # Ana uygulama akışına admin sekmesi ekle
 def main():
     """Ana uygulama fonksiyonu"""
-    
+
     # Admin panel kontrolü
     admin_mode = st.sidebar.checkbox("🔐 Admin Panel", help="Öğretmen/Veli girişi")
-    
+
     if admin_mode:
         if not check_admin_access():
             admin_login()
@@ -538,7 +535,7 @@ def play_pomodoro_finished_sound():
     <audio autoplay>
         <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaAzqWzu7VfSEELojK7taOOQgSYrPp4alZFAxSp+TvwGIcBz2U0euwcSAFNYDE7t6LPAgPVqvl8KdXCwxQpN7uzGQdEE6ky+/EdCIGMoTH8NaOMwgNWK7p6KJTDwdOoOfusmIfCT6Y0O7feysGLIrM7tiDMQQRXLnk7KVXDAhRp+HussUZAT6W0e3ecSAFNYnE7NKLOQcRXLrm7KdXDA1Sp+XwwGIXBT6T0+7ddywGI4PD79iTQAgPW7jp7qVXDAhRpu7yvWEaAz2X0O3acSAFNY3E7NGLOQgRXLPp66VTFApGqODyvmEXADic0e3fdCEGLYDL8d6RTwgPWLbp7apbDQZGouXxtmMZDjyRzvDXeSkGKoTO8deK" type="audio/wav">
     </audio>
-    
+
     <style>
     .pomodoro-notification {
         position: fixed;
@@ -552,13 +549,13 @@ def play_pomodoro_finished_sound():
         z-index: 9999;
         animation: slideIn 0.5s ease-out;
     }
-    
+
     @keyframes slideIn {
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
     }
     </style>
-    
+
     <script>
     // Mobil uyumlu ses çalma
     function playPomodoroBeep() {
@@ -567,48 +564,48 @@ def play_pomodoro_finished_sound():
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
-            
+
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
-            
+
             // Yüksek frekanslı bip sesi
             oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
             oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.1);
             oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.2);
-            
+
             gainNode.gain.setValueAtTime(0, audioContext.currentTime);
             gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
             gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.1);
             gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
-            
+
             oscillator.type = 'square';
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.3);
-            
+
             // Görsel bildirim
             const notification = document.createElement('div');
             notification.className = 'pomodoro-notification';
             notification.innerHTML = '🎉 Pomodoro Tamamlandı! Mola zamanı! 🔔';
             document.body.appendChild(notification);
-            
+
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
                 }
             }, 3000);
-            
+
         } catch (e) {
             console.log('Ses çalınamadı:', e);
             // Ses çalmasa bile görsel bildirim ver
             alert('🎉 Pomodoro Tamamlandı! Mola zamanı! 🔔');
         }
     }
-    
+
     // Ses çal
     playPomodoroBeep();
     </script>
     """
-    
+
     st.components.v1.html(sound_html, height=0)
 
 def play_break_start_sound():
@@ -621,32 +618,32 @@ def play_break_start_sound():
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
-            
+
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
-            
+
             // Yumuşak, rahatlatıcı ton
             oscillator.frequency.setValueAtTime(500, audioContext.currentTime);
             oscillator.frequency.setValueAtTime(400, audioContext.currentTime + 0.15);
-            
+
             gainNode.gain.setValueAtTime(0, audioContext.currentTime);
             gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.02);
             gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.13);
             gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.15);
-            
+
             oscillator.type = 'sine';
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.15);
-            
+
         } catch (e) {
             console.log('Mola sesi çalınamadı:', e);
         }
     }
-    
+
     playBreakStartBeep();
     </script>
     """
-    
+
     st.components.v1.html(sound_html, height=0)
 
 # Firebase başlatma
@@ -665,39 +662,17 @@ if FIREBASE_AVAILABLE:
                 firebase_config = json.loads(firebase_json)
                 cred = credentials.Certificate(firebase_config)
             else:
-# 🚨 FIREBASE CACHE SYSTEM - 24GB Data Transfer Optimization
-CACHE_DURATION_MINUTES = 5
-
-def refresh_users_cache():
-    """Firebase'den verileri cache sistemi ile çek (optimized)"""
-    cache_key = 'users_db'
-    current_time = datetime.now()
-    
-    # İlk defa çekiliyorsa veya cache süresi dolmuşsa yeniden çek
-    if (cache_key not in st.session_state or 
-        f"{cache_key}_timestamp" not in st.session_state or
-        (current_time - datetime.fromisoformat(st.session_state[f"{cache_key}_timestamp"])).total_seconds() > CACHE_DURATION_MINUTES * 60):
-        
-        with st.spinner("💾 Veriler yükleniyor (Cache: 5 dakika)"):
-# DISABLED - Cache optimization: st.session_state.users_db = load_users_from_firebase()
-            st.session_state[f"{cache_key}_timestamp"] = current_time.isoformat()
-            st.success(f"✅ Veriler cache'e alındı - Sonraki 5 dakika lokal cache kullanılacak")
-    else:
-        # Cache'ten veri kullan
-        st.info("⚡ Cache'ten veri yüklendi - Firebase'e gerek yok")
-
-
                 # Local development: JSON dosyasından al
                 cred = credentials.Certificate("firebase_key.json")
-            
+
             firebase_admin.initialize_app(cred, {
-                'databaseURL':'https://yeniseninalanin-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
+                'databaseURL':'https://yks-takip-c26d5-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
             })
-        
+
         db_ref = db.reference('users')
         firebase_connected = True
         st.success("🔥 Firebase bağlantısı başarılı!")
-        
+
     except Exception as e:
         st.warning(f"⚠️ Firebase bağlantısı kurulamadı: {e}")
         firebase_connected = False
@@ -757,6 +732,7 @@ def load_users_from_firebase():
             users_data = db_ref.get()  # ✅ DÜZELTME: /users yolu zaten tanımlı
             return users_data if users_data else {}
         else:
+
             # FALLBACK: Local test kullanıcıları
             if hasattr(st.session_state, 'fallback_users'):
                 return st.session_state.fallback_users
@@ -773,32 +749,32 @@ def update_user_in_firebase(username, data):
     try:
         if firebase_connected and db_ref:
             db_ref.child(username).update(data)  # ✅ DÜZELTME: /users yolu zaten tanımlı
-            
+
             # 🆕 KRİTİK FİX: SESSION STATE'İ ANINDA SENKRONIZE ET!
             # Bu sayede F5'e basmadan güncel veri görünür
             if 'users_db' in st.session_state and username in st.session_state.users_db:
                 st.session_state.users_db[username].update(data)
-            
+
             # 🔥 EKSTRA: Haftalık plan cache'ini sil
             if 'weekly_plan_cache' in st.session_state:
                 del st.session_state.weekly_plan_cache
-            
+
             return True
-        else:
-            # FALLBACK: Local test kullanıcıları
+            else:
+                # FALLBACK: Local test kullanıcıları
             if hasattr(st.session_state, 'fallback_users'):
                 if username not in st.session_state.fallback_users:
                     st.session_state.fallback_users[username] = {}
                 st.session_state.fallback_users[username].update(data)
-            
+
             # 🆕 FALLBACK için de session state güncelle
             if 'users_db' in st.session_state and username in st.session_state.users_db:
                 st.session_state.users_db[username].update(data)
-            
+
             # 🔥 EKSTRA: Haftalık plan cache'ini sil
             if 'weekly_plan_cache' in st.session_state:
                 del st.session_state.weekly_plan_cache
-            
+
             return True
     except Exception as e:
         st.error(f"Firebase veri güncelleme hatası: {e}")
@@ -807,15 +783,15 @@ def update_user_in_firebase(username, data):
             if username not in st.session_state.fallback_users:
                 st.session_state.fallback_users[username] = {}
             st.session_state.fallback_users[username].update(data)
-        
+
         # 🆕 Hata durumunda bile session state güncelle
         if 'users_db' in st.session_state and username in st.session_state.users_db:
             st.session_state.users_db[username].update(data)
-        
+
         # 🔥 EKSTRA: Haftalık plan cache'ini sil
         if 'weekly_plan_cache' in st.session_state:
             del st.session_state.weekly_plan_cache
-        
+
         return True
     return False
 
@@ -944,21 +920,21 @@ BREATHING_EXERCISES = [
 ]
 
 # Tüm kullanıcı alanlarını tutarlılık için tanımlıyoruz.
-FIELDNAMES = ['username', 'password', 'name', 'surname', 'grade', 'field', 'target_department', 'tyt_last_net', 'tyt_avg_net', 'ayt_last_net', 'ayt_avg_net', 
+FIELDNAMES = ['username', 'password', 'name', 'surname', 'grade', 'field', 'target_department', 'tyt_last_net', 'tyt_avg_net', 'ayt_last_net', 'ayt_avg_net',
               # Net aralık ve seviye bilgileri
               'tyt_last_range', 'tyt_avg_range', 'ayt_last_range', 'ayt_avg_range',
               'tyt_last_level', 'tyt_avg_level', 'ayt_last_level', 'ayt_avg_level',
               # Diğer alanlar
               'learning_style', 'learning_style_scores', 'created_at',  'detailed_nets', 'deneme_analizleri','study_program', 'topic_progress', 'topic_completion_dates', 'yks_survey_data', 'pomodoro_history'
-              ,'is_profile_complete', 
-              'is_learning_style_set', 
+              ,'is_profile_complete',
+              'is_learning_style_set',
               'learning_style',
-              
+
               # YENİ ALANLAR - Kalıcı Öğrenme Sistemi
               'topic_repetition_history',  # Her konunun tekrar geçmişi
               'topic_mastery_status',      # Konunun kalıcılık durumu
               'pending_review_topics',     # Tekrar değerlendirmesi bekleyen konular
-              
+
               # YENİ ALAN - Günlük Motivasyon Sistemi
               'daily_motivation'           # Günlük motivasyon puanları ve notları
               ]
@@ -1012,7 +988,7 @@ BACKGROUND_STYLES = {
         "icon": "🎖️"
     },
     "MSÜ - Deniz Astsubay Yüksekokulu": {
-        "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80", 
+        "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #0c4a6e 0%, #0ea5e9 50%, #075985 100%)",
         "icon": "⚓"
     },
@@ -1021,7 +997,7 @@ BACKGROUND_STYLES = {
         "gradient": "linear-gradient(135deg, #1e40af 0%, #60a5fa 50%, #2563eb 100%)",
         "icon": "✈️"
     },
-    
+
     # 🎓 TYT (Meslek Yüksekokulu) Alt Kategorileri - Gerçek Meslek Görselleri
     "TYT - Bilgisayar Programcılığı": {
         "image": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
@@ -1103,7 +1079,7 @@ BACKGROUND_STYLES = {
         "gradient": "linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #a5b4fc 100%)",
         "icon": "🎓"
     },
-    
+
     "Varsayılan": {
         "image": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
         "gradient": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
@@ -1122,7 +1098,7 @@ TARGET_DEPARTMENT_DIFFICULTY = {
     "Diş Hekimliği": {
         "difficulty_level": 5,
         "required_nets": {"TYT": 110, "AYT": 70},
-        "study_intensity": "maksimum", 
+        "study_intensity": "maksimum",
         "weekly_topic_multiplier": 1.4
     },
     "Mühendislik": {
@@ -1181,7 +1157,7 @@ GRADE_BASED_PROGRAMS = {
     },
     "12. Sınıf": {
         "focus": "konu_tamamlama_ve_deneme_odak",
-        "study_pace": "hızlandırılmış", 
+        "study_pace": "hızlandırılmış",
         "weekly_topic_base": 10,  # Standart
         "review_ratio": 0.3,  # %30 tekrar, %70 yeni konu
         "exam_frequency": "2_haftada_1",
@@ -1191,7 +1167,7 @@ GRADE_BASED_PROGRAMS = {
         "focus": "eksik_kapama_ve_performans_artırma",
         "study_pace": "maksimum",
         "weekly_topic_base": 8,  # Daha az yeni konu, daha fazla tekrar
-        "review_ratio": 0.4,  # %40 tekrar, %60 yeni konu  
+        "review_ratio": 0.4,  # %40 tekrar, %60 yeni konu
         "exam_frequency": "haftada_1",
         "special_notes": "Eksikleri kapatma ve performans maksimizasyonu dönemi"
     }
@@ -1214,7 +1190,7 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
         "topics": {
             "TYT Türkçe": [
                 "Sözcükte Anlam - Gerçek Anlam",
-                "Sözcükte Anlam - Mecaz Anlam", 
+                "Sözcükte Anlam - Mecaz Anlam",
                 "Sözcükte Anlam - Terim Anlam",
                 "Cümlede Anlam - Cümle Yorumlama",
                 "Cümlede Anlam - Kesin Yargı",
@@ -1256,7 +1232,7 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
             ],
             "TYT Geometri": [
                 "Özel Üçgenler - Dik Üçgen",
-                "Özel Üçgenler - Eşkenar Üçgen", 
+                "Özel Üçgenler - Eşkenar Üçgen",
                 "Özel Üçgenler - İkizkenar Üçgen"
             ],
             "TYT Coğrafya": [
@@ -1289,7 +1265,7 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
             ],
             "TYT Coğrafya": [
                 "Coğrafi Konum",
-                "Harita Bilgisi", 
+                "Harita Bilgisi",
                 "Atmosfer ve Sıcaklık"
             ],
             "TYT Tarih": [
@@ -1310,7 +1286,7 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
                 "Basit Eşitsizlikler",
                 "Mutlak Değer",
                 "Problemler - Yaş Problemleri",
-                "Problemler - Yüzde Problemleri", 
+                "Problemler - Yüzde Problemleri",
                 "Problemler - Kar-Zarar Problemleri"
             ],
             "TYT Geometri": [
@@ -1335,7 +1311,7 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
         "topics": {
             "TYT Türkçe": [
                 "Sözcük Türleri - İsimler",
-                "Sözcük Türleri - Zamirler", 
+                "Sözcük Türleri - Zamirler",
                 "Sözcük Türleri - Sıfatlar",
                 "Sözcük Türleri - Zarf",
                 "Sözcük Türleri - Edat"
@@ -1912,7 +1888,7 @@ EQUAL_WEIGHT_WEEKLY_PLAN = {
             "AYT Tarih": [
                 "Beylikten Devlete Osmanlı Siyaseti",
                 "Devletleşme Sürecindeki Savaşçılar ve Askerler",
-                "Beylikten Devlete Osmanlı Medeniyeti", 
+                "Beylikten Devlete Osmanlı Medeniyeti",
                 "Dünya Gücü Osmanlı",
                 "Sultan ve Osmanlı ve Merkez Teşkilatı",
                 "Klasik Çağda Osmanlı Toplum Düzeni"
@@ -2014,7 +1990,7 @@ NUMERICAL_WEEKLY_PLAN = {
         "topics": {
             "TYT Türkçe": [
                 "Sözcükte Anlam",
-                "Cümlede Anlam", 
+                "Cümlede Anlam",
                 "Paragraf"
             ],
             "TYT Matematik": [
@@ -2822,7 +2798,7 @@ VERBAL_WEEKLY_PLAN = {
             ],
             "TYT Türkçe": [
                 "Sözcükte Anlam - Gerçek Anlam",
-                "Sözcükte Anlam - Mecaz Anlam", 
+                "Sözcükte Anlam - Mecaz Anlam",
                 "Sözcükte Anlam - Terim Anlam",
                 "Cümlede Anlam - Cümle Yorumlama",
                 "Paragraf - Ana Fikir"
@@ -2897,7 +2873,7 @@ VERBAL_WEEKLY_PLAN = {
             ],
             "TYT Coğrafya": [
                 "Coğrafi Konum",
-                "Harita Bilgisi", 
+                "Harita Bilgisi",
                 "Atmosfer ve Sıcaklık"
             ],
             "TYT Tarih": [
@@ -3265,50 +3241,50 @@ VERBAL_WEEKLY_PLAN = {
 ACHIEVEMENT_BADGES = {
     "topic_milestones": {
         "first_topic": {
-            "name": "İlk Adım", 
-            "icon": "🚀", 
+            "name": "İlk Adım",
+            "icon": "🚀",
             "description": "İlk konunu tamamladın! Yolculuğa başladın!",
             "points": 25,
             "requirement": 1
         },
         "topic_10": {
-            "name": "Başlangıç", 
-            "icon": "⭐", 
+            "name": "Başlangıç",
+            "icon": "⭐",
             "description": "10 konu tamamlandı - İyi bir başlangıç!",
             "points": 50,
             "requirement": 10
         },
         "topic_25": {
-            "name": "Momentum", 
-            "icon": "🌟", 
+            "name": "Momentum",
+            "icon": "🌟",
             "description": "25 konu tamamlandı - Momentum kazandın!",
             "points": 100,
             "requirement": 25
         },
         "topic_50": {
-            "name": "İlerliyor", 
-            "icon": "🌟", 
+            "name": "İlerliyor",
+            "icon": "🌟",
             "description": "50 konu tamamlandı - Harika ilerleme!",
             "points": 200,
             "requirement": 50
         },
         "topic_100": {
-            "name": "Yüzlük Kulüp", 
-            "icon": "💯", 
+            "name": "Yüzlük Kulüp",
+            "icon": "💯",
             "description": "100 konu tamamlandı - Sen bir şampiyonsun!",
             "points": 500,
             "requirement": 100
         },
         "topic_250": {
-            "name": "Konuların Efendisi", 
-            "icon": "👑", 
+            "name": "Konuların Efendisi",
+            "icon": "👑",
             "description": "250 konu tamamlandı - Artık bir uzmanısın!",
             "points": 1000,
             "requirement": 250
         },
         "topic_500": {
-            "name": "Konu Makinesi", 
-            "icon": "🔥", 
+            "name": "Konu Makinesi",
+            "icon": "🔥",
             "description": "500 konu tamamlandı - İnanılmaz bir başarı!",
             "points": 2000,
             "requirement": 500
@@ -3316,29 +3292,29 @@ ACHIEVEMENT_BADGES = {
     },
     "subject_expertise": {
         "math_expert": {
-            "name": "Matematik Uzmanı", 
-            "icon": "📐", 
+            "name": "Matematik Uzmanı",
+            "icon": "📐",
             "description": "Matematik konularında uzmanlaştın!",
             "points": 300,
             "criteria": {"TYT Matematik": 30, "AYT Matematik": 20}
         },
         "turkish_expert": {
-            "name": "Türkçe Uzmanı", 
-            "icon": "📝", 
+            "name": "Türkçe Uzmanı",
+            "icon": "📝",
             "description": "Türkçe konularında uzmanlaştın!",
             "points": 250,
             "criteria": {"TYT Türkçe": 40}
         },
         "science_expert": {
-            "name": "Fen Uzmanı", 
-            "icon": "🔬", 
+            "name": "Fen Uzmanı",
+            "icon": "🔬",
             "description": "Fen konularında uzmanlaştın!",
             "points": 400,
             "criteria": {"TYT Fizik": 15, "TYT Kimya": 15, "TYT Biyoloji": 15}
         },
         "social_expert": {
-            "name": "Sosyal Uzmanı", 
-            "icon": "🏛️", 
+            "name": "Sosyal Uzmanı",
+            "icon": "🏛️",
             "description": "Sosyal bilimler uzmanısın!",
             "points": 300,
             "criteria": {"TYT Tarih": 20, "TYT Coğrafya": 15}
@@ -3346,22 +3322,22 @@ ACHIEVEMENT_BADGES = {
     },
     "streak_badges": {
         "week_streak": {
-            "name": "Haftalık Kahraman", 
-            "icon": "⚡", 
+            "name": "Haftalık Kahraman",
+            "icon": "⚡",
             "description": "1 hafta boyunca her gün çalıştın!",
             "points": 150,
             "requirement": 7
         },
         "month_streak": {
-            "name": "Aylık Şampiyon", 
-            "icon": "🏅", 
+            "name": "Aylık Şampiyon",
+            "icon": "🏅",
             "description": "1 ay boyunca düzenli çalıştın!",
             "points": 500,
             "requirement": 30
         },
         "perfect_week": {
-            "name": "Mükemmel Hafta", 
-            "icon": "💎", 
+            "name": "Mükemmel Hafta",
+            "icon": "💎",
             "description": "Haftalık hedefini %100 tamamladın!",
             "points": 200,
             "requirement": 100
@@ -3393,33 +3369,33 @@ POINT_SYSTEM = {
 # 🎯 Challenge Sistemi
 DAILY_CHALLENGES = [
     {
-        "id": "daily_3_topics", 
-        "name": "Günlük Üçlü", 
-        "description": "Bugün 3 konu tamamla", 
-        "points": 30, 
+        "id": "daily_3_topics",
+        "name": "Günlük Üçlü",
+        "description": "Bugün 3 konu tamamla",
+        "points": 30,
         "target": 3,
         "type": "topic_count"
     },
     {
-        "id": "daily_math_focus", 
-        "name": "Matematik Odağı", 
-        "description": "Bugün sadece matematik çalış", 
+        "id": "daily_math_focus",
+        "name": "Matematik Odağı",
+        "description": "Bugün sadece matematik çalış",
         "points": 25,
         "type": "subject_focus",
         "target_subject": "Matematik"
     },
     {
-        "id": "daily_review", 
-        "name": "Tekrar Günü", 
-        "description": "Bugün 5 konu tekrarı yap", 
-        "points": 20, 
+        "id": "daily_review",
+        "name": "Tekrar Günü",
+        "description": "Bugün 5 konu tekrarı yap",
+        "points": 20,
         "target": 5,
         "type": "review_count"
     },
     {
-        "id": "daily_streak", 
-        "name": "Süreklilik", 
-        "description": "Günlük hedefini tamamla", 
+        "id": "daily_streak",
+        "name": "Süreklilik",
+        "description": "Günlük hedefini tamamla",
         "points": 15,
         "type": "daily_goal"
     }
@@ -3427,25 +3403,25 @@ DAILY_CHALLENGES = [
 
 WEEKLY_CHALLENGES = [
     {
-        "id": "weekly_exam", 
-        "name": "Haftalık Deneme", 
-        "description": "Bu hafta 1 deneme çöz", 
-        "points": 100, 
+        "id": "weekly_exam",
+        "name": "Haftalık Deneme",
+        "description": "Bu hafta 1 deneme çöz",
+        "points": 100,
         "target": 1,
         "type": "exam_count"
     },
     {
-        "id": "weekly_15_topics", 
-        "name": "Haftalık Maraton", 
-        "description": "Bu hafta 15 konu tamamla", 
-        "points": 150, 
+        "id": "weekly_15_topics",
+        "name": "Haftalık Maraton",
+        "description": "Bu hafta 15 konu tamamla",
+        "points": 150,
         "target": 15,
         "type": "topic_count"
     },
     {
-        "id": "weekly_perfect", 
-        "name": "Mükemmel Hafta", 
-        "description": "Haftalık hedefini %100 tamamla", 
+        "id": "weekly_perfect",
+        "name": "Mükemmel Hafta",
+        "description": "Haftalık hedefini %100 tamamla",
         "points": 200,
         "target": 100,
         "type": "weekly_goal_percentage"
@@ -3508,9 +3484,9 @@ def award_points(activity_type, difficulty_level=None, subject=None):
     """Aktivite tipine göre puan ver"""
     if 'gamification' not in st.session_state:
         init_gamification_system()
-    
+
     points = 0
-    
+
     if activity_type == "topic_completion":
         if difficulty_level in [1, 2]:
             points = POINT_SYSTEM["topic_completion"]["easy"]
@@ -3528,34 +3504,34 @@ def award_points(activity_type, difficulty_level=None, subject=None):
         points = POINT_SYSTEM["daily_goal_complete"]
     elif activity_type == "weekly_goal_complete":
         points = POINT_SYSTEM["weekly_goal_complete"]
-    
+
     # Streak bonusu ekle
     if st.session_state.gamification['daily_streak'] >= 7:
         points += POINT_SYSTEM["streak_bonus"]["weekly"]
     elif st.session_state.gamification['daily_streak'] >= 1:
         points += POINT_SYSTEM["streak_bonus"]["daily"]
-    
+
     # Puanı ekle
     old_level = st.session_state.gamification['level']
     st.session_state.gamification['total_points'] += points
     new_level = calculate_user_level(st.session_state.gamification['total_points'])
     st.session_state.gamification['level'] = new_level
-    
+
     # Seviye atlama kontrolü
     if new_level > old_level:
         st.session_state.gamification['last_level_up'] = new_level
         show_level_up_notification(new_level)
-    
+
     return points
 
 def check_achievements():
     """Başarı rozetlerini kontrol et"""
     if 'gamification' not in st.session_state:
         init_gamification_system()
-    
+
     stats = st.session_state.gamification['stats']
     new_badges = []
-    
+
     # Konu milestone'ları kontrol et
     topic_count = stats['topics_completed']
     for milestone_id, badge in ACHIEVEMENT_BADGES["topic_milestones"].items():
@@ -3564,7 +3540,7 @@ def check_achievements():
                 st.session_state.gamification['badges'].append(milestone_id)
                 st.session_state.gamification['total_points'] += badge['points']
                 new_badges.append(badge)
-    
+
     # Uzmanlık rozetlerini kontrol et
     subject_progress = stats.get('subject_progress', {})
     for expertise_id, badge in ACHIEVEMENT_BADGES["subject_expertise"].items():
@@ -3574,39 +3550,39 @@ def check_achievements():
                 if subject_progress.get(subject, 0) < required_count:
                     criteria_met = False
                     break
-            
+
             if criteria_met:
                 st.session_state.gamification['badges'].append(expertise_id)
                 st.session_state.gamification['total_points'] += badge['points']
                 new_badges.append(badge)
-    
+
     return new_badges
 
 def update_topic_completion(subject, topic_name, difficulty_level):
     """Konu tamamlandığında gamification verilerini güncelle"""
     if 'gamification' not in st.session_state:
         init_gamification_system()
-    
+
     # İstatistikleri güncelle
     st.session_state.gamification['stats']['topics_completed'] += 1
-    
+
     # Konu bazlı ilerlemeyi güncelle
     if 'subject_progress' not in st.session_state.gamification['stats']:
         st.session_state.gamification['stats']['subject_progress'] = {}
-    
+
     subject_key = subject.replace(' ', '_').lower()
     st.session_state.gamification['stats']['subject_progress'][subject] = \
         st.session_state.gamification['stats']['subject_progress'].get(subject, 0) + 1
-    
+
     # Puan ver
     points = award_points("topic_completion", difficulty_level, subject)
-    
+
     # Başarı kontrolü
     new_badges = check_achievements()
-    
+
     # Challenge'ları güncelle
     update_challenge_progress("topic_completion", subject)
-    
+
     return points, new_badges
 
 def generate_daily_challenges():
@@ -3623,19 +3599,19 @@ def update_challenge_progress(activity_type, subject=None):
     """Challenge ilerlemesini güncelle"""
     if 'gamification' not in st.session_state:
         return
-    
+
     today = datetime.now().strftime("%Y-%m-%d")
     current_week = datetime.now().strftime("%Y-W%U")
-    
+
     # Günlük challenge'ları kontrol et
     for challenge in st.session_state.gamification['current_challenges']['daily']:
         challenge_progress = st.session_state.gamification['completed_challenges']['daily'].get(challenge['id'], {})
-        
+
         if challenge['type'] == 'topic_count' and activity_type == 'topic_completion':
             current_count = challenge_progress.get(today, 0)
             challenge_progress[today] = current_count + 1
             st.session_state.gamification['completed_challenges']['daily'][challenge['id']] = challenge_progress
-            
+
             # Challenge tamamlandı mı?
             if challenge_progress[today] >= challenge['target']:
                 award_points("daily_goal_complete")
@@ -3645,27 +3621,27 @@ def update_challenge_progress(activity_type, subject=None):
 def get_grade_based_strategy(grade, target_department):
     """Sınıf ve hedef bölüme göre strateji döndürür"""
     base_strategy = GRADE_BASED_PROGRAMS.get(grade, GRADE_BASED_PROGRAMS["12. Sınıf"])
-    
+
     # Hedef bölüm zorluğunu al
     dept_difficulty = TARGET_DEPARTMENT_DIFFICULTY.get(target_department, TARGET_DEPARTMENT_DIFFICULTY["Varsayılan"])
-    
+
     # Stratejiyi zorluğa göre ayarla
     adjusted_strategy = base_strategy.copy()
     adjusted_strategy['weekly_topic_base'] = int(base_strategy['weekly_topic_base'] * dept_difficulty['weekly_topic_multiplier'])
     adjusted_strategy['weekly_topic_multiplier'] = dept_difficulty['weekly_topic_multiplier']
     adjusted_strategy['difficulty_level'] = dept_difficulty['difficulty_level']
     adjusted_strategy['target_nets'] = dept_difficulty['required_nets']
-    
+
     return adjusted_strategy
 
 def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics, user_data=None):
     """Eşit Ağırlık için haftalık konuları getirir - SON DÜZELTİLDİ"""
     if week_number > 16:
         week_number = 16  # Max 16 hafta
-    
+
     week_plan = EQUAL_WEIGHT_WEEKLY_PLAN.get(week_number, {})
     weekly_topics = []
-    
+
     # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
     if isinstance(completed_topics, tuple):
         completed_topics_list, completed_topic_names = completed_topics
@@ -3677,24 +3653,24 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
                 topic_name = topic.get('topic', '') if isinstance(topic, dict) else str(topic)
                 if topic_name:
                     completed_topic_names.add(topic_name)
-    
+
     # 🔥 KRİTİK: topic_progress'den gerçek net değerlerini al
     topic_progress = {}
     if user_data:
         import json
         topic_progress_str = user_data.get('topic_progress', '{}')
         topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
-    
+
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
-    
+
     # Konuları birleştir
     for subject, topic_list in planned_topics.items():
         for topic in topic_list:
             # 🆕 DÜZELTİLDİ: Tamamlanmış konuları ATLA
             if topic in completed_topic_names:
                 continue  # Bu konu zaten tamamlanmış, ekleme
-            
+
             # 🔥 KRİTİK: Gerçek net değerini bul (tüm olası key formatlarını dene)
             real_net = 0
             for key, value in topic_progress.items():
@@ -3707,8 +3683,8 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
                             real_net = int(float(str(value)))
                         except:
                             real_net = 0
-                    break
-            
+                        break
+
             weekly_topics.append({
                 'subject': subject,
                 'topic': topic,
@@ -3719,28 +3695,28 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
                 'net': real_net,  # 🔥 Gerçek net değeri!
                 'detail': ''  # Varsayılan detay
             })
-    
+
     # Sadece 2. hafta ve sonrasında önceki haftalardan kalan konuları ekle
     if week_number > 1:
         priority_topics = get_priority_topics_from_previous_weeks(pending_topics)
-        
+
         # 🆕 DÜZELTİLDİ: Öncelikli konuları da kontrol et
         for topic in priority_topics:
             topic_name = topic.get('topic', '')
             if topic_name not in completed_topic_names:
                 topic['priority'] = 'high'
                 weekly_topics.insert(0, topic)
-    
+
     return weekly_topics
 
 def get_numerical_weekly_topics(week_number, completed_topics, pending_topics, user_data=None):
     """Sayısal için haftalık konuları getirir - SON DÜZELTİLDİ"""
     if week_number > 18:
         week_number = 18  # Max 18 hafta
-    
+
     week_plan = NUMERICAL_WEEKLY_PLAN.get(week_number, {})
     weekly_topics = []
-    
+
     # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
     if isinstance(completed_topics, tuple):
         completed_topics_list, completed_topic_names = completed_topics
@@ -3752,24 +3728,24 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics, u
                 topic_name = topic.get('topic', '') if isinstance(topic, dict) else str(topic)
                 if topic_name:
                     completed_topic_names.add(topic_name)
-    
+
     # 🔥 KRİTİK: topic_progress'den gerçek net değerlerini al
     topic_progress = {}
     if user_data:
         import json
         topic_progress_str = user_data.get('topic_progress', '{}')
         topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
-    
+
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
-    
+
     # Konuları birleştir
     for subject, topic_list in planned_topics.items():
         for topic in topic_list:
             # 🆕 DÜZELTİLDİ: Tamamlanmış konuları ATLA
             if topic in completed_topic_names:
                 continue
-            
+
             # 🔥 KRİTİK: Gerçek net değerini bul
             real_net = 0
             for key, value in topic_progress.items():
@@ -3781,8 +3757,8 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics, u
                             real_net = int(float(str(value)))
                         except:
                             real_net = 0
-                    break
-            
+                        break
+
             weekly_topics.append({
                 'subject': subject,
                 'topic': topic,
@@ -3793,65 +3769,65 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics, u
                 'net': real_net,  # 🔥 Gerçek net değeri!
                 'detail': ''  # Varsayılan detay
             })
-    
+
     # Sadece 2. hafta ve sonrasında önceki haftalardan kalan konuları ekle
     if week_number > 1:
         priority_topics = get_priority_topics_from_previous_weeks(pending_topics)
-        
+
         # 🆕 DÜZELTİLDİ: Öncelikli konuları da kontrol et
         for topic in priority_topics:
             topic_name = topic.get('topic', '')
             if topic_name not in completed_topic_names:
                 topic['priority'] = 'high'
                 weekly_topics.insert(0, topic)
-    
+
     return weekly_topics
 
 def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, user_data=None):
     """TYT & MSÜ için haftalık konuları getirir - SON DÜZELTİLDİ"""
     if week_number > 9:
         week_number = 9  # Max 9 hafta
-    
+
     week_plan = TYT_MSU_WEEKLY_PLAN.get(week_number, {})
     weekly_topics = []
-    
+
     # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
     if isinstance(completed_topics, tuple):
         completed_topics_list, completed_topic_names = completed_topics
-    else:
-        # Eski format ile uyumluluk
+else:
+    # Eski format ile uyumluluk
         completed_topic_names = set()
         if completed_topics:
             for topic in completed_topics:
                 topic_name = topic.get('topic', '') if isinstance(topic, dict) else str(topic)
                 if topic_name:
                     completed_topic_names.add(topic_name)
-    
+
     # Alt kategori bilgisini al
     sub_category = user_data.get('tyt_msu_sub_category', '') if user_data else ''
-    
+
     # 🔥 KRİTİK: topic_progress'den gerçek net değerlerini al
     topic_progress = {}
     if user_data:
         import json
         topic_progress_str = user_data.get('topic_progress', '{}')
         topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
-    
+
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
-    
+
     # Alt kategoriye göre konu önceliklendirmesi
     priority_subjects = []
     if sub_category.startswith('MSÜ'):
         # MSÜ öğrencileri için matematik ve fen bilimleri öncelikli
         priority_subjects = ['TYT Matematik', 'TYT Fizik', 'TYT Kimya']
     elif 'Bilgisayar' in sub_category or 'Teknoloji' in sub_category:
-        # Teknoloji alanı için matematik ve fizik öncelikli  
+        # Teknoloji alanı için matematik ve fizik öncelikli
         priority_subjects = ['TYT Matematik', 'TYT Fizik']
     elif 'Tıbbi' in sub_category or 'Sağlık' in sub_category or 'Anestezi' in sub_category or 'ATT' in sub_category:
         # Sağlık alanı için biyoloji ve kimya öncelikli
         priority_subjects = ['TYT Biyoloji', 'TYT Kimya']
-    
+
     # Önce öncelikli dersleri ekle
     for subject in priority_subjects:
         if subject in planned_topics:
@@ -3860,20 +3836,20 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
                 # 🆕 DÜZELTİLDİ: Tamamlanmış konuları ATLA
                 if topic in completed_topic_names:
                     continue
-                
+
                 # 🔥 KRİTİK: Gerçek net değerini bul
                 real_net = 0
                 for key, value in topic_progress.items():
                     if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
                         if isinstance(value, dict):
                             real_net = int(float(value.get('net', 0)))
-                        else:
-                            try:
+else:
+    try:
                                 real_net = int(float(str(value)))
                             except:
                                 real_net = 0
                         break
-                
+
                 weekly_topics.append({
                     'subject': subject,
                     'topic': topic,
@@ -3884,7 +3860,7 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
                     'net': real_net,  # 🔥 Gerçek net değeri!
                     'detail': f'⭐ {sub_category} için öncelikli'
                 })
-    
+
     # Sonra diğer dersleri ekle
     for subject, topic_list in planned_topics.items():
         if subject not in priority_subjects:  # Öncelikli olmayanlar
@@ -3892,20 +3868,20 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
                 # 🆕 DÜZELTİLDİ: Tamamlanmış konuları ATLA
                 if topic in completed_topic_names:
                     continue
-                
+
                 # 🔥 KRİTİK: Gerçek net değerini bul
                 real_net = 0
                 for key, value in topic_progress.items():
                     if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
                         if isinstance(value, dict):
                             real_net = int(float(value.get('net', 0)))
-                        else:
-                            try:
+else:
+    try:
                                 real_net = int(float(str(value)))
                             except:
                                 real_net = 0
                         break
-                
+
                 weekly_topics.append({
                     'subject': subject,
                     'topic': topic,
@@ -3916,57 +3892,57 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
                     'net': real_net,  # 🔥 Gerçek net değeri!
                     'detail': ''
                 })
-    
+
     # Sadece 2. hafta ve sonrasında önceki haftalardan kalan konuları ekle
     if week_number > 1:
         priority_topics = get_priority_topics_from_previous_weeks(pending_topics)
-        
+
         # 🆕 DÜZELTİLDİ: Öncelikli konuları da kontrol et
         for topic in priority_topics:
             topic_name = topic.get('topic', '')
             if topic_name not in completed_topic_names:
                 topic['priority'] = 'high'
                 weekly_topics.insert(0, topic)
-    
+
     return weekly_topics
 
 def get_verbal_weekly_topics(week_number, completed_topics, pending_topics, user_data=None):
     """Sözel için haftalık konuları getirir - SON DÜZELTİLDİ"""
     if week_number > 14:
         week_number = 14  # Max 14 hafta
-    
+
     week_plan = VERBAL_WEEKLY_PLAN.get(week_number, {})
     weekly_topics = []
-    
+
     # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
     if isinstance(completed_topics, tuple):
         completed_topics_list, completed_topic_names = completed_topics
-    else:
-        # Eski format ile uyumluluk
+else:
+    # Eski format ile uyumluluk
         completed_topic_names = set()
         if completed_topics:
             for topic in completed_topics:
                 topic_name = topic.get('topic', '') if isinstance(topic, dict) else str(topic)
                 if topic_name:
                     completed_topic_names.add(topic_name)
-    
+
     # 🔥 KRİTİK: topic_progress'den gerçek net değerlerini al
     topic_progress = {}
     if user_data:
         import json
         topic_progress_str = user_data.get('topic_progress', '{}')
         topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
-    
+
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
-    
+
     # Konuları birleştir
     for subject, topic_list in planned_topics.items():
         for topic in topic_list:
             # 🆕 DÜZELTİLDİ: Tamamlanmış konuları ATLA
             if topic in completed_topic_names:
                 continue
-            
+
             # 🔥 KRİTİK: Gerçek net değerini bul
             real_net = 0
             for key, value in topic_progress.items():
@@ -3978,8 +3954,8 @@ def get_verbal_weekly_topics(week_number, completed_topics, pending_topics, user
                             real_net = int(float(str(value)))
                         except:
                             real_net = 0
-                    break
-            
+                        break
+
             weekly_topics.append({
                 'subject': subject,
                 'topic': topic,
@@ -3990,36 +3966,36 @@ def get_verbal_weekly_topics(week_number, completed_topics, pending_topics, user
                 'net': real_net,  # 🔥 Gerçek net değeri!
                 'detail': ''
             })
-    
+
     # Sadece 2. hafta ve sonrasında önceki haftalardan kalan konuları ekle
     if week_number > 1:
         priority_topics = get_priority_topics_from_previous_weeks(pending_topics)
-        
+
         # 🆕 DÜZELTİLDİ: Öncelikli konuları da kontrol et
         for topic in priority_topics:
             topic_name = topic.get('topic', '')
             if topic_name not in completed_topic_names:
                 topic['priority'] = 'high'
                 weekly_topics.insert(0, topic)
-    
+
     return weekly_topics
 
 def get_priority_topics_from_previous_weeks(pending_topics):
     """Önceki haftalardan kalan öncelikli konuları döndürür"""
     priority_topics = []
     current_week = get_current_week_number()
-    
+
     for topic in pending_topics:
         topic_week = topic.get('week', 0)
         topic_subject = topic.get('subject', '')
-        
+
         # Sadece gerçekten önceki haftalardan kalan TYT konularını al
         # AYT konuları zamanı gelmeden önceki hafta sayılmasın
-        if (topic.get('status') == 'incomplete' and 
+        if (topic.get('status') == 'incomplete' and
             topic_week > 0 and topic_week < current_week and
             topic_subject.startswith('TYT')):
             priority_topics.append(topic)
-    
+
     return priority_topics
 
 def get_topic_difficulty_by_name(topic_name):
@@ -4031,19 +4007,19 @@ def get_topic_difficulty_by_name(topic_name):
         return 4  # Zor
     elif any(keyword in topic_name.lower() for keyword in ['ileri', 'karmaşık', 'detay', 'derinlemesine']):
         return 5  # Çok Zor
-    else:
-        return 3  # Orta
+else:
+    return 3  # Orta
 
 def calculate_weekly_progress_percentage(completed_topics, total_planned_topics):
     """Haftalık ilerleme yüzdesini hesaplar"""
     if total_planned_topics == 0:
         return 0
-    
+
     return min(100, (completed_topics / total_planned_topics) * 100)
 
 def get_flexible_topic_recommendations(user_data, current_week_progress, target_percentage=80):
     """Esnek hedef sistemi - %80 hedef ve esnek konu önerileri"""
-    
+
     # Mevcut hafta ilerleme durumu
     if current_week_progress >= target_percentage:
         # Hedef aşıldı, bir sonraki haftanın konularını öner
@@ -4063,8 +4039,8 @@ def get_flexible_topic_recommendations(user_data, current_week_progress, target_
             'recommendation': f'%{target_percentage} hedefe ulaşmak için biraz daha çalışın.',
             'action': 'continue'
         }
-    else:
-        # Geride, öncelikli konulara odaklanmalı
+else:
+    # Geride, öncelikli konulara odaklanmalı
         return {
             'status': 'behind',
             'message': f'⚠️ Bu hafta %{current_week_progress:.1f} ilerleme sağladınız.',
@@ -4076,11 +4052,11 @@ def get_next_week_topics(user_data):
     """Bir sonraki haftanın konularını döndürür"""
     current_week = get_current_week_number()
     student_field = user_data.get('field', '')
-    
+
     if student_field == 'Eşit Ağırlık':
         next_week_plan = EQUAL_WEIGHT_WEEKLY_PLAN.get(current_week + 1, {})
         topics = []
-        
+
         planned_topics = next_week_plan.get('topics', {})
         for subject, topic_list in planned_topics.items():
             for topic in topic_list[:2]:  # Her dersten ilk 2 konu
@@ -4090,9 +4066,9 @@ def get_next_week_topics(user_data):
                     'week': current_week + 1,
                     'priority': 'next_week'
                 })
-        
+
         return topics
-    
+
     return []
 
 def advance_equal_weight_week(user_data):
@@ -4111,7 +4087,7 @@ def get_current_week_number():
         user_data = st.session_state.user_data
         if user_data.get('field') == 'Eşit Ağırlık':
             return user_data.get('equal_weight_current_week', 1)
-    
+
     # Diğer öğrenciler için normal takvim haftası
     week_info = get_current_week_info()
     return week_info.get('week_number', 1)
@@ -4119,13 +4095,13 @@ def get_current_week_number():
 def get_weekly_din_felsefe_topics(week_number):
     """3. haftadan itibaren TYT Din ve Felsefe konularını haftalık 2-3 konu olarak döndürür"""
     topics = []
-    
+
     if week_number < 3:
         return topics
-    
+
     # Her hafta için Din ve Felsefe konularını belirle
     week_offset = week_number - 3  # 3. haftadan başladığı için
-    
+
     # TYT Felsefe konuları
     felsefe_topics = [
         "Felsefenin Konusu", "Bilgi Felsefesi (Epistemoloji)", "Varlık Felsefesi (Ontoloji)",
@@ -4134,18 +4110,18 @@ def get_weekly_din_felsefe_topics(week_number):
         "Sokrates ve Felsefesi", "Platon ve Felsefesi", "Aristoteles ve Felsefesi",
         "Orta Çağ Felsefesi", "İslam Felsefesi (Farabi, İbn Sina)"
     ]
-    
-    # TYT Din Kültürü konuları 
+
+    # TYT Din Kültürü konuları
     din_topics = [
         "İnsan ve Din (İnanç)", "Ahlak", "İbadet", "Peygamberlik",
         "Kutsal Kitaplar", "Ahiret İnancı", "Dinler Tarihi", "İslam Tarihi",
         "Hz. Muhammed'in Hayatı", "Temel Dini Kavramlar"
     ]
-    
+
     # Bu hafta için konuları seç (hafta başına 2-3 konu)
     felsefe_start = (week_offset * 2) % len(felsefe_topics)
     din_start = (week_offset * 2) % len(din_topics)
-    
+
     # Felsefe'den 1-2 konu
     for i in range(2):
         idx = (felsefe_start + i) % len(felsefe_topics)
@@ -4157,30 +4133,30 @@ def get_weekly_din_felsefe_topics(week_number):
             'difficulty': 3,
             'status': 'planned'
         })
-    
+
     # Din'den 1 konu
     din_idx = din_start % len(din_topics)
     topics.append({
         'subject': 'TYT Din Kültürü',
         'topic': din_topics[din_idx],
         'week': week_number,
-        'priority': 'normal', 
+        'priority': 'normal',
         'difficulty': 2,
         'status': 'planned'
     })
-    
+
     return topics
 
 def get_review_topics_for_equal_weight(user_data):
     """Eşit Ağırlık öğrencileri için tekrar konularını döndürür"""
     review_topics = []
-    
+
     # Mastery sisteminden tekrar zamanı gelen konuları al
     mastery_topics = get_pending_review_topics(user_data)
-    
+
     # Eşit Ağırlık için maksimum 8 tekrar konu
     review_topics = mastery_topics[:8]
-    
+
     return review_topics
 
 def show_grade_and_target_dashboard(weekly_plan, user_data):
@@ -4188,25 +4164,25 @@ def show_grade_and_target_dashboard(weekly_plan, user_data):
     grade_strategy = weekly_plan.get('grade_strategy', {})
     student_grade = user_data.get('grade', '12. Sınıf')
     target_department = user_data.get('target', 'Varsayılan')
-    
+
     st.markdown("### 🎯 KİŞİSEL STRATEJİ BİLGİLERİNİZ")
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.metric(
             "🎓 Sınıfınız",
             student_grade,
             help="Sınıfınıza özel strateji uygulanıyor"
         )
-    
+
     with col2:
         st.metric(
             "🎯 Hedef Bölüm",
             target_department,
             help=f"Zorluk Seviyesi: {grade_strategy.get('difficulty_level', 1)}/5"
         )
-    
+
     with col3:
         # Kaldırıldı: Sabit hedef net gösterimi
         # Focus değerini Türkçeleştir
@@ -4226,7 +4202,7 @@ def show_grade_and_target_dashboard(weekly_plan, user_data):
             focus_display,
             help="Sana özel strateji yaklaşımı"
         )
-    
+
     with col4:
         # Kaldırıldı: Sabit hedef net gösterimi
         # Study pace değerini Türkçeleştir
@@ -4243,7 +4219,7 @@ def show_grade_and_target_dashboard(weekly_plan, user_data):
             pace_display,
             help="Sana özel çalışma hızı"
         )
-    
+
     # Strateji detayları
     st.info(f"""
     **📋 {student_grade} Strateji Detayları:**
@@ -4259,27 +4235,27 @@ def show_equal_weight_special_dashboard(weekly_plan, user_data):
     current_week = weekly_plan.get('current_week', 1)
     total_weeks = weekly_plan.get('total_weeks', 16)
     flexible_rec = weekly_plan.get('flexible_recommendation', {})
-    
+
     # Eşit ağırlık hafta verisini garantile
     if 'equal_weight_current_week' not in user_data:
         user_data['equal_weight_current_week'] = 1
         update_user_in_firebase(st.session_state.current_user, {'equal_weight_current_week': 1})
-    
+
     st.markdown("### 📚 EŞİT AĞIRLIK ÖZEL PLANI")
-    
+
     # İlerleme çubuğu
     progress = min(100, (current_week / total_weeks) * 100)
     st.progress(progress / 100)
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.metric(
             "📅 Mevcut Hafta",
             f"{current_week}/16",
             help="16 haftalık detay planının hangi haftasındasınız"
         )
-    
+
     with col2:
         week_plan = EQUAL_WEIGHT_WEEKLY_PLAN.get(current_week, {})
         st.metric(
@@ -4287,7 +4263,7 @@ def show_equal_weight_special_dashboard(weekly_plan, user_data):
             week_plan.get('focus', 'Belirlenmedi')[:20] + "..." if len(week_plan.get('focus', '')) > 20 else week_plan.get('focus', 'Belirlenmedi'),
             help=week_plan.get('focus', 'Bu haftanın odak konusu')
         )
-    
+
     with col3:
         weekly_topics = weekly_plan.get('new_topics', [])
         st.metric(
@@ -4295,7 +4271,7 @@ def show_equal_weight_special_dashboard(weekly_plan, user_data):
             len(weekly_topics),
             help="Bu hafta planlanmış toplam konu sayısı"
         )
-    
+
     with col4:
         target_percentage = 80
         st.metric(
@@ -4303,15 +4279,15 @@ def show_equal_weight_special_dashboard(weekly_plan, user_data):
             f"%{target_percentage}",
             help="Haftalık başarı hedefi"
         )
-    
+
     # 🚀 HAFTA İLERLEME BUTONU
     st.markdown("")
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-    
+
     with col_btn2:
         if current_week < total_weeks:
-            if st.button(f"✅ Haftayı Bitir ve {current_week + 1}. Haftaya Geç", 
-                        key="advance_equal_weight", 
+            if st.button(f"✅ Haftayı Bitir ve {current_week + 1}. Haftaya Geç",
+                        key="advance_equal_weight",
                         help=f"Mevcut hafta ({current_week}) tamamlandı, bir sonraki haftaya geç",
                         use_container_width=True):
                 # Haftayı ileri al
@@ -4320,49 +4296,49 @@ def show_equal_weight_special_dashboard(weekly_plan, user_data):
                 update_user_in_firebase(st.session_state.current_user, {'equal_weight_current_week': new_week})
                 st.success(f"🎉 {new_week}. haftaya geçildi!")
                 st.rerun()
-        else:
-            st.success("🏆 16 haftalık Eşit Ağırlık planını tamamladınız! Tebrikler!")
-    
+else:
+    st.success("🏆 16 haftalık Eşit Ağırlık planını tamamladınız! Tebrikler!")
+
     st.markdown("")
-    
+
     # Esnek hedef sistemi önerileri
     if flexible_rec:
         status = flexible_rec.get('status', 'on_track')
         message = flexible_rec.get('message', '')
         recommendation = flexible_rec.get('recommendation', '')
-        
+
         if status == 'ahead':
             st.success(f"🎉 {message}")
             st.info(f"💡 **Öneri:** {recommendation}")
-            
+
             # Bir sonraki haftanın konularını göster
             suggested_topics = flexible_rec.get('suggested_topics', [])
             if suggested_topics:
                 st.markdown("**🔥 Bir Sonraki Haftadan Başlayabileceğiniz Konular:**")
                 for topic in suggested_topics:
                     st.write(f"• **{topic['subject']}:** {topic['topic']}")
-                    
+
         elif status == 'on_track':
             st.info(f"👍 {message}")
             st.write(f"💡 **Öneri:** {recommendation}")
-            
-        else:  # behind
+
+else:  # behind
             st.warning(f"⚠️ {message}")
             st.write(f"💡 **Öneri:** {recommendation}")
-    
+
     # Bu haftanın detay planını göster
     if current_week <= 16:
         with st.expander(f"📋 {current_week}. Hafta Detay Planı", expanded=False):
             week_detail = EQUAL_WEIGHT_WEEKLY_PLAN.get(current_week, {})
             topics_by_subject = week_detail.get('topics', {})
-            
+
             # 🔥 KRİTİK: Tamamlanmış konuları al ve filtrele
             completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)
-            
+
             for subject, topics in topics_by_subject.items():
                 # Bu dersten gösterilecek konuları filtrele
                 filtered_topics = [t for t in topics if t not in completed_topic_names]
-                
+
                 if filtered_topics:  # Sadece kalan konular varsa göster
                     st.markdown(f"**🔸 {subject}:**")
                     for topic in filtered_topics:
@@ -4370,19 +4346,19 @@ def show_equal_weight_special_dashboard(weekly_plan, user_data):
                         difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
                         st.write(f"• {topic} {difficulty_info['icon']}")
                     st.write("")
-            
+
             # Eğer tüm konular tamamlanmışsa
             all_topics_count = sum(len(topics) for topics in topics_by_subject.values())
             remaining_topics_count = sum(len([t for t in topics if t not in completed_topic_names]) for topics in topics_by_subject.values())
             if remaining_topics_count == 0:
                 st.success(f"🎉 {current_week}. haftanın tüm konularını tamamladınız! Tebrikler!")
-    
+
     # DEBUG: Mevcut haftalık planı göster
     with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
         st.write(f"**User Data equal_weight_current_week:** {user_data.get('equal_weight_current_week', 'YOK')}")
         st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
         st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
-        
+
         new_topics = weekly_plan.get('new_topics', [])
         if new_topics:
             st.write("**Bu haftanın konuları:**")
@@ -4390,35 +4366,35 @@ def show_equal_weight_special_dashboard(weekly_plan, user_data):
                 st.write(f"• {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
             if len(new_topics) > 5:
                 st.write(f"... ve {len(new_topics) - 5} konu daha")
-        else:
-            st.error("Hiç konu bulunamadı!")
+else:
+    st.error("Hiç konu bulunamadı!")
 
 def show_numerical_special_dashboard(weekly_plan, user_data):
     """Sayısal özel planı dashboard'u"""
     current_week = weekly_plan.get('current_week', 1)
     total_weeks = weekly_plan.get('total_weeks', 18)
     flexible_rec = weekly_plan.get('flexible_recommendation', {})
-    
+
     # Sayısal hafta verisini garantile
     if 'numerical_current_week' not in user_data:
         user_data['numerical_current_week'] = 1
         update_user_in_firebase(st.session_state.current_user, {'numerical_current_week': 1})
-    
+
     st.markdown("### 🔬 SAYISAL ÖZEL PLANI")
-    
+
     # İlerleme çubuğu
     progress = min(100, (current_week / total_weeks) * 100)
     st.progress(progress / 100)
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.metric(
             "📅 Mevcut Hafta",
             f"{current_week}/18",
             help="18 haftalık detay planının hangi haftasındasınız"
         )
-    
+
     with col2:
         week_plan = NUMERICAL_WEEKLY_PLAN.get(current_week, {})
         st.metric(
@@ -4426,7 +4402,7 @@ def show_numerical_special_dashboard(weekly_plan, user_data):
             week_plan.get('focus', 'Belirlenmedi')[:20] + "..." if len(week_plan.get('focus', '')) > 20 else week_plan.get('focus', 'Belirlenmedi'),
             help=week_plan.get('focus', 'Bu haftanın odak konusu')
         )
-    
+
     with col3:
         weekly_topics = weekly_plan.get('new_topics', [])
         st.metric(
@@ -4434,7 +4410,7 @@ def show_numerical_special_dashboard(weekly_plan, user_data):
             len(weekly_topics),
             help="Bu hafta planlanmış toplam konu sayısı"
         )
-    
+
     with col4:
         target_percentage = 80
         st.metric(
@@ -4442,15 +4418,15 @@ def show_numerical_special_dashboard(weekly_plan, user_data):
             f"%{target_percentage}",
             help="Haftalık başarı hedefi"
         )
-    
+
     # 🚀 HAFTA İLERLEME BUTONU
     st.markdown("")
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-    
+
     with col_btn2:
         if current_week < total_weeks:
-            if st.button(f"✅ Haftayı Bitir ve {current_week + 1}. Haftaya Geç", 
-                        key="advance_numerical", 
+            if st.button(f"✅ Haftayı Bitir ve {current_week + 1}. Haftaya Geç",
+                        key="advance_numerical",
                         help=f"Mevcut hafta ({current_week}) tamamlandı, bir sonraki haftaya geç",
                         use_container_width=True):
                 # Haftayı ileri al
@@ -4459,49 +4435,49 @@ def show_numerical_special_dashboard(weekly_plan, user_data):
                 update_user_in_firebase(st.session_state.current_user, {'numerical_current_week': new_week})
                 st.success(f"🎉 {new_week}. haftaya geçildi!")
                 st.rerun()
-        else:
-            st.success("🏆 18 haftalık Sayısal planını tamamladınız! Tebrikler!")
-    
+else:
+    st.success("🏆 18 haftalık Sayısal planını tamamladınız! Tebrikler!")
+
     st.markdown("")
-    
+
     # Esnek hedef sistemi önerileri
     if flexible_rec:
         status = flexible_rec.get('status', 'on_track')
         message = flexible_rec.get('message', '')
         recommendation = flexible_rec.get('recommendation', '')
-        
+
         if status == 'ahead':
             st.success(f"🎉 {message}")
             st.info(f"💡 **Öneri:** {recommendation}")
-            
+
             # Bir sonraki haftanın konularını göster
             suggested_topics = flexible_rec.get('suggested_topics', [])
             if suggested_topics:
                 st.markdown("**🔥 Bir Sonraki Haftadan Başlayabileceğiniz Konular:**")
                 for topic in suggested_topics:
                     st.write(f"• **{topic['subject']}:** {topic['topic']}")
-                    
+
         elif status == 'on_track':
             st.info(f"👍 {message}")
             st.write(f"💡 **Öneri:** {recommendation}")
-            
-        else:  # behind
+
+else:  # behind
             st.warning(f"⚠️ {message}")
             st.write(f"💡 **Öneri:** {recommendation}")
-    
+
     # Bu haftanın detay planını göster
     if current_week <= 18:
         with st.expander(f"📋 {current_week}. Hafta Detay Planı", expanded=False):
             week_detail = NUMERICAL_WEEKLY_PLAN.get(current_week, {})
             topics_by_subject = week_detail.get('topics', {})
-            
+
             # 🔥 KRİTİK: Tamamlanmış konuları al ve filtrele
             completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)
-            
+
             for subject, topics in topics_by_subject.items():
                 # Bu dersten gösterilecek konuları filtrele
                 filtered_topics = [t for t in topics if t not in completed_topic_names]
-                
+
                 if filtered_topics:  # Sadece kalan konular varsa göster
                     st.markdown(f"**🔸 {subject}:**")
                     for topic in filtered_topics:
@@ -4509,19 +4485,19 @@ def show_numerical_special_dashboard(weekly_plan, user_data):
                         difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
                         st.write(f"• {topic} {difficulty_info['icon']}")
                     st.write("")
-            
+
             # Eğer tüm konular tamamlanmışsa
             all_topics_count = sum(len(topics) for topics in topics_by_subject.values())
             remaining_topics_count = sum(len([t for t in topics if t not in completed_topic_names]) for topics in topics_by_subject.values())
             if remaining_topics_count == 0:
                 st.success(f"🎉 {current_week}. haftanın tüm konularını tamamladınız! Tebrikler!")
-    
+
     # DEBUG: Mevcut haftalık planı göster
     with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
         st.write(f"**User Data numerical_current_week:** {user_data.get('numerical_current_week', 'YOK')}")
         st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
         st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
-        
+
         new_topics = weekly_plan.get('new_topics', [])
         if new_topics:
             st.write("**Bu haftanın konuları:**")
@@ -4529,27 +4505,27 @@ def show_numerical_special_dashboard(weekly_plan, user_data):
                 st.write(f"• {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
             if len(new_topics) > 5:
                 st.write(f"... ve {len(new_topics) - 5} konu daha")
-        else:
-            st.error("Hiç konu bulunamadı!")
+else:
+    st.error("Hiç konu bulunamadı!")
 
 def show_tyt_msu_special_dashboard(weekly_plan, user_data):
     """TYT & MSÜ özel planı dashboard'u"""
     current_week = weekly_plan.get('current_week', 1)
     total_weeks = weekly_plan.get('total_weeks', 9)
     flexible_rec = weekly_plan.get('flexible_recommendation', {})
-    
+
     # Alt kategori bilgisini al
     sub_category = user_data.get('tyt_msu_sub_category', 'Belirtilmemiş')
-    
+
     # 🎨 Alt kategoriye göre özel arka plan stilini yükle
     if sub_category != 'Belirtilmemiş':
         # Alt kategori için özel CSS yükle
         st.markdown(get_custom_css(sub_category), unsafe_allow_html=True)
-        
+
         # Alt kategoriye özel başlık arka planı
         bg_style = BACKGROUND_STYLES.get(sub_category, BACKGROUND_STYLES["Varsayılan"])
         category_icon = bg_style.get('icon', '🎓')
-        
+
         st.markdown(f"""
         <div class="main-header">
             <h1>{category_icon} TYT & MSÜ ÖZEL PLANI</h1>
@@ -4557,32 +4533,32 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
             <p style="opacity: 0.9; margin: 0.5rem 0 0 0;">Hafta {current_week}/{total_weeks} • Hedefine Doğru İlerle!</p>
         </div>
         """, unsafe_allow_html=True)
-    else:
-        # Varsayılan başlık
+else:
+    # Varsayılan başlık
         st.markdown(f"### 🎓 TYT & MSÜ ÖZEL PLANI")
-    
+
     # TYT & MSÜ hafta verisini garantile
     if 'tyt_msu_current_week' not in user_data:
         user_data['tyt_msu_current_week'] = 1
         update_user_in_firebase(st.session_state.current_user, {'tyt_msu_current_week': 1})
-    
+
     # Alt kategori belirtilmemişse bilgi mesajı göster
     if sub_category == 'Belirtilmemiş':
         st.info("ℹ️ Alt kategori seçimi için profil ayarlarınızı güncelleyin.")
-    
+
     # İlerleme çubuğu
     progress = min(100, (current_week / total_weeks) * 100)
     st.progress(progress / 100)
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.metric(
             "📅 Mevcut Hafta",
             f"{current_week}/9",
             help="9 haftalık detay planının hangi haftasındasınız"
         )
-    
+
     with col2:
         week_plan = TYT_MSU_WEEKLY_PLAN.get(current_week, {})
         st.metric(
@@ -4590,7 +4566,7 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
             week_plan.get('focus', 'Belirlenmedi')[:20] + "..." if len(week_plan.get('focus', '')) > 20 else week_plan.get('focus', 'Belirlenmedi'),
             help=week_plan.get('focus', 'Bu haftanın odak konusu')
         )
-    
+
     with col3:
         weekly_topics = weekly_plan.get('new_topics', [])
         st.metric(
@@ -4598,7 +4574,7 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
             len(weekly_topics),
             help="Bu hafta planlanmış toplam konu sayısı"
         )
-    
+
     with col4:
         target_percentage = 80
         st.metric(
@@ -4606,15 +4582,15 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
             f"%{target_percentage}",
             help="Haftalık başarı hedefi"
         )
-    
+
     # 🚀 HAFTA İLERLEME BUTONU
     st.markdown("")
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-    
+
     with col_btn2:
         if current_week < total_weeks:
-            if st.button(f"✅ Haftayı Bitir ve {current_week + 1}. Haftaya Geç", 
-                        key="advance_tyt_msu", 
+            if st.button(f"✅ Haftayı Bitir ve {current_week + 1}. Haftaya Geç",
+                        key="advance_tyt_msu",
                         help=f"Mevcut hafta ({current_week}) tamamlandı, bir sonraki haftaya geç",
                         use_container_width=True):
                 # Haftayı ileri al
@@ -4623,49 +4599,49 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
                 update_user_in_firebase(st.session_state.current_user, {'tyt_msu_current_week': new_week})
                 st.success(f"🎉 {new_week}. haftaya geçildi!")
                 st.rerun()
-        else:
-            st.success("🏆 9 haftalık TYT & MSÜ planını tamamladınız! Tebrikler!")
-    
+else:
+    st.success("🏆 9 haftalık TYT & MSÜ planını tamamladınız! Tebrikler!")
+
     st.markdown("")
-    
+
     # Esnek hedef sistemi önerileri
     if flexible_rec:
         status = flexible_rec.get('status', 'on_track')
         message = flexible_rec.get('message', '')
         recommendation = flexible_rec.get('recommendation', '')
-        
+
         if status == 'ahead':
             st.success(f"🎉 {message}")
             st.info(f"💡 **Öneri:** {recommendation}")
-            
+
             # Bir sonraki haftanın konularını göster
             suggested_topics = flexible_rec.get('suggested_topics', [])
             if suggested_topics:
                 st.markdown("**🔥 Bir Sonraki Haftadan Başlayabileceğiniz Konular:**")
                 for topic in suggested_topics:
                     st.write(f"• **{topic['subject']}:** {topic['topic']}")
-                    
+
         elif status == 'on_track':
             st.info(f"👍 {message}")
             st.write(f"💡 **Öneri:** {recommendation}")
-            
-        else:  # behind
+
+else:  # behind
             st.warning(f"⚠️ {message}")
             st.write(f"💡 **Öneri:** {recommendation}")
-    
+
     # Bu haftanın detay planını göster
     if current_week <= 9:
         with st.expander(f"📋 {current_week}. Hafta Detay Planı", expanded=False):
             week_detail = TYT_MSU_WEEKLY_PLAN.get(current_week, {})
             topics_by_subject = week_detail.get('topics', {})
-            
+
             # 🔥 KRİTİK: Tamamlanmış konuları al ve filtrele
             completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)
-            
+
             for subject, topics in topics_by_subject.items():
                 # Bu dersten gösterilecek konuları filtrele
                 filtered_topics = [t for t in topics if t not in completed_topic_names]
-                
+
                 if filtered_topics:  # Sadece kalan konular varsa göster
                     st.markdown(f"**🔸 {subject}:**")
                     for topic in filtered_topics:
@@ -4673,13 +4649,13 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
                         difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
                         st.write(f"• {topic} {difficulty_info['icon']}")
                     st.write("")
-            
+
             # Eğer tüm konular tamamlanmışsa
             all_topics_count = sum(len(topics) for topics in topics_by_subject.values())
             remaining_topics_count = sum(len([t for t in topics if t not in completed_topic_names]) for topics in topics_by_subject.values())
             if remaining_topics_count == 0:
                 st.success(f"🎉 {current_week}. haftanın tüm konularını tamamladınız! Tebrikler!")
-    
+
     # Alt kategoriye göre özel tavsiyeler
     if sub_category.startswith('MSÜ'):
         st.info("🎖️ **MSÜ Tavsiyeleri:** Matematik, Fizik ve Kimya konularına öncelik verin. Üniform disiplini gibi üniversiteye hazırlık sürecinde düzeni koruyun.")
@@ -4689,43 +4665,43 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
         st.info("🎥 **Sağlık Alanı Tavsiyeleri:** Biyoloji ve Kimya konuları mesleki başarınız için kritik. Temel sağlık terminolojisini de araştırın.")
     elif 'Çocuk Gelişimi' in sub_category:
         st.info("👶 **Çocuk Gelişimi Tavsiyeleri:** Psikoloji ve eğitim temelleri önemli. Çocuk gelişimi ile ilgili temel bilgileri araştırın.")
-    
+
     # DEBUG: Mevcut haftalık planı göster
     with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
         st.write(f"**User Data tyt_msu_current_week:** {user_data.get('tyt_msu_current_week', 'YOK')}")
         st.write(f"**Sub Category:** {sub_category}")
         st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
         st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
-        
+
         new_topics = weekly_plan.get('new_topics', [])
         if new_topics:
             st.write("**Bu haftanın konuları:**")
             priority_count = len([t for t in new_topics if t.get('priority') == 'high'])
             if priority_count > 0:
                 st.write(f"**⭐ Öncelikli Konular:** {priority_count} adet")
-            
+
             for topic in new_topics[:5]:  # İlk 5 konu
                 priority_icon = "⭐" if topic.get('priority') == 'high' else "•"
                 st.write(f"{priority_icon} {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
             if len(new_topics) > 5:
                 st.write(f"... ve {len(new_topics) - 5} konu daha")
-        else:
-            st.error("Hiç konu bulunamadı!")
+else:
+    st.error("Hiç konu bulunamadı!")
 
 def get_verbal_simple_topics(week_number, include_math=False):
     """Sözel planı için haftalık konuları al (isteğe bağlı matematik ile)"""
     week_plan = VERBAL_WEEKLY_PLAN.get(week_number, {})
     topics_by_subject = week_plan.get('topics', {})
-    
+
     # Tüm konuları tek liste halinde topla
     all_topics = []
     for subject, topics in topics_by_subject.items():
         if subject == "TYT Matematik" and not include_math:
             continue  # Matematik istenmiyorsa atla
-        
+
         for topic in topics:
             all_topics.append(f"{subject}: {topic}")
-    
+
     return all_topics
 
 def show_verbal_special_dashboard(weekly_plan, user_data):
@@ -4734,17 +4710,17 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
     if 'verbal_current_week' not in user_data:
         user_data['verbal_current_week'] = 1
         update_user_in_firebase(st.session_state.current_user, {'verbal_current_week': 1})
-    
+
     # TYT Matematik seçeneği için session state
     if 'verbal_include_math' not in st.session_state:
         st.session_state.verbal_include_math = False
-    
+
     current_week = user_data.get('verbal_current_week', 1)
     total_weeks = 14
-    
+
     # 🎨 Sözel için özel arka plan stili
     st.markdown(get_custom_css("Öğretmenlik"), unsafe_allow_html=True)
-    
+
     # Sözel alan başlığı
     st.markdown(f"""
     <div class="main-header">
@@ -4753,20 +4729,20 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
         <p style="opacity: 0.9; margin: 0.5rem 0 0 0;">Hafta {current_week}/{total_weeks} • Düşünce Dünyanda Derinleş!</p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # İlerleme çubuğu
     progress = min(100, (current_week / total_weeks) * 100)
     st.progress(progress / 100)
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.metric(
             "📅 Mevcut Hafta",
             f"{current_week}/14",
             help="14 haftalık detay planının hangi haftasındasınız"
         )
-    
+
     with col2:
         week_plan = VERBAL_WEEKLY_PLAN.get(current_week, {})
         st.metric(
@@ -4774,7 +4750,7 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
             week_plan.get('focus', 'Belirlenmedi')[:20] + "..." if len(week_plan.get('focus', '')) > 20 else week_plan.get('focus', 'Belirlenmedi'),
             help=week_plan.get('focus', 'Bu haftanın odak konusu')
         )
-    
+
     with col3:
         weekly_topics = get_verbal_simple_topics(current_week, st.session_state.verbal_include_math)
         st.metric(
@@ -4782,7 +4758,7 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
             len(weekly_topics),
             help="Bu hafta planlanmış toplam konu sayısı"
         )
-    
+
     with col4:
         target_percentage = 80
         st.metric(
@@ -4790,29 +4766,29 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
             f"%{target_percentage}",
             help="Haftalık başarı hedefi"
         )
-    
+
     # TYT Matematik seçeneği
     st.markdown("---")
     include_math = st.checkbox(
-        "🔢 TYT Matematik konularını da programa eklemek ister misiniz?", 
+        "🔢 TYT Matematik konularını da programa eklemek ister misiniz?",
         value=st.session_state.verbal_include_math,
         help="İsteğe bağlı: Sözel öğrenciler için TYT Matematik desteği"
     )
-    
+
     # Seçenek değişirse session state güncelle
     if include_math != st.session_state.verbal_include_math:
         st.session_state.verbal_include_math = include_math
-        st.rerun()
-    
+                st.rerun()
+
     st.markdown("---")
-    
+
     # 🚀 HAFTA İLERLEME BUTONU
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-    
+
     with col_btn2:
         if current_week < total_weeks:
-            if st.button(f"✅ Haftayı Bitir ve {current_week + 1}. Haftaya Geç", 
-                        key="advance_verbal", 
+            if st.button(f"✅ Haftayı Bitir ve {current_week + 1}. Haftaya Geç",
+                        key="advance_verbal",
                         help=f"Mevcut hafta ({current_week}) tamamlandı, bir sonraki haftaya geç",
                         use_container_width=True):
                 # Haftayı ileri al
@@ -4821,31 +4797,31 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
                 update_user_in_firebase(st.session_state.current_user, {'verbal_current_week': new_week})
                 st.success(f"🎉 {new_week}. haftaya geçildi!")
                 st.rerun()
-        else:
-            st.success("🏆 14 haftalık Sözel planını tamamladınız! Tebrikler!")
+else:
+    st.success("🏆 14 haftalık Sözel planını tamamladınız! Tebrikler!")
             if st.button("🔄 Planı Yeniden Başlat", use_container_width=True):
                 user_data['verbal_current_week'] = 1
                 update_user_in_firebase(st.session_state.current_user, {'verbal_current_week': 1})
                 st.rerun()
-    
+
     st.markdown("")
-    
+
     # Bu haftanın detay planını göster
     if current_week <= 14:
         with st.expander(f"📋 {current_week}. Hafta Detay Planı", expanded=False):
             week_detail = VERBAL_WEEKLY_PLAN.get(current_week, {})
             topics_by_subject = week_detail.get('topics', {})
-            
+
             # 🔥 KRİTİK: Tamamlanmış konuları al ve filtrele
             completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)
-            
+
             for subject, topics in topics_by_subject.items():
                 if subject == "TYT Matematik" and not st.session_state.verbal_include_math:
                     continue  # Matematik seçili değilse atla
-                
+
                 # Bu dersten gösterilecek konuları filtrele
                 filtered_topics = [t for t in topics if t not in completed_topic_names]
-                
+
                 if filtered_topics:  # Sadece kalan konular varsa göster
                     st.markdown(f"**🔸 {subject}:**")
                     for topic in filtered_topics:
@@ -4853,23 +4829,23 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
                         difficulty_info = TOPIC_DIFFICULTY_SYSTEM.get(difficulty, TOPIC_DIFFICULTY_SYSTEM[3])
                         st.write(f"• {topic} {difficulty_info['icon']}")
                     st.write("")
-            
+
             # Eğer tüm konular tamamlanmışsa
             all_topics_count = sum(len(topics) for subject, topics in topics_by_subject.items() if subject != "TYT Matematik" or st.session_state.verbal_include_math)
             remaining_topics_count = sum(len([t for t in topics if t not in completed_topic_names]) for subject, topics in topics_by_subject.items() if subject != "TYT Matematik" or st.session_state.verbal_include_math)
             if remaining_topics_count == 0:
                 st.success(f"🎉 {current_week}. haftanın tüm konularını tamamladınız! Tebrikler!")
-    
+
     # Sözel için özel tavsiyeler
     st.info("📚 **Sözel Alan Tavsiyeleri:** Felsefe ve Din dersleri kritik önceliğe sahip. Türkçe, Tarih ve Coğrafya ile bütünleşik çalışın. Analitik düşünce ve yorumlama becerilerinizi geliştirin.")
-    
+
     # DEBUG: Mevcut haftalık planı göster
     with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
         st.write(f"**User Data verbal_current_week:** {user_data.get('verbal_current_week', 'YOK')}")
         st.write(f"**Matematik Dahil:** {st.session_state.verbal_include_math}")
         st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
         st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
-        
+
         new_topics = weekly_plan.get('new_topics', [])
         if new_topics:
             st.write("**Bu haftanın konuları:**")
@@ -4877,18 +4853,18 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
                 st.write(f"• {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
             if len(new_topics) > 5:
                 st.write(f"... ve {len(new_topics) - 5} konu daha")
-        else:
-            st.error("Hiç konu bulunamadı!")
+else:
+    st.error("Hiç konu bulunamadı!")
 
 def update_weekly_plan_with_pending_topics(user_data, weekly_plan):
     """Haftalık planı kalan konularla günceller"""
-    
+
     # Kullanıcının tamamlanmamış konularını al
     pending_topics = get_user_pending_topics(user_data)
-    
+
     # Bu hafta için planlanan konuları al
     current_week_topics = weekly_plan.get('new_topics', [])
-    
+
     # Önceki haftalardan kalan konuları öncelikli olarak ekle
     priority_topics = []
     for topic in pending_topics:
@@ -4896,14 +4872,14 @@ def update_weekly_plan_with_pending_topics(user_data, weekly_plan):
             topic['priority'] = 'high'
             topic['reason'] = 'Önceki haftadan kalan'
             priority_topics.append(topic)
-    
+
     # Öncelikli konuları başa ekle
     updated_topics = priority_topics + current_week_topics
-    
+
     # Güncellenen planı döndür
     weekly_plan['new_topics'] = updated_topics
     weekly_plan['priority_topics_count'] = len(priority_topics)
-    
+
     return weekly_plan
 
 def get_user_pending_topics(user_data):
@@ -4911,26 +4887,26 @@ def get_user_pending_topics(user_data):
     # Bu fonksiyon kullanıcının geçmiş haftalardaki tamamlanmamış konularını bulur
     pending_topics = []
     current_week = get_current_week_number()
-    
+
     # Kullanıcı verilerinden tamamlanmamış konuları al
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
-    
+
     for topic_key, topic_data in topic_progress.items():
         # topic_data'nın dictionary olduğundan emin ol
         if not isinstance(topic_data, dict):
             continue
-        
+
         # Sadece gerçekten başlanmış konuları pending olarak say
         topic_net = topic_data.get('net', 0)
         topic_week = topic_data.get('planned_week', 999)  # Varsayılan olarak çok ileri hafta
         topic_subject = topic_data.get('subject', '')
-        
+
         # Koşullar:
         # 1. Net sayısı 0'dan büyük olmalı (başlanmış olmalı)
-        # 2. Net sayısı 14'ten az olmalı (tamamlanmamış olmalı)  
+        # 2. Net sayısı 14'ten az olmalı (tamamlanmamış olmalı)
         # 3. Konu haftası mevcut haftadan küçük olmalı (geçmiş hafta olmalı)
         # 4. TYT konusu olmalı (AYT konuları zamanı gelmeden pending sayılmasın)
-        if (topic_net > 0 and topic_net < 14 and 
+        if (topic_net > 0 and topic_net < 14 and
             topic_week < current_week and
             topic_subject.startswith('TYT')):
             pending_topics.append({
@@ -4940,7 +4916,7 @@ def get_user_pending_topics(user_data):
                 'week': topic_week,
                 'status': 'incomplete'
             })
-    
+
     return pending_topics
 
 def get_completed_topics_from_user_data(user_data):
@@ -4950,22 +4926,22 @@ def get_completed_topics_from_user_data(user_data):
     """
     import json
     import streamlit as st
-    
+
     completed_topics = []
     completed_topic_names = set()  # Hızlı arama için set
-    
+
     # 🔍 DEBUG: Fonksiyon çağrıldı
     debug_mode = st.session_state.get('debug_completed_topics', False)
     if debug_mode:
         st.write("🔍 DEBUG: get_completed_topics_from_user_data çağrıldı")
-    
+
     # topic_progress'i al
     topic_progress_str = user_data.get('topic_progress', '{}')
     if not topic_progress_str:
         topic_progress_str = '{}'
-    
+
     topic_progress = json.loads(topic_progress_str)
-    
+
     for topic_key, topic_data in topic_progress.items():
         # Veri formatını kontrol et
         if isinstance(topic_data, dict):
@@ -4975,15 +4951,15 @@ def get_completed_topics_from_user_data(user_data):
                 topic_net = int(float(str(topic_data)))
             except:
                 topic_net = 0
-        else:
-            topic_net = 0
-        
+else:
+    topic_net = 0
+
         # Net sayısı 14 veya daha fazla ise "iyi" seviye (tamamlanmış)
         if topic_net >= 14:
             # Konu formatını parse et
             # Format: "TYT Türkçe | Anlam Bilgisi | Cümlede Anlam | Neden-Sonuç"
             topic_parts = topic_key.split(' | ')
-            
+
             completed_topics.append({
                 'topic': topic_key,  # Tam format
                 'topic_name_only': topic_parts[-1] if topic_parts else topic_key,
@@ -4991,28 +4967,28 @@ def get_completed_topics_from_user_data(user_data):
                 'net': topic_net,
                 'status': 'completed'
             })
-            
+
             # 🔥 KRİTİK: Haftalık plan ile eşleşme için TÜM olası formatları ekle
             completed_topic_names.add(topic_key)  # Tam format: "TYT Türkçe | Anlam Bilgisi | Cümlede Anlam | Neden-Sonuç"
-            
+
             if len(topic_parts) >= 1:
                 completed_topic_names.add(topic_parts[-1])  # Sadece detail: "Neden-Sonuç"
-            
+
             if len(topic_parts) >= 3 and topic_parts[-2] != "None":
                 # Main topic - detail kombinasyonu: "Cümlede Anlam - Neden-Sonuç"
                 main_topic_detail = f"{topic_parts[-2]} - {topic_parts[-1]}"
                 completed_topic_names.add(main_topic_detail)
-                
+
                 # 🔍 DEBUG
                 if debug_mode and "Neden-Sonuç" in topic_parts[-1]:
                     st.write(f"✅ Eklendi: {main_topic_detail} (net={topic_net})")
-            
+
             if len(topic_parts) >= 2:
                 # Category - detail kombinasyonu: "Anlam Bilgisi - Neden-Sonuç"
                 if topic_parts[-3] != "None" if len(topic_parts) > 2 else False:
                     category_detail = f"{topic_parts[-3]} - {topic_parts[-1]}"
                     completed_topic_names.add(category_detail)
-    
+
     # 🔍 DEBUG: Tamamlanmış konuları göster
     if debug_mode:
         st.write(f"📊 Toplam {len(completed_topics)} tamamlanmış konu bulundu")
@@ -5020,14 +4996,14 @@ def get_completed_topics_from_user_data(user_data):
             st.write("🔎 Tamamlanmış konu formatları:")
             for name in sorted(list(completed_topic_names)[:20]):
                 st.write(f"  • {name}")
-    
+
     return completed_topics, completed_topic_names
 
 # Kitap önerileri
 BOOK_RECOMMENDATIONS = {
     "Bilim Kurgu": [
         "Isaac Asimov - Foundation Serisi",
-        "Douglas Adams - Otostopçunun Galaksi Rehberi", 
+        "Douglas Adams - Otostopçunun Galaksi Rehberi",
         "George Orwell - 1984",
         "Aldous Huxley - Cesur Yeni Dünya"
     ],
@@ -5091,9 +5067,9 @@ COGNITIVE_PROFILE_DESCRIPTIONS = {
             "Analytical questioning techniques (analitik sorgulama)"
         ]
     },
-    
+
     "Analitik-İçsel": {
-        "title": "🔬 Analitik-İçsel Profil", 
+        "title": "🔬 Analitik-İçsel Profil",
         "scientific_base": "Gardner: Mantıksal-Matematiksel Zeka + İçsel Motivasyon",
         "intro": "Derinlemesine anlama odaklısınız. Merak ettiğiniz konuları sistematik olarak çözümlersiniz.",
         "strengths": [
@@ -5116,7 +5092,7 @@ COGNITIVE_PROFILE_DESCRIPTIONS = {
         ]
     },
 
-    # 🎨 Sintetik Dominant Profiller  
+    # 🎨 Sintetik Dominant Profiller
     "Sintetik-Dışsal": {
         "title": "🎨 Sintetik-Dışsal Profil",
         "scientific_base": "Riding & Cheema: Holistik Stil + Dışsal Motivasyon",
@@ -5159,7 +5135,7 @@ COGNITIVE_PROFILE_DESCRIPTIONS = {
         ],
         "study_methods": [
             "Narrative learning (hikaye tabanlı öğrenme)",
-            "Metaphorical thinking (metaforik düşünme)", 
+            "Metaphorical thinking (metaforik düşünme)",
             "Artistic expression (sanatsal ifade)",
             "Intuitive exploration (sezgisel keşif)"
         ]
@@ -5225,7 +5201,7 @@ YKS_COGNITIVE_INTERPRETATIONS = {
         "study_approach": "Sistematik ve adım adım"
     },
     "sintetik": {
-        "emoji": "🎨", 
+        "emoji": "🎨",
         "description": "Eşit ağırlık/sözel alanda baskın, bütüncül kavrama gücü yüksek",
         "best_subjects": ["Edebiyat", "Tarih", "Coğrafya", "Felsefe"],
         "study_approach": "Bütüncül ve yaratıcı"
@@ -5245,7 +5221,7 @@ YKS_COGNITIVE_INTERPRETATIONS = {
     "içsel_motivasyon": {
         "emoji": "🧍‍♂️",
         "description": "İlgi duyduğu konuya yoğunlaşır, plan dışı çalışabilir",
-        "motivation_type": "Merak ve ilgi odaklı", 
+        "motivation_type": "Merak ve ilgi odaklı",
         "study_tips": ["Kişisel ilgi alanları", "Özgür planlama", "Keşif odaklı"]
     },
     "görsel_hafıza": {
@@ -5324,7 +5300,7 @@ PRIORITY_CATEGORIES = {
     "NORMAL": {"icon": "🎯", "name": "Normal - Orta Konu", "color": "#20c997"},
     "LOW": {"icon": "🟢", "name": "Düşük - İyi Konu", "color": "#28a745"},
     "MINIMAL": {"icon": "⭐", "name": "Minimal - Uzman Konu", "color": "#6c757d"},
-    
+
     # Tekrar kategorileri
     "REPEAT_HIGH": {"icon": "🔄", "name": "Acil Tekrar", "color": "#e74c3c"},
     "REPEAT_MEDIUM": {"icon": "🔄", "name": "Öncelikli Tekrar", "color": "#f39c12"},
@@ -5344,7 +5320,7 @@ WEEKLY_TOPIC_LIMITS = {
 # Modern CSS
 def get_custom_css(target_department):
     bg_style = BACKGROUND_STYLES.get(target_department, BACKGROUND_STYLES["Varsayılan"])
-    
+
     return f"""
 <style>
     .main-header {{
@@ -5403,7 +5379,7 @@ def get_custom_css(target_department):
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }}
-    
+
     .psychology-test {{
         background: linear-gradient(135deg, #654ea3 0%, #eaafc8 100%);
         color: white;
@@ -5412,7 +5388,7 @@ def get_custom_css(target_department):
         margin: 1rem 0;
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }}
-    
+
     .psychology-card {{
         background: #c0392b;
         color: white;
@@ -5422,34 +5398,34 @@ def get_custom_css(target_department):
         margin-bottom: 1.5rem;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }}
-    
+
     .stSpinner > div > span {{
         color: #654ea3 !important;
     }}
-    
+
     .stProgress > div > div > div > div {{
         background-color: #654ea3 !important;
     }}
-    
+
     /* Sidebar Arka Plan Rengi - Çok Koyu Kırmızı */
     [data-testid="stSidebar"] {{
         background-color: #8B0000 !important;
     }}
-    
+
     [data-testid="stSidebar"] > div {{
         background-color: #8B0000 !important;
     }}
-    
+
     [data-testid="stSidebar"] section {{
         background-color: #8B0000 !important;
     }}
-    
+
     /* Sidebar Yazıları Daha Belirgin */
     [data-testid="stSidebar"] * {{
         color: #ffffff !important;
         font-weight: 600 !important;
     }}
-    
+
     [data-testid="stSidebar"] h1,
     [data-testid="stSidebar"] h2,
     [data-testid="stSidebar"] h3,
@@ -5460,7 +5436,7 @@ def get_custom_css(target_department):
         font-weight: bold !important;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
     }}
-    
+
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] div,
     [data-testid="stSidebar"] span,
@@ -5468,7 +5444,7 @@ def get_custom_css(target_department):
         color: #ffffff !important;
         font-weight: 500 !important;
     }}
-    
+
     [data-testid="stSidebar"] .stSelectbox label,
     [data-testid="stSidebar"] .stCheckbox label {{
         color: #ffffff !important;
@@ -5489,12 +5465,12 @@ YKS_TOPICS = {
             "Ses Bilgisi": ["Ses Olayları", "Ünlü Uyumları"],
             "Yazım Kuralları": ["Büyük Harf", "Birleşik Kelimeler", "Sayıların Yazımı"],
             "Noktalama İşaretleri": ["Nokta, Virgül", "Noktalı Virgül", "İki Nokta", "Tırnak İşaretleri","Ünlem, Soru","Kesme İşareti","Yay Ayraç"],
-            "Sözcükte Yapı":["Kök (isim/fiil)", "gövde,ekler (yapım/çekim) ,basit ,türemiş ve birleşik sözcükler"],       
+            "Sözcükte Yapı":["Kök (isim/fiil)", "gövde,ekler (yapım/çekim) ,basit ,türemiş ve birleşik sözcükler"],
             "Sözcük Türleri":["İsimler (Adlar)", "Zamirler (Adıllar)", "Sıfatlar (Ön Adlar)", "Zarflar (Belirteçler)", "Edat – Bağlaç Ünlem"],
             "Fiiller": [" Fiilde Anlam (Kip -zaman/tasarlama-, Kişi, Yapı -basit/türemiş/birleşik-)","Ek Fiil (İsimleri yüklem yapma, basit çekimli fiili birleşik çekimli yapma)"," Fiilimsi (İsim fiil, sıfat fiil, zarf fiil)."," Fiilde Çatı (Özne ve nesneye göre fiilin aldığı ekler)."],
             "Cümlenin Ögeleri":["Yüklem, özne, nesne (belirtili/belirtisiz), dolaylı tümleç (yer tamlayıcısı), zarf tümleci, edat tümleci."],
-            "Cümle Türleri":["Yüklemin türüne, yerine, anlamına ve yapısına göre cümleler."],   
-            "Anlatım Bozukluğu":["Anlamsal ve yapısal anlatım bozuklukları."],      
+            "Cümle Türleri":["Yüklemin türüne, yerine, anlamına ve yapısına göre cümleler."],
+            "Anlatım Bozukluğu":["Anlamsal ve yapısal anlatım bozuklukları."],
         }
     },
     "TYT Matematik": {
@@ -5514,22 +5490,22 @@ YKS_TOPICS = {
           "Rutin Olmayan Problemler (Mantık-muhakeme gerektiren sorular)"],
         "Genel":["Kümeler", "Mantık", "Fonksiyonlar.(temel tyt düzey)"],
         "Olasılık":["Permütasyon","Kombinasyon","Olasılık"]
-            
+
         },
-       
-    
+
+
     "TYT Geometri": {
         "Üçgenler":{
             "Açılar":["Doğruda Açılar","Üçgende Açılar",],
             "Özel Üçgenler":["Dik Üçgen","İkizkenar Üçgen","Eşkenar Üçgen"],
             "Üçgen Özellikleri":["Açıortay","Kenarortay","Eşlik ve Benzerlik","Üçgende Alan","Açı Kenar Bağıntıları"],
-        
+
         "Çokgenler ve Özellikleri":["Çokgenler","Özel Dörtgenler...","Deltoid","Paralel kenar","Eşkenar Dörtgen","Dikdörtgen","Kare","Yamuk"],
-        
+
         "Çember ve Daire":["Çemberde Açı","Çemberde Uzunluk","Dairede Çevre ve Alan"],
-        
+
         "Analitik Geometri":["Noktanın Analitiği","Doğrunun Analitiği"],
-        
+
         "Katı Cisimler":["Prizmalar","Küp","Silindir","Piramit","Koni","Küre"]}
     },
     "TYT Tarih": {
@@ -5553,7 +5529,7 @@ YKS_TOPICS = {
                          "Atatürk Dönemi Türk Dış Politikası"]
     },
     "TYT Coğrafya":{
-        "Dünya Haritaları Kampı (Öneri:Coğrafyanın Kodları)": 
+        "Dünya Haritaları Kampı (Öneri:Coğrafyanın Kodları)":
             ["Dünya Haritaları"],
         "Konular":["Doğa ve İnsan Etkileşimi",
                    "Dünya’nın Şekli ve Hareketleri (Günlük ve Yıllık Hareketler, Sonuçları)",
@@ -5567,7 +5543,7 @@ YKS_TOPICS = {
                        "Türkiye’nin Yer Şekilleri",
                         "Ekonomik Faaliyetler",
                         "Bölgeler,Uluslararası Ulaşım Hatları,Çevre ve Toplum","Doğal Afetler"]
-        
+
     },
     "TYT Felsefe": {
         "Temel Felsefe Konuları": [
@@ -5584,14 +5560,14 @@ YKS_TOPICS = {
         "Felsefe Tarihi": [
             "İlk Çağ Felsefesi",
             "Sokrates ve Felsefesi",
-            "Platon ve Felsefesi", 
+            "Platon ve Felsefesi",
             "Aristoteles ve Felsefesi",
             "Orta Çağ Felsefesi",
             "İslam Felsefesi (Farabi, İbn Sina)",
             "Hristiyan Felsefesi (Augustinus, Aquinalı Thomas)"
         ]
     },
-    
+
     "TYT Din Kültürü": {
         "1. İnanç ve Temel Kavramlar": [
             "İnsan ve Din (İnanç)",
@@ -5615,7 +5591,7 @@ YKS_TOPICS = {
             "Hz. Muhammed ve Gençler",
             "Bazı Genç Sahabiler"
         ],
-        "5.Din ve Toplumsal Hayat":[ 
+        "5.Din ve Toplumsal Hayat":[
             "Din ve Aile",
             "Din, Kültür ve Sanat",
             "Din ve Çevre",
@@ -5651,14 +5627,14 @@ YKS_TOPICS = {
                 "Enerji dönüşümleri","Verim",
                 "Enerjinin Korunumu",
                 ],
-                
-            
+
+
             "Isı ve Sıcaklık":["Isı alışverişi, hal değişimleri, genleşme olayları, Öz Isı, Isı İletimi"]
-        
+
         },
         "Elektrik, Basınç, Dalgalar ve Optik (10. Sınıf)": {
-            
-            
+
+
             "Basınç ve Kaldırma Kuvveti": [
                 "Katı, Sıvı ve Gaz Basıncı, Pascal Prensibi, Bernoulli İlkesi",
                 "Kaldırma Kuvveti"
@@ -5668,12 +5644,12 @@ YKS_TOPICS = {
                 "Su dalgaları, ses dalgaları, dalga boyu, frekans",
                 ],
             "Optik":[ "Aynalar, mercekler, ışığın kırılması ve yansıması"],
-            
+
             "Elektrik ve Manyetizma": [
                 "Elektrik yükleri, akım, direnç, Ohm kanunu, devre elemanları, manyetik alan"
             ]
         },
-    
+
     },
     "TYT Kimya": {
         "1. Kimya Bilimi, Atom ve Etkileşimler (9. Sınıf)": {
@@ -5740,11 +5716,11 @@ YKS_TOPICS = {
             "Eşeysiz Üreme",
             "Mayoz",
             "Eşeyli Üreme",
-            
+
             "Kalıtım Konusu",
             "Genetik Varyasyonlar"
-        ],  
-         
+        ],
+
         "4. Ekoloji ve Çevre (10. Sınıf)": [
             "Ekosistem Ekolojisi",
             "Güncel Çevre Sorunları",
@@ -5760,7 +5736,7 @@ YKS_TOPICS = {
             "Karmaşık Sayılar",
             "2. Dereceden Eşitsizlikler",
             "Parabol"
-        
+
             "Trigonometri",
             "Logaritma",
             "Diziler",
@@ -5897,12 +5873,12 @@ YKS_TOPICS = {
         "Giriş Konular":
                 ["Modern Atom Teorisi","Gazlar","Sıvı Çözeltiler ve Çözünürlük",
                 "Kimyasal Tepkimelerde Enerji","Kimyasal Tepkimelerde Hız", ],
-               
+
      "Kimyasal Tepkimelerde Denge":["Denge Sabiti", "Etkileyen Faktörler)", "Asit-Baz Dengesi (pH, pOH, Titrasyon)", "Çözünürlük Dengesi (Çözünürlük Çarpımı - Kçç"],
-                
+
     "Kimya ve Elektrik":["(Redoks,Elektrot, Pil Potansiyeli)", "Elektroliz ve Korozyon", "Enerji Kaynakları ve Bilimsel Gelişmeler"],
-        
-                                                                                                                           
+
+
 
     "Organik Kimya": [
             "Organik Kimyaya Giriş (Temel Kavramlar, Hibritleşme)","Karbon Kimyasına Giriş", "Organik Kimya (Fonksiyonel Gruplar, Alkan, Alken, Alkin, Aromatikler)"
@@ -5938,13 +5914,13 @@ YKS_TOPICS = {
     "15. Yüzyıl – 17. Yüzyıl Felsefesi",
     "18. Yüzyıl – 19. Yüzyıl Felsefesi",
     "20. Yüzyıl Felsefesi"],
-        
+
         "Mantık Konuları":["Mantığa Giriş",
     "Klasik Mantık",
     "Mantık ve Dil",
     "Sembolik Mantık"
     ],
-        "Psikoloji Bilimini Tanıyalım":[ 
+        "Psikoloji Bilimini Tanıyalım":[
         "Psikolojinin Temel Süreçleri",
         "Öğrenme Bellek Düşünme",
         "Ruh Sağlığının Temelleri"
@@ -5977,99 +5953,99 @@ YKS_QUESTION_STATS = {
     "Ses Bilgisi": 8, "Sözcük Türleri": 12, "Sözcük Anlamı": 15, "Cümle Bilgisi": 18,
     "Anlam Bilgisi": 10, "Yazım Kuralları": 7, "Noktalama İşaretleri": 6, "Paragraf": 25,
     "Okuduğunu Anlama": 30, "Anlatım Bozuklukları": 9,
-    
+
     # TYT Matematik
     "Temel Kavramlar": 14, "Sayılar": 18, "Mutlak Değer": 8, "Üslü Sayılar": 12,
     "Köklü Sayılar": 10, "Çarpanlara Ayırma": 15, "Rasyonel İfadeler": 9, "Eşitsizlikler": 16,
     "Denklemler": 20, "Fonksiyonlar": 22, "Polinomlar": 11, "İkinci Dereceden Denklemler": 14,
     "Logaritma": 13, "Diziler": 17, "Limit ve Süreklilik": 19, "Türev": 21, "İntegral": 15,
-    
+
     # TYT Geometri
     "Temel Geometri": 12, "Açılar": 10, "Üçgenler": 18, "Dörtgenler": 14, "Çember": 16,
     "Analitik Geometri": 20, "Trigonometri": 15, "Katı Cisimler": 13,
-    
+
     # TYT Fizik
     "Fizik Bilimine Giriş": 3, "Madde ve Özellikleri": 4, "Hareket": 8, "Kuvvet ve Hareket": 7,
     "İş, Güç, Enerji": 6, "İtme ve Momentum": 5, "Dalga Mekaniği": 4, "Optik": 5,
     "Elektrostatik": 6, "Akım ve Manyetizma": 5, "Modern Fizik": 4,
-    
+
     # TYT Kimya
     "Kimya Bilimi": 2, "Atom ve Periyodik Sistem": 6, "Kimyasal Türler Arası Etkileşimler": 5,
     "Maddenin Halleri": 4, "Karışımlar": 3, "Asit-Baz": 6, "Kimyasal Tepkimeler": 7,
     "Enerji": 4, "Elektrokimya": 3, "Organik Kimya": 5,
-    
-    # TYT Biyoloji  
+
+    # TYT Biyoloji
     "Canlılığın Temel Birimi Hücre": 8, "Hücre Bölünmeleri": 6, "Kalıtım": 7,
     "Ekosistem Ekolojisi": 5, "Güncel Çevre Sorunları": 4, "Canlıların Çeşitliliği": 6,
     "İnsan Fizyolojisi": 9, "Sinir Sistemi": 4, "Duyu Organları": 3, "Endokrin Sistem": 5,
-    
+
     # TYT Tarih
     "İslamiyetten Önce Türkler": 8, "İslamiyet'in Doğuşu": 6, "Türklerde İslamiyet": 7,
     "Karahanlılar": 4, "Gazneliler": 3, "Büyük Selçuklular": 5, "Anadolu Selçukluları": 6,
     "Beylikler Dönemi": 4, "Osmanlı Kuruluş": 8, "Osmanlı Yükselme": 9,
     "Osmanlı Duraklama": 7, "Osmanlı Gerileme": 8, "19. Yüzyıl": 12, "20. Yüzyıl": 15,
-    
+
     # TYT Coğrafya
     "Doğal Sistemler": 12, "Beşeri Sistemler": 8, "Ekonomik Faaliyetler": 6,
     "Türkiye'nin Coğrafi Özellikleri": 10, "Çevre ve Toplum": 7, "Küresel Ortam": 5,
     "Coğrafi Bilgi Sistemleri": 4,
-    
+
     # TYT Felsefe
     "Felsefenin Konusu": 8, "Bilgi Felsefesi (Epistemoloji)": 6, "Varlık Felsefesi (Ontoloji)": 5,
     "Din, Kültür ve Medeniyet": 4, "Ahlak Felsefesi": 6, "Sanat Felsefesi": 3,
     "Din Felsefesi": 4, "Siyaset Felsefesi": 5, "Bilim Felsefesi": 4, "İlk Çağ Felsefesi": 7,
     "Sokrates ve Felsefesi": 3, "Platon ve Felsefesi": 4, "Aristoteles ve Felsefesi": 4,
     "Orta Çağ Felsefesi": 3, "İslam Felsefesi (Farabi, İbn Sina)": 4, "Hristiyan Felsefesi (Augustinus, Aquinalı Thomas)": 3,
-    
+
     # TYT Din Kültürü
     "İnsan ve Din (İnanç)": 6, "Ahlak": 4, "İbadet": 5, "Peygamberlik": 4,
     "Kutsal Kitaplar": 3, "Ahiret İnancı": 3, "Dinler Tarihi": 4, "İslam Tarihi": 6,
     "Hz. Muhammed'in Hayatı": 5, "Temel Dini Kavramlar": 4,
-    
+
     # AYT Matematik
     "Trigonometri": 25, "Logaritma": 18, "Diziler": 20, "Limit": 22, "Türev": 28,
     "İntegral": 24, "Analitik Geometri": 30, "Katı Geometri": 15, "Olasılık": 18,
     "İstatistik": 12, "Matris": 8, "Determinant": 6,
-    
+
     # AYT Fizik
     "Çembersel Hareket": 12, "Basit Harmonik Hareket": 10, "Dalga Mekaniği": 15,
     "Optik": 18, "Elektriksel Kuvvet ve Alan": 16, "Elektriksel Potansiyel": 14,
     "Kondansatörler": 8, "Elektrik Akımı": 12, "Manyetizma": 15, "Elektromanyetik İndüksiyon": 13,
     "Alternatif Akım": 9, "Atom Fiziği": 8, "Modern Fizik": 10,
-    
+
     # AYT Kimya
     "Modern Atom Teorisi": 12, "Periyodik Sistem": 15, "Kimyasal Bağlar": 18,
     "Kimyasal Tepkimeler": 20, "Çözeltiler": 16, "Asit-Baz Dengesi": 14,
     "Çökelme Dengesi": 8, "Elektrokimya": 12, "Kimyasal Kinetik": 10,
     "Kimyasal Denge": 13, "Organik Bileşikler": 22, "Enerji ve Entropi": 6,
-    
+
     # AYT Biyoloji
     "Hücre": 18, "Hücre Bölünmeleri ve Kalıtım": 20, "Canlılık ve Enerji": 15,
     "Bitki Biyolojisi": 12, "Hayvan Biyolojisi": 25, "İnsan Fizyolojisi": 22,
     "Çevre Bilimi": 8, "Canlılığın Çeşitliliği": 10, "Ekoloji": 6,
-    
+
     # AYT Edebiyat
     "Söz Sanatları": 15, "Nazım Bilgisi": 12, "Edebî Sanatlar": 18, "Tanzimat Dönemi": 20,
     "Servet-i Fünun": 14, "Fecr-i Ati": 8, "Millî Edebiyat": 16, "Cumhuriyet Dönemi": 25,
     "Çağdaş Türk Edebiyatı": 22, "Halk Edebiyatı": 10, "Eski Türk Edebiyatı": 18,
-    
+
     # AYT Tarih
     "Osmanlı Devleti (1299-1566)": 35, "Osmanlı Devleti (1566-1792)": 30,
     "Değişim Çağında Osmanlı": 40, "Millî Mücadele": 38, "Atatürk İlkeleri": 25,
     "İkinci Dünya Savaşı": 28, "Soğuk Savaş": 20, "Bipolar Dünya": 15,
     "Çok Kutuplu Dünya": 12, "Küreselleşen Dünya": 10,
-    
-    # AYT Coğrafya  
+
+    # AYT Coğrafya
     "Yer Şekilleri": 22, "İklim": 18, "Bitkiler": 12, "Toprak": 10,
     "Nüfus": 20, "Yerleşme": 15, "Ekonomik Faaliyetler": 25, "Ulaşım ve İletişim": 8,
     "Türkiye'nin Fiziki Coğrafyası": 30, "Türkiye'nin Beşeri Coğrafyası": 28,
     "Çevre Sorunları": 12, "Doğal Afetler": 10,
-    
+
     # AYT Felsefe
     "Felsefe Tarihi": 25, "Bilgi Felsefesi": 20, "Varlık Felsefesi": 15,
     "Ahlak Felsefesi": 18, "Sanat Felsefesi": 12, "Din Felsefesi": 10,
     "Siyaset Felsefesi": 16, "Bilim Felsefesi": 14, "Çağdaş Felsefe": 20,
-    
+
     # AYT Din Kültürü ve Ahlak Bilgisi
     "Dünya ve Ahiret": 8, "Kur'an'a Göre Hz. Muhammed": 6, "Kur'an'da Bazı Kavramlar": 5,
     "Kur'an'dan Mesajlar": 7, "İnançla İlgili Meseleler": 4, "İslam ve Bilim": 3,
@@ -6101,7 +6077,7 @@ def get_topic_list(subject):
             # Yapı B: İki seviyeli (Alt Kategori kullanılmadı)
             for topic in content:
                 topic_list.append(f"{subject} | {category} | None | {topic}")
-        
+
     return topic_list
 
 def count_total_topics():
@@ -6124,22 +6100,22 @@ def count_total_topics():
 def calculate_subject_progress(user_data):
     """Kullanıcının ders bazında ilerleme verilerini hesaplar"""
     progress_data = {}
-    
+
     # Kullanıcının konu takip verilerini al (topic_progress)
     topic_progress_str = user_data.get('topic_progress', '{}')
     try:
         if isinstance(topic_progress_str, str):
             topic_progress = json.loads(topic_progress_str)
-        else:
-            topic_progress = topic_progress_str if isinstance(topic_progress_str, dict) else {}
+else:
+    topic_progress = topic_progress_str if isinstance(topic_progress_str, dict) else {}
     except (json.JSONDecodeError, TypeError):
         topic_progress = {}
-    
+
     # Her ders için ilerleme hesapla
     for subject, content in YKS_TOPICS.items():
         total_count = 0
         completed_count = 0
-        
+
         if isinstance(content, dict):
             for category, sub_content in content.items():
                 if isinstance(sub_content, dict):
@@ -6147,7 +6123,7 @@ def calculate_subject_progress(user_data):
                         for topic in topics:
                             topic_key = f"{subject} | {category} | {sub_category} | {topic}"
                             total_count += 1
-                            
+
                             # Net 15+ olanları tamamlanmış say
                             net_score = topic_progress.get(topic_key, 0)
                             try:
@@ -6160,7 +6136,7 @@ def calculate_subject_progress(user_data):
                     for topic in sub_content:
                         topic_key = f"{subject} | {category} | None | {topic}"
                         total_count += 1
-                        
+
                         # Net 15+ olanları tamamlanmış say
                         net_score = topic_progress.get(topic_key, 0)
                         try:
@@ -6173,7 +6149,7 @@ def calculate_subject_progress(user_data):
             for topic in content:
                 topic_key = f"{subject} | None | None | {topic}"
                 total_count += 1
-                
+
                 # Net 15+ olanları tamamlanmış say
                 net_score = topic_progress.get(topic_key, 0)
                 try:
@@ -6182,16 +6158,16 @@ def calculate_subject_progress(user_data):
                         completed_count += 1
                 except (ValueError, TypeError):
                     pass
-        
+
         # İlerleme yüzdesini hesapla
         percent = (completed_count / total_count * 100) if total_count > 0 else 0
-        
+
         progress_data[subject] = {
             'total': total_count,
             'completed': completed_count,
             'percent': percent
         }
-    
+
     return progress_data
 
 def calculate_level(net_score):
@@ -6204,8 +6180,8 @@ def calculate_level(net_score):
         return "💪 Orta"
     elif net_score >= 8:
         return "📘 Temel"
-    else:
-        return "⚠️ Zayıf"
+else:
+    return "⚠️ Zayıf"
 
 # --- DÜZELTME BİTİŞİ ---
 
@@ -6459,7 +6435,7 @@ LEARNING_STYLE_DESCRIPTIONS = {
 
 # ===== VAK ÖĞRENME STİLLERİ TESTİ =====
 # A Kategorisi: Görsel (20 soru)
-# B Kategorisi: İşitsel (20 soru)  
+# B Kategorisi: İşitsel (20 soru)
 # C Kategorisi: Kinestetik (20 soru)
 VAK_LEARNING_STYLES_TEST = [
     # ===== A KATEGORİSİ - GÖRSEL ÖĞRENME STİLİ =====
@@ -6470,7 +6446,7 @@ VAK_LEARNING_STYLES_TEST = [
     },
     {
         "question": "Temiz ve düzenli bir sıraya sahip olmak isterim",
-        "category": "A", 
+        "category": "A",
         "type": "visual"
     },
     {
@@ -6563,7 +6539,7 @@ VAK_LEARNING_STYLES_TEST = [
         "category": "A",
         "type": "visual"
     },
-    
+
     # ===== B KATEGORİSİ - İŞİTSEL ÖĞRENME STİLİ =====
     {
         "question": "Kendi kendime konuşurum",
@@ -6665,7 +6641,7 @@ VAK_LEARNING_STYLES_TEST = [
         "category": "B",
         "type": "auditory"
     },
-    
+
     # ===== C KATEGORİSİ - KİNESTETİK ÖĞRENME STİLİ =====
     {
         "question": "Boş bir kağıda sütunlar çizmem istendiğinde kağıdı katlarım",
@@ -6767,7 +6743,7 @@ VAK_LEARNING_STYLES_TEST = [
         "category": "C",
         "type": "kinesthetic"
     },
-    
+
     # ===== YENİ SORULAR - GÖRSEL KATEGÖRİ =====
     {
         "question": "Matematik problemlerini çözerken mutlaka kağıda çizerim ve görselleştiririm",
@@ -6794,7 +6770,7 @@ VAK_LEARNING_STYLES_TEST = [
         "category": "A",
         "type": "visual"
     },
-    
+
     # ===== YENİ SORULAR - İŞİTSEL KATEGÖRİ =====
     {
         "question": "Formülleri aklımda tutmak için ritim halinde tekrar ederim",
@@ -6821,7 +6797,7 @@ VAK_LEARNING_STYLES_TEST = [
         "category": "B",
         "type": "auditory"
     },
-    
+
     # ===== YENİ SORULAR - KİNESTETİK KATEGÖRİ =====
     {
         "question": "Uzun süreli ders dinlerken ayakta durma veya hareket etme ihtiyacı duyarım",
@@ -6862,14 +6838,14 @@ COGNITIVE_PROFILE_TEST = [
     },
     {
         "question": "Bir konunun tümünü zihnimde büyük resim olarak canlandırırım.",
-        "category": "synthetic_thinking", 
+        "category": "synthetic_thinking",
         "section": "🔬 Bilişsel İşleme Stili",
         "dimension": "Sintetik"
     },
     {
         "question": "Öğrendiklerimi hemen uygulamadan önce düşünmeyi tercih ederim.",
         "category": "reflective_thinking",
-        "section": "🔬 Bilişsel İşleme Stili", 
+        "section": "🔬 Bilişsel İşleme Stili",
         "dimension": "Reflektif"
     },
     {
@@ -6884,7 +6860,7 @@ COGNITIVE_PROFILE_TEST = [
         "section": "🔬 Bilişsel İşleme Stili",
         "dimension": "Sintetik"
     },
-    
+
     # ===== BÖLÜM 2: MOTİVASYON & DUYGUSAL STİL =====
     {
         "question": "Hedef belirlemek beni motive eder.",
@@ -6916,7 +6892,7 @@ COGNITIVE_PROFILE_TEST = [
         "section": "⚡ Motivasyon & Duygusal Stil",
         "dimension": "Dışsal"
     },
-    
+
     # ===== BÖLÜM 3: PROBLEM ÇÖZME YAKLAŞIMI =====
     {
         "question": "Problemleri çözmek için belirli bir plan yaparım.",
@@ -6948,7 +6924,7 @@ COGNITIVE_PROFILE_TEST = [
         "section": "🔍 Problem Çözme Yaklaşımı",
         "dimension": "Deneysel"
     },
-    
+
     # ===== BÖLÜM 4: HAFIZA & PEKİŞTİRME TARZI =====
     {
         "question": "Bilgiyi hatırlarken görseller gözümde canlanır.",
@@ -7125,43 +7101,43 @@ TIME_MANAGEMENT_TEST = [
 def get_recommended_techniques(dimension_scores, user_profile):
     """Öğrenme profiline göre en uygun çalışma tekniklerini önerir"""
     recommended_techniques = []
-    
+
     for technique_name, info in STUDY_TECHNIQUES.items():
         if user_profile in info.get('suitable_profiles', []):
             recommended_techniques.append(technique_name)
-    
+
     # Eğer hiç eşleşme yoksa, genel teknikleri döndür
     if not recommended_techniques:
         recommended_techniques = list(STUDY_TECHNIQUES.keys())[:3]
-    
+
     return recommended_techniques[:3]
 
 def display_progress_summary(user_data, progress_data):
     """Ana sayfada ilerleme özeti gösterir"""
-    
+
     overall_progress = calculate_subject_progress(user_data)
     total_completed = sum(data['completed'] for data in overall_progress.values())
     total_topics = count_total_topics()
     overall_percent = (total_completed / total_topics * 100) if total_topics > 0 else 0
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.metric("✅ Tamamlanan Konular", f"{total_completed}/{total_topics}")
-    
+
     with col2:
         st.metric("📚 Toplam Ders", len(progress_data))
-    
+
     with col3:
         avg_per_subject = sum(data['percent'] for data in progress_data.values()) / len(progress_data) if progress_data else 0
         st.metric("📈 Ders Ortalaması", f"%{avg_per_subject:.1f}")
     with col4:
-        st.metric("🎯 Hedef Bölüm", user_data.get('target_department', 'Belirlenmedi'), delta_color="off")      
-    
+        st.metric("🎯 Hedef Bölüm", user_data.get('target_department', 'Belirlenmedi'), delta_color="off")
+
     st.markdown("---")
-    
+
     st.subheader("📈 Ders Bazında İlerleme")
-    
+
     if progress_data:
         for subject, data in progress_data.items():
             col_a, col_b = st.columns([3, 1])
@@ -7171,29 +7147,29 @@ def display_progress_summary(user_data, progress_data):
             with col_b:
                 st.write(f"{data['completed']}/{data['total']} konu")
                 st.write(f"%{data['percent']:.1f}")
-        
+
         st.markdown("---")
-    
-    else:
-        st.info("Henüz ilerleme verisi bulunmuyor. Konu Takip sekmesinden ilerlemenizi kaydedin.")
+
+else:
+    st.info("Henüz ilerleme verisi bulunmuyor. Konu Takip sekmesinden ilerlemenizi kaydedin.")
 
 # YKS Takip fonksiyonları
 def clear_outdated_session_data():
     """Eski tarihli session verilerini temizler - Sistem her gün güncel kalır"""
     current_date = datetime.now().date().isoformat()
-    
+
     # Eğer session'da farklı bir tarih varsa planları temizle
     if 'last_plan_date' not in st.session_state or st.session_state.last_plan_date != current_date:
         # Sadece cache'leri temizle, interactive widget'ları etkileyenleri koruma altında bırak
         if 'weekly_plan_cache' in st.session_state:
             del st.session_state.weekly_plan_cache
-        
-        # Planlama ile ilgili geçici verileri temizle  
+
+        # Planlama ile ilgili geçici verileri temizle
         keys_to_remove = []
         for key in st.session_state.keys():
             if key.startswith('temp_') or key.startswith('cache_'):
                 keys_to_remove.append(key)
-        
+
         # DOM hata önleyici - widget key'lerini temizle
         try:
             for key in st.session_state.keys():
@@ -7201,16 +7177,16 @@ def clear_outdated_session_data():
                     keys_to_remove.append(key)
         except:
             pass
-        
+
         for key in keys_to_remove:
             try:
                 del st.session_state[key]
             except:
                 pass
-            
+
         # Yeni tarihi kaydet
         st.session_state.last_plan_date = current_date
-        
+
         # Güncel olmayan day_plans'leri de reset et - ama safe şekilde
         if 'day_plans' in st.session_state:
             # Mevcut planları backup al ve yeniden oluştur
@@ -7226,27 +7202,27 @@ def yks_takip_page(user_data):
             if fresh_users_db and current_user in fresh_users_db:
                 user_data = fresh_users_db[current_user]
                 st.session_state.users_db = fresh_users_db  # Session state'i de güncelle
-    
+
     # Eski session verilerini temizle - her gün güncel sistem!
     clear_outdated_session_data()
-    
+
     # Güncel tarih bilgisi al
     week_info = get_current_week_info()
     days_to_yks = week_info['days_to_yks']
-    
+
     st.markdown(f'<div class="main-header"><h1>🎯 YKS Takip & Planlama Sistemi</h1><p>Hedef bölümünüze odaklı strateji ve haftalık hedeflerinizi belirleyin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
-    
+
     # Ana panelden bilgileri al
     student_grade = user_data.get('grade', '')
     student_field = user_data.get('field', '')
     learning_style = user_data.get('learning_style', '')
-    
+
     # YKS Takip sistemi sekmeleri
     tab1, tab2, tab3 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi"])
-    
+
     with tab1:
         show_target_department_roadmap(user_data)
-    
+
     with tab2:
         st.subheader("📋 Öğrenci Bilgileri")
         col1, col2, col3 = st.columns(3)
@@ -7256,18 +7232,18 @@ def yks_takip_page(user_data):
             st.metric("📚 Alan", student_field)
         with col3:
             st.metric("🧠 Öğrenme Stili", learning_style)
-        
+
         st.markdown("---")
-        
+
         # İlk kez giriş için anket sistemi
         if not has_completed_yks_survey(user_data):
             show_yks_survey(user_data)
-        else:
-            show_weekly_planner(user_data)
-    
+else:
+    show_weekly_planner(user_data)
+
     with tab3:
         show_progress_analytics(user_data)
-    
+
 
 def has_completed_yks_survey(user_data):
     """Kullanıcının YKS anketini tamamlayıp tamamlamadığını kontrol eder"""
@@ -7275,8 +7251,8 @@ def has_completed_yks_survey(user_data):
     if survey_data:
         try:
             data = json.loads(survey_data)
-            return all(key in data for key in ['program_type', 'daily_subjects', 'study_style', 
-                                              'difficult_subjects', 'favorite_subjects', 'sleep_time', 'disliked_subjects', 
+            return all(key in data for key in ['program_type', 'daily_subjects', 'study_style',
+                                              'difficult_subjects', 'favorite_subjects', 'sleep_time', 'disliked_subjects',
                                               'rest_day'])
         except:
             return False
@@ -7285,9 +7261,9 @@ def has_completed_yks_survey(user_data):
 def show_yks_survey(user_data):
     """YKS anketi gösterir"""
     st.subheader("📝 İlk Kurulum: Size Özel Program İçin Bilgilerinizi Alalım")
-    
+
     student_field = user_data.get('field', '')
-    
+
     with st.form("yks_survey_form"):
         # Program türü
         st.markdown("### 🎛️ Haftalık Programınızı Nasıl Oluşturalım?")
@@ -7296,33 +7272,33 @@ def show_yks_survey(user_data):
             ["🎛️ Kişiselleştirilmiş Program (Kendi gün/saatlerimi belirleyeyim)",
              "📋 Hazır Bilimsel Program (Bana otomatik program hazırlansın)"]
         )
-        
+
         # Günlük ders sayısı
         st.markdown("### 📚 Günlük Ders Dağılımı")
         st.write("Günde kaç farklı ders çalışmayı istersiniz?")
         daily_subjects = st.selectbox("Ders sayısı:", [2, 3, 4, 5], index=1)
         if daily_subjects in [2, 3, 4]:
             st.success("✅ Bilimsel Öneri: 2-4 ders seçiminiz optimal aralıkta! (İdeal olan ise 3'tür)")
-        
+
         # Çalışma stili
         st.markdown("### 🍽️ Çalışma Stilinizi Keşfedin")
         study_style = st.radio(
             "Hangi çalışma stilini tercih edersiniz?",
             ["🍰 En güzel kısmı sona saklarım (Zor dersleri sona saklama)",
-             "🍽️ Her şeyi karışık paylaşırım (Dengeli dağılım)", 
+             "🍽️ Her şeyi karışık paylaşırım (Dengeli dağılım)",
              "🔥 En güzelinden başlarım (Zor dersler ön alma)"]
         )
-        
+
         # Dersler alan bazında belirlenir
         all_subjects = get_subjects_by_field_yks(student_field)
-        
+
         # Zorluk analizi
         st.markdown("### 🎯 Zorluk Analizi")
         difficult_subjects = st.multiselect(
             "En zorlandığınız 3 dersi seçin (en zordan başlayarak):",
             all_subjects, max_selections=3
         )
-        
+
         # Uyku saati
         st.markdown("### 😴 Uyku Düzeni")
         st.info("🧠 Bilimsel olarak ideal uyku süresi 7 saattir. Tavsiye edilen uyku saatleri: 23:00 - 06:00 arası")
@@ -7331,7 +7307,7 @@ def show_yks_survey(user_data):
             ["23:00 - 06:00 (7 saat) - Önerilen", "22:00 - 05:00 (7 saat)",
              "00:00 - 07:00 (7 saat)", "01:00 - 08:00 (7 saat)", "Diğer"]
         )
-        
+
         # Sevilen ve sevmeyen dersler
         st.markdown("### 💝 Ders Tercihleri")
         favorite_subjects = st.multiselect(
@@ -7340,7 +7316,7 @@ def show_yks_survey(user_data):
         disliked_subjects = st.multiselect(
             "En az sevdiğiniz dersleri seçin (max 3):", all_subjects, max_selections=3
         )
-        
+
         # Tatil günü - Tam ve Yarım Gün Seçenekleri
         st.markdown("### 🌴 Dinlenme Günü")
         st.info("💡 **Tam Gün**: O gün hiç çalışma yapmayacaksınız | **Yarım Gün**: O gün sadece yarım gün çalışacaksınız")
@@ -7354,7 +7330,7 @@ def show_yks_survey(user_data):
              "Çarşamba (Tam Gün)", "Çarşamba (Yarım Gün)",
              "Perşembe (Tam Gün)", "Perşembe (Yarım Gün)"]
         )
-        
+
         # Form submit
         if st.form_submit_button("💾 Bilgilerimi Kaydet ve Planlama Sistemine Geç", type="primary"):
             survey_data = {
@@ -7368,91 +7344,88 @@ def show_yks_survey(user_data):
                 'rest_day': rest_day,
                 'created_at': datetime.now().isoformat()
             }
-            
+
             # Kullanıcı verisini güncelle
-            update_user_in_firebase(st.session_state.current_user, 
+            update_user_in_firebase(st.session_state.current_user,
                               {'yks_survey_data': json.dumps(survey_data)})
-            # Cache sistemi main() fonksiyonunda çalışıyor
-            pass
-            
             # Anket verileri kaydedildi - gereksiz kitap önerisi gösterilmiyor
-            
-            st.rerun()
+
+st.rerun()
 
 def show_weekly_planner(user_data):
     """YENİ SİSTEMATİK HAFTALİK PLANLAMA SİSTEMİ"""
     # Eski session verilerini temizle - her gün güncel sistem!
     clear_outdated_session_data()
-    
+
     # Anket verilerini yükle
     survey_data = json.loads(user_data.get('yks_survey_data', '{}'))
     student_field = user_data.get('field', '')
-    
+
     # 🔁 YENİ: DİNAMİK HAFTALIK PLAN AL - Kayıt tarihinden itibaren esnek döngü
     weekly_plan = create_dynamic_weekly_plan(user_data, student_field, survey_data)
-    
+
     # 📋 YENİ: DİNAMİK HAFTA DASHBOARD'U GÖSTER
     show_dynamic_week_dashboard(weekly_plan, user_data)
     st.markdown("---")
-    
+
     # Üst dashboard
     show_progress_dashboard(weekly_plan, user_data)
-    
+
     # YENİ: Kalıcı Öğrenme Sistemi Dashboard'u
     st.markdown("---")
-    
+
     # Kullanıcıyı kalIcı öğrenme sistemi için başlat
     user_data = initialize_mastery_system(user_data)
-    
+
     # Kalıcı öğrenme sistemi dashboard'ını göster
     show_mastery_progress_dashboard(user_data)
-    
+
     st.markdown("---")
-    
+
     # 🎯 ZAMANSAL STRATEJİ BİLGİLERİNİ GÖSTER
     if 'time_strategy' in weekly_plan:
         show_time_strategy_dashboard(weekly_plan)
         st.markdown("---")
-    
+
     # 🎯 YENİ: SINIF VE HEDEF BÖLÜM BİLGİLERİNİ GÖSTER
     if 'grade_strategy' in weekly_plan:
         show_grade_and_target_dashboard(weekly_plan, user_data)
         st.markdown("---")
-    
+
     # 🎯 YENİ: EŞİT AĞIRLIK ÖZEL PLANI DASHBOARD'U
     if weekly_plan.get('equal_weight_special', False):
         show_equal_weight_special_dashboard(weekly_plan, user_data)
         st.markdown("---")
-    
+
     # 🎯 YENİ: SAYISAL ÖZEL PLANI DASHBOARD'U
     if weekly_plan.get('numerical_special', False):
         show_numerical_special_dashboard(weekly_plan, user_data)
         st.markdown("---")
-    
+
     # 🎯 YENİ: TYT & MSÜ ÖZEL PLANI DASHBOARD'U
     if weekly_plan.get('tyt_msu_special', False):
         show_tyt_msu_special_dashboard(weekly_plan, user_data)
         st.markdown("---")
-    
+
     # 🎯 YENİ: SÖZEL ÖZEL PLANI DASHBOARD'U
     if weekly_plan.get('verbal_special', False):
         show_verbal_special_dashboard(weekly_plan, user_data)
         st.markdown("---")
-    
+
     # Ana haftalık plan
     week_info = get_current_week_info()
     days_to_yks = week_info['days_to_yks']
-    
+
     st.markdown(f"### 📅 Bu Haftanın Sistematik Planı")
     st.info(f"📅 **{week_info['week_range']}** | ⏰ **YKS'ye {days_to_yks} gün kaldı!**")
-    
+
     # Sadece tekrar konuları göster - YENİ KONULAR kısmı kaldırıldı
     st.markdown("#### 🔄 TEKRAR EDİLECEK KONULAR")
     show_review_topics_section(weekly_plan.get('review_topics', []), user_data)
-    
+
     # YENİ: Haftalık tamamlanma kontrolü ve bonus konular
     st.markdown("---")
-    
+
     # Bu haftanın tamamlanma yüzdesini hesapla (Basit haftalık plan oluştur)
     # Eğer weekly_plan yoksa basit bir plan oluştur
     if 'weekly_plan' not in locals():
@@ -7461,26 +7434,26 @@ def show_weekly_planner(user_data):
             'week_target': 10,
             'success_target': 0.7
         }
-    
+
     completion_percentage = calculate_weekly_completion_percentage(user_data, weekly_plan)
-    
+
     # Progress bar göster - SÜREKLI GÜNCEL SİSTEM
     st.markdown("#### 📊 BU HAFTANİN İLERLEMESİ (Sürekli Güncel)")
     progress_col1, progress_col2 = st.columns([3, 2])
-    
+
     # Gerçek zamanlı hesaplama - güncel tarih bazlı
     from datetime import datetime
     current_date = datetime.now()
     week_start = current_date - timedelta(days=current_date.weekday())
     week_progress = (current_date - week_start).days / 7 * 100  # Haftanın yüzde kaçı geçti
-    
+
     # Hedef tamamlanma yüzdesi
     expected_completion = week_progress  # Hafta %50 geçtiyse %50 tamamlanmış olmalı
     actual_completion = completion_percentage
-    
+
     with progress_col1:
         progress_bar = st.progress(completion_percentage / 100)
-        
+
         # Dinamik mesaj - gerçek zamanlı
         if actual_completion >= expected_completion + 20:
             status_msg = f"🚀 Süper! Haftanın %{week_progress:.0f}'i geçti, sen %{completion_percentage:.1f} tamamladın! Hedefin önündesin!"
@@ -7488,57 +7461,57 @@ def show_weekly_planner(user_data):
         elif actual_completion >= expected_completion:
             status_msg = f"⚡ İyi! Haftanın %{week_progress:.0f}'i geçti, sen %{completion_percentage:.1f} tamamladın! Hedeftesin!"
             color = "info"
-        else:
-            gap = expected_completion - actual_completion
+else:
+    gap = expected_completion - actual_completion
             status_msg = f"⚠️ Dikkat! Haftanın %{week_progress:.0f}'i geçti ama sen sadece %{completion_percentage:.1f} tamamladın! {gap:.0f} puan geridesin!"
             color = "error"
-        
+
         if color == "success":
             st.success(status_msg)
         elif color == "info":
             st.info(status_msg)
-        else:
-            st.error(status_msg)
-    
+else:
+    st.error(status_msg)
+
     with progress_col2:
         # Güncel zaman bilgisi
         st.write(f"📅 **Bugün:** {current_date.strftime('%d %B %Y %A')}")
         st.write(f"⏰ **Saat:** {current_date.strftime('%H:%M')}")
         st.write(f"📊 **Hafta geçişi:** %{week_progress:.0f}")
-        
+
         if completion_percentage >= 80:
             st.markdown("🎉 **Hedef Aşıldı!**")
         elif completion_percentage >= 60:
             st.markdown("⚡ **İyi Gidiyorsun!**")
-        else:
-            st.markdown("💪 **Hızlanmalısın!**")
-    
+else:
+    st.markdown("💪 **Hızlanmalısın!**")
+
     # Otomatik güncelleme sistemi göstergesi
     st.caption("🔄 Bu sistem anlık olarak güncellenir - sayfa yenilendiğinde en güncel durumu gösterir")
-    
+
     # İlerleme yüzdesi hesaplanıyor
     final_completion = completion_percentage
-    
+
     # Eğer %80+ tamamlandıysa bonus konuları göster
     if final_completion >= 80.0:
         st.markdown("---")
-        
+
         # Gelecek haftanın konularını getir
         next_week_topics = get_next_week_topics(user_data, user_data.get('field', ''), survey_data)
-        
+
         # Bonus konuları göster
         if next_week_topics:
             show_next_week_bonus_topics(next_week_topics, user_data)
-        else:
-            st.info("🎯 Gelecek hafta için ek bonus konu bulunamadı. Mevcut konularını tekrar etmeye odaklan!")
-    
+else:
+    st.info("🎯 Gelecek hafta için ek bonus konu bulunamadı. Mevcut konularını tekrar etmeye odaklan!")
+
     st.markdown("---")
-    
+
     # Interaktif planlayıcı
     show_interactive_systematic_planner(weekly_plan, survey_data)
-    
+
     st.markdown("---")
-    
+
     # Yazdırma butonu ekle - haftalık planlama tamamlandıktan sonra
     show_print_button(user_data, weekly_plan)
 
@@ -7546,13 +7519,13 @@ def show_progress_dashboard(weekly_plan, user_data):
     """İlerleme dashboard'u - DİNAMİK TARİH SİSTEMİ"""
     projections = weekly_plan.get('projections', {})
     week_info = get_current_week_info()
-    
+
     st.markdown(f"### 📊 GENEL İLERLEME DURUMU")
     st.caption(f"📅 Güncel Tarih: {week_info['today'].strftime('%d %B %Y')} | Hafta: {week_info['week_number']}/52")
-    
+
     # Ana metrikler
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         overall_progress = projections.get('overall_progress', 0)
         st.metric(
@@ -7560,23 +7533,23 @@ def show_progress_dashboard(weekly_plan, user_data):
             f"%{overall_progress:.1f}",
             f"Hedef: %100"
         )
-    
+
     with col2:
         tyt_progress = projections.get('tyt_progress', 0)
         st.metric(
-            "📚 TYT İlerleme", 
+            "📚 TYT İlerleme",
             f"%{tyt_progress:.1f}",
             f"Tahmini: Mart 2025" if tyt_progress < 80 else "Yakında!"
         )
-    
+
     with col3:
         ayt_progress = projections.get('ayt_progress', 0)
         st.metric(
             "📖 AYT İlerleme",
-            f"%{ayt_progress:.1f}", 
+            f"%{ayt_progress:.1f}",
             f"Tahmini: Mayıs 2025" if ayt_progress < 70 else "Yakında!"
         )
-    
+
     with col4:
         weekly_target = weekly_plan.get('week_target', 0)
         success_rate = weekly_plan.get('success_target', 0.8)
@@ -7585,33 +7558,33 @@ def show_progress_dashboard(weekly_plan, user_data):
             f"{weekly_target} konu",
             f"Hedef: %{success_rate*100:.0f} başarı"
         )
-    
+
     # İlerleme çubukları
     st.markdown("#### 📈 Detaylı İlerleme")
-    
+
     progress_col1, progress_col2 = st.columns(2)
-    
+
     with progress_col1:
         st.write("**TYT İlerleme**")
         st.progress(tyt_progress / 100)
-        
+
     with progress_col2:
-        st.write("**AYT İlerleme**") 
+        st.write("**AYT İlerleme**")
         st.progress(ayt_progress / 100)
-    
+
     # Tahmini tamamlanma
     estimated_completion = projections.get('estimated_completion')
     if estimated_completion:
         st.info(f"📅 **Tahmini Genel Tamamlanma:** {estimated_completion}")
-    
+
     # YENİ: Günlük/Haftalık/Aylık İlerleme Analizi
     st.markdown("---")
     show_time_based_progress_analysis(user_data, week_info)
-    
-    # YENİ: Deneme Bazlı Trend Analizi  
+
+    # YENİ: Deneme Bazlı Trend Analizi
     st.markdown("---")
     show_exam_based_trend_analysis(user_data)
-    
+
     # YENİ: YKS Hedef Hız Analizi
     st.markdown("---")
     show_yks_target_speed_analysis(user_data, projections, week_info)
@@ -7621,38 +7594,38 @@ def show_new_topics_section(new_topics, user_data):
     if not new_topics:
         st.warning("📊 Yeni konu bulunamadı. Konu Takip sekmesinden değerlendirmelerinizi yapın.")
         return
-    
+
     # Öncelik gruplarına ayır (YENİ 5'Lİ SİSTEM)
     high_priority = [t for t in new_topics if t.get('priority') == 'HIGH']
-    medium_priority = [t for t in new_topics if t.get('priority') == 'MEDIUM'] 
+    medium_priority = [t for t in new_topics if t.get('priority') == 'MEDIUM']
     normal_priority = [t for t in new_topics if t.get('priority') == 'NORMAL']
     low_priority = [t for t in new_topics if t.get('priority') == 'LOW']
     minimal_priority = [t for t in new_topics if t.get('priority') == 'MINIMAL']
-    
+
     # Acil - Zayıf konular
     if high_priority:
         st.markdown("##### 🔥 Acil - Zayıf Konular")
         for topic in high_priority:
             show_topic_card(topic, "HIGH")
-    
+
     # Öncelikli - Temel konular
     if medium_priority:
         st.markdown("##### ⚡ Öncelikli - Temel Konular")
         for topic in medium_priority:
             show_topic_card(topic, "MEDIUM")
-    
+
     # Normal - Orta konular
     if normal_priority:
         st.markdown("##### 🎯 Normal - Orta Konular")
         for topic in normal_priority:
             show_topic_card(topic, "NORMAL")
-    
+
     # Düşük - İyi konular
     if low_priority:
         st.markdown("##### 🟢 Düşük - İyi Konular")
         for topic in low_priority:
             show_topic_card(topic, "LOW")
-    
+
     # Minimal - Uzman konular
     if minimal_priority:
         st.markdown("##### ⭐ Minimal - Uzman Konular")
@@ -7663,43 +7636,43 @@ def show_review_topics_section(review_topics, user_data):
     """Tekrar konuları bölümü - ESKİ VE YENİ SİSTEM ENTEGRASYONLİ"""
     # YENİ: Kalıcı öğrenme sistemi tekrarları
     pending_mastery_topics = get_pending_review_topics(user_data)
-    
+
     # Eğer her iki sistem de boşsa
     if not review_topics and not pending_mastery_topics:
         st.info("🎉 Bu hafta tekrar edilecek konu yok!")
         return
-    
+
     # YENİ SİSTEM: Kalıcı Öğrenme Tekrarları (Öncelik)
     if pending_mastery_topics:
         st.markdown("#### 🎯 KALİCİ ÖĞRENME TEKRARLARİ")
         st.caption("Bu konuları yeniden değerlendirerek kalıcılığını onaylayın!")
         show_pending_reviews_section(pending_mastery_topics)
-        
+
         if review_topics:  # Eğer eski sistem tekrarları da varsa ayırıcı ekle
             st.markdown("---")
-    
+
     # ESKİ SİSTEM: Spaced Repetition Tekrarları
     if review_topics:
         st.markdown("#### 🔄 GENEL TEKRARLAR")
         st.caption("Eski sistemden gelen aralıklı tekrar konuları")
-        
+
         # Öncelik gruplarına ayır
         high_reviews = [t for t in review_topics if t.get('priority') == 'REPEAT_HIGH']
         medium_reviews = [t for t in review_topics if t.get('priority') == 'REPEAT_MEDIUM']
         normal_reviews = [t for t in review_topics if t.get('priority') == 'REPEAT_NORMAL']
-        
+
         # Yüksek öncelikli tekrarlar
         if high_reviews:
             st.markdown("##### 🔄 Yüksek Öncelikli Tekrar")
             for topic in high_reviews:
                 show_review_card(topic, "REPEAT_HIGH")
-        
+
         # Öncelikli tekrarlar
         if medium_reviews:
             st.markdown("##### 🔄 Öncelikli Tekrar")
             for topic in medium_reviews:
                 show_review_card(topic, "REPEAT_MEDIUM")
-        
+
         # Normal tekrarlar
         if normal_reviews:
             st.markdown("##### 🔄 Normal Tekrar")
@@ -7709,11 +7682,11 @@ def show_review_topics_section(review_topics, user_data):
 def show_topic_card(topic, priority_type):
     """Konu kartı gösterici"""
     priority_info = PRIORITY_CATEGORIES[priority_type]
-    
+
     with st.container():
         st.markdown(f"""
-        <div style='background: linear-gradient(135deg, {priority_info['color']}22 0%, {priority_info['color']}11 100%); 
-                    border-left: 4px solid {priority_info['color']}; 
+        <div style='background: linear-gradient(135deg, {priority_info['color']}22 0%, {priority_info['color']}11 100%);
+                    border-left: 4px solid {priority_info['color']};
                     padding: 12px; border-radius: 8px; margin-bottom: 8px;'>
             <div style='display: flex; align-items: center; margin-bottom: 8px;'>
                 <span style='font-size: 18px; margin-right: 8px;'>{priority_info['icon']}</span>
@@ -7722,7 +7695,7 @@ def show_topic_card(topic, priority_type):
             <div style='margin-left: 26px;'>
                 <div><strong>📖 {topic['topic']}</strong></div>
                 <div style='font-size: 14px; color: #666; margin-top: 4px;'>
-                    └ {topic.get('detail', '')} 
+                    └ {topic.get('detail', '')}
                     <span style='background: #f0f0f0; padding: 2px 6px; border-radius: 10px; margin-left: 8px;'>
                         Mevcut: {topic.get('net', 0)} net
                     </span>
@@ -7734,11 +7707,11 @@ def show_topic_card(topic, priority_type):
 def show_review_card(topic, priority_type):
     """Tekrar konu kartı"""
     priority_info = PRIORITY_CATEGORIES[priority_type]
-    
+
     with st.container():
         st.markdown(f"""
-        <div style='background: linear-gradient(135deg, {priority_info['color']}22 0%, {priority_info['color']}11 100%); 
-                    border-left: 4px solid {priority_info['color']}; 
+        <div style='background: linear-gradient(135deg, {priority_info['color']}22 0%, {priority_info['color']}11 100%);
+                    border-left: 4px solid {priority_info['color']};
                     padding: 12px; border-radius: 8px; margin-bottom: 8px;'>
             <div style='display: flex; align-items: center; margin-bottom: 8px;'>
                 <span style='font-size: 16px; margin-right: 8px;'>{priority_info['icon']}</span>
@@ -7747,7 +7720,7 @@ def show_review_card(topic, priority_type):
             <div style='margin-left: 24px;'>
                 <div><strong>📖 {topic['topic']}</strong></div>
                 <div style='font-size: 14px; color: #666; margin-top: 4px;'>
-                    └ {topic.get('detail', '')} 
+                    └ {topic.get('detail', '')}
                     <span style='background: #e8f5e8; padding: 2px 6px; border-radius: 10px; margin-left: 8px;'>
                         {topic.get('net', 0)} net • {topic.get('days_passed', 0)} gün önce
                     </span>
@@ -7762,20 +7735,20 @@ def show_pending_reviews_section(pending_topics):
     """Tekrar değerlendirmesi bekleyen konular bölümünü gösterir"""
     if not pending_topics:
         return
-    
+
     for topic in pending_topics:
         with st.expander(f"🔄 {topic['subject']} - {topic['topic']} | {topic['stage_name']}", expanded=True):
             # Konu bilgileri
             col1, col2 = st.columns([2, 1])
-            
+
             with col1:
                 st.markdown(f"""
-                **📚 Konu:** {topic['topic']}  
-                **📝 Detay:** {topic.get('detail', '')}  
-                **📅 İlk Öğrenme:** {topic.get('days_since_last', 0)} gün önce  
+                **📚 Konu:** {topic['topic']}
+                **📝 Detay:** {topic.get('detail', '')}
+                **📅 İlk Öğrenme:** {topic.get('days_since_last', 0)} gün önce
                 **🔢 Tekrar Sayısı:** {topic.get('review_count', 0)}
                 """)
-            
+
             with col2:
                 stage_info = MASTERY_STATUS.get(f"REVIEW_{topic['stage'] + 1}", MASTERY_STATUS["INITIAL"])
                 st.markdown(f"""
@@ -7784,38 +7757,38 @@ def show_pending_reviews_section(pending_topics):
                     <div style='font-weight: bold; color: {stage_info['color']};'>{stage_info['name']}</div>
                 </div>
                 """, unsafe_allow_html=True)
-            
+
             # Değerlendirme seçenekleri
             st.markdown("#### 🎯 Bu konuda kendinizi nasıl değerlendiriyorsunuz?")
-            
+
             col1, col2, col3, col4, col5 = st.columns(5)
-            
+
             with col1:
-                if st.button("❌ Zayıf", key=f"zayif_{topic['key']}", 
+                if st.button("❌ Zayıf", key=f"zayif_{topic['key']}",
                            help="Konuyu tekrar öğrenmem gerekiyor",
                            use_container_width=True):
                     process_and_update_review(topic['key'], 'zayif')
-            
+
             with col2:
-                if st.button("📚 Temel", key=f"temel_{topic['key']}", 
+                if st.button("📚 Temel", key=f"temel_{topic['key']}",
                            help="Temel seviyede biliyorum",
                            use_container_width=True):
                     process_and_update_review(topic['key'], 'temel')
-            
+
             with col3:
-                if st.button("📜 Orta", key=f"orta_{topic['key']}", 
+                if st.button("📜 Orta", key=f"orta_{topic['key']}",
                            help="Orta seviyede biliyorum",
                            use_container_width=True):
                     process_and_update_review(topic['key'], 'orta')
-            
+
             with col4:
-                if st.button("✅ İyi", key=f"iyi_{topic['key']}", 
+                if st.button("✅ İyi", key=f"iyi_{topic['key']}",
                            help="İyi seviyede biliyorum",
                            use_container_width=True):
                     process_and_update_review(topic['key'], 'iyi')
-            
+
             with col5:
-                if st.button("⭐ Uzman", key=f"uzman_{topic['key']}", 
+                if st.button("⭐ Uzman", key=f"uzman_{topic['key']}",
                            help="Uzman seviyede biliyorum",
                            use_container_width=True):
                     process_and_update_review(topic['key'], 'uzman')
@@ -7825,61 +7798,61 @@ def process_and_update_review(topic_key, evaluation):
     # Kullanıcı verilerini güncelle
     user_data = st.session_state.current_user
     updated_data = process_review_evaluation(user_data, topic_key, evaluation)
-    
+
     # Firebase'de güncelle
     username = st.session_state.username
     update_success = update_user_in_firebase(username, {
         'topic_repetition_history': updated_data['topic_repetition_history'],
         'topic_mastery_status': updated_data['topic_mastery_status']
     })
-    
+
     if update_success:
         # Session state'i güncelle
         st.session_state.current_user.update(updated_data)
-        
+
         # Başarı mesajı
         evaluation_text = {
             'zayif': 'Zayıf - Konu başa alındı',
-            'temel': 'Temel - Tekrar programlandı', 
+            'temel': 'Temel - Tekrar programlandı',
             'orta': 'Orta - Aynı seviyede tekrar',
             'iyi': 'İyi - Sonraki aşamaya geçildi',
             'uzman': 'Uzman - Sonraki aşamaya geçildi'
         }
-        
+
         st.success(f"✅ Değerlendirme kaydedildi: {evaluation_text[evaluation]}")
         st.experimental_rerun()
-    else:
-        st.error("❌ Değerlendirme kaydedilemedi!")
+else:
+    st.error("❌ Değerlendirme kaydedilemedi!")
 
 def show_mastery_progress_dashboard(user_data):
     """Kalıcı öğrenme ilerleme dashboard'u"""
     import json
-    
+
     mastery_status = json.loads(user_data.get('topic_mastery_status', '{}'))
-    
+
     if not mastery_status:
         st.info("📚 Henüz kalıcı öğrenme sisteminde konu bulunmuyor.")
         return
-    
+
     st.markdown("### 🎯 KALİCİ ÖĞRENME İLERLEMESI")
-    
+
     # İstatistikler
     total_topics = len(mastery_status)
     mastered_topics = sum(1 for status in mastery_status.values() if status['status'] == 'MASTERED')
     in_progress = total_topics - mastered_topics
-    
+
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
         st.metric("📚 Toplam Konu", total_topics)
-    
+
     with col2:
-        st.metric("✅ Kalıcı Öğrenilen", mastered_topics, 
+        st.metric("✅ Kalıcı Öğrenilen", mastered_topics,
                  delta=f"%{(mastered_topics/total_topics*100):.1f}" if total_topics > 0 else "0%")
-    
+
     with col3:
         st.metric("🔄 Devam Eden", in_progress)
-    
+
     # Detaylı liste
     if mastered_topics > 0:
         st.markdown("#### ✅ Kalıcı Öğrenilen Konular")
@@ -7892,33 +7865,33 @@ def show_mastery_progress_dashboard(user_data):
 def get_current_week_info():
     """Güncel haftanın bilgilerini döndürür - sürekli güncellenecek"""
     today = datetime.now()
-    
+
     # Türkçe ay isimleri
     turkish_months = {
         1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan", 5: "Mayıs", 6: "Haziran",
         7: "Temmuz", 8: "Ağustos", 9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık"
     }
-    
+
     # 🔥 FİX: Türkçe gün çevirisi ekle
     day_translation = {
         'Monday': 'Pazartesi', 'Tuesday': 'Salı', 'Wednesday': 'Çarşamba',
         'Thursday': 'Perşembe', 'Friday': 'Cuma', 'Saturday': 'Cumartesi', 'Sunday': 'Pazar'
     }
-    
+
     # Bu haftanın pazartesini bul
     days_since_monday = today.weekday()  # 0=Pazartesi, 6=Pazar
     monday_this_week = today - timedelta(days=days_since_monday)
     sunday_this_week = monday_this_week + timedelta(days=6)
-    
+
     # Tarih aralığı formatla (Türkçe ay isimleri ile)
     monday_str = f"{monday_this_week.day} {turkish_months[monday_this_week.month]}"
     sunday_str = f"{sunday_this_week.day} {turkish_months[sunday_this_week.month]} {sunday_this_week.year}"
     week_range = f"{monday_str} - {sunday_str}"
-    
+
     # 🔥 FİX: Bugünün gününü Türkçe döndür
     current_day_english = today.strftime('%A')
     current_day_turkish = day_translation.get(current_day_english, current_day_english)
-    
+
     return {
         'today': today,
         'monday': monday_this_week,
@@ -7935,13 +7908,13 @@ def calculate_days_to_yks():
     # YKS tarihi: 2026 yılının Haziran ayının ikinci hafta sonu
     # Genellikle Haziran'ın ikinci hafta sonu oluyor (14-15 Haziran)
     yks_date = datetime(2026, 6, 14).date()
-    
+
     days_left = (yks_date - today).days
     return max(0, days_left)  # Geçmişte bir tarih olursa 0 döndür
 
 def get_time_based_strategy(days_to_yks, current_month):
     """🎯 YKS'ye kalan süreye göre dinamik strateji belirleme sistemi"""
-    
+
     # Aylık strateji haritalama
     if days_to_yks > 210:  # Ekim-Kasım-Aralık (7+ ay kala)
         return {
@@ -8009,7 +7982,7 @@ def get_time_based_strategy(days_to_yks, current_month):
             'study_intensity': 'kontrollü_yoğun',
             'special_notes': 'Güven artırma ve mükemmelleştirme dönemi'
         }
-    else:  # Son 30 gün - MORAL KORUMA DÖNEM
+else:  # Son 30 gün - MORAL KORUMA DÖNEM
         return {
             'period_name': 'MORAL KORUMA DÖNEM',
             'focus': 'moral_koruma_ve_hazir_tutma',
@@ -8023,7 +7996,7 @@ def get_time_based_strategy(days_to_yks, current_month):
 
 def get_deneme_strategy_by_period(strategy):
     """📊 Dönemlere göre deneme stratejisi"""
-    
+
     deneme_strategies = {
         'TEMELCİ DÖNEM': {
             'type': 'kavram_deneme',
@@ -8068,18 +8041,18 @@ def get_deneme_strategy_by_period(strategy):
             'recommendation': 'Çok analiz yapma, sadece formda kal'
         }
     }
-    
+
     return deneme_strategies.get(strategy['period_name'], deneme_strategies['TEMELCİ DÖNEM'])
 
 def calculate_dynamic_topic_limits(strategy, subject_importance):
     """🎯 Dönemlere göre dinamik konu limitleri"""
-    
+
     base_limit = strategy['new_topics_per_week']
-    
+
     # Ders önemine göre çarpan
     importance_multiplier = {
         10: 1.5,  # En önemli dersler (TYT Mat, AYT Mat)
-        9: 1.3,   # Çok önemli 
+        9: 1.3,   # Çok önemli
         8: 1.1,   # Önemli
         7: 1.0,   # Normal
         6: 0.8,   # Az önemli
@@ -8089,59 +8062,59 @@ def calculate_dynamic_topic_limits(strategy, subject_importance):
         2: 0.2,
         1: 0.1
     }
-    
+
     multiplier = importance_multiplier.get(subject_importance, 1.0)
     calculated_limit = int(base_limit * multiplier)
-    
+
     # Minimum 1, maksimum limits
     return max(1, min(calculated_limit, 15))
 
 def get_time_based_priority_boost(strategy, subject, user_performance):
     """⚡ Zamansal stratejiye göre öncelik boost'u"""
-    
+
     boost = 0
     period = strategy['period_name']
-    
+
     # Dönemlere göre ders öncelik boost'ları
     if period == 'TEMELCİ DÖNEM':
         # Temel matematik ve Türkçe'ye boost
         if 'TYT Matematik' in subject or 'TYT Türkçe' in subject:
             boost += 2
-    
+
     elif period == 'EKSİK KAPATMA DÖNEM':
         # Düşük performanslı derslere boost
         if user_performance < 40:  # %40'ın altı zayıf
             boost += 3
-    
+
     elif period in ['YOĞUN DENEMECİ DÖNEM', 'DENEME VE ANALİZ DÖNEM']:
         # Yüksek puanlı, sınav stratejik derslere boost
         if any(x in subject for x in ['AYT Matematik', 'AYT Fizik', 'TYT Matematik']):
             boost += 1.5
-    
+
     elif period == 'SON SPRİNT DÖNEM':
         # Güçlü olunan derslere boost (güven artırma)
         if user_performance > 70:  # %70'in üstü güçlü
             boost += 2
-    
+
     return boost
 
 def calculate_user_subject_performance(subject, user_data):
     """📊 Kullanıcının bir dersteki performansını hesaplar (0-100 arası)"""
-    
+
     # Deneme verilerinden performans hesapla
     deneme_data = user_data.get('deneme_analizleri', '[]')
     try:
         deneme_list = json.loads(deneme_data) if deneme_data else []
     except:
         deneme_list = []
-    
+
     # Son 3 deneme ortalaması
     if deneme_list:
         recent_exams = deneme_list[-3:] if len(deneme_list) >= 3 else deneme_list
-        
+
         total_score = 0
         count = 0
-        
+
         for exam in recent_exams:
             if subject in ['TYT Matematik', 'TYT Türkçe', 'TYT Fen', 'TYT Sosyal']:
                 net_key = subject.lower().replace('tyt ', '') + '_net'
@@ -8155,94 +8128,94 @@ def calculate_user_subject_performance(subject, user_data):
                     # AYT dersleri genelde 40 soru üzerinden
                     total_score += exam[net_key] * 2.5
                     count += 1
-        
+
         if count > 0:
             return min(100, total_score / count)
-    
+
     # Deneme verisi yoksa konu ilerlemesinden hesapla
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
-    
+
     # Bu derse ait konuları bul
     subject_topics = []
     for topic_key, progress in topic_progress.items():
         if subject.lower().replace(' ', '_') in topic_key.lower():
             subject_topics.append(progress)
-    
+
     if subject_topics:
         # Tamamlanan konu yüzdesi
         completed = sum(1 for p in subject_topics if p.get('status') == 'completed')
         return (completed / len(subject_topics)) * 100
-    
+
     # Varsayılan: Orta seviye
     return 50
 
 def should_include_subject_in_period(subject, importance, time_strategy, user_data, week_info):
     """📅 Bu dersin bu dönemde çalışılıp çalışılmayacağını belirler"""
-    
+
     period = time_strategy['period_name']
-    
+
     # TEMELCİ DÖNEM: Sadece temel dersler
     if period == 'TEMELCİ DÖNEM':
         # Yüksek önem puanlı dersleri (≥7) ve temel TYT derslerini dahil et
         if importance >= 7 or subject in ['TYT Matematik', 'TYT Türkçe']:
             return True
         return False
-    
+
     # KONSOLDASYON DÖNEM: Çoğu dersi dahil et
     elif period == 'KONSOLDASYON DÖNEM':
         # Orta ve yüksek önemli dersleri dahil et (≥5)
         return importance >= 5
-    
+
     # EKSİK KAPATMA DÖNEM: Performansa dayalı filtreleme
     elif period == 'EKSİK KAPATMA DÖNEM':
         user_performance = calculate_user_subject_performance(subject, user_data)
         # Zayıf performanslı dersleri (<60) ve yüksek önemlileri dahil et
         return user_performance < 60 or importance >= 8
-    
+
     # YOĞUN DENEMECİ DÖNEM: Stratejik dersler
     elif period == 'YOĞUN DENEMECİ DÖNEM':
         # Sadece yüksek puanlı, sınav kritik dersleri
         strategic_subjects = ['TYT Matematik', 'AYT Matematik', 'AYT Fizik', 'TYT Türkçe']
         return any(s in subject for s in strategic_subjects) or importance >= 9
-    
+
     # DENEME VE ANALİZ DÖNEM: Analiz bazlı seçim
     elif period == 'DENEME VE ANALİZ DÖNEM':
         # Son deneme sonuçlarına göre zayıf çıkan dersleri dahil et
         return is_subject_weak_in_recent_exams(subject, user_data) or importance >= 9
-    
+
     # SON SPRİNT DÖNEM: Güçlü olunan dersler
     elif period == 'SON SPRİNT DÖNEM':
         user_performance = calculate_user_subject_performance(subject, user_data)
         # Güçlü olunan dersleri dahil et (>70) - güven artırma
         return user_performance > 70 or importance >= 10
-    
+
     # MORAL KORUMA DÖNEM: Sadece en güçlü dersler
     elif period == 'MORAL KORUMA DÖNEM':
         user_performance = calculate_user_subject_performance(subject, user_data)
         # Sadece çok güçlü olunan dersleri (>80)
         return user_performance > 80
-    
+
     # Varsayılan: Dahil et
     return True
 
 def is_subject_weak_in_recent_exams(subject, user_data):
     """📉 Son denemelerde bu dersin zayıf olup olmadığını kontrol eder"""
-    
+
     deneme_data = user_data.get('deneme_analizleri', '[]')
     try:
         deneme_list = json.loads(deneme_data) if deneme_data else []
     except:
         return False
-    
+
     if not deneme_list:
         return False
-    
+
     # Son 2 denemeyi kontrol et
     recent_exams = deneme_list[-2:] if len(deneme_list) >= 2 else deneme_list
-    
+
     weak_count = 0
     total_count = 0
-    
+
     for exam in recent_exams:
         if subject in ['TYT Matematik', 'TYT Türkçe', 'TYT Fen', 'TYT Sosyal']:
             net_key = subject.lower().replace('tyt ', '') + '_net'
@@ -8261,17 +8234,17 @@ def is_subject_weak_in_recent_exams(subject, user_data):
                 # AYT için 15 net altı zayıf kabul et
                 if net_score < 15:
                     weak_count += 1
-    
+
     # Denemelerin yarısından fazlasında zayıfsa True
     return total_count > 0 and (weak_count / total_count) > 0.5
 
 def calculate_review_topics_limit_by_period(time_strategy):
     """🔄 Dönemlere göre tekrar konusu limiti"""
-    
+
     period = time_strategy['period_name']
     review_ratio = time_strategy['review_ratio']
     total_weekly_topics = time_strategy['new_topics_per_week']
-    
+
     # Tekrar oranına göre limite hesapla
     if period in ['TEMELCİ DÖNEM', 'KONSOLDASYON DÖNEM']:
         return max(3, int(total_weekly_topics * review_ratio))
@@ -8283,110 +8256,110 @@ def calculate_review_topics_limit_by_period(time_strategy):
         return max(8, int(total_weekly_topics * review_ratio))
     elif period == 'SON SPRİNT DÖNEM':
         return max(10, int(total_weekly_topics * review_ratio))
-    else:  # MORAL KORUMA
+else:  # MORAL KORUMA
         return 12  # Sadece tekrar
-    
+
 def filter_review_topics_by_strategy(review_topics, time_strategy, user_data):
     """📋 Zamansal stratejiye göre tekrar konularını filtrele ve öncelikle"""
-    
+
     period = time_strategy['period_name']
-    
+
     if not review_topics:
         return []
-    
+
     # Her dönem için farklı filtreleme stratejisi
     if period == 'TEMELCİ DÖNEM':
         # Temel konuları öncelikle - TYT matematik ve Türkçe
         priority_subjects = ['TYT Matematik', 'TYT Türkçe']
         return prioritize_topics_by_subjects(review_topics, priority_subjects)
-    
+
     elif period == 'KONSOLDASYON DÖNEM':
         # Tüm konuları karışık şekilde
         return review_topics  # Karışık dönem
-    
+
     elif period == 'EKSİK KAPATMA DÖNEM':
         # Zayıf performanslı konuları öncelikle
         return prioritize_topics_by_weakness(review_topics, user_data)
-    
+
     elif period in ['YOĞUN DENEMECİ DÖNEM', 'DENEME VE ANALİZ DÖNEM']:
         # Yüksek puanlı, sınav kritik konuları öncelikle
         strategic_subjects = ['TYT Matematik', 'AYT Matematik', 'AYT Fizik']
         return prioritize_topics_by_subjects(review_topics, strategic_subjects)
-    
+
     elif period == 'SON SPRİNT DÖNEM':
         # Güçlü olunan konuları öncelikle (güven artırma)
         return prioritize_topics_by_strength(review_topics, user_data)
-    
-    else:  # MORAL KORUMA DÖNEM
+
+else:  # MORAL KORUMA DÖNEM
         # En güçlü olunan konuları (stres azaltma)
         return prioritize_topics_by_strength(review_topics, user_data)[:8]
 
 def prioritize_topics_by_subjects(topics, priority_subjects):
     """📚 Belirli dersleri öncelikle sıralar"""
-    
+
     priority_topics = []
     other_topics = []
-    
+
     for topic in topics:
         topic_subject = topic.get('subject', '')
         if any(subj in topic_subject for subj in priority_subjects):
             priority_topics.append(topic)
-        else:
-            other_topics.append(topic)
-    
+else:
+    other_topics.append(topic)
+
     return priority_topics + other_topics
 
 def prioritize_topics_by_weakness(topics, user_data):
     """📉 Zayıf performanslı konuları öncelikle sıralar"""
-    
+
     # Deneme verilerinden zayıf konuları belirle
     weak_subjects = get_weak_subjects_from_exams(user_data)
-    
+
     weak_topics = []
     normal_topics = []
-    
+
     for topic in topics:
         topic_subject = topic.get('subject', '')
         if any(weak_subj in topic_subject for weak_subj in weak_subjects):
             weak_topics.append(topic)
-        else:
-            normal_topics.append(topic)
-    
+else:
+    normal_topics.append(topic)
+
     return weak_topics + normal_topics
 
 def prioritize_topics_by_strength(topics, user_data):
     """📈 Güçlü olunan konuları öncelikle sıralar"""
-    
+
     strong_subjects = get_strong_subjects_from_performance(user_data)
-    
+
     strong_topics = []
     normal_topics = []
-    
+
     for topic in topics:
         topic_subject = topic.get('subject', '')
         if any(strong_subj in topic_subject for strong_subj in strong_subjects):
             strong_topics.append(topic)
-        else:
-            normal_topics.append(topic)
-    
+else:
+    normal_topics.append(topic)
+
     return strong_topics + normal_topics
 
 def get_weak_subjects_from_exams(user_data):
     """📉 Deneme sonuçlarından zayıf dersleri belirler"""
-    
+
     deneme_data = user_data.get('deneme_analizleri', '[]')
     try:
         deneme_list = json.loads(deneme_data) if deneme_data else []
     except:
         return []
-    
+
     if not deneme_list:
         return []
-    
+
     # Son 2 denemeyi analiz et
     recent_exams = deneme_list[-2:] if len(deneme_list) >= 2 else deneme_list
     weak_subjects = []
-    
+
     for exam in recent_exams:
         # TYT dersleri kontrolü
         if exam.get('matematik_net', 0) < 20:
@@ -8397,7 +8370,7 @@ def get_weak_subjects_from_exams(user_data):
             weak_subjects.append('TYT Fen')
         if exam.get('sosyal_net', 0) < 15:
             weak_subjects.append('TYT Sosyal')
-        
+
         # AYT dersleri kontrolü
         if exam.get('matematik_net', 0) < 15:
             weak_subjects.append('AYT Matematik')
@@ -8407,29 +8380,29 @@ def get_weak_subjects_from_exams(user_data):
             weak_subjects.append('AYT Kimya')
         if exam.get('biyoloji_net', 0) < 10:
             weak_subjects.append('AYT Biyoloji')
-    
+
     # Tekrar eden zayıf dersleri döndür
     return list(set(weak_subjects))
 
 def get_strong_subjects_from_performance(user_data):
     """📈 Performans verilerinden güçlü dersleri belirler"""
-    
+
     strong_subjects = []
-    
+
     # TYT/AYT ortalama net değerlerinden hesapla
     tyt_avg = user_data.get('tyt_avg_net', 0)
     ayt_avg = user_data.get('ayt_avg_net', 0)
-    
+
     # Deneme verilerinden de kontrol et
     deneme_data = user_data.get('deneme_analizleri', '[]')
     try:
         deneme_list = json.loads(deneme_data) if deneme_data else []
     except:
         deneme_list = []
-    
+
     if deneme_list:
         recent_exams = deneme_list[-2:] if len(deneme_list) >= 2 else deneme_list
-        
+
         for exam in recent_exams:
             # TYT güçlü dersleri
             if exam.get('matematik_net', 0) > 25:
@@ -8440,7 +8413,7 @@ def get_strong_subjects_from_performance(user_data):
                 strong_subjects.append('TYT Fen')
             if exam.get('sosyal_net', 0) > 20:
                 strong_subjects.append('TYT Sosyal')
-            
+
             # AYT güçlü dersleri
             if exam.get('matematik_net', 0) > 20:
                 strong_subjects.append('AYT Matematik')
@@ -8450,15 +8423,15 @@ def get_strong_subjects_from_performance(user_data):
                 strong_subjects.append('AYT Kimya')
             if exam.get('biyoloji_net', 0) > 15:
                 strong_subjects.append('AYT Biyoloji')
-    
+
     return list(set(strong_subjects))
 
 def get_period_specific_recommendations(time_strategy, user_data):
     """📋 Dönem bazlı özel öneriler"""
-    
+
     period = time_strategy['period_name']
     days_to_yks = time_strategy.get('days_to_yks', 300)
-    
+
     recommendations = {
         'TEMELCİ DÖNEM': [
             "🧠 Temel kavramları derinlemesine öğrenmeye odaklan",
@@ -8515,9 +8488,9 @@ def get_period_specific_recommendations(time_strategy, user_data):
             "🎉 Sınav gününe hazır olduğunu hatırla"
         ]
     }
-    
+
     base_recommendations = recommendations.get(period, recommendations['TEMELCİ DÖNEM'])
-    
+
     # Kalan gün sayısına göre özel mesajlar
     if days_to_yks <= 7:
         base_recommendations.append(f"⚡ Sadece {days_to_yks} gün kaldı! Son kontrollerini yap.")
@@ -8525,14 +8498,14 @@ def get_period_specific_recommendations(time_strategy, user_data):
         base_recommendations.append(f"🔥 {days_to_yks} gün kaldı! Yoğun tempo devam!")
     elif days_to_yks <= 90:
         base_recommendations.append(f"💪 {days_to_yks} gün kaldı! Deneme döneminde son sürat!")
-    
+
     return base_recommendations
 
 def get_focus_areas_by_period(time_strategy, user_data):
     """🎯 Dönem bazlı odaklanma alanları"""
-    
+
     period = time_strategy['period_name']
-    
+
     focus_areas = {
         'TEMELCİ DÖNEM': {
             'primary': ['Temel Matematik', 'Türkçe Okuma Anlama', 'Fen Bilimleri Temeli'],
@@ -8570,19 +8543,19 @@ def get_focus_areas_by_period(time_strategy, user_data):
             'avoid': ['Stresli Çalışma', 'Yeni Konular', 'Çok Analiz']
         }
     }
-    
+
     return focus_areas.get(period, focus_areas['TEMELCİ DÖNEM'])
 
 def show_time_strategy_dashboard(weekly_plan):
     """🎯 Zamansal strateji dashboard'u"""
-    
+
     time_strategy = weekly_plan.get('time_strategy', {})
     deneme_strategy = weekly_plan.get('deneme_strategy', {})
     recommendations = weekly_plan.get('period_recommendations', [])
     focus_areas = weekly_plan.get('focus_areas', {})
-    
+
     # DÖNEM STRATEJİNİZ kısmı kaldırıldı - Gereksiz karmaşa yerine gerçek konu takvimi eklendi
-    
+
     # Kalan gün sayısına göre motivasyon mesajı
     days_to_yks = time_strategy.get('days_to_yks', 300)
     if days_to_yks <= 30:
@@ -8596,32 +8569,32 @@ def show_time_based_progress_analysis(user_data, week_info):
     """Günlük/Haftalık/Aylık ilerleme analizi - YKS odaklı"""
     st.markdown("### 📊 ZAMANSAL İLERLEME ANALİZİ")
     st.caption("Son günlerdeki çalışma hızınız ve konu tamamlama performansınız")
-    
+
     # Temel veriler
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
     completion_dates = json.loads(user_data.get('topic_completion_dates', '{}') or '{}')
     current_date = datetime.now()
-    
+
     # Günlük analiz (son 24 saat)
     daily_stats = calculate_daily_progress(topic_progress, completion_dates, current_date)
-    
+
     # Haftalık analiz (son 7 gün)
     weekly_stats = calculate_weekly_progress(topic_progress, completion_dates, current_date)
-    
+
     # Aylık analiz (son 30 gün)
     monthly_stats = calculate_monthly_progress(topic_progress, completion_dates, current_date)
-    
+
     # Metrik gösterimi
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
         st.markdown("#### 📅 Günlük Performans")
-        st.metric("🎯 Tamamlanan Konu", daily_stats['completed_topics'], 
+        st.metric("🎯 Tamamlanan Konu", daily_stats['completed_topics'],
                  delta=f"+{daily_stats['net_increase']} net artışı" if daily_stats['net_increase'] > 0 else None)
-        st.metric("⚡ Çalışma Momentum", 
+        st.metric("⚡ Çalışma Momentum",
                  "Yüksek" if daily_stats['completed_topics'] >= 3 else "Orta" if daily_stats['completed_topics'] >= 1 else "Düşük",
                  delta="Son 24 saat")
-        
+
     with col2:
         st.markdown("#### 📈 Haftalık Performans")
         st.metric("🎯 Tamamlanan Konu", weekly_stats['completed_topics'],
@@ -8629,7 +8602,7 @@ def show_time_based_progress_analysis(user_data, week_info):
         weekly_pace = "Çok Hızlı" if weekly_stats['completed_topics'] >= 20 else "Hızlı" if weekly_stats['completed_topics'] >= 15 else "Normal" if weekly_stats['completed_topics'] >= 10 else "Yavaş"
         st.metric("🚀 Haftalık Hız", weekly_pace,
                  delta=f"+{weekly_stats['net_increase']} net artışı")
-        
+
     with col3:
         st.markdown("#### 📊 Aylık Performans")
         st.metric("🎯 Tamamlanan Konu", monthly_stats['completed_topics'],
@@ -8637,7 +8610,7 @@ def show_time_based_progress_analysis(user_data, week_info):
         monthly_trend = "Artış Eğiliminde" if monthly_stats['trend'] > 0 else "Azalış Eğiliminde" if monthly_stats['trend'] < 0 else "Sabit"
         st.metric("📈 Trend", monthly_trend,
                  delta=f"Ort. {monthly_stats['avg_per_week']:.1f} konu/hafta")
-    
+
     # Görsel grafik
     if monthly_stats['daily_data']:
         create_progress_chart(monthly_stats['daily_data'])
@@ -8647,7 +8620,7 @@ def calculate_daily_progress(topic_progress, completion_dates, current_date):
     yesterday = current_date - timedelta(days=1)
     completed_today = 0
     net_increase = 0
-    
+
     for topic_key, completion_date_str in completion_dates.items():
         try:
             completion_date = datetime.fromisoformat(completion_date_str)
@@ -8658,7 +8631,7 @@ def calculate_daily_progress(topic_progress, completion_dates, current_date):
                     net_increase += (net_value - 14)  # 14'ten yukarısı net artış
         except:
             continue
-    
+
     return {
         'completed_topics': completed_today,
         'net_increase': net_increase,
@@ -8670,7 +8643,7 @@ def calculate_weekly_progress(topic_progress, completion_dates, current_date):
     week_ago = current_date - timedelta(days=7)
     completed_this_week = 0
     net_increase = 0
-    
+
     for topic_key, completion_date_str in completion_dates.items():
         try:
             completion_date = datetime.fromisoformat(completion_date_str)
@@ -8681,7 +8654,7 @@ def calculate_weekly_progress(topic_progress, completion_dates, current_date):
                     net_increase += (net_value - 14)
         except:
             continue
-    
+
     return {
         'completed_topics': completed_this_week,
         'net_increase': net_increase,
@@ -8693,12 +8666,12 @@ def calculate_monthly_progress(topic_progress, completion_dates, current_date):
     month_ago = current_date - timedelta(days=30)
     completed_this_month = 0
     daily_data = []
-    
+
     # Günlük verileri topla
     for i in range(30):
         day = current_date - timedelta(days=i)
         day_count = 0
-        
+
         for topic_key, completion_date_str in completion_dates.items():
             try:
                 completion_date = datetime.fromisoformat(completion_date_str)
@@ -8707,17 +8680,17 @@ def calculate_monthly_progress(topic_progress, completion_dates, current_date):
                     completed_this_month += 1
             except:
                 continue
-        
+
         daily_data.append({
             'date': day.date(),
             'completed': day_count
         })
-    
+
     # Trend hesapla (son 15 gün vs önceki 15 gün)
     recent_15 = sum([d['completed'] for d in daily_data[:15]])
     previous_15 = sum([d['completed'] for d in daily_data[15:]])
     trend = recent_15 - previous_15
-    
+
     return {
         'completed_topics': completed_this_month,
         'trend': trend,
@@ -8729,12 +8702,12 @@ def create_progress_chart(daily_data):
     """Son 30 günün ilerleme grafiğini oluşturur"""
     if not daily_data:
         return
-    
+
     st.markdown("#### 📈 Son 30 Günlük İlerleme Trendi")
-    
+
     dates = [d['date'] for d in daily_data]
     completed = [d['completed'] for d in daily_data]
-    
+
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=dates,
@@ -8744,12 +8717,12 @@ def create_progress_chart(daily_data):
         line=dict(color='#1f77b4', width=2),
         marker=dict(size=6)
     ))
-    
+
     # Ortalama çizgisi
     avg_line = sum(completed) / len(completed) if completed else 0
-    fig.add_hline(y=avg_line, line_dash="dash", line_color="red", 
+    fig.add_hline(y=avg_line, line_dash="dash", line_color="red",
                   annotation_text=f"30 günlük ortalama: {avg_line:.1f}")
-    
+
     fig.update_layout(
         title="📊 Günlük Konu Tamamlama Performansı",
         xaxis_title="Tarih",
@@ -8757,90 +8730,90 @@ def create_progress_chart(daily_data):
         height=400,
         showlegend=True
     )
-    
+
     safe_plotly_chart(fig, use_container_width=True)
 
 def show_exam_based_trend_analysis(user_data):
     """Deneme bazlı trend analizi - sınav performansı odaklı"""
     st.markdown("### 🎯 DENEME BAZLI TREND ANALİZİ")
     st.caption("Deneme sonuçlarınıza göre güçlenen/zayıflayan konularınız")
-    
+
     # Deneme verileri
     exam_history = json.loads(user_data.get('detailed_exam_history', '[]') or '[]')
-    
+
     if not exam_history:
         st.info("📊 Henüz deneme analizi verisi yok. 'Detaylı Deneme Analiz' sekmesinden deneme sonuçlarınızı girin.")
         return
-    
+
     # Son 3 deneme analizi
     recent_exams = exam_history[-3:] if len(exam_history) >= 3 else exam_history
-    
+
     if len(recent_exams) >= 2:
         trend_analysis = analyze_exam_trends(recent_exams)
-        
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.markdown("#### 📈 GÜÇLENEN DERSLER")
             if trend_analysis['improving']:
                 for subject, data in trend_analysis['improving'].items():
                     improvement = data['trend']
                     st.success(f"🚀 **{subject}**: +{improvement:.1f} net artış (son 3 deneme)")
-            else:
-                st.info("📊 Henüz güçlenen ders tespit edilmedi")
-        
+else:
+    st.info("📊 Henüz güçlenen ders tespit edilmedi")
+
         with col2:
             st.markdown("#### 📉 ZAYIFLAYAN DERSLER")
             if trend_analysis['declining']:
                 for subject, data in trend_analysis['declining'].items():
                     decline = abs(data['trend'])
-                    st.error(f"⚠️ **{subject}**: -{decline:.1f} net düşüş (son 3 deneme)")
-            else:
-                st.success("✅ Hiçbir derste düşüş yok!")
-        
+        st.error(f"⚠️ **{subject}**: -{decline:.1f} net düşüş (son 3 deneme)")
+else:
+    st.success("✅ Hiçbir derste düşüş yok!")
+
         # Genel trend skoru
         overall_trend = trend_analysis['overall_trend']
         trend_emoji = "📈" if overall_trend > 0 else "📉" if overall_trend < 0 else "➡️"
-        st.metric("🎯 Genel Deneme Trendi", 
+        st.metric("🎯 Genel Deneme Trendi",
                  f"{trend_emoji} {overall_trend:+.1f} net değişim",
                  delta="Son 3 deneme ortalaması")
-    else:
-        st.warning("📊 Trend analizi için en az 2 deneme verisi gerekli")
+else:
+    st.warning("📊 Trend analizi için en az 2 deneme verisi gerekli")
 
 def analyze_exam_trends(recent_exams):
     """Deneme trendlerini analiz eder"""
     if len(recent_exams) < 2:
         return {'improving': {}, 'declining': {}, 'overall_trend': 0}
-    
+
     # Ders bazında trend hesapla
     subject_trends = {}
-    
+
     for i, exam in enumerate(recent_exams):
         subjects = exam.get('subjects', {})
         for subject, data in subjects.items():
             if subject not in subject_trends:
                 subject_trends[subject] = []
-            
+
             net_score = data.get('net', 0)
             subject_trends[subject].append(net_score)
-    
+
     improving = {}
     declining = {}
     overall_changes = []
-    
+
     for subject, scores in subject_trends.items():
         if len(scores) >= 2:
             # Lineer trend hesapla
             trend = (scores[-1] - scores[0]) / (len(scores) - 1)
             overall_changes.append(trend)
-            
+
             if trend > 0.5:  # 0.5+ net artış
                 improving[subject] = {'trend': trend, 'scores': scores}
             elif trend < -0.5:  # 0.5+ net düşüş
                 declining[subject] = {'trend': trend, 'scores': scores}
-    
+
     overall_trend = sum(overall_changes) / len(overall_changes) if overall_changes else 0
-    
+
     return {
         'improving': improving,
         'declining': declining,
@@ -8851,49 +8824,49 @@ def show_yks_target_speed_analysis(user_data, projections, week_info):
     """YKS hedefine göre hız analizi - hedefe ulaşma projeksiyonu"""
     st.markdown("### 🚀 YKS HEDEF HIZ ANALİZİ")
     st.caption("Mevcut hızınızla hedef üniversiteye ulaşabilir misiniz?")
-    
+
     # Hedef bilgileri
     target_department = user_data.get('target_department', 'Henüz belirlenmedi')
     current_speed = calculate_current_completion_speed(user_data)
     days_left = week_info['days_to_yks']
-    
+
     # İlerleme verileri
     overall_progress = projections.get('overall_progress', 0)
     remaining_progress = 100 - overall_progress
-    
+
     # Hız analizi
     weeks_left = days_left / 7
     required_speed = remaining_progress / weeks_left if weeks_left > 0 else float('inf')
-    
+
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
         st.markdown("#### 🎯 HEDEF BİLGİLERİ")
         st.info(f"**Hedef:** {target_department}")
         st.metric("⏰ Kalan Süre", f"{days_left} gün", delta=f"{weeks_left:.1f} hafta")
         st.metric("📊 Kalan İlerleme", f"%{remaining_progress:.1f}", delta="Tamamlanacak")
-        
+
     with col2:
         st.markdown("#### ⚡ MEVCUT HIZ")
         speed_status = evaluate_speed_status(current_speed, required_speed)
-        st.metric("🏃‍♂️ Haftalık Hız", f"{current_speed:.1f} konu/hafta", 
+        st.metric("🏃‍♂️ Haftalık Hız", f"{current_speed:.1f} konu/hafta",
                  delta="Son 4 hafta ortalaması")
-        st.metric("📈 Hız Durumu", speed_status['status'], 
+        st.metric("📈 Hız Durumu", speed_status['status'],
                  delta=speed_status['message'])
-        
+
     with col3:
         st.markdown("#### 🎯 GEREKLİ HIZ")
-        st.metric("⚡ Hedeflenen Hız", f"{required_speed:.1f} konu/hafta", 
+        st.metric("⚡ Hedeflenen Hız", f"{required_speed:.1f} konu/hafta",
                  delta="Hedefe ulaşmak için")
-        
+
         # Tavsiye
         if current_speed >= required_speed:
             st.success("✅ Hızınız yeterli! Devam edin!")
         elif current_speed >= required_speed * 0.8:
             st.warning("⚠️ Biraz daha hızlanmalısınız!")
-        else:
-            st.error("🚨 Ciddi hız artışı gerekli!")
-    
+else:
+    st.error("🚨 Ciddi hız artışı gerekli!")
+
     # Detaylı projeksiyon
     create_speed_projection_chart(current_speed, required_speed, weeks_left, overall_progress)
 
@@ -8901,11 +8874,11 @@ def calculate_current_completion_speed(user_data):
     """Mevcut konu tamamlama hızını hesaplar (konu/hafta)"""
     completion_dates = json.loads(user_data.get('topic_completion_dates', '{}') or '{}')
     current_date = datetime.now()
-    
+
     # Son 4 hafta
     four_weeks_ago = current_date - timedelta(weeks=4)
     completed_last_4_weeks = 0
-    
+
     for completion_date_str in completion_dates.values():
         try:
             completion_date = datetime.fromisoformat(completion_date_str)
@@ -8913,7 +8886,7 @@ def calculate_current_completion_speed(user_data):
                 completed_last_4_weeks += 1
         except:
             continue
-    
+
     return completed_last_4_weeks / 4  # konu/hafta
 
 def evaluate_speed_status(current_speed, required_speed):
@@ -8924,23 +8897,23 @@ def evaluate_speed_status(current_speed, required_speed):
         return {'status': 'İyi', 'message': 'Biraz daha hızlanın'}
     elif current_speed >= required_speed * 0.6:
         return {'status': 'Orta', 'message': 'Hız artışı gerekli'}
-    else:
-        return {'status': 'Kritik', 'message': 'Ciddi revizyona ihtiyaç var'}
+else:
+    return {'status': 'Kritik', 'message': 'Ciddi revizyona ihtiyaç var'}
 
 def create_speed_projection_chart(current_speed, required_speed, weeks_left, current_progress):
     """Hız projeksiyonu grafiği oluşturur"""
     st.markdown("#### 📈 İlerleme Projeksiyonu")
-    
+
     weeks = list(range(0, int(weeks_left) + 1))
-    
+
     # Mevcut hızla projeksiyon
     current_projection = [current_progress + (current_speed * w * 100 / 50) for w in weeks]  # 50 konu = %100 varsayımı
-    
-    # Gerekli hızla projeksiyon  
+
+    # Gerekli hızla projeksiyon
     required_projection = [current_progress + (required_speed * w * 100 / 50) for w in weeks]
-    
+
     fig = go.Figure()
-    
+
     # Mevcut hız çizgisi
     fig.add_trace(go.Scatter(
         x=weeks, y=current_projection,
@@ -8948,7 +8921,7 @@ def create_speed_projection_chart(current_speed, required_speed, weeks_left, cur
         name=f'Mevcut Hız ({current_speed:.1f} konu/hafta)',
         line=dict(color='blue', width=2)
     ))
-    
+
     # Gerekli hız çizgisi
     fig.add_trace(go.Scatter(
         x=weeks, y=required_projection,
@@ -8956,11 +8929,11 @@ def create_speed_projection_chart(current_speed, required_speed, weeks_left, cur
         name=f'Gerekli Hız ({required_speed:.1f} konu/hafta)',
         line=dict(color='red', width=2, dash='dash')
     ))
-    
+
     # %100 hedef çizgisi
-    fig.add_hline(y=100, line_dash="dot", line_color="green", 
+    fig.add_hline(y=100, line_dash="dot", line_color="green",
                   annotation_text="🎯 Hedef: %100 tamamlanma")
-    
+
     fig.update_layout(
         title="🚀 YKS'ye Kalan Sürede İlerleme Projeksiyonu",
         xaxis_title="Hafta",
@@ -8968,38 +8941,38 @@ def create_speed_projection_chart(current_speed, required_speed, weeks_left, cur
         height=400,
         yaxis=dict(range=[0, 120])
     )
-    
+
     safe_plotly_chart(fig, use_container_width=True)
 
 def show_interactive_systematic_planner(weekly_plan, survey_data):
     """Basit ve etkili haftalık planlayıcı - DİNAMİK TARİH SİSTEMİ"""
-    
+
     # Güncel hafta bilgilerini al (sürekli güncellenen)
     week_info = get_current_week_info()
     week_range = week_info['week_range']
-    
+
     # Haftalık planlama tablosu
     st.markdown(f"#### 📅 Bu Haftanın Programı ({week_range})")
-    
+
     # Günler
     days = ["PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ", "PAZAR"]
     rest_day_full = survey_data.get('rest_day', 'Pazar (Tam Gün)')
-    
+
     # Rest day'i parse et (örn: "Pazar (Tam Gün)" -> "Pazar" ve "Tam Gün")
     if '(' in rest_day_full:
         rest_day = rest_day_full.split('(')[0].strip()
         rest_type = 'Tam Gün' if 'Tam Gün' in rest_day_full else 'Yarım Gün'
-    else:
-        rest_day = rest_day_full
+else:
+    rest_day = rest_day_full
         rest_type = 'Tam Gün'
-    
+
     # Session state'te planları tut
     if 'day_plans' not in st.session_state:
         st.session_state.day_plans = {day: [] for day in days}
-    
+
     # Günleri göster
     cols = st.columns(7)
-    
+
     for i, day in enumerate(days):
         with cols[i]:
             # Gün başlığı
@@ -9007,11 +8980,11 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
                 st.markdown(f"**{day}** 🌴")
                 if rest_type == 'Tam Gün':
                     st.info("🌴 Tam Dinlenme Günü")
-                else:
-                    st.warning("⚡ Yarım Gün Dinlenme")
-            else:
-                st.markdown(f"**{day}**")
-                
+else:
+    st.warning("⚡ Yarım Gün Dinlenme")
+else:
+    st.markdown(f"**{day}**")
+
                 # Bu günde planlanmış konuları göster
                 day_plan = st.session_state.day_plans.get(day, [])
                 if day_plan:
@@ -9019,25 +8992,25 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
                         with st.container():
                             priority = plan_item.get('priority', 'NORMAL')
                             priority_info = PRIORITY_CATEGORIES.get(priority, PRIORITY_CATEGORIES['NORMAL'])
-                            
+
                             st.markdown(f"<div style='background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); padding: 8px; border-radius: 5px; margin-bottom: 5px; color: white; font-size: 12px;'>"
                                       f"<strong>{priority_info['icon']} {plan_item['subject']}</strong><br>"
                                       f"{plan_item['topic']}<br>"
                                       f"<small>🕰️ {plan_item['time']}</small>"
                                       f"</div>", unsafe_allow_html=True)
-                            
+
                             # Kaldırma butonu - Benzersiz key ile
                             date_key = datetime.now().date().isoformat().replace('-', '')
                             if st.button(f"❌", key=f"remove_{day}_{j}_{date_key}", help="Bu konuyu kaldır"):
                                 st.session_state.day_plans[day].pop(j)
-                                st.rerun()
-                
+                st.rerun()
+
                 # Boş alan göstergesi
                 if not day_plan:
                     st.markdown("<div style='border: 2px dashed #e0e0e0; padding: 20px; text-align: center; color: #999; border-radius: 5px;'>Konu yok</div>", unsafe_allow_html=True)
-    
+
     st.markdown("---")
-    
+
     # Haftalık planı yenile butonu ve debug bölümü
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -9046,52 +9019,52 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
             if 'weekly_plan_cache' in st.session_state:
                 del st.session_state.weekly_plan_cache
             st.success("Haftalık plan yenilendi! Debug çıktısını konsola bakarak kontrol edin.")
-            st.rerun()
-    
+                st.rerun()
+
     # Konuları göster ve ekleme sistemi
     st.markdown("#### 📋 Bu Haftanın Konuları")
-    
+
     # Tüm konuları birleştir
     all_topics = weekly_plan.get('new_topics', []) + weekly_plan.get('review_topics', [])
-    
+
     if all_topics:
         # Konuları kutu olarak göster
         topic_cols = st.columns(3)  # 3'lü gruplar halinde
-        
+
         for i, topic in enumerate(all_topics):
             with topic_cols[i % 3]:
                 # Konu kutusu
                 with st.container():
                     priority = topic.get('priority', 'NORMAL')
                     priority_info = PRIORITY_CATEGORIES.get(priority, PRIORITY_CATEGORIES['NORMAL'])
-                    
+
                     st.markdown(f"<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px; border-radius: 8px; margin-bottom: 5px; color: white;'>"
                               f"<strong>📚 {topic['subject']}</strong><br>"
                               f"{topic['topic']}<br>"
                               f"<small>{topic.get('detail', '')}</small><br>"
                               f"<small>🎯 {topic.get('net', 0)} net</small>"
                               f"</div>", unsafe_allow_html=True)
-                    
+
                     # Öncelik bilgisi kutunun altında
                     st.markdown(f"<div style='text-align: center; color: {priority_info['color']}; font-weight: bold; font-size: 12px; margin-bottom: 10px;'>"
                               f"{priority_info['icon']} {priority_info['name']}"
                               f"</div>", unsafe_allow_html=True)
-                    
+
                     # Ekleme formu - sadeleştirilmiş
                     with st.expander(f"📅 Programa Ekle", expanded=False):
                         date_key = datetime.now().date().isoformat().replace('-', '')
                         selected_day = st.selectbox(
-                            "Gün seçin:", 
+                            "Gün seçin:",
                             [d for d in days if d.title() != rest_day],
                             key=f"day_select_{i}_{date_key}"
                         )
-                        
+
                         time_slot = st.text_input(
                             "Saat aralığı:",
                             placeholder="17:00-18:30",
                             key=f"time_input_{i}_{date_key}"
                         )
-                        
+
                         if st.button("➕ Ekle", key=f"add_topic_{i}_{date_key}", type="primary"):
                             if time_slot:
                                 # Konuyu programa ekle
@@ -9102,24 +9075,24 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
                                     'time': time_slot,
                                     'priority': topic.get('priority', 'NORMAL')
                                 }
-                                
+
                                 if selected_day not in st.session_state.day_plans:
                                     st.session_state.day_plans[selected_day] = []
-                                
+
                                 st.session_state.day_plans[selected_day].append(new_plan_item)
                                 st.success(f"✅ {topic['topic']} eklendi!")
-                                st.rerun()
-                            else:
-                                st.warning("🕰️ Saat aralığı gerekli!")
-    
-    else:
-        st.info("📊 Bu hafta için otomatik konu bulunamadı. Konu Takip sekmesinden konularınızı değerlendirin.")
-    
+                st.rerun()
+else:
+    st.warning("🕰️ Saat aralığı gerekli!")
+
+else:
+    st.info("📊 Bu hafta için otomatik konu bulunamadı. Konu Takip sekmesinden konularınızı değerlendirin.")
+
     st.markdown("---")
     st.markdown("#### 📊 Bu Haftanın Programı")
-    
+
     total_planned = sum(len(plans) for plans in st.session_state.day_plans.values())
-    
+
     if total_planned > 0:
         col1, col2 = st.columns(2)
         with col1:
@@ -9127,7 +9100,7 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
         with col2:
             active_days = len([day for day, plans in st.session_state.day_plans.items() if plans])
             st.metric("📆 Aktif Gün", active_days)
-        
+
         # Temizleme butonları
         col1, col2 = st.columns(2)
         with col1:
@@ -9144,102 +9117,102 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
                         del st.session_state[key]
                 st.success("✅ Haftalık plan yenilendi!")
                 st.rerun()
-    else:
-        st.info("📅 Henüz konu planlanmamış. Yukarıdaki konulardan seçip günlere ekleyin.")
-    
+else:
+    st.info("📅 Henüz konu planlanmamış. Yukarıdaki konulardan seçip günlere ekleyin.")
+
     st.markdown("---")
-    
+
     # TYT/AYT durumu bilgilendirmesi
     if 'tyt_progress' in weekly_plan and 'ayt_enabled' in weekly_plan:
         tyt_progress = weekly_plan.get('tyt_progress', 0)
         ayt_enabled = weekly_plan.get('ayt_enabled', False)
         tyt_math_completed = weekly_plan.get('tyt_math_completed', 0)
-        
+
         st.markdown("#### 📋 Öğrenim Durumu")
-        
+
         if not ayt_enabled:
             st.info(f"""
             🎯 **TYT Aşaması** - AYT henüz başlamadı
-            
+
             • TYT İlerleme: **%{tyt_progress:.1f}** (Hedef: %60)
             • TYT Matematik: **{tyt_math_completed}** konu tamamlandı (Hedef: 12)
-            
+
             🔒 **AYT Başlatma Koşulları:** TYT %60 + TYT Matematik 12 konu tamamlanınca AYT konuları eklenecek.
             """)
-        else:
-            st.success(f"""
+else:
+    st.success(f"""
             ✅ **TYT + AYT Aşaması** - Tüm konular aktif!
-            
+
             • TYT: **%{tyt_progress:.1f}** tamamlandı
             • TYT Matematik: **{tyt_math_completed}** konu tamamlandı
-            
+
             🎯 Artık hem TYT hem AYT konuları haftalık programınızda görünüyor.
             """)
-    
+
     # Program özeti kaldırıldı - tekrar olmaması için
 
 def show_weekly_summary(weekly_plan):
     """Haftalık program özeti"""
     st.markdown("---")
     st.markdown("#### 📊 Haftalık Program Özeti")
-    
+
     new_topics_count = len(weekly_plan.get('new_topics', []))
     review_topics_count = len(weekly_plan.get('review_topics', []))
     total_topics = new_topics_count + review_topics_count
     success_target = weekly_plan.get('success_target', 0.8)
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.metric("🎯 Yeni Konular", new_topics_count)
-    
+
     with col2:
         st.metric("🔄 Tekrar Konuları", review_topics_count)
-    
+
     with col3:
         st.metric("📅 Toplam Hedef", total_topics)
-    
+
     with col4:
         target_completion = int(total_topics * success_target)
         st.metric("🏆 Başarı Hedefi", f"{target_completion}/{total_topics}")
-    
+
     if total_topics > 0:
         st.info(f"💡 **Bu Hafta Hedefiniz:** {total_topics} konunun %{success_target*100:.0f}'ini (%{target_completion} konu) iyi seviyeye çıkarmak!")
-        
+
         # İlerleme simülasyonu
         if st.button("🗑️ Haftalık Planı Temizle", type="secondary"):
             st.session_state.systematic_day_plans = {day: [] for day in ["PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ", "PAZAR"]}
             st.success("✅ Haftalık plan temizlendi!")
-            st.rerun()
+                st.rerun()
 
 def show_yks_journey_cinema(user_data, progress_data):
     """🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum - Sinematik Deneyim"""
-    
+
     # KRİTİK: Kullanıcı kimlik kontrolü
     if not user_data:
         st.error("❌ Kullanıcı verisi bulunamadı!")
         return
-    
+
     # GÜVENLİK KONTROLÜ: Doğru kullanıcının verilerini kullandığımızdan emin ol
     current_username = st.session_state.get('current_user', None)
     if not current_username:
         st.error("❌ Aktif kullanıcı bulunamadı! Lütfen yeniden giriş yapın.")
         return
-    
+
     # Kullanıcı kimlik doğrulama
     expected_username = user_data.get('username', '')
     if current_username != expected_username:
         st.error(f"❌ Veri uyumsuzluğu tespit edildi! Session: {current_username}, Data: {expected_username}")
         st.error("🔒 Güvenlik için sayfa yenileniyor...")
-        st.rerun()
+                st.rerun()
         return
-    
+
     # DEBUG: Kullanıcı bilgilerini göster (geliştirme aşamasında)
     if st.session_state.get('debug_mode', False):
         st.info(f"🔍 Debug: Kullanıcı {current_username} için veriler yükleniyor...")
         st.info(f"📅 Kayıt tarihi: {user_data.get('created_at', 'Bilinmiyor')}")
         st.info(f"👤 İsim: {user_data.get('name', 'Bilinmiyor')}")
-    
+
     # Session state'leri başlat
     if 'cinema_active' not in st.session_state:
         st.session_state.cinema_active = False
@@ -9251,49 +9224,49 @@ def show_yks_journey_cinema(user_data, progress_data):
         st.session_state.music_enabled = True
     if 'last_day_change' not in st.session_state:
         st.session_state.last_day_change = 0
-    
+
     # Öğrenci adını al
     student_name = user_data.get('name', 'Öğrenci')
-    
+
     # Başlangıç tarihini hesapla - KULLANICI KAYIT TARİHİNE GÖRE
     start_date = None
-    
+
     try:
         # Önce created_at (ISO format) kontrol et
         if 'created_at' in user_data and user_data['created_at']:
             if isinstance(user_data['created_at'], str):
                 # ISO format: 2024-10-12T14:30:00.123456
                 start_date = datetime.fromisoformat(user_data['created_at'].replace('Z', '+00:00')).replace(tzinfo=None)
-            else:
-                start_date = user_data['created_at']
-        
+else:
+    start_date = user_data['created_at']
+
         # Eğer created_at yoksa created_date kontrol et (eski format)
         elif 'created_date' in user_data and user_data['created_date']:
             start_date = datetime.strptime(user_data['created_date'], '%Y-%m-%d')
-        
+
         # Hiçbiri yoksa varsayılan
-        else:
-            start_date = datetime.now() - timedelta(days=1)
-            
+else:
+    start_date = datetime.now() - timedelta(days=1)
+
     except Exception as e:
         # Hata durumunda güvenli varsayılan
         start_date = datetime.now() - timedelta(days=1)
         if st.session_state.get('debug_mode', False):
-            st.error(f"⚠️ Tarih ayrıştırma hatası: {e}")
-    
+        st.error(f"⚠️ Tarih ayrıştırma hatası: {e}")
+
     # Debug modunda tarih bilgilerini göster
     if st.session_state.get('debug_mode', False):
         st.info(f"📅 Hesaplanan başlangıç tarihi: {start_date.strftime('%Y-%m-%d %H:%M')}")
         st.info(f"🔍 created_at: {user_data.get('created_at', 'Yok')}")
         st.info(f"🔍 created_date: {user_data.get('created_date', 'Yok')}")
-    
+
     current_date = datetime.now()
     days_passed = (current_date - start_date).days + 1
-    
+
     # Günlük verileri topla
     def collect_daily_data():
         journey_days = []
-        
+
         try:
             daily_motivation = json.loads(user_data.get('daily_motivation', '{}'))
             pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
@@ -9306,11 +9279,11 @@ def show_yks_journey_cinema(user_data, progress_data):
             topic_progress = {}
             exam_data = {}
             weekly_plan = {}
-        
+
         for i in range(min(days_passed, 30)):  # Son 30 gün
             day_date = start_date + timedelta(days=i)
             date_str = day_date.strftime('%Y-%m-%d')
-            
+
             # Günlük veri yapısı
             day_data = {
                 'date': day_date,
@@ -9329,55 +9302,55 @@ def show_yks_journey_cinema(user_data, progress_data):
                 'ayt_progress': 0,
                 'daily_achievement': ''
             }
-            
+
             # Günlük motivasyon verilerini al
             if date_str in daily_motivation:
                 day_motivation = daily_motivation[date_str]
                 day_data['motivation_score'] = day_motivation.get('score', 5)
                 day_data['daily_note'] = day_motivation.get('note', '')
-                
+
                 # Fotoğraf verilerini doğru şekilde al
                 photo_info = day_motivation.get('photo_data', None)
                 if photo_info and isinstance(photo_info, dict) and 'data' in photo_info:
                     day_data['photo_data'] = photo_info['data']  # Sadece base64 string'i al
                     day_data['photo_filename'] = photo_info.get('filename', 'Fotoğraf')
-                else:
-                    day_data['photo_data'] = None
+else:
+    day_data['photo_data'] = None
                     day_data['photo_filename'] = ''
-                
+
                 day_data['photo_caption'] = day_motivation.get('photo_caption', '')
-                
+
                 # Soru takibi verilerini al
                 questions_data = day_motivation.get('questions', {})
                 day_data['questions_solved'] = questions_data
                 day_data['total_questions'] = sum([int(v) for v in questions_data.values() if str(v).isdigit()])
-            
+
             # Pomodoro verilerinden çalışma verilerini al
-            day_pomodoros = [p for p in pomodoro_history 
-                           if p.get('date', '').startswith(date_str) or 
+            day_pomodoros = [p for p in pomodoro_history
+                           if p.get('date', '').startswith(date_str) or
                            (p.get('timestamp', '') and p['timestamp'].startswith(date_str))]
-            
+
             # Çalışılan konuları topla
             subjects_studied = set()
             topics_completed = set()
-            
+
             for pomodoro in day_pomodoros:
                 if 'subject' in pomodoro and pomodoro['subject']:
                     subjects_studied.add(pomodoro['subject'])
                 if 'topic' in pomodoro and pomodoro['topic']:
                     topics_completed.add(pomodoro['topic'])
-            
+
             day_data['completed_topics'] = list(topics_completed)[:3]
-            
+
             # Deneme verileri kontrol et
             if date_str in exam_data:
                 day_data['exam_taken'] = True
                 day_data['exam_scores'] = exam_data[date_str]
-            
+
             # TYT-AYT ilerleme hesapla (simulated)
             day_data['tyt_progress'] = min(i * 2, 100)
             day_data['ayt_progress'] = min(i * 1.5, 100)
-            
+
             # Günlük başarı mesajı oluştur
             if day_data['total_questions'] > 20:
                 day_data['daily_achievement'] = f"🔥 {day_data['total_questions']} soru çözdün!"
@@ -9385,13 +9358,13 @@ def show_yks_journey_cinema(user_data, progress_data):
                 day_data['daily_achievement'] = f"📚 {len(day_data['completed_topics'])} konu tamamladın!"
             elif day_data['motivation_score'] >= 8:
                 day_data['daily_achievement'] = "⭐ Süper motivasyonla çalıştın!"
-            else:
-                day_data['daily_achievement'] = "💪 YKS yolunda bir adım daha!"
-            
+else:
+    day_data['daily_achievement'] = "💪 YKS yolunda bir adım daha!"
+
             journey_days.append(day_data)
-        
+
         return journey_days
-    
+
     # Sinematik başlık
     cinema_title = f"""
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -9417,7 +9390,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             border-radius: 24px;
             z-index: -1;
         "></div>
-        
+
         <h1 style="
             color: #ffd700;
             font-family: 'Cinzel', serif;
@@ -9427,7 +9400,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
             letter-spacing: 2px;
         ">🎬 {student_name}'nin YKS Hikayesi</h1>
-        
+
         <p style="
             color: #ffffff;
             font-family: 'Playfair Display', serif;
@@ -9436,7 +9409,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             font-style: italic;
         ">İlk Günden Bugüne Başarı Yolculuğu</p>
-        
+
         <div style="
             margin-top: 30px;
             color: #ffd700;
@@ -9447,19 +9420,19 @@ def show_yks_journey_cinema(user_data, progress_data):
         </div>
     </div>
     """
-    
+
     st.components.v1.html(cinema_title, height=250)
-    
+
     # Günlük verileri topla
     journey_data = collect_daily_data()
     total_days = len(journey_data)
-    
+
     if not st.session_state.cinema_active:
         # Başlatma ekranı
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             st.markdown("### 🎬 Sinema Kontrolleri")
-            
+
             # Müzik seçeneği
             music_choice = st.radio(
                 "🎵 Arka Plan Müziği:",
@@ -9467,40 +9440,40 @@ def show_yks_journey_cinema(user_data, progress_data):
                 index=0 if st.session_state.music_enabled else 1
             )
             st.session_state.music_enabled = (music_choice == "🎶 Müzikli İzle")
-            
+
             # Oynatma hızı
             speed_choice = st.radio(
                 "⚡ İzleme Hızı:",
                 ["🐌 Yavaş (6sn/gün)", "⚡ Normal (4sn/gün)", "🚀 Hızlı (2sn/gün)"],
                 index=1
             )
-            
+
             if speed_choice == "🐌 Yavaş (6sn/gün)":
                 st.session_state.day_duration = 6
             elif speed_choice == "🚀 Hızlı (2sn/gün)":
                 st.session_state.day_duration = 2
-            else:
-                st.session_state.day_duration = 4
-            
+else:
+    st.session_state.day_duration = 4
+
             # Sinematik deneyim bilgisi
             st.info("🎥 **Pro İpucu:** '🖼️ Tam Ekran' butonuna tıklayın! ✅ Köklü çözüm - %100 çalışır! Fotoğraflar artık tam boyutta görünür!")
-            
+
             st.markdown("---")
-            
+
             # Başlat butonu
-            if st.button(f"🎬 {student_name}'nin Hikayesini Başlat!", 
-                        type="primary", 
+            if st.button(f"🎬 {student_name}'nin Hikayesini Başlat!",
+                        type="primary",
                         use_container_width=True):
                 st.session_state.cinema_active = True
                 st.session_state.current_day_index = 0
                 st.session_state.last_day_change = time.time()
-                st.rerun()
-        
+st.rerun()
+
         # Önizleme bilgileri
         if journey_data:
             st.markdown("### 📊 Yolculuk Özeti")
             col1, col2, col3, col4 = st.columns(4)
-            
+
             with col1:
                 st.metric("📅 Toplam Gün", total_days)
             with col2:
@@ -9512,27 +9485,27 @@ def show_yks_journey_cinema(user_data, progress_data):
             with col4:
                 total_topics = sum(len(day['completed_topics']) for day in journey_data)
                 st.metric("📚 Toplam Konu", total_topics)
-    
-    else:
-        # Sinema modunda
+
+else:
+    # Sinema modunda
         # Müzik ekleme (YouTube embed)
         # Müzik kontrolü için session state
         if 'music_playing' not in st.session_state:
             st.session_state.music_playing = True
-            
+
         if st.session_state.music_enabled and st.session_state.music_playing:
             st.info("🎵 Sinematik müzik çalıyor! Oynat/Duraklat butonları ile kontrol edin.")
             music_html = """
             <div style="position: fixed; top: -200px; left: -200px; opacity: 0.01; pointer-events: none; z-index: -1000;">
-                <iframe width="100" height="100" 
-                        src="https://www.youtube.com/embed/V9FW37WkIf0?autoplay=1&loop=1&playlist=V9FW37WkIf0&controls=0&mute=0&start=0" 
-                        frameborder="0" 
-                        allow="autoplay; encrypted-media" 
+                <iframe width="100" height="100"
+                        src="https://www.youtube.com/embed/V9FW37WkIf0?autoplay=1&loop=1&playlist=V9FW37WkIf0&controls=0&mute=0&start=0"
+                        frameborder="0"
+                        allow="autoplay; encrypted-media"
                         allowfullscreen>
                 </iframe>
             </div>
             <style>
-                body { 
+                body {
                     background: linear-gradient(135deg, #000 0%, #1a1a2e 100%);
                     animation: cinema-ambiance 10s ease-in-out infinite alternate;
                 }
@@ -9545,14 +9518,14 @@ def show_yks_journey_cinema(user_data, progress_data):
             st.components.v1.html(music_html, height=0)
         elif st.session_state.music_enabled and not st.session_state.music_playing:
             st.warning("🔇 Müzik duraklatıldı. ▶️ Oynat butonu ile devam ettirin.")
-        
+
         # 🎭 SINEMA PERDESİ ANİMASYONU - KIRMIZI KADIFE PERDE! 🎭
         curtain_html = """
         <style>
         body {
             overflow: hidden !important;
         }
-        
+
         .cinema-stage {
             position: fixed;
             top: 0;
@@ -9564,7 +9537,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             overflow: hidden;
             box-shadow: inset 0 0 100px rgba(139, 0, 0, 0.3);
         }
-        
+
         .curtain-backdrop {
             position: absolute;
             top: 0;
@@ -9574,15 +9547,15 @@ def show_yks_journey_cinema(user_data, progress_data):
             background: radial-gradient(ellipse at center, #2d1b1b 0%, #1a0a0a 50%, #000000 100%);
             animation: backdrop-glow 6s ease-in-out;
         }
-        
+
         @keyframes backdrop-glow {
             0% { background: #000000; }
             30% { background: radial-gradient(ellipse at center, #2d1b1b 0%, #1a0a0a 50%, #000000 100%); }
             100% { background: #000000; }
         }
-        
+
         @keyframes curtain-left-open {
-            0% { 
+            0% {
                 transform: translateX(0) scaleY(1);
                 opacity: 1;
                 box-shadow: 15px 0 40px rgba(0,0,0,0.9), inset -30px 0 50px rgba(0,0,0,0.4);
@@ -9603,15 +9576,15 @@ def show_yks_journey_cinema(user_data, progress_data):
                 transform: translateX(-90%) scaleY(0.88);
                 opacity: 0.5;
             }
-            100% { 
+            100% {
                 transform: translateX(-110%) scaleY(0.85);
                 opacity: 0;
                 visibility: hidden;
             }
         }
-        
+
         @keyframes curtain-right-open {
-            0% { 
+            0% {
                 transform: translateX(0) scaleY(1);
                 opacity: 1;
                 box-shadow: -15px 0 40px rgba(0,0,0,0.9), inset 30px 0 50px rgba(0,0,0,0.4);
@@ -9632,26 +9605,26 @@ def show_yks_journey_cinema(user_data, progress_data):
                 transform: translateX(90%) scaleY(0.88);
                 opacity: 0.5;
             }
-            100% { 
+            100% {
                 transform: translateX(110%) scaleY(0.85);
                 opacity: 0;
                 visibility: hidden;
             }
         }
-        
+
         @keyframes stage-fadeout {
             0% { opacity: 1; }
             85% { opacity: 1; }
             100% { opacity: 0; visibility: hidden; }
         }
-        
+
         .curtain-left {
             position: absolute;
             top: 0;
             left: 0;
             width: 52%;
             height: 100%;
-            background: linear-gradient(90deg, 
+            background: linear-gradient(90deg,
                 #8B0000 0%,    /* Dark Red */
                 #B22222 15%,   /* Fire Brick */
                 #DC143C 30%,   /* Crimson */
@@ -9660,10 +9633,10 @@ def show_yks_journey_cinema(user_data, progress_data):
                 #B22222 80%,   /* Fire Brick */
                 #8B0000 100%   /* Dark Red */
             );
-            background-image: 
+            background-image:
                 repeating-linear-gradient(0deg, transparent 0px, rgba(255,255,255,0.03) 2px, transparent 4px),
                 repeating-linear-gradient(90deg, transparent 0px, rgba(0,0,0,0.1) 1px, transparent 2px);
-            box-shadow: 
+            box-shadow:
                 15px 0 40px rgba(0,0,0,0.9),
                 inset -30px 0 50px rgba(0,0,0,0.4),
                 inset 0 0 30px rgba(255,215,0,0.1);
@@ -9672,14 +9645,14 @@ def show_yks_journey_cinema(user_data, progress_data):
             border-image: linear-gradient(180deg, #FFD700 0%, #FFA500 50%, #FFD700 100%) 1;
             transform-origin: left center;
         }
-        
+
         .curtain-right {
             position: absolute;
             top: 0;
             right: 0;
             width: 52%;
             height: 100%;
-            background: linear-gradient(270deg, 
+            background: linear-gradient(270deg,
                 #8B0000 0%,    /* Dark Red */
                 #B22222 15%,   /* Fire Brick */
                 #DC143C 30%,   /* Crimson */
@@ -9688,10 +9661,10 @@ def show_yks_journey_cinema(user_data, progress_data):
                 #B22222 80%,   /* Fire Brick */
                 #8B0000 100%   /* Dark Red */
             );
-            background-image: 
+            background-image:
                 repeating-linear-gradient(0deg, transparent 0px, rgba(255,255,255,0.03) 2px, transparent 4px),
                 repeating-linear-gradient(90deg, transparent 0px, rgba(0,0,0,0.1) 1px, transparent 2px);
-            box-shadow: 
+            box-shadow:
                 -15px 0 40px rgba(0,0,0,0.9),
                 inset 30px 0 50px rgba(0,0,0,0.4),
                 inset 0 0 30px rgba(255,215,0,0.1);
@@ -9700,27 +9673,27 @@ def show_yks_journey_cinema(user_data, progress_data):
             border-image: linear-gradient(180deg, #FFD700 0%, #FFA500 50%, #FFD700 100%) 1;
             transform-origin: right center;
         }
-        
+
         .curtain-top-border {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 50px;
-            background: linear-gradient(180deg, 
-                #FFD700 0%, 
-                #FFA500 25%, 
-                #FF8C00 50%, 
-                #FFA500 75%, 
+            background: linear-gradient(180deg,
+                #FFD700 0%,
+                #FFA500 25%,
+                #FF8C00 50%,
+                #FFA500 75%,
                 #B8860B 100%
             );
-            box-shadow: 
+            box-shadow:
                 0 8px 25px rgba(0,0,0,0.7),
                 inset 0 -10px 20px rgba(0,0,0,0.3);
             z-index: 10;
             border-bottom: 3px solid #8B0000;
         }
-        
+
         .curtain-tassels {
             position: absolute;
             top: 50px;
@@ -9737,16 +9710,16 @@ def show_yks_journey_cinema(user_data, progress_data):
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             animation: tassel-sway 6s ease-in-out infinite;
         }
-        
+
         @keyframes tassel-sway {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(3px); }
         }
-        
+
         .cinema-stage {
             animation: stage-fadeout 6.5s ease-in-out forwards;
         }
-        
+
         .cinema-logo {
             position: absolute;
             top: 50%;
@@ -9755,7 +9728,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             color: #FFD700;
             font-size: 4rem;
             font-family: 'Georgia', serif;
-            text-shadow: 
+            text-shadow:
                 3px 3px 6px rgba(0,0,0,0.8),
                 0 0 20px rgba(255,215,0,0.3),
                 0 0 40px rgba(255,215,0,0.2);
@@ -9764,39 +9737,39 @@ def show_yks_journey_cinema(user_data, progress_data):
             text-align: center;
             line-height: 1.2;
         }
-        
+
         @keyframes logo-dramatic-entrance {
-            0% { 
-                opacity: 0; 
+            0% {
+                opacity: 0;
                 transform: translate(-50%, -50%) scale(0.5);
                 filter: blur(10px);
             }
-            20% { 
-                opacity: 0.3; 
+            20% {
+                opacity: 0.3;
                 transform: translate(-50%, -50%) scale(0.8);
                 filter: blur(5px);
             }
-            40% { 
-                opacity: 1; 
+            40% {
+                opacity: 1;
                 transform: translate(-50%, -50%) scale(1.1);
                 filter: blur(0px);
             }
-            60% { 
-                opacity: 1; 
+            60% {
+                opacity: 1;
                 transform: translate(-50%, -50%) scale(1);
                 filter: blur(0px);
             }
-            80% { 
-                opacity: 0.8; 
+            80% {
+                opacity: 0.8;
                 transform: translate(-50%, -50%) scale(0.95);
             }
-            100% { 
-                opacity: 0; 
+            100% {
+                opacity: 0;
                 transform: translate(-50%, -50%) scale(0.9);
                 filter: blur(2px);
             }
         }
-        
+
         .spotlight {
             position: absolute;
             top: 50%;
@@ -9809,14 +9782,14 @@ def show_yks_journey_cinema(user_data, progress_data):
             animation: spotlight-pulse 6s ease-in-out;
             pointer-events: none;
         }
-        
+
         @keyframes spotlight-pulse {
             0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
             30% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.2); }
             70% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
             100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
         }
-        
+
         .curtain-rope-left {
             position: absolute;
             top: 130px;
@@ -9828,7 +9801,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             box-shadow: 2px 0 5px rgba(0,0,0,0.5);
             animation: rope-pull 6s ease-in-out;
         }
-        
+
         .curtain-rope-right {
             position: absolute;
             top: 130px;
@@ -9840,7 +9813,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             box-shadow: -2px 0 5px rgba(0,0,0,0.5);
             animation: rope-pull 6s ease-in-out;
         }
-        
+
         @keyframes rope-pull {
             0% { transform: translateY(0); }
             30% { transform: translateY(-20px); }
@@ -9848,7 +9821,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             100% { transform: translateY(-60px); opacity: 0; }
         }
         </style>
-        
+
         <div class="cinema-stage">
             <div class="curtain-backdrop"></div>
             <div class="spotlight"></div>
@@ -9860,7 +9833,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             <div class="curtain-right"></div>
             <div class="cinema-logo">🎭<br/>YKS Hikayesi<br/>Başlıyor...</div>
         </div>
-        
+
         <script>
         // Sinema perdesi sesi simülasyonu (görsel geri bildirim)
         let curtainEffect = 0;
@@ -9875,7 +9848,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                 document.body.style.overflow = 'auto';
             }
         }, 100);
-        
+
         // Ana temizlik
         setTimeout(() => {
             document.body.style.overflow = 'auto';
@@ -9883,10 +9856,10 @@ def show_yks_journey_cinema(user_data, progress_data):
         }, 6500);
         </script>
         """
-        
+
         if st.session_state.current_day_index == 0:
             st.components.v1.html(curtain_html, height=0)
-        
+
         # KÖKLÜ TAM EKRAN ÇÖZÜMÜ
         tam_ekran_style = """
         <style>
@@ -9916,7 +9889,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             position: absolute !important;
             left: -9999px !important;
         }
-        
+
         /* SADECE TAM EKRAN MODUNDA */
         body.fullscreen-mode {
             margin: 0 !important;
@@ -9926,7 +9899,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             width: 100vw !important;
             height: 100vh !important;
         }
-        
+
         body.fullscreen-mode .stApp {
             background: #000 !important;
             margin: 0 !important;
@@ -9934,7 +9907,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             width: 100vw !important;
             height: 100vh !important;
         }
-        
+
         body.fullscreen-mode .main {
             padding: 0 !important;
             margin: 0 !important;
@@ -9943,7 +9916,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             background: #000 !important;
             overflow-y: auto !important;
         }
-        
+
         body.fullscreen-mode .main .block-container {
             max-width: 100% !important;
             width: 100% !important;
@@ -9952,7 +9925,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             height: 100vh !important;
             box-sizing: border-box !important;
         }
-        
+
         body.fullscreen-mode .cinema-day-card {
             height: 95vh !important;
             max-height: 95vh !important;
@@ -9964,7 +9937,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             padding: 15px !important;
             box-sizing: border-box !important;
         }
-        
+
         body.fullscreen-mode .cinema-photo-container {
             height: 500px !important;
             max-height: 500px !important;
@@ -9976,7 +9949,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             overflow: hidden !important;
             margin: 15px 0 !important;
         }
-        
+
         body.fullscreen-mode .cinema-photo-container img {
             max-width: 100% !important;
             max-height: 480px !important;
@@ -9987,25 +9960,25 @@ def show_yks_journey_cinema(user_data, progress_data):
             border: 2px solid #ffd700 !important;
         }
         </style>
-        
+
         <script>
         // TAM EKRAN DURUMU KONTRol
         function checkFullscreenState() {
             const fullscreenMode = window.sessionStorage.getItem('cinema_fullscreen') === 'true';
-            
+
             if (fullscreenMode) {
                 document.body.classList.add('fullscreen-mode');
-                
+
                 // Streamlit UI elementlerini zorla gizle
                 setTimeout(() => {
                     const elementsToHide = [
                         '[data-testid="stSidebar"]',
-                        '[data-testid="stHeader"]', 
+                        '[data-testid="stHeader"]',
                         '[data-testid="stToolbar"]',
                         '.css-1d391kg',
                         '.css-18e3th9'
                     ];
-                    
+
                     elementsToHide.forEach(selector => {
                         const elements = document.querySelectorAll(selector);
                         elements.forEach(el => {
@@ -10023,21 +9996,21 @@ def show_yks_journey_cinema(user_data, progress_data):
                 document.body.classList.remove('fullscreen-mode');
             }
         }
-        
+
         // Sayfa yüklendiğinde kontrol et
         checkFullscreenState();
-        
+
         // Periyodik kontrol
         setInterval(checkFullscreenState, 500);
         </script>
         """
-        
+
         st.components.v1.html(tam_ekran_style, height=0)
 
         # Günlük gösterim
         if st.session_state.current_day_index < len(journey_data):
             current_day = journey_data[st.session_state.current_day_index]
-            
+
             # Film karesi stili (Mobil responsive)
             day_frame = f"""
             <div class="cinema-day-card" style="
@@ -10062,7 +10035,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                         {current_day['date'].strftime('%d.%m.%Y')} - {['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'][current_day['date'].weekday()]}
                     </p>
                 </div>
-                
+
                 <style>
                     .data-grid {{
                         display: grid;
@@ -10076,26 +10049,26 @@ def show_yks_journey_cinema(user_data, progress_data):
                             gap: 10px !important;
                         }}
                     }}
-                    
+
                     /* Tam ekran için scrollbar stilleri */
                     .cinema-day-card::-webkit-scrollbar {{
                         width: 8px;
                     }}
-                    
+
                     .cinema-day-card::-webkit-scrollbar-track {{
                         background: rgba(255, 215, 0, 0.1);
                         border-radius: 4px;
                     }}
-                    
+
                     .cinema-day-card::-webkit-scrollbar-thumb {{
                         background: #ffd700;
                         border-radius: 4px;
                     }}
-                    
+
                     .cinema-day-card::-webkit-scrollbar-thumb:hover {{
                         background: #ffed4e;
                     }}
-                    
+
                     /* KÖKLÜ FOTOĞRAF ÇÖZÜMÜ - ARTIK TAM GÖRÜNÜR! */
                     .cinema-photo-container {{
                         display: flex !important;
@@ -10112,7 +10085,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                         box-sizing: border-box !important;
                         border: 2px solid #ffd700 !important;
                     }}
-                    
+
                     .cinema-photo-container img {{
                         max-width: 100% !important;
                         max-height: 420px !important;
@@ -10124,20 +10097,20 @@ def show_yks_journey_cinema(user_data, progress_data):
                         box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4) !important;
                         transition: all 0.3s ease !important;
                     }}
-                    
+
                     .cinema-photo-container img:hover {{
                         transform: scale(1.02) !important;
                         box-shadow: 0 12px 35px rgba(255, 215, 0, 0.6) !important;
                     }}
                 </style>
                 <div class="data-grid">
-                    
+
                     <div style="background: rgba(255, 215, 0, 0.1); padding: 20px; border-radius: 10px; border-left: 4px solid #ffd700;">
                         <h4 style="color: #ffd700; margin: 0 0 10px 0;">⭐ Günlük Motivasyon</h4>
                         <p style="font-size: 1.5rem; margin: 5px 0;">{current_day['motivation_score']}/10</p>
                         <p style="font-size: 0.9rem; color: #cccccc;">{current_day['daily_note'] or 'Not girilmemiş'}</p>
                     </div>
-                    
+
                     <div style="background: rgba(76, 175, 80, 0.1); padding: 20px; border-radius: 10px; border-left: 4px solid #4CAF50;">
                         <h4 style="color: #4CAF50; margin: 0 0 10px 0;">❓ Çözülen Sorular</h4>
                         <p style="font-size: 1.5rem; margin: 5px 0;">{current_day['total_questions']} soru</p>
@@ -10145,7 +10118,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                             {', '.join([f"{k}: {v}" for k, v in current_day['questions_solved'].items() if v]) or 'Veri girilmemiş'}
                         </p>
                     </div>
-                    
+
                     <div style="background: rgba(33, 150, 243, 0.1); padding: 20px; border-radius: 10px; border-left: 4px solid #2196F3;">
                         <h4 style="color: #2196F3; margin: 0 0 10px 0;">📚 Tamamlanan Konular</h4>
                         <p style="font-size: 1.5rem; margin: 5px 0;">{len(current_day['completed_topics'])} konu</p>
@@ -10153,7 +10126,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                             {', '.join(current_day['completed_topics'][:2]) or 'Konu girilmemiş'}
                         </p>
                     </div>
-                    
+
                     <div style="background: rgba(156, 39, 176, 0.1); padding: 20px; border-radius: 10px; border-left: 4px solid #9C27B0;">
                         <h4 style="color: #9C27B0; margin: 0 0 10px 0;">🎯 YKS İlerleme</h4>
                         <p style="font-size: 1.2rem; margin: 5px 0;">
@@ -10161,21 +10134,21 @@ def show_yks_journey_cinema(user_data, progress_data):
                         </p>
                         <p style="font-size: 0.9rem; color: #cccccc;">Hedeflere doğru ilerliyor</p>
                     </div>
-                    
+
                 </div>
-                
+
                 <div style="text-align: center; margin-top: 30px; padding: 20px; background: rgba(255, 215, 0, 0.1); border-radius: 10px;">
                     <h3 style="color: #ffd700; margin: 0 0 10px 0;">🏆 Günün Başarısı</h3>
                     <p style="font-size: 1.3rem; color: #ffffff; margin: 0;">
                         {current_day['daily_achievement']}
                     </p>
                 </div>
-                
+
                 {f'''
                 <div style="text-align: center; margin-top: 25px; padding: 20px; background: rgba(255, 215, 0, 0.08); border-radius: 15px; border: 2px solid rgba(255, 215, 0, 0.3);">
                     <h4 style="color: #ffd700; margin-bottom: 20px; font-size: 1.4rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">📷 Günün Fotoğrafı</h4>
                     <div class="cinema-photo-container" style="display: flex; justify-content: center; align-items: center; height: 450px; width: 100%; overflow: hidden; border-radius: 15px; background: rgba(0,0,0,0.3); margin: 20px 0; padding: 10px; box-sizing: border-box; border: 2px solid #ffd700;">
-                        <img src="data:image/jpeg;base64,{current_day['photo_data']}" 
+                        <img src="data:image/jpeg;base64,{current_day['photo_data']}"
                              style="max-width: 100%; max-height: 420px; width: auto; height: auto; object-fit: contain; border-radius: 12px; border: 3px solid #ffd700; box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4); transition: all 0.3s ease;"
                              alt="Günün Fotoğrafı"
                              onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 12px 35px rgba(255, 215, 0, 0.6)';"
@@ -10193,23 +10166,23 @@ def show_yks_journey_cinema(user_data, progress_data):
                 '''}
             </div>
             """
-            
+
             st.components.v1.html(day_frame, height=800)
-            
+
             # Kontrol butonları
             # YouTube tarzı tam ekran hazır
-            
+
             # Tam ekran durumu için session state
             if 'fullscreen_mode' not in st.session_state:
                 st.session_state.fullscreen_mode = False
-            
+
             col1, col2, col3, col4, col5, col6 = st.columns([1, 1, 1, 1, 1, 1])
-            
+
             with col1:
                 if st.button("⏮️ Önceki", disabled=(st.session_state.current_day_index == 0)):
                     st.session_state.current_day_index = max(0, st.session_state.current_day_index - 1)
-                    st.rerun()
-            
+                st.rerun()
+
             with col2:
                 # Film ve Müzik kontrolleri birleşik
                 if st.session_state.auto_play_mode and st.session_state.music_playing:
@@ -10218,24 +10191,24 @@ def show_yks_journey_cinema(user_data, progress_data):
                     play_text = "⏸️ Duraklat"
                 elif not st.session_state.auto_play_mode and st.session_state.music_playing:
                     play_text = "▶️ Oynat"
-                else:
-                    play_text = "▶️ Oynat"
-                
+else:
+    play_text = "▶️ Oynat"
+
                 if st.button(play_text):
                     # Hem film hem müzik kontrolü
                     st.session_state.auto_play_mode = not st.session_state.auto_play_mode
                     st.session_state.music_playing = st.session_state.auto_play_mode
-                    
+
                     if st.session_state.auto_play_mode:
                         st.session_state.last_day_change = time.time()
-                    st.rerun()
-            
+                st.rerun()
+
             with col3:
                 if st.button("⏭️ Sonraki", disabled=(st.session_state.current_day_index >= len(journey_data) - 1)):
                     st.session_state.current_day_index = min(len(journey_data) - 1, st.session_state.current_day_index + 1)
                     st.session_state.last_day_change = time.time()
-                    st.rerun()
-            
+                st.rerun()
+
             with col4:
                 # YENİ "TEKRAR İZLE" BUTONU - HER ZAMAN GÖRÜNSİN!
                 if st.button("🔄 Tekrar İzle"):
@@ -10244,13 +10217,13 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.session_state.auto_play_mode = True
                     st.session_state.music_playing = True
                     st.success("🎬 Hikaye baştan başlıyor!")
-                    st.rerun()
-            
+                st.rerun()
+
             with col5:
                 # KÖKLÜ TAM EKRAN ÇÖZÜMÜ - TAMAMEN YENİDEN YAZILDI!
                 tam_ekran_buton = """
-                <button onclick="toggleFullscreenMode()" 
-                        style="width: 100%; height: 38px; 
+                <button onclick="toggleFullscreenMode()"
+                        style="width: 100%; height: 38px;
                                background: linear-gradient(45deg, #ff6b6b, #ee5a24);
                                color: white; border: none; border-radius: 8px; cursor: pointer;
                                font-size: 14px; font-weight: bold; transition: all 0.3s ease;
@@ -10258,15 +10231,15 @@ def show_yks_journey_cinema(user_data, progress_data):
                         id="fullscreen-btn">
                     🖼️ Tam Ekran
                 </button>
-                
+
                 <script>
                 function toggleFullscreenMode() {
                     const isFullscreen = window.sessionStorage.getItem('cinema_fullscreen') === 'true';
                     const newState = !isFullscreen;
-                    
+
                     // Durumu kaydet
                     window.sessionStorage.setItem('cinema_fullscreen', newState.toString());
-                    
+
                     // Butonu güncelle
                     const btn = document.getElementById('fullscreen-btn');
                     if (newState) {
@@ -10276,7 +10249,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                         btn.innerHTML = '🖼️ Tam Ekran';
                         btn.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a24)';
                     }
-                    
+
                     // TAMAMEN YENİ VE GÜÇLENDİRİLMİŞ TAM EKRAN MODU!
                     setTimeout(() => {
                         if (newState) {
@@ -10289,7 +10262,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                                 width: 100vw !important;
                                 height: 100vh !important;
                             `;
-                            
+
                             // Ana Streamlit konteynerini tam ekran yap
                             const stApp = document.querySelector('.stApp');
                             if (stApp) {
@@ -10301,7 +10274,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                                     height: 100vh !important;
                                 `;
                             }
-                            
+
                             // Main bloğu tam ekran yap
                             const mainBlock = document.querySelector('.main');
                             if (mainBlock) {
@@ -10314,7 +10287,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                                     overflow-y: auto !important;
                                 `;
                             }
-                            
+
                             // Block container'ı tam ekran yap
                             const blockContainer = document.querySelector('.main .block-container');
                             if (blockContainer) {
@@ -10327,7 +10300,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                                     box-sizing: border-box !important;
                                 `;
                             }
-                            
+
                             // Sinema kartlarını tam ekran optimize et
                             const cinemaDayCards = document.querySelectorAll('.cinema-day-card');
                             cinemaDayCards.forEach(card => {
@@ -10343,7 +10316,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                                     box-sizing: border-box !important;
                                 `;
                             });
-                            
+
                             // Fotoğraf konteynerlerini optimize et
                             const photoContainers = document.querySelectorAll('.cinema-photo-container');
                             photoContainers.forEach(container => {
@@ -10359,7 +10332,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                                     margin: 15px 0 !important;
                                 `;
                             });
-                            
+
                             // Fotoğrafları optimize et
                             const photos = document.querySelectorAll('.cinema-photo-container img');
                             photos.forEach(img => {
@@ -10373,7 +10346,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                                     border: 2px solid #ffd700 !important;
                                 `;
                             });
-                            
+
                             // Streamlit UI elementlerini tamamen gizle
                             const elementsToHide = [
                                 '[data-testid="stSidebar"]',
@@ -10390,7 +10363,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                                 '.css-k1vhr4',
                                 '.css-12oz5g7'
                             ];
-                            
+
                             elementsToHide.forEach(selector => {
                                 const elements = document.querySelectorAll(selector);
                                 elements.forEach(el => {
@@ -10406,26 +10379,26 @@ def show_yks_journey_cinema(user_data, progress_data):
                                     }
                                 });
                             });
-                            
+
                         } else {
                             // NORMAL MOD - HER ŞEYİ GERİ GETİR
                             document.body.style.cssText = '';
-                            
+
                             const stApp = document.querySelector('.stApp');
                             if (stApp) {
                                 stApp.style.cssText = '';
                             }
-                            
+
                             const mainBlock = document.querySelector('.main');
                             if (mainBlock) {
                                 mainBlock.style.cssText = '';
                             }
-                            
+
                             const blockContainer = document.querySelector('.main .block-container');
                             if (blockContainer) {
                                 blockContainer.style.cssText = '';
                             }
-                            
+
                             // Gizlenen elementleri geri göster
                             const elementsToShow = [
                                 '[data-testid="stSidebar"]',
@@ -10436,7 +10409,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                                 '[data-testid="stDecoration"]',
                                 '[data-testid="stStatusWidget"]'
                             ];
-                            
+
                             elementsToShow.forEach(selector => {
                                 const elements = document.querySelectorAll(selector);
                                 elements.forEach(el => {
@@ -10454,17 +10427,17 @@ def show_yks_journey_cinema(user_data, progress_data):
                             });
                         }
                     }, 100);
-                    
+
                     // Kullanıcıya bilgi ver
                     showFullscreenNotification(newState ? '🎬 TAM EKRAN AKTIF!' : '🪟 Normal moda döndü');
                 }
-                
+
                 function showFullscreenNotification(message) {
                     const notification = document.createElement('div');
                     notification.innerHTML = message;
                     notification.style.cssText = `
                         position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-                        background: linear-gradient(45deg, #4CAF50, #45a049); 
+                        background: linear-gradient(45deg, #4CAF50, #45a049);
                         color: white; padding: 15px 30px;
                         border-radius: 25px; z-index: 999999; font-size: 16px;
                         box-shadow: 0 8px 25px rgba(0,0,0,0.3);
@@ -10475,12 +10448,12 @@ def show_yks_journey_cinema(user_data, progress_data):
                     document.body.appendChild(notification);
                     setTimeout(() => notification.remove(), 3000);
                 }
-                
+
                 // Sayfa yüklendiğinde durumu kontrol et
                 window.addEventListener('load', function() {
                     const isFullscreen = window.sessionStorage.getItem('cinema_fullscreen') === 'true';
                     const btn = document.getElementById('fullscreen-btn');
-                    
+
                     if (isFullscreen && btn) {
                         btn.innerHTML = '🪟 Normal Mod';
                         btn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
@@ -10488,7 +10461,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                         setTimeout(() => toggleFullscreenMode(), 500);
                     }
                 });
-                
+
                 // CSS animasyonu ekle
                 const style = document.createElement('style');
                 style.textContent = `
@@ -10502,7 +10475,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                 </script>
                 """
                 st.components.v1.html(tam_ekran_buton, height=50)
-            
+
             with col6:
                 if st.button("🚪 Çıkış"):
                     st.session_state.cinema_active = False
@@ -10516,8 +10489,8 @@ def show_yks_journey_cinema(user_data, progress_data):
                     </script>
                     """
                     st.components.v1.html(exit_fullscreen_script, height=0)
-                    st.rerun()
-            
+st.rerun()
+
             # Durum bilgisi - JavaScript ile senkron
             durum_html = """
             <div id="status-info" style="
@@ -10526,37 +10499,37 @@ def show_yks_journey_cinema(user_data, progress_data):
                 font-weight: bold; text-align: center; margin: 10px 0;
                 box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
             ">
-                <span id="music-status">🎵 Müzik Durumu</span> | 
-                <span id="screen-status">🪟 Normal Mod</span> | 
+                <span id="music-status">🎵 Müzik Durumu</span> |
+                <span id="screen-status">🪟 Normal Mod</span> |
                 <span>📅 Gün: """ + str(st.session_state.current_day_index + 1) + "/" + str(len(journey_data)) + """</span>
             </div>
-            
+
             <script>
             function updateStatus() {
                 const musicPlaying = """ + str(st.session_state.music_playing).lower() + """;
                 const isFullscreen = window.sessionStorage.getItem('cinema_fullscreen') === 'true';
-                
+
                 const musicStatusEl = document.getElementById('music-status');
                 const screenStatusEl = document.getElementById('screen-status');
-                
+
                 if (musicStatusEl) {
                     musicStatusEl.innerHTML = musicPlaying ? '🎵 Çalıyor' : '🔇 Duraklatıldı';
                 }
-                
+
                 if (screenStatusEl) {
                     screenStatusEl.innerHTML = isFullscreen ? '🖼️ Tam Ekran AKTİF' : '🪟 Normal Mod';
                 }
             }
-            
+
             // Durumu güncelle
             updateStatus();
-            
+
             // Periyodik güncelleme
             setInterval(updateStatus, 1000);
             </script>
             """
             st.components.v1.html(durum_html, height=60)
-            
+
             # Otomatik geçiş
             if st.session_state.auto_play_mode:
                 current_time = time.time()
@@ -10565,22 +10538,22 @@ def show_yks_journey_cinema(user_data, progress_data):
                         st.session_state.current_day_index += 1
                         st.session_state.last_day_change = current_time
                         time.sleep(0.1)  # Küçük gecikme
-                        st.rerun()
-                    else:
-                        # Film bitti
+                st.rerun()
+else:
+    # Film bitti
                         st.session_state.auto_play_mode = False
                         st.balloons()
                         st.success(f"🎉 {student_name}'nin başarı hikayesi tamamlandı!")
                         st.info("🔄 'Tekrar İzle' butonuna tıklayarak hikayeyi tekrar izleyebilirsiniz!")
-                else:
-                    # Sayfa yenileme performansını artırmak için sadece gerektiğinde yenile
+else:
+    # Sayfa yenileme performansını artırmak için sadece gerektiğinde yenile
                     time.sleep(0.5)
-                    st.rerun()
-            
+st.rerun()
+
             # İlerleme çubuğu
             progress = (st.session_state.current_day_index + 1) / total_days
             st.progress(progress)
-            
+
             col1, col2 = st.columns(2)
             with col1:
                 st.caption(f"📊 İlerleme: {st.session_state.current_day_index + 1}/{total_days} gün")
@@ -10589,13 +10562,13 @@ def show_yks_journey_cinema(user_data, progress_data):
                     remaining_time = st.session_state.day_duration - (time.time() - st.session_state.last_day_change)
                     if remaining_time > 0:
                         st.caption(f"⏰ Sonraki gün: {remaining_time:.1f}s")
-                    else:
-                        st.caption("⏰ Geçiş yapılıyor...")
-                else:
-                    st.caption("⏸️ Duraklatıldı")
-            
-        else:
-            # Film bitti
+else:
+    st.caption("⏰ Geçiş yapılıyor...")
+else:
+    st.caption("⏸️ Duraklatıldı")
+
+else:
+    # Film bitti
             st.markdown("### 🎉 Hikaye Tamamlandı!")
             st.balloons()
             if st.button("🔄 Tekrar İzle", type="primary"):
@@ -10608,38 +10581,38 @@ def update_topic_completion_date(username, topic_key):
     """Konu tamamlandığında tarihi kaydet - YENİ: KALICI ÖĞRENME SİSTEMİ ENTEGRASYONU"""
     if db_ref is None:
         return
-    
+
     try:
         user_data = get_user_data()
         if user_data:
             completion_dates = json.loads(user_data.get('topic_completion_dates', '{}') or '{}')
             completion_dates[topic_key] = datetime.now().isoformat()
-            
+
             # YENİ: Kalıcı öğrenme sistemine ekle
             topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
             net_value = topic_progress.get(topic_key, '0')
-            
+
             try:
                 net_int = int(float(net_value))
                 if net_int >= 14:  # İyi seviye ve üstü
                     # Kalıcı öğrenme sistemine ekle
                     user_data = initialize_mastery_system(user_data)
                     user_data = add_topic_to_mastery_system(user_data, topic_key, "iyi")
-                    
+
                     # Güncellenmiş veriyi kaydet
                     update_data = {
                         'topic_completion_dates': json.dumps(completion_dates),
                         'topic_repetition_history': user_data['topic_repetition_history'],
                         'topic_mastery_status': user_data['topic_mastery_status']
                     }
-                    
+
                     update_user_in_firebase(username, update_data)
-                    
+
                     # Session state'i güncelle
                     if 'current_user' in st.session_state:
                         st.session_state.current_user.update(user_data)
-                else:
-                    # Sadece tamamlama tarihini güncelle
+else:
+    # Sadece tamamlama tarihini güncelle
                     update_user_in_firebase(username, {
                         'topic_completion_dates': json.dumps(completion_dates)
                     })
@@ -10648,7 +10621,7 @@ def update_topic_completion_date(username, topic_key):
                 update_user_in_firebase(username, {
                     'topic_completion_dates': json.dumps(completion_dates)
                 })
-                
+
     except Exception as e:
         st.error(f"Tamamlama tarihi kaydedilemedi: {e}")
 
@@ -10657,14 +10630,14 @@ def check_and_update_completion_dates():
     """Konu takip sisteminden iyi seviyeye çıkan konuları takip et"""
     if not st.session_state.get('current_user'):
         return
-    
+
     user_data = get_user_data()
     if not user_data:
         return
-    
+
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
     completion_dates = json.loads(user_data.get('topic_completion_dates', '{}') or '{}')
-    
+
     # Yeni tamamlanan konuları bul
     for topic_key, net_str in topic_progress.items():
         try:
@@ -10680,26 +10653,26 @@ def check_and_update_completion_dates():
 def pomodoro_timer_page(user_data):
     """🍅 Hibrit Pomodoro Timer - Akıllı Nefes Sistemi ile"""
     st.markdown(f'<div class="main-header"><h1>🍅 Hibrit Pomodoro Timer</h1><p>Akıllı nefes sistemi ile verimli çalışma - Sıkıldığında "Nefes Al" butonuna bas!</p></div>', unsafe_allow_html=True)
-    
+
     # Session state başlat
     init_pomodoro_session_state()
-    
+
     # Ana pomodoro arayüzü
     show_pomodoro_interface(user_data)
-    
+
     # Bugünkü istatistikler
     show_daily_pomodoro_stats(user_data)
-    
+
     # Çalışma geçmişi
     show_pomodoro_history(user_data)
 
 def init_pomodoro_session_state():
     """Pomodoro session state'ini başlat ve eski değerleri yeni preset'lere migrate et"""
-    
+
     # Mevcut preset isimleri
-    valid_presets = ['Kısa Odak (25dk+5dk)', 'Standart Odak (35dk+10dk)', 
+    valid_presets = ['Kısa Odak (25dk+5dk)', 'Standart Odak (35dk+10dk)',
                      'Derin Odak (50dk+15dk)', 'Tam Konsantrasyon (90dk+25dk)']
-    
+
     # Eski preset isimlerinden yeni preset isimlerine migration map
     preset_migration = {
         'Pomodoro (25dk)': 'Kısa Odak (25dk+5dk)',
@@ -10707,23 +10680,23 @@ def init_pomodoro_session_state():
         'Uzun Mola (15dk)': 'Derin Odak (50dk+15dk)',
         'Derin Odak (50dk)': 'Derin Odak (50dk+15dk)'
     }
-    
+
     if 'pomodoro_active' not in st.session_state:
         st.session_state.pomodoro_active = False
-        
+
     # Pomodoro türü kontrolü ve migration
     if 'pomodoro_type' not in st.session_state:
         st.session_state.pomodoro_type = 'Kısa Odak (25dk+5dk)'
-    else:
-        # Eğer mevcut preset geçersizse, migrate et veya varsayılana dön
+else:
+    # Eğer mevcut preset geçersizse, migrate et veya varsayılana dön
         if st.session_state.pomodoro_type not in valid_presets:
             if st.session_state.pomodoro_type in preset_migration:
                 st.session_state.pomodoro_type = preset_migration[st.session_state.pomodoro_type]
                 st.info(f"🔄 Pomodoro ayarınız yeni sisteme güncellendi: {st.session_state.pomodoro_type}")
-            else:
-                st.session_state.pomodoro_type = 'Kısa Odak (25dk+5dk)'
+else:
+    st.session_state.pomodoro_type = 'Kısa Odak (25dk+5dk)'
                 st.warning("⚠️ Eski Pomodoro ayarı tespit edildi, varsayılan preset seçildi.")
-    
+
     if 'time_remaining' not in st.session_state:
         st.session_state.time_remaining = 25 * 60  # 25 dakika
     if 'start_time' not in st.session_state:
@@ -10735,7 +10708,7 @@ def init_pomodoro_session_state():
     if 'daily_pomodoros' not in st.session_state:
         st.session_state.daily_pomodoros = []
     # Eski günlük hedef sistemi kaldırıldı - artık haftalık hedef konular kullanılıyor
-    
+
     # === HİBRİT POMODORO SİSTEMİ İÇİN YENİ SESSION STATES ===
     if 'breathing_active' not in st.session_state:
         st.session_state.breathing_active = False
@@ -10751,92 +10724,92 @@ def init_pomodoro_session_state():
         st.session_state.current_motivation_content = ''
     if 'breathing_usage_log' not in st.session_state:
         st.session_state.breathing_usage_log = []
-    
+
     # === REKABET SİSTEMİ SESSION STATES === (Basit sistem, fazla state yok)
 
 def show_pomodoro_interface(user_data):
     """Ana pomodoro arayüzünü gösterir - Hibrit Pomodoro Sistemi ile"""
-    
+
     # === HİBRİT SİSTEM GÜNCELLEMELERİ ===
-    
+
     # Nefes egzersizi aktifse önce onu kontrol et
     if st.session_state.breathing_active and st.session_state.breath_start_time:
         elapsed = time.time() - st.session_state.breath_start_time
         st.session_state.breath_time_remaining = max(0, 60 - elapsed)
-        
+
         # Süre bittiyse otomatik durdur ve Pomodoro'yu devam ettir
         if st.session_state.breath_time_remaining <= 0:
             complete_breathing_exercise()
-    
+
     # Normal Pomodoro timer güncellemesi (nefes sırasında duraklatılmış olabilir)
     if st.session_state.pomodoro_active and st.session_state.start_time and not st.session_state.breathing_active:
         elapsed = time.time() - st.session_state.start_time
         st.session_state.time_remaining = max(0, st.session_state.time_remaining - elapsed)
         st.session_state.start_time = time.time()
-        
+
         # Süre bittiyse otomatik durdur
         if st.session_state.time_remaining <= 0:
             # SESLİ UYARI: Pomodoro bitti! 🔔
             play_pomodoro_finished_sound()
             complete_pomodoro(user_data)
-    
+
     # Pomodoro türleri
     # Bilimsel Temelli Pomodoro Preset Seçenekleri
     pomodoro_types = {
         'Kısa Odak (25dk+5dk)': {
-            'duration': 25, 
-            'break_duration': 5, 
-            'color': '#ff6b6b', 
+            'duration': 25,
+            'break_duration': 5,
+            'color': '#ff6b6b',
             'icon': '🍅',
             'description': 'Standart Pomodoro - Çoğu öğrenci için ideal başlangıç',
             'scientific_info': 'Beynin dikkat süresi ortalama 20-25 dk. Kısa molalar hafızayı güçlendirir.'
         },
         'Standart Odak (35dk+10dk)': {
-            'duration': 35, 
-            'break_duration': 10, 
-            'color': '#4ecdc4', 
+            'duration': 35,
+            'break_duration': 10,
+            'color': '#4ecdc4',
             'icon': '📚',
             'description': 'Orta seviye konsantrasyon - Alışkanlık kazandıktan sonra',
             'scientific_info': 'Uzun odaklanma süresi derin öğrenmeyi destekler. 10dk mola beynin dinlenmesi için yeterli.'
         },
         'Derin Odak (50dk+15dk)': {
-            'duration': 50, 
-            'break_duration': 15, 
-            'color': '#3742fa', 
+            'duration': 50,
+            'break_duration': 15,
+            'color': '#3742fa',
             'icon': '🧘',
             'description': 'İleri seviye - Zor konular için önerilen süre',
             'scientific_info': 'Beynin maksimum odaklanma eşiği 45-60dk. Bu süre karmaşık problemler için idealdir.'
         },
         'Tam Konsantrasyon (90dk+25dk)': {
-            'duration': 90, 
-            'break_duration': 25, 
-            'color': '#a55eea', 
+            'duration': 90,
+            'break_duration': 25,
+            'color': '#a55eea',
             'icon': '🚀',
             'description': 'Uzman seviye - Çok zorlu konular ve sınav hazırlığı',
             'scientific_info': 'Ultradian ritim döngüsü ~90dk. Uzun molalar beyni tamamen yeniler.'
         }
     }
-    
+
     # Timer gösterimi
     col1, col2, col3 = st.columns([1, 2, 1])
-    
+
     with col2:
         # Nefes egzersizi aktifse özel arayüzü göster
         if st.session_state.breathing_active:
             show_breathing_exercise()
-        else:
-            # Normal timer görünümü
+else:
+    # Normal timer görünümü
             minutes = int(st.session_state.time_remaining // 60)
             seconds = int(st.session_state.time_remaining % 60)
-            
+
             # Güvenlik kontrolü: Eğer session'daki pomodoro_type geçersizse varsayılana dön
             if st.session_state.pomodoro_type not in pomodoro_types:
                 st.session_state.pomodoro_type = 'Kısa Odak (25dk+5dk)'
                 st.warning("⚠️ Geçersiz Pomodoro türü tespit edildi, varsayılan ayar yüklendi.")
                 st.rerun()
-            
+
             timer_color = pomodoro_types[st.session_state.pomodoro_type]['color']
-            
+
             st.markdown(f"""
             <div style="
                 background: linear-gradient(135deg, {timer_color}22 0%, {timer_color}44 100%);
@@ -10864,22 +10837,22 @@ def show_pomodoro_interface(user_data):
                 ">{st.session_state.pomodoro_type.split('(')[0].strip()}</div>
             </div>
             """, unsafe_allow_html=True)
-        
+
         # === HİBRİT SİSTEM KONTROL BUTONLARI ===
         col_btn1, col_btn2, col_btn3, col_btn4 = st.columns(4)
-        
+
         with col_btn1:
             if not st.session_state.pomodoro_active:
                 if st.button("🟢 Başla", type="primary", use_container_width=True):
                     start_pomodoro()
-            else:
-                if st.button("🟠 Duraklat", type="secondary", use_container_width=True):
+else:
+    if st.button("🟠 Duraklat", type="secondary", use_container_width=True):
                     pause_pomodoro()
-        
+
         with col_btn2:
             if st.button("🔴 Sıfırla", use_container_width=True):
                 reset_pomodoro()
-        
+
         with col_btn3:
             # ⭐ HİBRİT SİSTEMİN KALBI: NEFES AL BUTONU
             if st.session_state.pomodoro_active and not st.session_state.breathing_active:
@@ -10888,30 +10861,30 @@ def show_pomodoro_interface(user_data):
             elif st.session_state.breathing_active:
                 if st.button("⏭️ Atla", type="secondary", use_container_width=True):
                     complete_breathing_exercise()
-            else:
-                st.button("💨 Nefes Al", disabled=True, use_container_width=True, 
+else:
+    st.button("💨 Nefes Al", disabled=True, use_container_width=True,
                          help="Önce Pomodoro'yu başlatın")
-        
+
         with col_btn4:
             if st.session_state.pomodoro_active and not st.session_state.breathing_active:
                 if st.button("✅ Tamamla", type="primary", use_container_width=True):
                     complete_pomodoro(user_data)
-    
+
     st.markdown("---")
-    
+
     # Pomodoro türü seçimi - Bilimsel temelli yaklaşım
     st.markdown("### 🧪 Pomodoro Preset'i Seçin")
-    
+
     cols = st.columns(2)
     for i, (pom_type, info) in enumerate(pomodoro_types.items()):
         with cols[i % 2]:
             # Aktif türü vurgula
             is_active = st.session_state.pomodoro_type == pom_type
-            
+
             # Mola süresi sınırlandırması kontrolü
             can_select = True
             warning_msg = ""
-            
+
             if pom_type == 'Tam Konsantrasyon (90dk+25dk)' and not is_active:
                 # 90 dakika çalışma yapan herkes 25 dk mola alabilir
                 warning_msg = "⚠️ 90dk yoğun çalışma sonrası uzun mola gerekli!"
@@ -10923,12 +10896,12 @@ def show_pomodoro_interface(user_data):
                 if st.session_state.pomodoro_type in ['Tam Konsantrasyon (90dk+25dk)', 'Derin Odak (50dk+15dk)']:
                     can_select = True  # Daha uzun süreden kısa süreye geçebilir
                 warning_msg = f"🚨 {pom_type.split('(')[1].split(')')[0]} çalışanlar uzun mola yapamaz!"
-            
+
             # Preset butonu ve açıklaması
             container = st.container()
             with container:
                 if st.button(
-                    f"{info['icon']} **{pom_type}**\n{info['description']}", 
+                    f"{info['icon']} **{pom_type}**\n{info['description']}",
                     key=f"pom_type_{i}",
                     use_container_width=True,
                     disabled=st.session_state.pomodoro_active or not can_select,
@@ -10937,66 +10910,66 @@ def show_pomodoro_interface(user_data):
                     st.session_state.pomodoro_type = pom_type
                     st.session_state.time_remaining = info['duration'] * 60
                     st.success(f"🎉 {pom_type} seçildi! Çalışma süresi: {info['duration']}dk, Mola süresi: {info['break_duration']}dk")
-                    st.rerun()
-                
+                st.rerun()
+
                 # Bilimsel açıklama
                 with st.expander(f"🔬 Bilimsel Temeli - {pom_type.split('(')[0].strip()}", expanded=False):
                     st.info(f"🧪 **Bilimsel Açıklama:**\n{info['scientific_info']}")
-                    
+
                     if warning_msg:
                         st.warning(warning_msg)
-                        
+
                 st.markdown("---")
-    
+
     st.markdown("---")
-    
+
     # Çalışma konusu seçimi
     st.markdown("### 📚 Ders:")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         # Ders seçimi
         student_field = user_data.get('field', '')
         available_subjects = get_subjects_by_field_yks(student_field)
-        
+
         # Özel kategoriler ekle
         special_categories = ["📝 Deneme Sınavı", "📂 Diğer"]
         all_subject_options = ["Seçiniz..."] + available_subjects + special_categories
-        
+
         selected_subject = st.selectbox(
             "Ders:",
             all_subject_options,
             index=0 if not st.session_state.current_subject else (
-                all_subject_options.index(st.session_state.current_subject) 
+                all_subject_options.index(st.session_state.current_subject)
                 if st.session_state.current_subject in all_subject_options else 0
             ),
             disabled=st.session_state.pomodoro_active
         )
-        
+
         if selected_subject != "Seçiniz...":
             st.session_state.current_subject = selected_subject
 
     with col2:
         # Konu seçimi - Eğer normal ders seçildiyse konu takipten konuları getir
-        if (st.session_state.current_subject and 
+        if (st.session_state.current_subject and
             st.session_state.current_subject not in ["Seçiniz...", "📝 Deneme Sınavı", "📂 Diğer"]):
-            
+
             # Konu takipten konuları getir
             available_topics = get_topic_list(st.session_state.current_subject)
             topic_options = ["Manuel Konu Girişi..."] + available_topics
-            
+
             selected_topic = st.selectbox(
                 "Konu:",
                 topic_options,
                 index=0 if not st.session_state.current_topic else (
-                    topic_options.index(st.session_state.current_topic) 
+                    topic_options.index(st.session_state.current_topic)
                     if st.session_state.current_topic in topic_options else 0
                 ),
                 disabled=st.session_state.pomodoro_active,
                 help="Konu Takip'ten otomatik olarak konular getirildi. Manuel giriş için 'Manuel Konu Girişi...' seçin."
             )
-            
+
             if selected_topic == "Manuel Konu Girişi...":
                 # Manuel konu girişi
                 manual_topic = st.text_input(
@@ -11007,30 +10980,30 @@ def show_pomodoro_interface(user_data):
                 )
                 if manual_topic:
                     st.session_state.current_topic = manual_topic
-            else:
-                if selected_topic and selected_topic != "Manuel Konu Girişi...":
+else:
+    if selected_topic and selected_topic != "Manuel Konu Girişi...":
                     # Konu takipten seçilen konuyu kısalt (sadece konu adını göster)
                     if " | " in selected_topic:
                         topic_parts = selected_topic.split(" | ")
                         display_topic = topic_parts[-1]  # Son kısmı (gerçek konu adı)
-                    else:
-                        display_topic = selected_topic
+else:
+    display_topic = selected_topic
                     st.session_state.current_topic = display_topic
-        else:
-            # YKS Canlı Takip'ten haftalık hedef konuları ve tüm konuları al
+else:
+    # YKS Canlı Takip'ten haftalık hedef konuları ve tüm konuları al
             student_field = user_data.get('field', '')
             survey_data = json.loads(user_data.get('yks_survey_data', '{}')) if user_data.get('yks_survey_data') else {}
             weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
-            
+
             # Haftalık hedef konuları
             weekly_target_topics = weekly_plan.get('new_topics', []) + weekly_plan.get('review_topics', [])
-            
+
             # Tüm konular (konu takipten)
             all_topics_raw = weekly_plan.get('all_topics', [])
-            
+
             # Konu seçeneklerini kategorize ederek hazırla
             topic_options = ["🔄 Yeni Konu Seç..."]
-            
+
             # 1. Haftalık Hedef Konular bölümü (sadece konu isimleri)
             if weekly_target_topics:
                 topic_options.append("─── 🎯 HAFTALİK HEDEF KONULAR ───")
@@ -11039,9 +11012,9 @@ def show_pomodoro_interface(user_data):
                     # Öncelikli konuları ⭐ ile vurgula
                     if topic.get('priority') == 'high':
                         topic_options.append(f"⭐ {topic_name} (Öncelikli)")
-                    else:
-                        topic_options.append(f"🎯 {topic_name}")
-            
+else:
+    topic_options.append(f"🎯 {topic_name}")
+
             # 2. Tüm Konular bölümü
             if all_topics_raw:
                 topic_options.append("─── 📚 TÜM KONULAR ───")
@@ -11050,25 +11023,25 @@ def show_pomodoro_interface(user_data):
                     # Duplicate kontrolü
                     if f"🎯 {topic_name}" not in topic_options:
                         topic_options.append(f"📚 {topic_name}")
-            
+
             # 3. Deneme Sınavı seçeneği
             topic_options.append("─── 📝 ÖZELLEŞTİRİLMİŞ ───")
             topic_options.append("📝 Deneme Sınavı")
-            
+
             # 4. Diğer (Manuel) seçeneği
             topic_options.append("📂 Diğer")
-            
+
             # Konu seçimi dropdown
             selected_topic_option = st.selectbox(
                 "Konu/Açıklama:",
                 options=topic_options,
-                index=0 if not st.session_state.current_topic else 
-                      next((i for i, opt in enumerate(topic_options) 
+                index=0 if not st.session_state.current_topic else
+                      next((i for i, opt in enumerate(topic_options)
                            if st.session_state.current_topic in opt), 0),
                 disabled=st.session_state.pomodoro_active,
                 key="topic_selection_pomodoro"
             )
-            
+
             # Seçilen konuya göre işlem yap
             if selected_topic_option.startswith("───"):
                 # Başlık seçilmişse varsayılana dön
@@ -11085,7 +11058,7 @@ def show_pomodoro_interface(user_data):
                     disabled=st.session_state.pomodoro_active,
                     key="manual_topic_pomodoro"
                 )
-                
+
                 if manual_topic_input:
                     st.session_state.current_topic = manual_topic_input
             elif selected_topic_option == "📝 Deneme Sınavı":
@@ -11097,7 +11070,7 @@ def show_pomodoro_interface(user_data):
                     disabled=st.session_state.pomodoro_active,
                     key="deneme_topic_pomodoro"
                 )
-                
+
                 if deneme_input:
                     st.session_state.current_topic = f"Deneme: {deneme_input}"
             elif selected_topic_option != "🔄 Yeni Konu Seç...":
@@ -11105,31 +11078,31 @@ def show_pomodoro_interface(user_data):
                 if selected_topic_option.startswith("🎯 "):
                     # Haftalık hedef konular - çalışma türü seçimi göster
                     base_topic = selected_topic_option.replace("🎯 ", "")
-                    
+
                     # 2. AŞAMA: Çalışma türü seçimi
                     st.markdown("#### 🎯 Çalışma Türü Seçin:")
-                    
+
                     study_type_options = [
                         "📖 Konu Çalışması - Yeni kavramları öğrenme",
-                        "🔄 Tekrar - Daha önce öğrenilenları pekiştirme", 
+                        "🔄 Tekrar - Daha önce öğrenilenları pekiştirme",
                         "✏️ Soru Çözüm - Pratik yapma ve test etme"
                     ]
-                    
+
                     selected_study_type = st.selectbox(
                         "Nasıl çalışacaksınız?",
                         options=study_type_options,
                         disabled=st.session_state.pomodoro_active,
                         key="study_type_selection_pomodoro"
                     )
-                    
+
                     if selected_study_type:
                         # Çalışma türünü parse et
                         study_type_short = selected_study_type.split(" - ")[0].replace("📖 ", "").replace("🔄 ", "").replace("✏️ ", "")
                         emoji = selected_study_type.split(" ")[0]
-                        
+
                         # Final topic oluştur
                         st.session_state.current_topic = f"{emoji} {base_topic} ({study_type_short})"
-                    
+
                     # Haftalık hedef konularından detay göster
                     selected_topic_detail = None
                     for topic in weekly_target_topics:
@@ -11137,12 +11110,12 @@ def show_pomodoro_interface(user_data):
                         if base_topic == topic_name:
                             selected_topic_detail = topic
                             break
-                    
+
                     if selected_topic_detail:
                         topic_subject = selected_topic_detail.get('subject', 'Bilinmiyor')
                         topic_priority = selected_topic_detail.get('priority', 'NORMAL')
                         topic_reason = selected_topic_detail.get('reason', 'Haftalık plan')
-                        
+
                         priority_info = {
                             'HIGH': {'icon': '🔴', 'name': 'Yüksek'},
                             'MEDIUM': {'icon': '🟡', 'name': 'Orta'},
@@ -11150,20 +11123,20 @@ def show_pomodoro_interface(user_data):
                             'LOW': {'icon': '🔵', 'name': 'Düşük'},
                             'MINIMAL': {'icon': '⚪', 'name': 'Minimal'}
                         }
-                        
+
                         priority_data = priority_info.get(topic_priority, priority_info['NORMAL'])
-                        
+
                         st.info(f"""
-                        **📚 Ders:** {topic_subject}  
-                        **⚡ Öncelik seviyesi:** {priority_data['icon']} {priority_data['name']}  
+                        **📚 Ders:** {topic_subject}
+                        **⚡ Öncelik seviyesi:** {priority_data['icon']} {priority_data['name']}
                         **📋 Neden bu hafta planında:** {topic_reason}
                         """)
-                        
+
                 elif selected_topic_option.startswith("📚 "):
                     # Tüm konular bölümünden seçim
                     clean_topic = selected_topic_option.replace("📚 ", "")
                     st.session_state.current_topic = clean_topic
-                    
+
                     # Tüm konularda ara
                     selected_topic_detail = None
                     if all_topics_raw:
@@ -11172,138 +11145,138 @@ def show_pomodoro_interface(user_data):
                             if clean_topic == topic_name:
                                 selected_topic_detail = topic
                                 break
-                    
+
                     if selected_topic_detail:
                         topic_subject = selected_topic_detail.get('subject', 'Bilinmiyor')
                         st.info(f"**📚 Ders:** {topic_subject}")
 
-            
+
             # Eğer hiçbir konu seçilmemişse varsayılan değer
             if not st.session_state.current_topic and selected_topic_option == "🔄 Yeni Konu Seç...":
                 st.session_state.current_topic = ""
-    
+
     # Bu haftanın hedef konuları
     st.markdown("### 🎯 HAFTALİK HEDEF KONULAR - TAM MANTIK")
-    
+
     # Algoritma açıklaması
     with st.expander("🤖 Haftalık Hedef Konuların Nasıl Belirleniyor? (Algoritma Mantığı)", expanded=False):
         st.markdown("""
         İşte haftalık hedef konuların tam olarak neye göre belirlendiği:
-        
+
         ## 🔥 1. ÖNCELIK SIRALAMASI (En Kritik)
-        
+
         **A) Ders Önem Puanları:**
         - 🔢 **TYT Matematik:** 10 puan (En kritik)
-        - 📝 **TYT Türkçe:** 9 puan  
+        - 📝 **TYT Türkçe:** 9 puan
         - 🎯 **AYT Matematik:** 10 puan
         - ⚛️ **TYT Fizik/Kimya:** 8 puan
         - 🧠 **TYT Felsefe/Din:** 4 puan (2-3. hafta sonra başlar)
-        
+
         **B) Haftalık Konu Limitleri:**
         - 📊 **10 puan** → 5 konu/hafta
-        - 📊 **9 puan** → 4 konu/hafta  
+        - 📊 **9 puan** → 4 konu/hafta
         - 📊 **8 puan** → 3 konu/hafta
         - 📊 **7 puan** → 2 konu/hafta
         - 📊 **4 puan** → 1 konu/hafta
-        
+
         ## 📊 2. PERFORMANS DEĞERLENDİRMESİ
-        
+
         **Öncelik Hesaplama Formülü:**
         ```
         Base Puan + Deneme Boost + Anket Etkisi = Final Öncelik
         ```
-        
+
         **Net Seviyesine Göre:**
         - 🚨 **0-5 net:** 85 puan (ACİL - Çok zayıf)
         - 🟡 **6-8 net:** 70 puan (ÖNCELİKLİ - Temel)
         - 🟢 **9-14 net:** 50 puan (NORMAL - Orta)
         - 🔵 **15-18 net:** 30 puan (DÜŞÜK - İyi)
         - 💎 **18+ net:** 15 puan (MİNİMAL - Uzman)
-        
+
         **Deneme Analizi Boost'u:**
         - Son 3 denemede %60'ın altında net → **+20 puan boost**
-        
+
         ## 🔄 3. YENİ vs TEKRAR KONULAR
-        
+
         **Yeni Konular:**
         - Net değeri 14'ün altında olan konular
         - Ders önem sırasına göre sıralı seçim
         - Her dersten limit kadar (1-5 konu)
-        
+
         **Tekrar Konular:**
         - Aralıklı tekrar sistemi (3-7-7-7-7 gün)
         - Zamanı gelen konular otomatik seçilir
         - Maksimum 8 tekrar konu/hafta
-        
+
         ## 🎮 4. TYT/AYT GEÇİŞ SİSTEMİ
-        
+
         **AYT Başlatma Koşulları:**
         - TYT matematik konularının belirli oranı tamamlanmış olmalı
         - TYT genel ilerlemesi yeterli seviyede olmalı
         - Alan seçimine uygun dersler aktif edilir
-        
+
         ## 📝 5. ANKET VERİSİ ETKİSİ
         - 🔥 **Zor Dersler:** +10 puan boost
         - ❤️ **Sevilen Dersler:** +15 puan boost
         - 😐 **Sevilmeyen Dersler:** -5 puan (hafif azalma)
-        
+
         ## ⏰ 6. DİNAMİK ZAMAN KONTROLÜ
         - **İlk 2 hafta:** Sadece yüksek öncelikli dersler (8+ puan)
         - **3. hafta sonrası:** Düşük öncelikli dersler de dahil edilir
-        
+
         ## 🤖 ÖZET: HAFTALİK PLANLAMA ALGORİTMASI
-        
+
         1. 📋 Tüm dersleri öncelik sırasına göre sırala
         2. 🎯 Her dersten net 14'ün altındaki konuları al
         3. ⚖️ Ders önemine göre haftalık limit uygula
         4. 🔄 Tekrar zamanı gelmiş 8 konuyu ekle
         5. ✅ Toplam ~15-20 konu haftalık hedef olur
-        
+
         **Bu sistem sayesinde:** Zayıf konular öncelenirken, önemli derslerden daha fazla konu alınır ve tekrarlar da unutulmuyor! 🎯
         """)
-    
+
     # Kullanıcı verilerini al
     student_field = user_data.get('field', '')
     survey_data = json.loads(user_data.get('survey_data', '{}')) if user_data.get('survey_data') else {}
-    
+
     # Haftalık hedef konuları çek
     weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     weekly_target_topics = weekly_plan.get('new_topics', []) + weekly_plan.get('review_topics', [])
-    
+
     if weekly_target_topics:
         # Haftalık hedef konularını görüntüle
         st.markdown("#### 📋 YKS Canlı Takip'ten Hedef Konular")
-        
+
         # Bu haftaki pomodorolardan konu bazında ilerleme hesapla
         topic_progress_in_pomodoros = {}
-        
+
         # Kullanıcının tüm pomodoro geçmişini al
         try:
             pomodoro_history_str = user_data.get('pomodoro_history', '[]')
             all_pomodoros = json.loads(pomodoro_history_str) if pomodoro_history_str else []
-            
+
             # Bu haftanın başlangıcını hesapla (Pazartesi) - DİNAMİK
             week_info = get_current_week_info()
             week_start = week_info['monday'].date()
-            
+
             # Bu haftaki pomodorolardan konuları say
             this_week_pomodoros = [
-                p for p in all_pomodoros 
+                p for p in all_pomodoros
                 if datetime.fromisoformat(p['timestamp']).date() >= week_start
             ]
-            
+
             for p in this_week_pomodoros:
                 topic = p.get('topic', '')
                 if topic and topic != 'Belirtilmemiş':
                     topic_progress_in_pomodoros[topic] = topic_progress_in_pomodoros.get(topic, 0) + 1
-                    
+
         except Exception as e:
             st.warning("Haftalık ilerleme hesaplanırken hata oluştu.")
             topic_progress_in_pomodoros = {}
-        
+
         # Hedef konuları tabloda göster
         cols = st.columns([3, 1, 1, 1])
-        
+
         with cols[0]:
             st.markdown("**📚 Hedef Konu**")
         with cols[1]:
@@ -11312,20 +11285,20 @@ def show_pomodoro_interface(user_data):
             st.markdown("**🍅 Bu Hafta**")
         with cols[3]:
             st.markdown("**📊 Durum**")
-        
+
         st.markdown("---")
-        
+
         for i, topic in enumerate(weekly_target_topics[:8]):  # Max 8 konu göster
             cols = st.columns([3, 1, 1, 1])
-            
+
             # Konu adını kısalt
             topic_display = f"{topic['subject']} - {topic.get('detail', '')}"
             if len(topic_display) > 40:
                 topic_display = topic_display[:37] + "..."
-            
+
             # Bu konuda bu hafta kaç pomodoro yapıldı
             pomodoros_this_week = topic_progress_in_pomodoros.get(topic.get('detail', ''), 0)
-            
+
             # Net değerine göre renk
             if topic.get('net', 0) < 5:
                 status_color = "🔴"
@@ -11336,10 +11309,10 @@ def show_pomodoro_interface(user_data):
             elif topic.get('net', 0) < 14:
                 status_color = "🟠"
                 status_text = "İyi"
-            else:
-                status_color = "🟢"
+else:
+    status_color = "🟢"
                 status_text = "Çok İyi"
-            
+
             with cols[0]:
                 st.write(f"**{topic_display}**")
             with cols[1]:
@@ -11347,19 +11320,19 @@ def show_pomodoro_interface(user_data):
             with cols[2]:
                 if pomodoros_this_week > 0:
                     st.write(f"**{pomodoros_this_week}** 🍅")
-                else:
-                    st.write("-")
+else:
+    st.write("-")
             with cols[3]:
                 st.write(f"{status_color} {status_text}")
-        
+
         # Haftalık özet
         st.markdown("---")
-        
+
         total_weekly_pomodoros = sum(topic_progress_in_pomodoros.values())
         completed_today = len(st.session_state.daily_pomodoros)
-        
+
         summary_col1, summary_col2, summary_col3 = st.columns(3)
-        
+
         with summary_col1:
             st.metric("🍅 Bugün", completed_today)
         with summary_col2:
@@ -11367,24 +11340,24 @@ def show_pomodoro_interface(user_data):
         with summary_col3:
             topics_worked_this_week = len([k for k, v in topic_progress_in_pomodoros.items() if v > 0])
             st.metric("📚 Çalışılan Konu", f"{topics_worked_this_week}/{len(weekly_target_topics)}")
-        
+
         # Motivasyon mesajı
         if topics_worked_this_week >= len(weekly_target_topics) // 2:
             st.success("🎉 Harika gidiyorsun! Haftalık hedeflerinin yarısından fazlasında çalıştın!")
         elif topics_worked_this_week > 0:
             st.info("💪 İyi başlangıç! Hedef konularında çalışmaya devam et!")
-        else:
-            st.warning("🎯 Bu hafta henüz hedef konularında çalışmadın. Başlamak için şimdi güzel bir zaman!")
-            
-    else:
-        # Hedef konu bulunamadıysa alternatif göster
+else:
+    st.warning("🎯 Bu hafta henüz hedef konularında çalışmadın. Başlamak için şimdi güzel bir zaman!")
+
+else:
+    # Hedef konu bulunamadıysa alternatif göster
         completed_today = len(st.session_state.daily_pomodoros)
-        
+
         st.info("📋 Bu hafta için hedef konu bulunamadı. **YKS Canlı Takip** sekmesinde konularınızı değerlendirin ve haftalık programınızı oluşturun.")
-        
+
         # Basit günlük metrik
         summary_col1, summary_col2 = st.columns(2)
-        
+
         with summary_col1:
             st.metric("🍅 Bugün Tamamlanan", completed_today)
         with summary_col2:
@@ -11392,28 +11365,28 @@ def show_pomodoro_interface(user_data):
             try:
                 pomodoro_history_str = user_data.get('pomodoro_history', '[]')
                 all_pomodoros = json.loads(pomodoro_history_str) if pomodoro_history_str else []
-                
+
                 week_ago = datetime.now().date() - timedelta(days=7)
                 weekly_count = len([
-                    p for p in all_pomodoros 
+                    p for p in all_pomodoros
                     if datetime.fromisoformat(p['timestamp']).date() >= week_ago
                 ])
-                
+
                 st.metric("📅 Son 7 Gün", weekly_count)
             except:
                 st.metric("📅 Son 7 Gün", "?")
-    
+
     # Auto-refresh aktif timer için
     if st.session_state.pomodoro_active:
         time.sleep(1)
-        st.rerun()
+                st.rerun()
 
 def start_pomodoro():
     """Pomodoro'yu başlat"""
     if not st.session_state.current_subject or not st.session_state.current_topic:
         st.error("😱 Lütfen ders ve konu seçin!")
         return
-    
+
     st.session_state.pomodoro_active = True
     st.session_state.start_time = time.time()
     st.success(f"✅ {st.session_state.pomodoro_type} başlatıldı!")
@@ -11428,7 +11401,7 @@ def reset_pomodoro():
     """Pomodoro'yu sıfırla"""
     st.session_state.pomodoro_active = False
     st.session_state.start_time = None
-    
+
     # Süreyi türe göre sıfırla
     duration_map = {
         'Kısa Odak (25dk+5dk)': 25,
@@ -11436,16 +11409,16 @@ def reset_pomodoro():
         'Derin Odak (50dk+15dk)': 50,
         'Tam Konsantrasyon (90dk+25dk)': 90
     }
-    
+
     # Güvenlik kontrolü ile süre ayarla
     if st.session_state.pomodoro_type in duration_map:
         st.session_state.time_remaining = duration_map[st.session_state.pomodoro_type] * 60
-    else:
-        # Eğer preset bulunamazsa varsayılana dön
+else:
+    # Eğer preset bulunamazsa varsayılana dön
         st.session_state.pomodoro_type = 'Kısa Odak (25dk+5dk)'
         st.session_state.time_remaining = 25 * 60
         st.warning("⚠️ Geçersiz preset tespit edildi, varsayılan ayarlara dönüldü.")
-    
+
     st.info("🔄 Pomodoro sıfırlandı")
 
 def complete_pomodoro(user_data):
@@ -11453,27 +11426,27 @@ def complete_pomodoro(user_data):
     # Konu seviyesi kontrolü - ÇOK ÖNEMLİ!
     current_subject = st.session_state.current_subject
     current_topic = st.session_state.current_topic
-    
+
     # Konu takipte seviye kontrolü yap
     topic_key = f"{current_subject}_{current_topic}".replace(" ", "_")
     topic_level = user_data.get('topic_levels', {}).get(topic_key, 'başlangıç')
-    
+
     # SADECE "iyi" veya "mükemmel" seviyeye geldiyse tamamlanmış say
     if topic_level not in ['iyi', 'mükemmel']:
         # Pomodoro'yu durdur ama tamamlanmış sayma!
         st.session_state.pomodoro_active = False
         st.session_state.start_time = None
-        
+
         st.warning(f"""
         ⚠️ **Pomodoro tamamlandı ama konu henüz tamamlanmış sayılmadı!**
-        
+
         **📚 Konu:** {current_topic}
         **📊 Mevcut Seviye:** {topic_level.title()}
         **🎯 Gerekli Seviye:** İyi veya Mükemmel
-        
+
         **Konu takip bölümünden seviyenizi "İyi"ye çıkarın, sonra pomodoro tamamlanmış sayılacak!**
         """)
-        
+
         # Kısmi kayıt oluştur (tamamlanmamış)
         pomodoro_record = {
             'timestamp': datetime.now().isoformat(),
@@ -11483,11 +11456,11 @@ def complete_pomodoro(user_data):
             'completed': False,  # TAMAMLANMADI!
             'reason': f'Konu seviyesi yetersiz: {topic_level}'
         }
-        
+
         # Günlük listeye ekle (tamamlanmamış olarak)
         st.session_state.daily_pomodoros.append(pomodoro_record)
         save_pomodoro_to_user_data(user_data, pomodoro_record)
-        
+
         # Timer'i sıfırla
         duration_map = {
             'Kısa Odak (25dk+5dk)': 25,
@@ -11495,19 +11468,19 @@ def complete_pomodoro(user_data):
             'Derin Odak (50dk+15dk)': 50,
             'Tam Konsantrasyon (90dk+25dk)': 90
         }
-        
+
         if st.session_state.pomodoro_type in duration_map:
             st.session_state.time_remaining = duration_map[st.session_state.pomodoro_type] * 60
-        else:
-            st.session_state.pomodoro_type = 'Kısa Odak (25dk+5dk)'
+else:
+    st.session_state.pomodoro_type = 'Kısa Odak (25dk+5dk)'
             st.session_state.time_remaining = 25 * 60
-        
+
         return  # Fonksiyondan çık - tam tamamlanma işlemi yapma
-    
+
     # KONU SEVİYESİ YETERLİ - NORMAL TAMAMLANMA İŞLEMİ
     st.session_state.pomodoro_active = False
     st.session_state.start_time = None
-    
+
     # Kayıt oluştur (GERÇEKTEN TAMAMLANDI)
     pomodoro_record = {
         'timestamp': datetime.now().isoformat(),
@@ -11517,13 +11490,13 @@ def complete_pomodoro(user_data):
         'completed': True,
         'topic_level': topic_level  # Seviye bilgisi ekle
     }
-    
+
     # Günlük listeye ekle
     st.session_state.daily_pomodoros.append(pomodoro_record)
-    
+
     # Kullanıcı verisine kaydet
     save_pomodoro_to_user_data(user_data, pomodoro_record)
-    
+
     # Timer'i sıfırla
     duration_map = {
         'Kısa Odak (25dk+5dk)': 25,
@@ -11531,15 +11504,15 @@ def complete_pomodoro(user_data):
         'Derin Odak (50dk+15dk)': 50,
         'Tam Konsantrasyon (90dk+25dk)': 90
     }
-    
+
     # Güvenlik kontrolü ile süre ayarla
     if st.session_state.pomodoro_type in duration_map:
         st.session_state.time_remaining = duration_map[st.session_state.pomodoro_type] * 60
-    else:
-        # Eğer preset bulunamazsa varsayılana dön
+else:
+    # Eğer preset bulunamazsa varsayılana dön
         st.session_state.pomodoro_type = 'Kısa Odak (25dk+5dk)'
         st.session_state.time_remaining = 25 * 60
-    
+
     # Başarı mesajı ve mola başlangıç sesi
     break_duration = {
         'Kısa Odak (25dk+5dk)': 5,
@@ -11547,10 +11520,10 @@ def complete_pomodoro(user_data):
         'Derin Odak (50dk+15dk)': 15,
         'Tam Konsantrasyon (90dk+25dk)': 25
     }
-    
+
     current_break = break_duration.get(st.session_state.pomodoro_type, 5)
     st.success(f"🎉 {st.session_state.pomodoro_type} tamamlandı! Şimdi {current_break} dakika mola zamanı! 💨")
-    
+
     # Gamification: Pomodoro tamamlama puanı
     try:
         pomodoro_points = {
@@ -11561,19 +11534,19 @@ def complete_pomodoro(user_data):
         }
         points = award_points("topic_completion", 3)  # Orta zorluk
         st.info(f"⭐ Pomodoro ödülü: +{points} puan kazandın!")
-        
+
         # İstatistikleri güncelle
         if 'gamification' in st.session_state:
             st.session_state.gamification['stats']['total_study_time'] += int(st.session_state.pomodoro_type.split('(')[1].split('dk')[0])
     except:
         pass
-    
+
     # SESLİ UYARI: Mola başladı! 🔔
     play_break_start_sound()
-    
+
     # YENI ÖZELLİK: Tamamlanan pomodoro'yu haftalık programa ekle
     add_pomodoro_to_weekly_program(user_data, pomodoro_record)
-    
+
     st.balloons()
 
 def add_pomodoro_to_weekly_program(user_data, pomodoro_record):
@@ -11583,27 +11556,27 @@ def add_pomodoro_to_weekly_program(user_data, pomodoro_record):
         now = datetime.now()
         current_day_tr = {
             'Monday': 'PAZARTESİ',
-            'Tuesday': 'SALI', 
+            'Tuesday': 'SALI',
             'Wednesday': 'ÇARŞAMBA',
             'Thursday': 'PERŞEMBE',
             'Friday': 'CUMA',
             'Saturday': 'CUMARTESİ',
             'Sunday': 'PAZAR'
         }
-        
+
         current_day = current_day_tr.get(now.strftime('%A'), 'PAZARTESİ')
         current_time = now.strftime('%H:%M')
-        
+
         # Session state'te day_plans yoksa oluştur
         if 'day_plans' not in st.session_state:
             days = ["PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ", "PAZAR"]
             st.session_state.day_plans = {day: [] for day in days}
-        
+
         # Pomodoro bilgilerini al
         subject = pomodoro_record.get('subject', 'Genel')
         topic = pomodoro_record.get('topic', 'Belirtilmemiş')
         pomodoro_type = pomodoro_record.get('type', 'Kısa Odak (25dk+5dk)')
-        
+
         # Süreyi hesapla
         duration_map = {
             'Kısa Odak (25dk+5dk)': '25dk',
@@ -11612,7 +11585,7 @@ def add_pomodoro_to_weekly_program(user_data, pomodoro_record):
             'Tam Konsantrasyon (90dk+25dk)': '90dk'
         }
         duration = duration_map.get(pomodoro_type, '25dk')
-        
+
         # Haftalık programa eklenecek öğeyi oluştur
         program_item = {
             'subject': subject,
@@ -11622,15 +11595,15 @@ def add_pomodoro_to_weekly_program(user_data, pomodoro_record):
             'priority': 'COMPLETED',  # Tamamlanmış öğe olarak işaretle
             'auto_added': True  # Otomatik eklendiğini belirt
         }
-        
+
         # Bugünün planına ekle
         if current_day in st.session_state.day_plans:
             st.session_state.day_plans[current_day].append(program_item)
-            
+
             # Başarı mesajını göster
             st.success(f"✅ Tamamlanan pomodoro **{current_day}** gününe otomatik eklendi!")
             st.info(f"📅 **Konu:** {topic} | **Süre:** {duration} | **Saat:** {current_time}")
-        
+
     except Exception as e:
         st.warning(f"⚠️ Haftalık programa ekleme sırasında hata: {e}")
 
@@ -11640,37 +11613,34 @@ def save_pomodoro_to_user_data(user_data, pomodoro_record):
         # Mevcut pomodoro verilerini yükle
         pomodoro_data_str = user_data.get('pomodoro_history', '[]')
         pomodoro_history = json.loads(pomodoro_data_str) if pomodoro_data_str else []
-        
+
         # Yeni kaydı ekle
         pomodoro_history.append(pomodoro_record)
-        
+
         # Son 100 kaydı tut (performans için)
         if len(pomodoro_history) > 100:
             pomodoro_history = pomodoro_history[-100:]
-        
+
         # Kullanıcı verisini güncelle
-        update_user_in_firebase(st.session_state.current_user, 
+        update_user_in_firebase(st.session_state.current_user,
                           {'pomodoro_history': json.dumps(pomodoro_history)})
-        
+
         # Session state'teki kullanıcı verisini güncelle
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-        
-    except Exception as e:
+        except Exception as e:
         st.error(f"Pomodoro kaydı kaydedilirken hata: {e}")
 
 def show_daily_pomodoro_stats(user_data):
     """Hibrit Pomodoro istatistiklerini göster"""
     st.markdown("### 📊 Bugünkü Hibrit Pomodoro İstatistikleri")
-    
+
     completed_today = len(st.session_state.daily_pomodoros)
-    breathing_used_today = len([log for log in st.session_state.breathing_usage_log 
+    breathing_used_today = len([log for log in st.session_state.breathing_usage_log
                               if log['timestamp'][:10] == datetime.now().date().isoformat()])
-    
+
     if st.session_state.daily_pomodoros or breathing_used_today > 0:
         # İstatistik metrikleri
         col1, col2, col3, col4 = st.columns(4)
-        
+
         # Pomodoro türlerine göre süre hesaplama
         duration_map = {
             'Kısa Odak (25dk+5dk)': 25,
@@ -11678,36 +11648,36 @@ def show_daily_pomodoro_stats(user_data):
             'Derin Odak (50dk+15dk)': 50,
             'Tam Konsantrasyon (90dk+25dk)': 90
         }
-        
+
         # Ders bazında çalışma sürelerini hesapla
         subject_times = {}
         topic_counts = {}
         total_minutes = 0
-        
+
         for p in st.session_state.daily_pomodoros:
             subject = p['subject']
             topic = p.get('topic', 'Belirtilmemiş')
             pomodoro_type = p.get('type', 'Kısa Odak (25dk+5dk)')
-            
+
             # Süreyi hesapla
             duration = duration_map.get(pomodoro_type, 25)
             total_minutes += duration
-            
+
             # Ders bazında topla
             if subject not in subject_times:
                 subject_times[subject] = 0
             subject_times[subject] += duration
-            
+
             # Konu sayısını topla
             if subject not in topic_counts:
                 topic_counts[subject] = {}
             if topic not in topic_counts[subject]:
                 topic_counts[subject][topic] = 0
             topic_counts[subject][topic] += 1
-        
+
         hours = total_minutes // 60
         minutes = total_minutes % 60
-        
+
         with col1:
             st.metric("🍅 Tamamlanan", completed_today)
         with col2:
@@ -11721,54 +11691,54 @@ def show_daily_pomodoro_stats(user_data):
                 survey_data = json.loads(user_data.get('survey_data', '{}')) if user_data.get('survey_data') else {}
                 weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
                 weekly_target_topics = weekly_plan.get('new_topics', []) + weekly_plan.get('review_topics', [])
-                
+
                 if weekly_target_topics:
                     # Bu haftaki pomodorolardan konu bazlı ilerleme
                     pomodoro_history_str = user_data.get('pomodoro_history', '[]')
                     all_pomodoros = json.loads(pomodoro_history_str) if pomodoro_history_str else []
-                    
+
                     # Bu haftanın başlangıcını hesapla - DİNAMİK
                     week_info = get_current_week_info()
                     week_start = week_info['monday'].date()
-                    
+
                     this_week_pomodoros = [
-                        p for p in all_pomodoros 
+                        p for p in all_pomodoros
                         if datetime.fromisoformat(p['timestamp']).date() >= week_start
                     ]
-                    
+
                     topic_progress_in_pomodoros = {}
                     for p in this_week_pomodoros:
                         topic = p.get('topic', '')
                         if topic and topic != 'Belirtilmemiş':
                             topic_progress_in_pomodoros[topic] = topic_progress_in_pomodoros.get(topic, 0) + 1
-                    
+
                     topics_worked = len([k for k, v in topic_progress_in_pomodoros.items() if v > 0])
                     weekly_progress = (topics_worked / len(weekly_target_topics)) * 100 if weekly_target_topics else 0
-                    
+
                     st.metric("🎯 Haftalık İlerleme", f"%{weekly_progress:.1f}")
-                else:
-                    st.metric("🎯 Haftalık İlerleme", "Hedef yok")
+else:
+    st.metric("🎯 Haftalık İlerleme", "Hedef yok")
             except:
                 st.metric("🎯 Haftalık İlerleme", "?")
-        
-        
+
+
         # === DERS BAZINDA DETAYLAR ===
         st.markdown("#### 📚 Bugünkü Ders Detayları")
-        
+
         if subject_times:
             # Ders tablosu
             col_table, col_chart = st.columns([1, 1])
-            
+
             with col_table:
                 st.markdown("**Ders Bazında Çalışma Süreleri:**")
-                
+
                 for subject in sorted(subject_times.keys()):
                     minutes_studied = subject_times[subject]
                     hours_studied = minutes_studied // 60
                     mins_studied = minutes_studied % 60
-                    
+
                     time_str = f"{hours_studied}s {mins_studied}dk" if hours_studied > 0 else f"{mins_studied}dk"
-                    
+
                     # Emoji seçimi
                     if subject.startswith("📝"):
                         emoji = "📝"
@@ -11784,57 +11754,57 @@ def show_daily_pomodoro_stats(user_data):
                         emoji = "🧬"
                     elif "Türkçe" in subject or "Edebiyat" in subject:
                         emoji = "📖"
-                    else:
-                        emoji = "📚"
-                    
+else:
+    emoji = "📚"
+
                     st.write(f"{emoji} **{subject}**: {time_str}")
-                    
+
                     # Konu detayları
                     if subject in topic_counts:
                         for topic, count in topic_counts[subject].items():
                             if topic and topic != "Belirtilmemiş":
                                 st.write(f"    • {topic}: {count} pomodoro")
-            
+
             with col_chart:
                 # Pasta grafik
                 if len(subject_times) > 1:
                     subject_df = pd.DataFrame([
-                        {'Ders': subject, 'Dakika': minutes} 
+                        {'Ders': subject, 'Dakika': minutes}
                         for subject, minutes in subject_times.items()
                     ])
-                    fig = px.pie(subject_df, values='Dakika', names='Ders', 
+                    fig = px.pie(subject_df, values='Dakika', names='Ders',
                                 title='Bugünkü Çalışma Süresi Dağılımı')
                     safe_plotly_chart(fig, use_container_width=True, height=400)
-        
+
         # === TOPLAM İSTATİSTİKLER (TÜM ZAMANLAR) ===
         st.markdown("#### 🏆 Toplam İstatistikler")
-        
+
         # Kullanıcı verisinden geçmiş pomodoro'ları yükle
         try:
             pomodoro_history_str = user_data.get('pomodoro_history', '[]')
             all_pomodoros = json.loads(pomodoro_history_str) if pomodoro_history_str else []
-            
+
             if all_pomodoros:
                 # Toplam hesaplamalar
                 total_all_time = 0
                 subject_totals = {}
                 total_count = len(all_pomodoros)
-                
+
                 for p in all_pomodoros:
                     pomodoro_type = p.get('type', 'Kısa Odak (25dk+5dk)')
                     subject = p.get('subject', 'Belirtilmemiş')
                     duration = duration_map.get(pomodoro_type, 25)
                     total_all_time += duration
-                    
+
                     if subject not in subject_totals:
                         subject_totals[subject] = 0
                     subject_totals[subject] += duration
-                
+
                 total_hours = total_all_time // 60
                 total_mins = total_all_time % 60
-                
+
                 col_total1, col_total2, col_total3 = st.columns(3)
-                
+
                 with col_total1:
                     st.metric("🎯 Toplam Pomodoro", total_count)
                 with col_total2:
@@ -11844,61 +11814,61 @@ def show_daily_pomodoro_stats(user_data):
                     if subject_totals:
                         top_subject = max(subject_totals, key=subject_totals.get)
                         st.metric("🏅 En Çok Çalışılan", top_subject.split()[0] + "...")
-                
+
                 # Son 7 günün istatistikleri - DİNAMİK
                 week_info = get_current_week_info()
                 today = week_info['today'].date()
                 last_week_pomodoros = [
-                    p for p in all_pomodoros 
+                    p for p in all_pomodoros
                     if (today - datetime.fromisoformat(p['timestamp']).date()).days <= 7
                 ]
-                
+
                 if last_week_pomodoros:
-                    week_total = sum(duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25) 
+                    week_total = sum(duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
                                    for p in last_week_pomodoros)
                     week_hours = week_total // 60
                     week_mins = week_total % 60
                     avg_daily = week_total / 7
-                    
+
                     st.markdown("**📅 Son 7 Gün:**")
                     st.write(f"• Toplam: {len(last_week_pomodoros)} pomodoro ({week_hours}s {week_mins}dk)")
                     st.write(f"• Günlük ortalama: {avg_daily:.1f} dk")
-                    
+
         except Exception as e:
             st.warning("Toplam istatistikler yüklenirken bir hata oluştu.")
-        
+
         # === HİBRİT SİSTEM ANALİZİ ===
         if breathing_used_today > 0:
             st.markdown("#### 🧠 Hibrit Sistem Analizi")
-            
+
             # Hangi derslerde daha çok nefes molası kullanıldı
-            today_breathing_logs = [log for log in st.session_state.breathing_usage_log 
+            today_breathing_logs = [log for log in st.session_state.breathing_usage_log
                                    if log['timestamp'][:10] == datetime.now().date().isoformat()]
-            
+
             subject_breathing = {}
             motivation_type_count = {'quote': 0, 'tip': 0, 'breathing': 0}
-            
+
             for log in today_breathing_logs:
                 subject = log['subject']
                 subject_breathing[subject] = subject_breathing.get(subject, 0) + 1
                 motivation_type_count[log['motivation_type']] += 1
-            
+
             col_a, col_b = st.columns(2)
-            
+
             with col_a:
                 st.markdown("**📚 Derslerde Nefes Kullanımı:**")
                 for subject, count in subject_breathing.items():
                     st.write(f"• {subject}: {count} kez")
-            
+
             with col_b:
                 st.markdown("**💭 Motivasyon Türü Dağılımı:**")
                 st.write(f"• Motivasyon Sözleri: {motivation_type_count['quote']}")
                 st.write(f"• Mikro İpuçları: {motivation_type_count['tip']}")
                 st.write(f"• Nefes Egzersizleri: {motivation_type_count['breathing']}")
-            
+
             # Akıllı öneriler
             avg_breathing_per_pomodoro = breathing_used_today / completed_today if completed_today > 0 else 0
-            
+
             if breathing_used_today > 4:
                 st.warning("💡 **Hibrit Analiz:** Bugün nefes sistemini sıkça kullandınız. Bu, odaklanma zorluğu yaşadığınızı gösterebilir. Bu normal ve sağlıklı bir yaklaşım! Belki çalışma ortamınızı kontrol etmek ya da ara verme sıklığını artırmak faydalı olabilir.")
             elif breathing_used_today > 0 and avg_breathing_per_pomodoro < 1:
@@ -11906,21 +11876,21 @@ def show_daily_pomodoro_stats(user_data):
             elif breathing_used_today == 0 and completed_today > 3:
                 st.success("🏆 **Hibrit Analiz:** Bugün hibrit sistemi kullanmadan harika bir performans sergiledinin! Odaklanma beceriniz gelişiyor.")
 
-    else:
-        st.info("📊 Bugün henüz hibrit pomodoro tamamlanmamış. İlk pomodoro'nuzu başlatın!")
+else:
+    st.info("📊 Bugün henüz hibrit pomodoro tamamlanmamış. İlk pomodoro'nuzu başlatın!")
 
 def show_pomodoro_history(user_data):
     """Pomodoro geçmişini göster"""
     st.markdown("### 📅 Çalışma Geçmişi")
-    
+
     try:
         pomodoro_data_str = user_data.get('pomodoro_history', '[]')
         pomodoro_history = json.loads(pomodoro_data_str) if pomodoro_data_str else []
-        
+
         if pomodoro_history:
             # Son 10 kaydı göster
             recent_history = pomodoro_history[-10:]
-            
+
             for i, record in enumerate(reversed(recent_history)):
                 with st.expander(f"🍅 {record['subject']} - {record['topic'][:30]}... ({record['timestamp'][:10]})"):
                     col1, col2, col3 = st.columns(3)
@@ -11930,12 +11900,12 @@ def show_pomodoro_history(user_data):
                         st.write(f"**Ders:** {record['subject']}")
                     with col3:
                         st.write(f"**Durum:** {'✅ Tamamlandı' if record['completed'] else '❌ Yarım'}")
-                    
+
                     st.write(f"**Konu:** {record['topic']}")
                     st.write(f"**Tarih:** {record['timestamp']}")
-        else:
-            st.info("📅 Henüz pomodoro geçmişi bulunmuyor.")
-            
+else:
+    st.info("📅 Henüz pomodoro geçmişi bulunmuyor.")
+
     except Exception as e:
         st.error(f"Geçmiş yüklenirken hata: {e}")
 # === HİBRİT POMODORO SİSTEMİ FONKSİYONLARI ===
@@ -12049,25 +12019,25 @@ def start_hibrit_breathing():
     # Pomodoro'yu duraklat
     if st.session_state.pomodoro_active:
         st.session_state.breathing_paused_time = st.session_state.time_remaining
-    
+
     # Nefes sistemini başlat
     st.session_state.breathing_active = True
     st.session_state.breath_time_remaining = 60
     st.session_state.breath_start_time = time.time()
-    
+
     # Rastgele bir motivasyon türü seç
     motivation_types = ['quote', 'tip', 'breathing']
     st.session_state.current_motivation_type = random.choice(motivation_types)
-    
+
     if st.session_state.current_motivation_type == 'quote':
         st.session_state.current_motivation_content = random.choice(MOTIVATION_QUOTES)
     elif st.session_state.current_motivation_type == 'tip':
         subject = st.session_state.current_subject
         if subject in MICRO_TIPS:
             st.session_state.current_motivation_content = random.choice(MICRO_TIPS[subject])
-        else:
-            st.session_state.current_motivation_content = random.choice(MICRO_TIPS['Genel'])
-    else:  # breathing
+else:
+    st.session_state.current_motivation_content = random.choice(MICRO_TIPS['Genel'])
+else:  # breathing
         exercise = random.choice(BREATHING_EXERCISES)
         st.session_state.current_motivation_content = f"""
 🫁 **{exercise['name']}**
@@ -12076,7 +12046,7 @@ def start_hibrit_breathing():
 
 ✨ **Faydası:** {exercise['benefit']}
         """
-    
+
     # Kullanım loguna kaydet
     log_entry = {
         'timestamp': datetime.now().isoformat(),
@@ -12085,7 +12055,7 @@ def start_hibrit_breathing():
         'remaining_time_when_used': st.session_state.breathing_paused_time
     }
     st.session_state.breathing_usage_log.append(log_entry)
-    
+
     st.success("💨 Hibrit nefes molası başladı! Pomodoro timer duraklatıldı.")
 
 def complete_breathing_exercise():
@@ -12093,47 +12063,47 @@ def complete_breathing_exercise():
     st.session_state.breathing_active = False
     st.session_state.breath_time_remaining = 60
     st.session_state.breath_start_time = None
-    
+
     # Pomodoro'yu kaldığı yerden devam ettir
     if st.session_state.pomodoro_active:
         st.session_state.time_remaining = st.session_state.breathing_paused_time
         st.session_state.start_time = time.time()
-    
+
     st.success("🎉 Hibrit nefes molası tamamlandı! Pomodoro kaldığı yerden devam ediyor.")
     st.balloons()
 
 def show_breathing_exercise():
     """Hibrit nefes egzersizini göster - 5 saniyede bir değişen motivasyon ile"""
     breath_seconds = int(st.session_state.breath_time_remaining)
-    
+
     # 5 saniyede bir motivasyon içeriğini değiştir
     current_time = int(time.time())
-    
+
     # Her 5 saniyede bir yeni içerik seç
     if not hasattr(st.session_state, 'last_motivation_change'):
         st.session_state.last_motivation_change = current_time
         st.session_state.motivation_index = 0
-    
+
     if current_time - st.session_state.last_motivation_change >= 5:
         st.session_state.last_motivation_change = current_time
         st.session_state.motivation_index = (st.session_state.motivation_index + 1) % len(MOTIVATION_QUOTES)
-        
+
         # Yeni motivasyon türü ve içerik seç
         motivation_types = ['quote', 'tip', 'breathing']
         st.session_state.current_motivation_type = random.choice(motivation_types)
-        
+
         if st.session_state.current_motivation_type == 'quote':
             st.session_state.current_motivation_content = MOTIVATION_QUOTES[st.session_state.motivation_index]
         elif st.session_state.current_motivation_type == 'tip':
             subject = st.session_state.current_subject or 'Genel'
             if subject in MICRO_TIPS:
                 st.session_state.current_motivation_content = random.choice(MICRO_TIPS[subject])
-            else:
-                st.session_state.current_motivation_content = random.choice(MICRO_TIPS['Genel'])
-        else:  # breathing
+else:
+    st.session_state.current_motivation_content = random.choice(MICRO_TIPS['Genel'])
+else:  # breathing
             exercise = random.choice(BREATHING_EXERCISES)
             st.session_state.current_motivation_content = f"🫁 **{exercise['name']}**\n\n📋 {exercise['instruction']}\n\n✨ **Faydası:** {exercise['benefit']}"
-    
+
     st.markdown(f"""
     <div style="
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -12150,9 +12120,9 @@ def show_breathing_exercise():
             {breath_seconds}s
         </div>
         <div style="
-            font-size: 18px; 
-            font-style: italic; 
-            margin: 20px 0; 
+            font-size: 18px;
+            font-style: italic;
+            margin: 20px 0;
             min-height: 120px;
             padding: 20px;
             background: rgba(255,255,255,0.1);
@@ -12169,7 +12139,7 @@ def show_breathing_exercise():
             🍅 Pomodoro timer duraklatıldı • Kaldığı yerden devam edecek
         </div>
     </div>
-    
+
     <style>
     @keyframes pulse {{
         0% {{ transform: scale(1); }}
@@ -12195,40 +12165,40 @@ def get_subjects_by_field_yks(field):
                 "TYT Fizik (isteğe bağlı)", "TYT Kimya (isteğe bağlı)", "TYT Biyoloji (isteğe bağlı)",  # İsteğe bağlı
                 "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
 
-    else:
-        return list(YKS_TOPICS.keys())
+else:
+    return list(YKS_TOPICS.keys())
 
 def determine_topic_priority_by_performance(topic, user_data):
     """Konunun öğrenci performansına göre öncelik seviyesini belirler"""
     # Konu takip verisinden mevcut net değerini al
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
-    
+
     # MULTİPLE FORMAT SUPPORT: Alternatif key formatlarını dene
     possible_keys = []
-    
+
     # Format 1: subject | main_topic | topic | detail
     key1 = f"{topic['subject']} | {topic.get('main_topic', '')} | {topic['topic']} | {topic.get('detail', '')}"
     possible_keys.append(key1)
-    
-    # Format 2: subject | main_topic | None | detail  
+
+    # Format 2: subject | main_topic | None | detail
     key2 = f"{topic['subject']} | {topic.get('main_topic', '')} | None | {topic.get('detail', '')}"
     possible_keys.append(key2)
-    
+
     # Format 3: subject | None | None | detail
     key3 = f"{topic['subject']} | None | None | {topic.get('detail', '')}"
     possible_keys.append(key3)
-    
+
     # Format 4: subject | topic | None | detail
     key4 = f"{topic['subject']} | {topic['topic']} | None | {topic.get('detail', '')}"
     possible_keys.append(key4)
-    
+
     # DEBUG: Konu key'lerini kontrol et
     print(f"DEBUG: Trying keys: {possible_keys}")
     print(f"DEBUG: Available keys sample: {list(topic_progress.keys())[:3]}...")
-    
+
     # Deneme analizinden de kontrol et
     deneme_weakness_boost = check_topic_weakness_in_exams(topic, user_data)
-    
+
     # Alternatif key'leri dene ve ilk bulunanı kullan
     net_value = 0
     found_key = None
@@ -12240,15 +12210,15 @@ def determine_topic_priority_by_performance(topic, user_data):
                 break
             except:
                 continue
-    
+
     print(f"DEBUG: Found key: {found_key}")
     print(f"DEBUG: Found net_value: {net_value} for topic: {topic.get('detail', '')}")
-    
+
     # Net seviyesine göre öncelik belirle
     base_priority = get_priority_by_net_level(net_value)
-    
+
     print(f"DEBUG: Base priority: {base_priority}")
-    
+
     # Deneme analizinde zayıf çıkanları bir seviye yükselt
     if deneme_weakness_boost:
         if base_priority == "MINIMAL":
@@ -12260,7 +12230,7 @@ def determine_topic_priority_by_performance(topic, user_data):
         elif base_priority == "MEDIUM":
             base_priority = "HIGH"
         # HIGH zaten en yüksek, değişmez
-    
+
     return base_priority
 
 def get_priority_by_net_level(net_value):
@@ -12273,18 +12243,18 @@ def get_priority_by_net_level(net_value):
         return "NORMAL"      # 🟡 Orta Seviye → Normal
     elif net_value <= 18:
         return "LOW"         # 🟢 İyi Seviye → Düşük
-    else:
-        return "MINIMAL"     # 🔵 Uzman Seviye → Minimal
+else:
+    return "MINIMAL"     # 🔵 Uzman Seviye → Minimal
 
 def check_topic_weakness_in_exams(topic, user_data):
     """Deneme analizinde bu konunun zayıf olup olmadığını kontrol eder"""
     try:
         deneme_data_str = user_data.get('deneme_analizleri', '[]')
         deneme_kayitlari = json.loads(deneme_data_str) if deneme_data_str else []
-        
+
         # Son 3 denemede bu konunun durumunu kontrol et
         recent_exams = deneme_kayitlari[-3:] if len(deneme_kayitlari) >= 3 else deneme_kayitlari
-        
+
         for deneme in recent_exams:
             # Deneme detaylarında bu konu/ders zayıf kategorideyse
             if 'ders_netleri' in deneme:
@@ -12299,13 +12269,13 @@ def check_topic_weakness_in_exams(topic, user_data):
                                 return True
                         except:
                             continue
-            
+
             # Tavsiyelerde bu ders geçiyorsa
             if 'tavsiyeler' in deneme:
                 for tavsiye in deneme['tavsiyeler']:
                     if topic['subject'] in tavsiye and any(word in tavsiye.lower() for word in ['zayıf', 'tekrar', 'çalış', 'boşluk']):
                         return True
-        
+
         return False
     except:
         return False
@@ -12315,27 +12285,27 @@ def calculate_subject_priority_new(subject, user_data, survey_data):
     # Dersin genel performansını hesapla
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
     subject_avg_net = calculate_subject_average_net(subject, topic_progress)
-    
+
     # Net seviyesine göre temel öncelik
     base_priority_score = get_subject_priority_score_by_net(subject_avg_net)
-    
+
     # Deneme analizinde bu ders zayıfsa boost ver
     deneme_weakness_boost = check_subject_weakness_in_exams(subject, user_data)
     if deneme_weakness_boost:
         base_priority_score += 20
-    
+
     # Survey'den zorluk bilgisi (hafif etki)
     if subject in survey_data.get('difficult_subjects', []):
         base_priority_score += 10
-    
+
     # Survey'den sevilen dersler (pozitif etki - motivasyon artırır)
     if subject in survey_data.get('favorite_subjects', []):
         base_priority_score += 15  # Sevilen derslere ekstra motivasyon puanı
-    
+
     # Survey'den sevmeyen dersler (negatif etki - ama tamamen görmezden gelme)
     if subject in survey_data.get('disliked_subjects', []):
         base_priority_score -= 5  # Hafif azaltma, çok düşürme
-    
+
     # Maksimum 100 puan
     return min(100, base_priority_score)
 
@@ -12349,19 +12319,19 @@ def get_subject_priority_score_by_net(avg_net):
         return 50       # Normal - Orta seviye
     elif avg_net <= 18:
         return 30       # Düşük - İyi seviye
-    else:
-        return 15       # Minimal - Uzman seviye
+else:
+    return 15       # Minimal - Uzman seviye
 
 def check_subject_weakness_in_exams(subject, user_data):
     """Deneme analizinde bu dersin zayıf olup olmadığını kontrol eder"""
     try:
         deneme_data_str = user_data.get('deneme_analizleri', '[]')
         deneme_kayitlari = json.loads(deneme_data_str) if deneme_data_str else []
-        
+
         # Son 3 denemede bu dersin durumunu kontrol et
         recent_exams = deneme_kayitlari[-3:] if len(deneme_kayitlari) >= 3 else deneme_kayitlari
         weakness_count = 0
-        
+
         for deneme in recent_exams:
             if 'ders_netleri' in deneme and subject in deneme['ders_netleri']:
                 net_info = deneme['ders_netleri'][subject]
@@ -12373,7 +12343,7 @@ def check_subject_weakness_in_exams(subject, user_data):
                             weakness_count += 1
                 except:
                     continue
-        
+
         # 3 denemeden 2'sinde zayıfsa boost ver
         return weakness_count >= 2
     except:
@@ -12383,10 +12353,10 @@ def calculate_subject_average_net(subject, topic_progress):
     """Bir dersin ortalama net performansını hesaplar"""
     if subject not in YKS_TOPICS:
         return 0
-        
+
     total_net = 0
     topic_count = 0
-    
+
     for main_topic, sub_topics in YKS_TOPICS[subject].items():
         if isinstance(sub_topics, dict):
             for sub_topic, details in sub_topics.items():
@@ -12409,17 +12379,17 @@ def calculate_subject_average_net(subject, topic_progress):
                     topic_count += 1
                 except:
                     continue
-    
+
     return total_net / topic_count if topic_count > 0 else 0
 
 def get_sequential_topics(subject, topic_progress, limit=5):
     """Bir dersten sıralı olarak bir sonraki konuları getirir"""
     if subject not in YKS_TOPICS:
         return []
-        
+
     topics = []
     subject_content = YKS_TOPICS[subject]
-    
+
     # İçerik tipini kontrol et
     if isinstance(subject_content, dict):
         # Sözlük formatındaysa
@@ -12519,17 +12489,17 @@ def get_sequential_topics(subject, topic_progress, limit=5):
                 })
                 if len(topics) >= limit:
                     return topics
-    
+
     return topics
 
 def calculate_spaced_repetition_topics(user_data):
     """Tekrar edilmesi gereken konuları bilimsel aralıklarla hesaplar"""
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
     completion_dates = json.loads(user_data.get('topic_completion_dates', '{}') or '{}')
-    
+
     current_date = datetime.now()
     review_topics = []
-    
+
     for topic_key, net_str in topic_progress.items():
         try:
             net_value = int(float(net_str))
@@ -12538,11 +12508,11 @@ def calculate_spaced_repetition_topics(user_data):
                 if completion_date_str:
                     completion_date = datetime.fromisoformat(completion_date_str)
                     days_passed = (current_date - completion_date).days
-                    
+
                     # Hangi tekrar aralığında olduğunu bul
                     review_interval = None
                     priority = "REPEAT_NORMAL"
-                    
+
                     for i, interval in enumerate(SPACED_REPETITION_INTERVALS):
                         if days_passed >= interval - 1 and days_passed <= interval + 1:
                             review_interval = interval
@@ -12554,7 +12524,7 @@ def calculate_spaced_repetition_topics(user_data):
                             else:  # 30, 90 gün
                                 priority = "REPEAT_NORMAL"
                             break
-                    
+
                     if review_interval:
                         # Topic key'den subject ve diğer bilgileri çıkar
                         parts = topic_key.split(' | ')
@@ -12573,11 +12543,11 @@ def calculate_spaced_repetition_topics(user_data):
                             })
         except:
             continue
-    
+
     # Öncelik sırasına göre sırala
     priority_order = {"REPEAT_HIGH": 0, "REPEAT_MEDIUM": 1, "REPEAT_NORMAL": 2}
     review_topics.sort(key=lambda x: (priority_order.get(x['priority'], 3), x['days_passed']))
-    
+
     return review_topics
 
 # ===== YENİ: KALICI ÖĞRENME SİSTEMİ FONKSİYONLARI =====
@@ -12596,13 +12566,13 @@ def add_topic_to_mastery_system(user_data, topic_key, initial_level="iyi"):
     """Konuyu kalıcı öğrenme sistemine ekler (haftalık konulardan bitirilen konu)"""
     import json
     from datetime import datetime, timedelta
-    
+
     # Mevcut verileri yükle
     repetition_history = json.loads(user_data.get('topic_repetition_history', '{}'))
     mastery_status = json.loads(user_data.get('topic_mastery_status', '{}'))
-    
+
     current_date = datetime.now()
-    
+
     # İlk öğrenme kaydını oluştur
     repetition_history[topic_key] = {
         'initial_date': current_date.isoformat(),
@@ -12611,33 +12581,33 @@ def add_topic_to_mastery_system(user_data, topic_key, initial_level="iyi"):
         'current_stage': 0,  # 0: İlk öğrenme, 1-4: Tekrarlar
         'next_review_date': None
     }
-    
+
     mastery_status[topic_key] = {
         'status': 'INITIAL',
         'last_updated': current_date.isoformat(),
         'total_reviews': 0,
         'success_count': 0
     }
-    
+
     # İlk tekrar tarihini hesapla (3 gün sonra)
     next_review = current_date + timedelta(days=MASTERY_INTERVALS[0])
     repetition_history[topic_key]['next_review_date'] = next_review.isoformat()
-    
+
     # Güncellenmiş verileri kaydet
     user_data['topic_repetition_history'] = json.dumps(repetition_history)
     user_data['topic_mastery_status'] = json.dumps(mastery_status)
-    
+
     return user_data
 
 def get_pending_review_topics(user_data):
     """Tekrar değerlendirmesi bekleyen konuları döndürür"""
     import json
     from datetime import datetime
-    
+
     repetition_history = json.loads(user_data.get('topic_repetition_history', '{}'))
     pending_topics = []
     current_date = datetime.now()
-    
+
     for topic_key, history in repetition_history.items():
         next_review_date = history.get('next_review_date')
         if next_review_date and history['current_stage'] < 4:  # Henüz tamamlanmamış
@@ -12660,14 +12630,14 @@ def get_pending_review_topics(user_data):
                         })
             except:
                 continue
-    
+
     return pending_topics
 
 def get_stage_name(stage):
     """Tekrar aşamasının adını döndürür"""
     stage_names = {
         0: "1. Tekrar (3 gün sonra)",
-        1: "2. Tekrar (7 gün sonra)", 
+        1: "2. Tekrar (7 gün sonra)",
         2: "3. Tekrar (7 gün sonra)",
         3: "4. Tekrar (7 gün sonra)",
         4: "Son Tekrar (7 gün sonra)"
@@ -12678,16 +12648,16 @@ def process_review_evaluation(user_data, topic_key, evaluation_level):
     """Öğrencinin tekrar değerlendirmesini işler"""
     import json
     from datetime import datetime, timedelta
-    
+
     repetition_history = json.loads(user_data.get('topic_repetition_history', '{}'))
     mastery_status = json.loads(user_data.get('topic_mastery_status', '{}'))
-    
+
     current_date = datetime.now()
-    
+
     if topic_key in repetition_history:
         history = repetition_history[topic_key]
         status = mastery_status[topic_key]
-        
+
         # Değerlendirme kaydını ekle
         review_record = {
             'date': current_date.isoformat(),
@@ -12697,24 +12667,24 @@ def process_review_evaluation(user_data, topic_key, evaluation_level):
         history['reviews'].append(review_record)
         status['total_reviews'] += 1
         status['last_updated'] = current_date.isoformat()
-        
+
         # Değerlendirmeye göre sonraki adımı belirle
         if evaluation_level in ['iyi', 'uzman']:
             # Başarılı - sonraki aşamaya geç
             status['success_count'] += 1
             history['current_stage'] += 1
-            
+
             if history['current_stage'] >= 4:
                 # Tüm tekrarları başarıyla tamamladı - kalıcı öğrenildi
                 status['status'] = 'MASTERED'
                 history['next_review_date'] = None
-            else:
-                # Sonraki tekrar tarihini belirle
+else:
+    # Sonraki tekrar tarihini belirle
                 next_interval = MASTERY_INTERVALS[min(history['current_stage'], len(MASTERY_INTERVALS)-1)]
                 next_review = current_date + timedelta(days=next_interval)
                 history['next_review_date'] = next_review.isoformat()
                 status['status'] = f"REVIEW_{history['current_stage']}"
-        
+
         elif evaluation_level in ['zayif', 'temel']:
             # Başarısız - başa dön veya önceki aşamaya geri git
             if evaluation_level == 'zayif':
@@ -12723,71 +12693,71 @@ def process_review_evaluation(user_data, topic_key, evaluation_level):
                 next_review = current_date + timedelta(days=MASTERY_INTERVALS[0])
                 history['next_review_date'] = next_review.isoformat()
                 status['status'] = 'REVIEW_1'
-            else:
-                # Temel - bir aşama geri git (minimum 0)
+else:
+    # Temel - bir aşama geri git (minimum 0)
                 history['current_stage'] = max(0, history['current_stage'] - 1)
                 next_interval = MASTERY_INTERVALS[min(history['current_stage'], len(MASTERY_INTERVALS)-1)]
                 next_review = current_date + timedelta(days=next_interval)
                 history['next_review_date'] = next_review.isoformat()
                 status['status'] = f"REVIEW_{history['current_stage'] + 1}"
-        
-        else:  # orta
+
+else:  # orta
             # Orta seviye - aynı aşamada tekrar et
             next_interval = MASTERY_INTERVALS[min(history['current_stage'], len(MASTERY_INTERVALS)-1)]
             next_review = current_date + timedelta(days=next_interval)
             history['next_review_date'] = next_review.isoformat()
-    
+
     # Güncellenmiş verileri kaydet
     user_data['topic_repetition_history'] = json.dumps(repetition_history)
     user_data['topic_mastery_status'] = json.dumps(mastery_status)
-    
+
     return user_data
 
 def complete_topic_with_mastery_system(user_data, topic_key, net_value):
     """Konu bitirme işlemini kalıcı öğrenme sistemi ile entegre eder"""
     import json
     from datetime import datetime
-    
+
     # Mevcut sistemi güncelle (topic_progress ve completion_dates)
     topic_progress = json.loads(user_data.get('topic_progress', '{}'))
     completion_dates = json.loads(user_data.get('topic_completion_dates', '{}'))
-    
+
     topic_progress[topic_key] = str(net_value)
     completion_dates[topic_key] = datetime.now().isoformat()
-    
+
     user_data['topic_progress'] = json.dumps(topic_progress)
     user_data['topic_completion_dates'] = json.dumps(completion_dates)
-    
+
     # Eğer iyi seviye (14+ net) ise kalıcı öğrenme sistemine ekle
     if int(net_value) >= 14:
         user_data = add_topic_to_mastery_system(user_data, topic_key, "iyi")
-    
+
     return user_data
 
 def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data):
     """🎯 YENİ ZAMANSAL STRATEJİ HAFTALIK PLAN ÜRETİCİSİ - DÖNEM BAZLI DİNAMİK SİSTEM"""
-    
+
     # Güncel zaman bilgisi al
     week_info = get_current_week_info()
     current_week = week_info['week_number']
     current_month = week_info['today'].month
     days_to_yks = week_info['days_to_yks']
-    
+
     # 🚀 ZAMANSAL STRATEJİ ALMA - DÖNEMİ BELİRLE
     time_strategy = get_time_based_strategy(days_to_yks, current_month)
     deneme_strategy = get_deneme_strategy_by_period(time_strategy)
-    
+
     # 🎯 SINIF VE HEDEF BÖLÜM BAZLI STRATEJİ ENTEGRASYONU
     student_grade = user_data.get('grade', '12. Sınıf')
     target_department = user_data.get('target', 'Varsayılan')
     grade_strategy = get_grade_based_strategy(student_grade, target_department)
-    
+
     # Zamansal strateji ile sınıf bazlı stratejiyi birleştir
     time_strategy['weekly_topic_base'] = grade_strategy['weekly_topic_base']
     time_strategy['grade_multiplier'] = grade_strategy['weekly_topic_multiplier']
     time_strategy['difficulty_level'] = grade_strategy['difficulty_level']
     time_strategy['target_nets'] = grade_strategy['target_nets']
-    
+
     # Strateji bilgilerini debug için kaydet
     strategy_info = {
         'period': time_strategy['period_name'],
@@ -12798,40 +12768,40 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         'intensity': time_strategy['study_intensity'],
         'days_to_yks': days_to_yks
     }
-    
+
     # TYT ve AYT ilerlemesini hesapla
     tyt_progress = calculate_tyt_progress(user_data)
     tyt_math_topics_completed = count_tyt_math_completed_topics(user_data)
-    
+
     # Alan bazında dersleri al
     available_subjects = get_subjects_by_field_yks(student_field)
-    
+
     # AYT başlatma koşullarını kontrol et
     include_ayt = should_include_ayt(tyt_progress, tyt_math_topics_completed)
-    
+
     # 🎯 EŞİT AĞIRLIK ÖZEL PLANı KONTROLÜ
     if student_field == "Eşit Ağırlık":
         # Eşit Ağırlık için özel hafta sistemi (1-16 hafta)
         equal_weight_week = user_data.get('equal_weight_current_week', 1)
-        
+
         # Eğer hafta numarası user_data'da yoksa, 1. haftadan başlat
         if equal_weight_week < 1 or equal_weight_week > 16:
             equal_weight_week = 1
-        
+
         # Eşit Ağırlık için 16 haftalık detay planı kullan
         completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)  # 🆕 DÜZELTİLDİ
         pending_topics = get_user_pending_topics(user_data)  # Bekleyen konuları al
-        
+
         equal_weight_topics = get_equal_weight_weekly_topics(equal_weight_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
-        
+
         # 🆕 %80 İLERLEME KONTROLÜ: O haftanın konularında %80 ilerleme varsa otomatik geçiş
         # O haftanın tamamlanmış konu sayısını hesapla
         completed_in_week = len([t for t in completed_topics_list if t.get('week') == equal_weight_week and t.get('status') == 'completed'])
         total_in_week = len([t for t in equal_weight_topics if t.get('week') == equal_weight_week])
-        
+
         if total_in_week > 0:  # Bölme hatasını önle
             week_completion = (completed_in_week / total_in_week) * 100
-            
+
             if week_completion >= 80 and equal_weight_week < 16:
                 # %80 veya üstü tamamlanmış, otomatik bir sonraki haftaya geç
                 equal_weight_week += 1
@@ -12844,21 +12814,21 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
                 st.success(f"🎉 Tebrikler! {equal_weight_week-1}. haftanın %{week_completion:.1f}'ini tamamladın! Otomatik olarak {equal_weight_week}. haftaya geçildi.")
                 # Yeni hafta konularını al
                 equal_weight_topics = get_equal_weight_weekly_topics(equal_weight_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
-        
+
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
             len([t for t in completed_topics_list if t.get('week') == equal_weight_week and t.get('status') == 'completed']),
             len([t for t in equal_weight_topics if t.get('week') == equal_weight_week])
         )
-        
+
         flexible_recommendation = get_flexible_topic_recommendations(user_data, current_week_progress)
-        
+
         # TYT Din ve Felsefe 3. haftadan sonra eklenir
         if equal_weight_week >= 3:
             # Din ve Felsefe konularını sistematik olarak ekle
             din_felsefe_topics = get_weekly_din_felsefe_topics(equal_weight_week)
             equal_weight_topics.extend(din_felsefe_topics)
-        
+
         # Eşit Ağırlık için özel plan döndür
         return {
             'new_topics': equal_weight_topics,  # TÜM KONULAR - LİMİT KALDIRILDI
@@ -12873,30 +12843,30 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             'current_week': equal_weight_week,  # Eşit ağırlık haftası
             'total_weeks': 16
         }
-    
-    # 🎯 SAYISAL ÖZEL PLANı KONTROLÜ  
+
+    # 🎯 SAYISAL ÖZEL PLANı KONTROLÜ
     if student_field == "Sayısal":
         # Sayısal için özel hafta sistemi (1-18 hafta)
         numerical_week = user_data.get('numerical_current_week', 1)
-        
+
         # Eğer hafta numarası user_data'da yoksa, 1. haftadan başlat
         if numerical_week < 1 or numerical_week > 18:
             numerical_week = 1
-        
+
         # Sayısal için 18 haftalık detay planı kullan
         completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)  # 🆕 DÜZELTİLDİ
         pending_topics = get_user_pending_topics(user_data)  # Bekleyen konuları al
-        
+
         numerical_topics = get_numerical_weekly_topics(numerical_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
-        
+
         # 🆕 %80 İLERLEME KONTROLÜ: O haftanın konularında %80 ilerleme varsa otomatik geçiş
         # O haftanın tamamlanmış konu sayısını hesapla
         completed_in_week = len([t for t in completed_topics_list if t.get('week') == numerical_week and t.get('status') == 'completed'])
         total_in_week = len([t for t in numerical_topics if t.get('week') == numerical_week])
-        
+
         if total_in_week > 0:  # Bölme hatasını önle
             week_completion = (completed_in_week / total_in_week) * 100
-            
+
             if week_completion >= 80 and numerical_week < 18:
                 # %80 veya üstü tamamlanmış, otomatik bir sonraki haftaya geç
                 numerical_week += 1
@@ -12909,15 +12879,15 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
                 st.success(f"🎉 Tebrikler! {numerical_week-1}. haftanın %{week_completion:.1f}'ini tamamladın! Otomatik olarak {numerical_week}. haftaya geçildi.")
                 # Yeni hafta konularını al
                 numerical_topics = get_numerical_weekly_topics(numerical_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
-        
+
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
             len([t for t in completed_topics_list if t.get('week') == numerical_week and t.get('status') == 'completed']),
             len([t for t in numerical_topics if t.get('week') == numerical_week])
         )
-        
+
         flexible_recommendation = get_flexible_topic_recommendations(user_data, current_week_progress)
-        
+
         # Sayısal için özel plan döndür
         return {
             'new_topics': numerical_topics,  # TÜM KONULAR - LİMİT KALDIRILDI
@@ -12932,30 +12902,30 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             'current_week': numerical_week,  # Sayısal haftası
             'total_weeks': 18
         }
-    
+
     # 🎯 TYT & MSÜ ÖZEL PLANI KONTROLÜ
     if student_field == "TYT & MSÜ":
         # TYT & MSÜ için özel hafta sistemi (1-9 hafta)
         tyt_msu_week = user_data.get('tyt_msu_current_week', 1)
-        
+
         # Eğer hafta numarası user_data'da yoksa, 1. haftadan başlat
         if tyt_msu_week < 1 or tyt_msu_week > 9:
             tyt_msu_week = 1
-        
+
         # TYT & MSÜ için 9 haftalık detay planı kullan
         completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)  # 🆕 DÜZELTİLDİ
         pending_topics = get_user_pending_topics(user_data)  # Bekleyen konuları al
-        
+
         tyt_msu_topics = get_tyt_msu_weekly_topics(tyt_msu_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
-        
+
         # 🆕 %80 İLERLEME KONTROLÜ: O haftanın konularında %80 ilerleme varsa otomatik geçiş
         # O haftanın tamamlanmış konu sayısını hesapla
         completed_in_week = len([t for t in completed_topics_list if t.get('week') == tyt_msu_week and t.get('status') == 'completed'])
         total_in_week = len([t for t in tyt_msu_topics if t.get('week') == tyt_msu_week])
-        
+
         if total_in_week > 0:  # Bölme hatasını önle
             week_completion = (completed_in_week / total_in_week) * 100
-            
+
             if week_completion >= 80 and tyt_msu_week < 9:
                 # %80 veya üstü tamamlanmış, otomatik bir sonraki haftaya geç
                 tyt_msu_week += 1
@@ -12968,15 +12938,15 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
                 st.success(f"🎉 Tebrikler! {tyt_msu_week-1}. haftanın %{week_completion:.1f}'ini tamamladın! Otomatik olarak {tyt_msu_week}. haftaya geçildi.")
                 # Yeni hafta konularını al
                 tyt_msu_topics = get_tyt_msu_weekly_topics(tyt_msu_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
-        
+
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
             len([t for t in completed_topics_list if t.get('week') == tyt_msu_week and t.get('status') == 'completed']),
             len([t for t in tyt_msu_topics if t.get('week') == tyt_msu_week])
         )
-        
+
         flexible_recommendation = get_flexible_topic_recommendations(user_data, current_week_progress)
-        
+
         # TYT & MSÜ için özel plan döndür
         return {
             'new_topics': tyt_msu_topics,  # TÜM KONULAR - LİMİT KALDIRILDI
@@ -12991,30 +12961,30 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             'current_week': tyt_msu_week,  # TYT & MSÜ haftası
             'total_weeks': 9
         }
-    
+
     # 🎯 SÖZEL ÖZEL PLANI KONTROLÜ
     if student_field == "Sözel":
         # Sözel için özel hafta sistemi (1-14 hafta)
         verbal_week = user_data.get('verbal_current_week', 1)
-        
+
         # Eğer hafta numarası user_data'da yoksa, 1. haftadan başlat
         if verbal_week < 1 or verbal_week > 14:
             verbal_week = 1
-        
+
         # Sözel için 14 haftalık detay planı kullan
         completed_topics_list, completed_topic_names = get_completed_topics_from_user_data(user_data)  # 🆕 DÜZELTİLDİ
         pending_topics = get_user_pending_topics(user_data)  # Bekleyen konuları al
-        
+
         verbal_topics = get_verbal_weekly_topics(verbal_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
-        
+
         # 🆕 %80 İLERLEME KONTROLÜ: O haftanın konularında %80 ilerleme varsa otomatik geçiş
         # O haftanın tamamlanmış konu sayısını hesapla
         completed_in_week = len([t for t in completed_topics_list if t.get('week') == verbal_week and t.get('status') == 'completed'])
         total_in_week = len([t for t in verbal_topics if t.get('week') == verbal_week])
-        
+
         if total_in_week > 0:  # Bölme hatasını önle
             week_completion = (completed_in_week / total_in_week) * 100
-            
+
             if week_completion >= 80 and verbal_week < 14:
                 # %80 veya üstü tamamlanmış, otomatik bir sonraki haftaya geç
                 verbal_week += 1
@@ -13027,22 +12997,22 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
                 st.success(f"🎉 Tebrikler! {verbal_week-1}. haftanın %{week_completion:.1f}'ini tamamladın! Otomatik olarak {verbal_week}. haftaya geçildi.")
                 # Yeni hafta konularını al
                 verbal_topics = get_verbal_weekly_topics(verbal_week, (completed_topics_list, completed_topic_names), pending_topics, user_data)
-        
+
         # TYT Matematik seçeneğini kontrol et
         include_math = st.session_state.get('verbal_include_math', False)
         if not include_math:
             # Matematik konularını filtrele
-            verbal_topics = [topic for topic in verbal_topics 
+            verbal_topics = [topic for topic in verbal_topics
                            if not (topic.get('subject', '') == 'TYT Matematik')]
-        
+
         # Esnek hedef sistemi uygula
         current_week_progress = calculate_weekly_progress_percentage(
             len([t for t in completed_topics_list if t.get('week') == verbal_week and t.get('status') == 'completed']),
             len([t for t in verbal_topics if t.get('week') == verbal_week])
         )
-        
+
         flexible_recommendation = get_flexible_topic_recommendations(user_data, current_week_progress)
-        
+
         # Sözel için özel plan döndür
         return {
             'new_topics': verbal_topics,  # TÜM KONULAR - LİMİT KALDIRILDI
@@ -13057,7 +13027,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             'current_week': verbal_week,  # Sözel haftası
             'total_weeks': 14
         }
-    
+
     # Konuların TYT/AYT durumuna göre filtrele (diğer alanlar için)
     filtered_subjects = []
     for subject in available_subjects:
@@ -13069,89 +13039,89 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
                     filtered_subjects.append(subject)
                 # Değilse atla
                 continue
-            else:
-                # Genel koşul sağlanmışsa ekle
+else:
+    # Genel koşul sağlanmışsa ekle
                 filtered_subjects.append(subject)
-        else:
-            # TYT konusuysa direkt ekle
+else:
+    # TYT konusuysa direkt ekle
             filtered_subjects.append(subject)
-    
+
     # 🎯 ZAMANSAL STRATEJİYE GÖRE DERS ÖNCELİKLERİNİ HESAPLA
     subject_priorities = {}
     for subject in filtered_subjects:
         # Eski öncelik puanını al
         base_priority_score = calculate_subject_priority_new(subject, user_data, survey_data)
-        
+
         # Kullanıcının bu dersteki performansını hesapla (deneme veya konu ilerlemesi bazında)
         user_performance = calculate_user_subject_performance(subject, user_data)
-        
+
         # 🚀 ZAMANSAL STRATEJİYE GÖRE BOOST UYGULA
         time_based_boost = get_time_based_priority_boost(time_strategy, subject, user_performance)
-        
+
         # Final öncelik puanı
         final_priority = base_priority_score + time_based_boost
         subject_priorities[subject] = final_priority
-    
+
     # Öncelik sırasına göre sırala
     sorted_subjects = sorted(subject_priorities.items(), key=lambda x: x[1], reverse=True)
-    
+
     # Haftalık plan oluştur
     weekly_new_topics = []
     weekly_review_topics = []
-    
+
     # 1. 🎯 ZAMANSAL STRATEJİYE GÖRE KONU DAĞILIMI
     for subject, priority_score in sorted_subjects:
         # Ders önem puanını al
         importance = SUBJECT_IMPORTANCE_SCORES.get(subject, 5)
-        
+
         # 🚀 ZAMANSAL STRATEJİYE GÖRE DİNAMİK HAFTALIK LİMİT HESAPLA
         weekly_limit = calculate_dynamic_topic_limits(time_strategy, importance)
-        
+
         # 📅 DÖNEM BAZLI DERS FİLTRELEME (Eski statik sistemin yerine)
         should_include_subject = should_include_subject_in_period(
             subject, importance, time_strategy, user_data, week_info
         )
-        
+
         if not should_include_subject:
             continue
-        
+
         # Sıralı konuları al
-        sequential_topics = get_sequential_topics(subject, 
-            json.loads(user_data.get('topic_progress', '{}') or '{}'), 
+        sequential_topics = get_sequential_topics(subject,
+            json.loads(user_data.get('topic_progress', '{}') or '{}'),
             limit=weekly_limit)
-        
+
         # YENİ SİSTEM: Her konunun bireysel önceliğini performansa göre belirle
         for topic in sequential_topics:
             topic['priority'] = determine_topic_priority_by_performance(topic, user_data)
-        
+
         weekly_new_topics.extend(sequential_topics)
-    
+
     # 2. 🔄 ZAMANSAL STRATEJİYE GÖRE TEKRAR KONULARI
     all_review_topics = calculate_spaced_repetition_topics(user_data)
-    
+
     # 🎯 DÖNEM BAZLI TEKRAR KONUSU LİMİTİ
     max_review_topics = calculate_review_topics_limit_by_period(time_strategy)
-    
+
     # 📊 STRATEJİYE GÖRE TEKRAR KONULARİNİ FİLTRELE VE SIRALA
     filtered_review_topics = filter_review_topics_by_strategy(
         all_review_topics, time_strategy, user_data
     )
-    
+
     weekly_review_topics = filtered_review_topics[:max_review_topics]
-    
+
     # 4. TÜM KONULARI HESAPLA (Pomodoro Timer için)
     all_available_topics = []
-    
+
     # Konu takipten tüm konuları al
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
-    
+
     for subject in filtered_subjects[:10]:  # Max 10 ders
         try:
-            sequential_topics = get_sequential_topics(subject, 
-                                                    user_data.get('grade', '12'), 
+            sequential_topics = get_sequential_topics(subject,
+                                                    user_data.get('grade', '12'),
                                                     topic_progress,
                                                     user_data.get('field', ''))
-            
+
             # İlk 20 konuyu al
             for topic in sequential_topics[:20]:
                 if topic not in [t.get('topic') for t in weekly_new_topics + weekly_review_topics]:
@@ -13165,7 +13135,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
                     })
         except Exception as e:
             continue
-    
+
     # 5. 🎯 ZAMANSAL STRATEJİ İLE TOPLAM PLAN
     total_plan = {
         'new_topics': weekly_new_topics[:time_strategy['new_topics_per_week']],  # Strateji bazlı limit
@@ -13177,7 +13147,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         'tyt_progress': tyt_progress,
         'ayt_enabled': include_ayt,
         'tyt_math_completed': tyt_math_topics_completed,
-        
+
         # 🚀 ZAMANSAL STRATEJİ BİLGİLERİ
         'time_strategy': time_strategy,
         'deneme_strategy': deneme_strategy,
@@ -13185,23 +13155,23 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         'period_recommendations': get_period_specific_recommendations(time_strategy, user_data),
         'focus_areas': get_focus_areas_by_period(time_strategy, user_data)
     }
-    
+
     return total_plan
 
 def calculate_tyt_progress(user_data):
     """TYT ilerlemesini yüzde olarak hesaplar"""
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
-    
+
     tyt_total = 0
     tyt_completed = 0
-    
+
     # Sadece TYT dersleri
     for subject in YKS_TOPICS.keys():
         if not subject.startswith('TYT'):
             continue
-        
+
         subject_content = YKS_TOPICS[subject]
-        
+
         # İçerik tipini kontrol et
         if isinstance(subject_content, dict):
             # Sözlük formatındaysa
@@ -13240,7 +13210,7 @@ def calculate_tyt_progress(user_data):
                         tyt_completed += 1
                 except:
                     continue
-    
+
     if tyt_total > 0:
         return (tyt_completed / tyt_total) * 100
     return 0
@@ -13248,13 +13218,13 @@ def calculate_tyt_progress(user_data):
 def count_tyt_math_completed_topics(user_data):
     """TYT Matematik'te tamamlanan konu sayısını hesaplar"""
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
-    
+
     if "TYT Matematik" not in YKS_TOPICS:
         return 0
-    
+
     completed_count = 0
     subject_content = YKS_TOPICS["TYT Matematik"]
-    
+
     # İçerik tipini kontrol et
     if isinstance(subject_content, dict):
         # Sözlük formatındaysa
@@ -13290,27 +13260,27 @@ def count_tyt_math_completed_topics(user_data):
                     completed_count += 1
             except:
                 continue
-    
+
     return completed_count
 
 def should_include_ayt(tyt_progress, tyt_math_completed):
     """AYT konularının dahil edilip edilmeyeceğini belirler"""
     # Koşul 1: TYT'nin %60'ı tamamlanmış olmalı
     condition1 = tyt_progress >= 60.0
-    
-    # Koşul 2: TYT Matematik'te en az 12 konu tamamlanmış olmalı  
+
+    # Koşul 2: TYT Matematik'te en az 12 konu tamamlanmış olmalı
     condition2 = tyt_math_completed >= 12
-    
+
     # Her iki koşul da sağlanmalı
     return condition1 and condition2
 
 def should_include_specific_ayt_subject(ayt_subject, user_data):
     """Belirli bir AYT dersinin dahil edilip edilmeyeceğini kontrol eder (prerequisite sistemi)"""
-    
+
     # TYT-AYT devamı olan konular
     PREREQUISITE_MAPPING = {
         "AYT Matematik": {
-            "prerequisite_subject": "TYT Matematik", 
+            "prerequisite_subject": "TYT Matematik",
             "required_topics": ["Temel Kavramlar", "Temel İşlemler"],  # İlk 2 kategorideki konular
             "min_completed": 8  # En az 8 konu tamamlanmış olmalı
         },
@@ -13320,7 +13290,7 @@ def should_include_specific_ayt_subject(ayt_subject, user_data):
             "min_completed": 4
         },
         "AYT Biyoloji": {
-            "prerequisite_subject": "TYT Biyoloji", 
+            "prerequisite_subject": "TYT Biyoloji",
             "required_topics": ["Canlıların Temel Bileşenleri"],  # Temel biyoloji
             "min_completed": 3
         },
@@ -13330,35 +13300,35 @@ def should_include_specific_ayt_subject(ayt_subject, user_data):
             "min_completed": 3
         }
     }
-    
+
     if ayt_subject not in PREREQUISITE_MAPPING:
         return False  # Tanımlı değilse genel kuralı uygula
-    
+
     prereq = PREREQUISITE_MAPPING[ayt_subject]
     tyt_subject = prereq["prerequisite_subject"]
-    
+
     # TYT konusunun tamamlanan konularını say
     completed_count = count_completed_topics_in_categories(
         user_data, tyt_subject, prereq["required_topics"]
     )
-    
+
     return completed_count >= prereq["min_completed"]
 
 def count_completed_topics_in_categories(user_data, subject, categories):
     """Belirli kategorilerdeki tamamlanan konu sayısını hesaplar"""
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
-    
+
     if subject not in YKS_TOPICS:
         return 0
-    
+
     completed_count = 0
     subject_content = YKS_TOPICS[subject]
-    
+
     if isinstance(subject_content, dict):
         for category_name, category_content in subject_content.items():
             if category_name not in categories:
                 continue  # Sadece istenen kategorileri say
-                
+
             if isinstance(category_content, dict):
                 # Alt kategoriler varsa
                 for sub_category, topics in category_content.items():
@@ -13381,14 +13351,14 @@ def count_completed_topics_in_categories(user_data, subject, categories):
                             completed_count += 1
                     except:
                         continue
-    
+
     return completed_count
 
 def calculate_completion_projections(user_data, student_field, days_to_yks):
     """Uzun vadeli tamamlanma tahminleri - DİNAMİK YKS TARİHİ İLE"""
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
     available_subjects = get_subjects_by_field_yks(student_field)
-    
+
     projections = {
         'overall_progress': 0,
         'tyt_progress': 0,
@@ -13397,23 +13367,23 @@ def calculate_completion_projections(user_data, student_field, days_to_yks):
         'monthly_targets': [],
         'weekly_average': 0
     }
-    
+
     total_topics = 0
     completed_topics = 0
     tyt_total = 0
     tyt_completed = 0
     ayt_total = 0
     ayt_completed = 0
-    
+
     # Her dersin ilerlemesini hesapla
     for subject in available_subjects:
         if subject not in YKS_TOPICS:
             continue
-            
+
         subject_total = 0
         subject_completed = 0
         subject_content = YKS_TOPICS[subject]
-        
+
         # İçerik tipini kontrol et
         if isinstance(subject_content, dict):
             # Sözlük formatındaysa
@@ -13452,10 +13422,10 @@ def calculate_completion_projections(user_data, student_field, days_to_yks):
                         subject_completed += 1
                 except:
                     continue
-        
+
         total_topics += subject_total
         completed_topics += subject_completed
-        
+
         # TYT/AYT ayrımı
         if subject.startswith('TYT'):
             tyt_total += subject_total
@@ -13463,7 +13433,7 @@ def calculate_completion_projections(user_data, student_field, days_to_yks):
         elif subject.startswith('AYT'):
             ayt_total += subject_total
             ayt_completed += subject_completed
-    
+
     # İlerleme yüzdelerini hesapla
     if total_topics > 0:
         projections['overall_progress'] = (completed_topics / total_topics) * 100
@@ -13471,18 +13441,18 @@ def calculate_completion_projections(user_data, student_field, days_to_yks):
         projections['tyt_progress'] = (tyt_completed / tyt_total) * 100
     if ayt_total > 0:
         projections['ayt_progress'] = (ayt_completed / ayt_total) * 100
-    
+
     # Haftalık ortalama hesapla (son 4 hafta simülasyonu)
     weekly_avg = 12  # Varsayılan haftalık tamamlama
     projections['weekly_average'] = weekly_avg
-    
+
     # Tahmini bitiş tarihi
     remaining_topics = total_topics - completed_topics
     if remaining_topics > 0 and weekly_avg > 0:
         weeks_needed = remaining_topics / (weekly_avg * 0.8)  # %80 başarı faktörü
         completion_date = datetime.now() + timedelta(weeks=weeks_needed)
         projections['estimated_completion'] = completion_date.strftime("%d %B %Y")
-    
+
     return projections
 
 
@@ -13490,7 +13460,7 @@ def get_topic_level_from_tracking(topic, user_data):
     """Bir konunun mevcut seviyesini Konu Takip'ten alır"""
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
     current_net = topic_progress.get(topic['key'], '0')
-    
+
     try:
         net_value = int(float(current_net))
         level_display = calculate_level(net_value)
@@ -13516,18 +13486,18 @@ def get_level_icon_yks(level):
         return "🟡"
     elif level <= 18:
         return "🟢"
-    else:
-        return "🔵"
+else:
+    return "🔵"
 
 def count_completed_topics(weekly_plan, user_data):
     """Haftalık plandaki tamamlanan konu sayısını hesaplar"""
     if not weekly_plan:
         return 0
-        
+
     new_topics = weekly_plan.get('new_topics', [])
     review_topics = weekly_plan.get('review_topics', [])
     all_topics = new_topics + review_topics
-    
+
     completed = 0
     for topic in all_topics:
         if topic.get('net', 0) >= 14:  # İyi seviye
@@ -13538,19 +13508,13 @@ def login_user_with_password(username, password):
     """ESKI VERSİYON - Şifre ile giriş (güvenli)"""
     if not username or not password:
         return False
-    
+
     if 'users_db' not in st.session_state:
         # Cache sistemi main() fonksiyonunda çalışıyor
-            pass
+        refresh_users_cache()
 
-    
-        # Cache sistemi main() fonksiyonunda çalışıyor
-
-    
-        pass
-    
     users_db = st.session_state.users_db
-    
+
     # Kullanıcı adı var mı kontrol et
     if username in users_db:
         user_data = users_db[username]
@@ -13559,7 +13523,7 @@ def login_user_with_password(username, password):
             # Giriş başarılı, session'a kaydet
             st.session_state.current_user = username
             return True
-    
+
     return False
 
 def auto_save_user_progress(username):
@@ -13567,13 +13531,13 @@ def auto_save_user_progress(username):
     try:
         if 'users_db' not in st.session_state:
             return False
-        
+
         if username in st.session_state.users_db:
             user_data = st.session_state.users_db[username]
             # Son güncelleme tarihini ekle
             from datetime import datetime
             user_data['last_auto_save'] = datetime.now().isoformat()
-            
+
             # Firebase'e kaydet
             return update_user_in_firebase(username, user_data)
     except Exception as e:
@@ -13594,10 +13558,10 @@ def ensure_data_persistence():
         import time
         current_time = time.time()
         last_save_key = f"last_save_{st.session_state.current_user}"
-        
+
         if last_save_key not in st.session_state:
             st.session_state[last_save_key] = current_time
-        
+
         # 30 saniye geçtiyse kaydet
         if current_time - st.session_state[last_save_key] > 30:
             auto_save_user_progress(st.session_state.current_user)
@@ -13607,26 +13571,20 @@ def add_student_account(username, password, student_info=None):
     """YÖNETİCİ tarafından öğrenci hesabı ekleme (Sadece sizin kullanımınız için)"""
     import json
     from datetime import datetime
-    
+
     if not username or not password:
         return False, "Kullanıcı adı ve şifre gerekli!"
-    
+
     if 'users_db' not in st.session_state:
         # Cache sistemi main() fonksiyonunda çalışıyor
-            pass
+        refresh_users_cache()
 
-    
-        # Cache sistemi main() fonksiyonunda çalışıyor
-
-    
-        pass
-    
     users_db = st.session_state.users_db
-    
+
     # Kullanıcı zaten var mı kontrol et
     if username in users_db:
         return False, f"'{username}' kullanıcı adı zaten mevcut!"
-    
+
     # Yeni öğrenci verilerini hazırla
     new_student_data = {
         'username': username,
@@ -13642,42 +13600,36 @@ def add_student_account(username, password, student_info=None):
         'created_by': 'ADMIN',
         'last_login': None
     }
-    
+
     # Ek öğrenci bilgileri varsa ekle
     if student_info:
         new_student_data.update(student_info)
-    
+
     # Firebase'e kaydet
     if update_user_in_firebase(username, new_student_data):
         # Session'a da ekle
         st.session_state.users_db[username] = new_student_data
         return True, f"✅ '{username}' öğrenci hesabı başarıyla oluşturuldu!"
-    else:
-        return False, "❌ Firebase kayıt hatası!"
+else:
+    return False, "❌ Firebase kayıt hatası!"
 
 def login_user_secure(username, password):
     """ULTRA GÜVENLİ kullanıcı giriş sistemi - Sadece önceden kayıtlı öğrenciler"""
     if not username or not password:
         return False
-    
+
     # 🔐 GİZLİ ADMİN KONTROLÜ - Normal öğrenci formunda gizli admin girişi
     if username == "adminYKS2025" and password == "YKSadmin123!":
         st.session_state.admin_logged_in = True
         st.session_state.current_user = "ADMIN"
         return True
-    
+
     if 'users_db' not in st.session_state:
         # Cache sistemi main() fonksiyonunda çalışıyor
-            pass
+        refresh_users_cache()
 
-    
-        # Cache sistemi main() fonksiyonunda çalışıyor
-
-    
-        pass
-    
     users_db = st.session_state.users_db
-    
+
     # SADECE MEVCUT KULLANICILAR GİREBİLİR
     if username in users_db:
         user_data = users_db[username]
@@ -13688,64 +13640,61 @@ def login_user_secure(username, password):
             update_user_in_firebase(username, {
                 'last_login': datetime.now().isoformat()
             })
-            
+
             # Session'a kaydet
             st.session_state.current_user = username
             return True
-        else:
-            # Yanlış şifre
+else:
+    # Yanlış şifre
             return False
-    else:
-        # Kullanıcı bulunamadı
+else:
+    # Kullanıcı bulunamadı
         return False
 
 def backup_user_data_before_changes(username, operation_name):
     """Kullanıcı verilerini değişiklik öncesi yedekle"""
     import json
     from datetime import datetime
-    
+
     try:
         if 'users_db' not in st.session_state:
-            # Cache sistemi main() fonksiyonunda çalışıyor
-                pass
-        
-        user_data = st.session_state.users_db.get(username, {})
+            user_data = st.session_state.users_db.get(username, {})
         if user_data:
             backup_data = {
                 'backup_date': datetime.now().isoformat(),
                 'operation': operation_name,
                 'user_data': user_data.copy()
             }
-            
+
             # Backup'ı Firebase'e kaydet
             backup_ref = f"backups/{username}/{datetime.now().strftime('%Y%m%d_%H%M%S')}_{operation_name}"
             # Firebase backup kaydı burada olmalı - şimdilik session'da tut
             if 'user_backups' not in st.session_state:
                 st.session_state.user_backups = {}
             st.session_state.user_backups[backup_ref] = backup_data
-            
+
             return True
     except Exception as e:
         st.error(f"Backup hatası: {e}")
         return False
-    
+
     return False
 
 def get_user_data():
     """Mevcut kullanıcının verilerini döndürür - FRESH VERİ HER SEFERINDE!"""
     # 🔥 KRİTİK FİX: Her çağrıda Firebase'den FRESH veri çek!
     # Bu sayede tarih bilgileri HER ZAMAN GÜNCEL olur
-    
+
     if 'current_user' not in st.session_state or st.session_state.current_user is None:
         return {}
-    
+
     users_db = st.session_state.users_db
     current_user = st.session_state.current_user
-    
+
     if current_user in users_db:
         return users_db[current_user]
-    else:
-        return {}
+else:
+    return {}
 
 # 🚨 CACHE SİSTEMİ - Firebase optimizasyonu (24GB data transfer sorunu çözümü)
 CACHE_DURATION_MINUTES = 5  # 5 dakika cache
@@ -13754,34 +13703,30 @@ def refresh_users_cache():
     """Firebase'den verileri cache sistemi ile çek (optimized)"""
     cache_key = 'users_db'
     current_time = datetime.now()
-    
+
     # İlk defa çekiliyorsa veya cache süresi dolmuşsa yeniden çek
-    if (cache_key not in st.session_state or 
+    if (cache_key not in st.session_state or
         f"{cache_key}_timestamp" not in st.session_state or
         (current_time - datetime.fromisoformat(st.session_state[f"{cache_key}_timestamp"])).total_seconds() > CACHE_DURATION_MINUTES * 60):
-        
+
         with st.spinner("💾 Veriler yükleniyor (Cache: 5 dakika)"):
 # DISABLED - Cache optimization: st.session_state.users_db = load_users_from_firebase()
             st.session_state[f"{cache_key}_timestamp"] = current_time.isoformat()
             st.success(f"✅ Veriler cache'e alındı - Sonraki 5 dakika lokal cache kullanılacak")
-    else:
-        # Cache'ten veri kullan
-        st.info("⚡ Cache'ten veri yüklendi - Firebase'e gerek yok")
-            st.success(f"✅ Veriler cache'e alındı - Sonraki 5 dakika lokal cache kullanılacak")
-    else:
-        # Cache'ten veri kullan
+else:
+    # Cache'ten veri kullan
         st.info("⚡ Cache'ten veri yüklendi - Firebase'e gerek yok")
 
 def main():
     # Veri kalıcılığını garanti altına al
     ensure_data_persistence()
-    
+
     # 🔥 CACHE SİSTEMİ - Firebase optimizasyonu (24GB problem çözümü)
     refresh_users_cache()
-    
+
     if 'current_user' not in st.session_state:
         st.session_state.current_user = None
-    
+
     # Sayfa yönlendirmeleri kontrolü
     if 'page' in st.session_state:
         if st.session_state.page == "learning_styles_test":
@@ -13796,67 +13741,67 @@ def main():
         elif st.session_state.page == "time_management_test":
             run_time_management_test()
             return
-    
+
     if st.session_state.current_user is None:
         st.markdown(get_custom_css("Varsayılan"), unsafe_allow_html=True)
         st.markdown('<div class="main-header"><h1>🎯"Senin Alanın" YKS Takip Sistemi</h1><p>Hedefine Bilimsel Yaklaşım</p></div>', unsafe_allow_html=True)
-        
+
         st.subheader("🔐 Güvenli Giriş")
-        
+
         # Firebase durumuna göre mesaj
         if db_ref is None:
             st.warning("⚠️ Firebase bağlantısı yok - Test modu aktif")
             with st.expander("📋 Test Kullanıcı Bilgileri", expanded=True):
                 st.success("👤 **Test Öğrenci:**\n- Kullanıcı Adı: `test_ogrenci`\n- Şifre: `123456`")
                 st.info("👤 **Admin:**\n- Kullanıcı Adı: `admin`\n- Şifre: `admin123`")
-        else:
-            st.info("🛡️ Sadece kayıtlı öğrenciler sisteme erişebilir")
-        
+else:
+    st.info("🛡️ Sadece kayıtlı öğrenciler sisteme erişebilir")
+
         username = st.text_input("Kullanıcı Adı")
         password = st.text_input("Şifre", type="password")
-        
+
         if st.button("Giriş Yap", type="primary", use_container_width=True):
             if login_user_secure(username, password):
                 st.success("Giriş başarılı! Hoş geldiniz! 🎯")
                 time.sleep(1)
                 st.rerun()
-            else:
-                st.error("❌ Hatalı kullanıcı adı veya şifre!")
+else:
+    st.error("❌ Hatalı kullanıcı adı veya şifre!")
                 st.warning("🔒 Bu sisteme sadece kayıtlı öğrenciler erişebilir.")
-    
-    else:
-        # 🔐 Admin panel kontrolü - Gizli admin girişi kontrolü
+
+else:
+    # 🔐 Admin panel kontrolü - Gizli admin girişi kontrolü
         if st.session_state.get('admin_logged_in', False):
             show_admin_dashboard()
             return
-        
+
         user_data = get_user_data()
-        
+
         profile_complete = user_data.get('name') and user_data.get('tyt_avg_net')
         learning_style_complete = user_data.get('learning_style')
-        
+
         if not profile_complete:
             st.markdown(get_custom_css("Varsayılan"), unsafe_allow_html=True)
             st.markdown('<div class="main-header"><h1>📝 Profil Bilgilerinizi Tamamlayın</h1><p>Sistemi size özel hale getirmek için bu bilgileri doldurmalısınız</p></div>', unsafe_allow_html=True)
-            
+
             st.subheader("Öğrenci Bilgileri")
             col1, col2 = st.columns(2)
-            
+
             with col1:
                 name = st.text_input("Adınız", key="name_input")
                 surname = st.text_input("Soyadınız", key="surname_input")
                 grade = st.selectbox("Sınıfınız", ["11. Sınıf", "12. Sınıf", "Mezun"], key="grade_input")
                 field = st.selectbox("Alanınız", ["Sayısal", "Sözel", "Eşit Ağırlık", "TYT & MSÜ"], key="field_input")
-                
+
                 # 🎯 TYT & MSÜ için alt kategori seçimi
                 sub_category = None
                 if field == "TYT & MSÜ":
                     st.markdown("**🎯 Alt Kategori Seçiniz:**")
                     sub_category = st.selectbox(
-                        "Hedeflediğiniz alan", 
+                        "Hedeflediğiniz alan",
                         [
                             "MSÜ - Kara Astsubay Meslek Yüksekokulu",
-                            "MSÜ - Deniz Astsubay Yüksekokulu", 
+                            "MSÜ - Deniz Astsubay Yüksekokulu",
                             "MSÜ - Hava Astsubay Yüksekokulu",
                             "TYT - Bilgisayar Programcılığı",
                             "TYT - Anestezi Teknisyenliği",
@@ -13874,10 +13819,10 @@ def main():
                             "TYT - Makine Teknolojisi",
                             "TYT - İnşaat Teknolojisi",
                             "TYT - Diğer Meslek Yüksekokulu"
-                        ], 
+                        ],
                         key="sub_category_input"
                     )
-                
+
                 # ⚠️ TYT & MSÜ seçildiğinde alt kategori zaten hedef bölümü belirliyor
                 if field != "TYT & MSÜ":
                     # 🎯 Alan bazında bölüm filtrelemesi
@@ -13887,20 +13832,20 @@ def main():
                         allowed_departments = ["Hukuk", "Öğretmenlik", "Psikoloji", "İktisat", "Varsayılan"]
                     elif field == "Eşit Ağırlık":
                         allowed_departments = ["İktisat", "Öğretmenlik", "Mimarlık", "Hukuk", "Psikoloji", "Varsayılan"]
-                    else:
-                        allowed_departments = list(BACKGROUND_STYLES.keys())[:-1]  # Tüm bölümler
-                    
+else:
+    allowed_departments = list(BACKGROUND_STYLES.keys())[:-1]  # Tüm bölümler
+
                     target = st.selectbox("Hedef Bölümünüz", allowed_departments, key="target_input")
-                else:
-                    # TYT & MSÜ için alt kategori hedef bölüm olarak kullanılacak
+else:
+    # TYT & MSÜ için alt kategori hedef bölüm olarak kullanılacak
                     target = sub_category if sub_category else "Genel"
-            
+
             with col2:
                 st.subheader("📊 Net Bilgileri")
-                
+
                 # TYT Net Aralıkları
                 st.write("**TYT Netler**")
-                
+
                 # TYT aralık seçenekleri (kullanıcıya sadece aralık gösteriliyor)
                 tyt_ranges = [
                     {"display": "0-25", "value": "0-25", "level": "Başlangıç", "avg": 12.5},
@@ -13911,21 +13856,21 @@ def main():
                     {"display": "80-95", "value": "80-95", "level": "Mükemmel", "avg": 87.5},
                     {"display": "95+", "value": "95+", "level": "Uzman", "avg": 100}
                 ]
-                
+
                 tyt_last_range = st.selectbox(
-                    "Son TYT Net Aralığınız", 
-                    [r["display"] for r in tyt_ranges], 
+                    "Son TYT Net Aralığınız",
+                    [r["display"] for r in tyt_ranges],
                     key="tyt_last_input"
                 )
                 tyt_avg_range = st.selectbox(
-                    "Genel TYT Net Ortalamanız", 
-                    [r["display"] for r in tyt_ranges], 
+                    "Genel TYT Net Ortalamanız",
+                    [r["display"] for r in tyt_ranges],
                     key="tyt_avg_input"
                 )
-                
+
                 # AYT Net Aralıkları
                 st.write("**AYT Netler**")
-                
+
                 # AYT aralık seçenekleri (kullanıcıya sadece aralık gösteriliyor)
                 ayt_ranges = [
                     {"display": "0-20", "value": "0-20", "level": "Başlangıç", "avg": 10},
@@ -13933,40 +13878,40 @@ def main():
                     {"display": "35-50", "value": "35-50", "level": "İyi", "avg": 42.5},
                     {"display": "50-65+", "value": "50-65+", "level": "Mükemmel", "avg": 57.5}
                 ]
-                
+
                 ayt_last_range = st.selectbox(
-                    "Son AYT Net Aralığınız", 
-                    [r["display"] for r in ayt_ranges], 
+                    "Son AYT Net Aralığınız",
+                    [r["display"] for r in ayt_ranges],
                     key="ayt_last_input"
                 )
                 ayt_avg_range = st.selectbox(
-                    "Genel AYT Net Ortalamanız", 
-                    [r["display"] for r in ayt_ranges], 
+                    "Genel AYT Net Ortalamanız",
+                    [r["display"] for r in ayt_ranges],
                     key="ayt_avg_input"
                 )
-                
+
                 # Seçilen aralıkların orta değerlerini hesapla (sistem için)
                 tyt_last = next(r["avg"] for r in tyt_ranges if r["display"] == tyt_last_range)
                 tyt_avg = next(r["avg"] for r in tyt_ranges if r["display"] == tyt_avg_range)
                 ayt_last = next(r["avg"] for r in ayt_ranges if r["display"] == ayt_last_range)
                 ayt_avg = next(r["avg"] for r in ayt_ranges if r["display"] == ayt_avg_range)
-                
+
                 # Seviye etiketlerini sistem için sakla (kullanıcıya gösterilmez)
                 tyt_last_level = next(r["level"] for r in tyt_ranges if r["display"] == tyt_last_range)
                 tyt_avg_level = next(r["level"] for r in tyt_ranges if r["display"] == tyt_avg_range)
                 ayt_last_level = next(r["level"] for r in ayt_ranges if r["display"] == ayt_last_range)
                 ayt_avg_level = next(r["level"] for r in ayt_ranges if r["display"] == ayt_avg_range)
-            
+
             if st.button("💾 Bilgileri Kaydet", type="primary", use_container_width=True):
                 # TYT & MSÜ seçilmişse sub_category zorunlu
                 validation_error = False
                 if field == "TYT & MSÜ" and not sub_category:
-                    st.error("🚨 TYT & MSÜ alanı için alt kategori seçimi zorunludur!")
+        st.error("🚨 TYT & MSÜ alanı için alt kategori seçimi zorunludur!")
                     validation_error = True
-                
+
                 # TYT & MSÜ için target kontrolünü özel olarak yap
                 target_valid = target if field != "TYT & MSÜ" else sub_category
-                
+
                 if not validation_error and name and surname and target_valid and tyt_last is not None and tyt_avg is not None and ayt_last is not None and ayt_avg is not None:
                     # Kaydedilecek veri yapısı
                     user_data_to_save = {
@@ -13993,34 +13938,32 @@ def main():
                         'created_at': datetime.now().isoformat(),
                         'is_profile_complete': 'True'
                     }
-                    
+
                     # TYT & MSÜ ise alt kategoriyi de kaydet
                     if field == "TYT & MSÜ" and sub_category:
                         user_data_to_save['tyt_msu_sub_category'] = sub_category
-                    
+
                     update_user_in_firebase(st.session_state.current_user, user_data_to_save)
-                    
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-                    st.session_state.is_profile_complete = True 
-                    st.success("🎉 Bilgileriniz başarıyla kaydedildi! Şimdi öğrenme stilinizi belirleyelim.")
-                    
-                    st.rerun()
-                else:
-                    st.error("⚠️ Lütfen tüm alanları doldurun!")
-        
+
+st.session_state.is_profile_complete = True
+st.success("🎉 Bilgileriniz başarıyla kaydedildi! Şimdi öğrenme stilinizi belirleyelim.")
+
+                st.rerun()
+else:
+    st.error("⚠️ Lütfen tüm alanları doldurun!")
+
         elif not learning_style_complete:
             # Dört testin durumunu kontrol et
             vak_test_completed = user_data.get('vak_test_results')
             cognitive_test_completed = user_data.get('cognitive_test_results')
             motivation_test_completed = user_data.get('motivation_test_results')
             time_management_test_completed = user_data.get('time_management_test_results')
-            
+
             st.markdown(get_custom_css("Varsayılan"), unsafe_allow_html=True)
-            
+
             # Ana sistem başlığı
             st.markdown("""
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                             padding: 30px; border-radius: 20px; margin: 20px 0; text-align: center;">
                     <h1 style="color: white; margin: 0; font-size: 2.5em;">🧭 GENEL PSİKOLOJİK ANALİZ SİSTEMİ</h1>
                     <p style="color: white; font-size: 1.2em; margin: 10px 0; font-style: italic;">
@@ -14028,7 +13971,7 @@ def main():
                     </p>
                 </div>
             """, unsafe_allow_html=True)
-            
+
             # 4 Test Karesi Modern Düzenlemesi
             st.markdown("""
             <style>
@@ -14039,7 +13982,7 @@ def main():
                 margin: 50px 0;
                 padding: 0 20px;
             }
-            
+
             /* Genel kart stilleri */
             .test-card {
                 position: relative;
@@ -14058,60 +14001,60 @@ def main():
                 backdrop-filter: blur(10px);
                 -webkit-backdrop-filter: blur(10px);
             }
-            
+
             /* Farklı renkli kartlar - Resimdeki gibi modern renkler */
             .test-card.vak {
                 background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #C084FC 100%);
                 box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
             }
-            
+
             .test-card.cognitive {
                 background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 50%, #1E40AF 100%);
                 box-shadow: 0 4px 20px rgba(59, 130, 246, 0.25);
             }
-            
+
             .test-card.motivation {
                 background: linear-gradient(135deg, #F59E0B 0%, #F97316 50%, #EA580C 100%);
                 box-shadow: 0 4px 20px rgba(245, 158, 11, 0.25);
             }
-            
+
             .test-card.time {
                 background: linear-gradient(135deg, #10B981 0%, #059669 50%, #047857 100%);
                 box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);
             }
-            
+
             /* Hover efektleri */
             .test-card:hover {
                 transform: translateY(-5px);
                 box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             }
-            
+
             .test-card.vak:hover {
                 box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
                 background: linear-gradient(135deg, #9333EA 0%, #B45BF7 50%, #D8B4FE 100%);
             }
-            
+
             .test-card.cognitive:hover {
                 box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
                 background: linear-gradient(135deg, #2563EB 0%, #1E40AF 50%, #1E3A8A 100%);
             }
-            
+
             .test-card.motivation:hover {
                 box-shadow: 0 8px 30px rgba(245, 158, 11, 0.4);
                 background: linear-gradient(135deg, #F59E0B 0%, #FB923C 50%, #F97316 100%);
             }
-            
+
             .test-card.time:hover {
                 box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
                 background: linear-gradient(135deg, #059669 0%, #10B981 50%, #34D399 100%);
             }
-            
+
             .test-icon {
                 font-size: 3rem;
                 margin-bottom: 12px;
                 filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
             }
-            
+
             .test-title {
                 font-size: 1.2rem;
                 font-weight: 700;
@@ -14120,14 +14063,14 @@ def main():
                 text-shadow: 0 2px 4px rgba(0,0,0,0.3);
                 line-height: 1.3;
             }
-            
+
             .test-subtitle {
                 font-size: 0.95rem;
                 color: rgba(255,255,255,0.9);
                 margin-bottom: 12px;
                 font-weight: 500;
             }
-            
+
             .test-details {
                 font-size: 0.85rem;
                 color: rgba(255,255,255,0.8);
@@ -14135,7 +14078,7 @@ def main():
                 margin-bottom: 20px;
                 font-weight: 400;
             }
-            
+
             .test-status {
                 padding: 10px 20px;
                 border-radius: 25px;
@@ -14145,19 +14088,19 @@ def main():
                 backdrop-filter: blur(10px);
                 border: 2px solid rgba(255,255,255,0.2);
             }
-            
+
             .status-completed {
                 background: rgba(76, 175, 80, 0.9);
                 color: white;
                 box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
             }
-            
+
             .status-waiting {
                 background: rgba(255, 193, 7, 0.9);
                 color: white;
                 box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
             }
-            
+
             /* Responsive tasarım */
             @media (max-width: 768px) {
                 .test-grid {
@@ -14176,7 +14119,7 @@ def main():
                     font-size: 1.05rem;
                 }
             }
-            
+
             /* Button stilleri */
             .stButton > button {
                 background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1)) !important;
@@ -14187,7 +14130,7 @@ def main():
                 backdrop-filter: blur(10px) !important;
                 transition: all 0.3s ease !important;
             }
-            
+
             .stButton > button:hover {
                 background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.2)) !important;
                 border: 2px solid rgba(255,255,255,0.5) !important;
@@ -14195,10 +14138,10 @@ def main():
                 box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
             }
             </style>
-            
+
             <div class="test-grid">
             """, unsafe_allow_html=True)
-            
+
             # Test Kartları Verilerini Tanımla
             test_cards = [
                 {
@@ -14242,7 +14185,7 @@ def main():
                     'page': 'time_management_test'
                 }
             ]
-            
+
             # Her test için kart oluştur
             cols = st.columns(2)
             for i, test in enumerate(test_cards):
@@ -14250,7 +14193,7 @@ def main():
                 with cols[col_index]:
                     status_class = "status-completed" if test['completed'] else "status-waiting"
                     status_text = "✅ Tamamlandı" if test['completed'] else "⏳ Beklemede"
-                    
+
                     st.markdown(f"""
                     <div class="test-card {test['class']}">
                         <div>
@@ -14262,43 +14205,43 @@ def main():
                         <div class="test-status {status_class}">{status_text}</div>
                     </div>
                     """, unsafe_allow_html=True)
-                    
+
                     # Butonlar
                     if not test['completed']:
                         if st.button(f"🚀 Testi Şimdi Doldur", key=f"start_now_{test['id']}", use_container_width=True, type="primary"):
                             st.session_state.page = test['page']
-                            st.rerun()
-                        
+                st.rerun()
+
                         if st.button(f"⏳ Sonra Doldur", key=f"start_later_{test['id']}", use_container_width=True):
                             st.info(f"{test['title']} daha sonra için kaydedildi.")
-            
+
             st.markdown('</div>', unsafe_allow_html=True)
-            
+
             # "Verilerimi Kaydet ve Tamamla" Bölümü
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown("""
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                             padding: 30px; border-radius: 25px; margin: 25px 0; text-align: center;
                             border: 3px solid rgba(255,255,255,0.2);
                             box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
                             position: relative;
                             overflow: hidden;">
-                    <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; 
+                    <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
                                 background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
                                 animation: pulse 4s ease-in-out infinite;"></div>
                     <div style="position: relative; z-index: 1;">
-                        <h3 style="color: white; margin: 0 0 15px 0; font-size: 1.8em; 
+                        <h3 style="color: white; margin: 0 0 15px 0; font-size: 1.8em;
                                    text-shadow: 0 3px 6px rgba(0,0,0,0.3);">
                             💾 Verilerimi Kaydet ve Tamamla
                         </h3>
-                        <p style="color: rgba(255,255,255,0.95); margin: 0; font-size: 1.15em; 
+                        <p style="color: rgba(255,255,255,0.95); margin: 0; font-size: 1.15em;
                                   line-height: 1.5; font-weight: 500;">
                             🎯 Testleri istediğiniz zaman yapabilirsiniz<br>
                             ⚡ Şimdi sistemi açabilir ve çalışmaya başlayabilirsiniz!
                         </p>
                     </div>
                 </div>
-                
+
                 <style>
                 @keyframes pulse {
                     0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.3; }
@@ -14306,7 +14249,7 @@ def main():
                 }
                 </style>
             """, unsafe_allow_html=True)
-                
+
             # Modern buton stili ekle
             st.markdown("""
                 <style>
@@ -14323,77 +14266,75 @@ def main():
                     text-transform: uppercase !important;
                     letter-spacing: 1px !important;
                 }
-                
+
                 .final-button > button:hover {
                     background: linear-gradient(135deg, #00a085 0%, #00b894 100%) !important;
                     transform: translateY(-3px) !important;
                     box-shadow: 0 15px 35px rgba(0, 184, 148, 0.4) !important;
                 }
-                
+
                 .final-button > button:active {
                     transform: translateY(0px) !important;
                 }
                 </style>
             """, unsafe_allow_html=True)
-            
+
             # Butonu özel CSS ile sarmalayın
             st.markdown('<div class="final-button">', unsafe_allow_html=True)
             button_clicked = st.button("💾 Verilerimi Kaydet ve Sistemi Aç", type="primary", use_container_width=True, key="save_and_complete")
             st.markdown('</div>', unsafe_allow_html=True)
-            
+
             if button_clicked:
                 # Profili tamamlandı olarak işaretle
                 profile_data = {'learning_style': 'Profil Tamamlandı'}
-                
+
                 # Eğer testler tamamlandıysa sonuçları dahil et
                 if vak_test_completed:
                     vak_results = json.loads(vak_test_completed) if isinstance(vak_test_completed, str) else vak_test_completed
                     visual_score = vak_results.get('visual', 0)
                     auditory_score = vak_results.get('auditory', 0)
                     kinesthetic_score = vak_results.get('kinesthetic', 0)
-                    
+
                     max_score = max(visual_score, auditory_score, kinesthetic_score)
                     if visual_score == max_score:
                         dominant_learning_style = "Görsel"
                     elif auditory_score == max_score:
                         dominant_learning_style = "İşitsel"
-                    else:
-                        dominant_learning_style = "Kinestetik"
-                    
+else:
+    dominant_learning_style = "Kinestetik"
+
                     if cognitive_test_completed:
                         cognitive_results = json.loads(cognitive_test_completed) if isinstance(cognitive_test_completed, str) else cognitive_test_completed
                         combined_profile = f"{dominant_learning_style} Öğrenme + {cognitive_results.get('dominant_profile', 'Analitik')} Bilişsel"
-                    else:
-                        combined_profile = f"{dominant_learning_style} Öğrenme"
-                    
+else:
+    combined_profile = f"{dominant_learning_style} Öğrenme"
+
                     profile_data['learning_style'] = combined_profile
                     profile_data['learning_style_scores'] = json.dumps({
                         'visual': visual_score,
                         'auditory': auditory_score,
                         'kinesthetic': kinesthetic_score
                     })
-                
+
                 # Profili kaydet
                 update_user_in_firebase(st.session_state.current_user, profile_data)
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-                
+
                 st.success("✅ Verileriniz kaydedildi! Sisteme hoş geldiniz!")
                 time.sleep(2)
-                st.rerun()
+st.rerun()
 
 
-        else:
-            # ✨ Hoş geldin mesajını göster - SADECE profil tamamlandıktan sonra!
+else:
+    # ✨ Hoş geldin mesajını göster - SADECE profil tamamlandıktan sonra!
             if not st.session_state.get('admin_logged_in', False):
                 check_and_show_welcome_message(st.session_state.current_user)
-            
+
             target_dept = user_data.get('target_department', 'Varsayılan')
-            
+
             st.markdown(get_custom_css(target_dept), unsafe_allow_html=True)
-            
+
             progress_data = calculate_subject_progress(user_data)
-            
+
             with st.sidebar:
                 # Logo - En üstte!
                 st.markdown("""
@@ -14407,8 +14348,8 @@ def main():
         justify-content: center;    /* yatay ortalama */
         box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         margin: auto;
-       
-        
+
+
     ">
         <img src="https://raw.githubusercontent.com/g2672v6dps-ship-it/ykstakipdf/0538075040afbf31b8a262ce85d449137fbdac30/logodf.png"
              alt="Psiko DSF Logo"
@@ -14418,12 +14359,12 @@ def main():
     unsafe_allow_html=True
 )
 
-                
+
                 # Sayfa seçimi - Logo'dan sonra!
-                page = st.sidebar.selectbox("🌐 Sayfa Seçin", 
+                page = st.sidebar.selectbox("🌐 Sayfa Seçin",
                                           ["🏠 Ana Sayfa", "📚 Konu Takip", "🧠 Çalışma Teknikleri","🎯 YKS Canlı Takip", "🍅 Pomodoro Timer", "🏆 Rekabet Panosu", "🧠 Psikolojim","🔬Detaylı Deneme Analiz Takibi","📊 İstatistikler", "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum"])
                 st.markdown("---")
-                
+
                 bg_style = BACKGROUND_STYLES.get(target_dept, BACKGROUND_STYLES["Varsayılan"])
                 st.markdown(f"### {bg_style['icon']} Hoş geldin, {user_data.get('name', 'Öğrenci')}!")
                 st.markdown(f"**🎯 Hedef:** {user_data.get('target_department', 'Belirlenmedi')}")
@@ -14431,40 +14372,40 @@ def main():
                 st.markdown(f"**🏫 Sınıf:** {user_data.get('grade', 'Belirlenmedi')}")
                 st.markdown("---")
                 st.markdown("**📈 Net Durumu**")
-                
+
                 # Net değerlerini düzenli formatla göster
                 tyt_last = user_data.get('tyt_last_net', '0')
                 tyt_avg = user_data.get('tyt_avg_net', '0')
                 ayt_last = user_data.get('ayt_last_net', '0')
                 ayt_avg = user_data.get('ayt_avg_net', '0')
-                
+
                 try:
                     tyt_last_f = f"{float(tyt_last):.1f}" if tyt_last != 'Belirlenmedi' else 'Belirlenmedi'
                 except:
                     tyt_last_f = tyt_last
-                    
+
                 try:
                     tyt_avg_f = f"{float(tyt_avg):.1f}" if tyt_avg != 'Belirlenmedi' else 'Belirlenmedi'
                 except:
                     tyt_avg_f = tyt_avg
-                    
+
                 try:
                     ayt_last_f = f"{float(ayt_last):.1f}" if ayt_last != 'Belirlenmedi' else 'Belirlenmedi'
                 except:
                     ayt_last_f = ayt_last
-                    
+
                 try:
                     ayt_avg_f = f"{float(ayt_avg):.1f}" if ayt_avg != 'Belirlenmedi' else 'Belirlenmedi'
                 except:
                     ayt_avg_f = ayt_avg
-                
+
                 st.markdown(f"**TYT Son:** {tyt_last_f}")
                 st.markdown(f"**TYT Ort:** {tyt_avg_f}")
                 st.markdown(f"**AYT Son:** {ayt_last_f}")
                 st.markdown(f"**AYT Ort:** {ayt_avg_f}")
-                
 
-                
+
+
                 st.markdown("---")
                 st.markdown("**🧠 Öğrenme Stili Dağılımı**")
                 style_scores_str = user_data.get('learning_style_scores', None)
@@ -14477,32 +14418,32 @@ def main():
                                 st.write(f"- {style}: %{score:.1f}")
                     except json.JSONDecodeError:
                         st.write("Veri Hatası")
-                else:
-                    st.write("Henüz belirlenmedi.")
-                
+else:
+    st.write("Henüz belirlenmedi.")
+
                 total_completed = sum(data['completed'] for data in progress_data.values())
                 total_topics = count_total_topics()
                 genel_ilerleme = (total_completed / total_topics * 100) if total_topics > 0 else 0
-                    
+
                 st.markdown("---")
                 st.metric("📈 Genel İlerleme", f"%{genel_ilerleme:.1f}")
                 st.metric("✅ Tamamlanan", f"{total_completed}/{total_topics}")
-                
+
                 # Debug modu kontrolü (geliştiriciler için)
                 st.markdown("---")
                 col1, col2 = st.columns(2)
-                
+
                 with col1:
                     if st.button("🚪 Çıkış Yap", use_container_width=True):
                         st.session_state.current_user = None
-                        st.rerun()
-                
+                st.rerun()
+
                 with col2:
                     debug_mode = st.session_state.get('debug_mode', False)
                     if st.button(f"🔍 Debug {'ON' if debug_mode else 'OFF'}", use_container_width=True):
                         st.session_state.debug_mode = not debug_mode
-                        st.rerun()
-                
+                st.rerun()
+
                 # Debug bilgileri göster
                 if st.session_state.get('debug_mode', False):
                     st.markdown("### 🔍 Debug Bilgileri")
@@ -14510,59 +14451,59 @@ def main():
                     st.info(f"📅 Kullanıcı Kayıt Tarihi: {user_data.get('created_at', 'Bilinmiyor')}")
                     st.info(f"🔤 Kullanıcı Username: {user_data.get('username', 'Bilinmiyor')}")
                     st.info(f"📝 Kullanıcı Adı: {user_data.get('name', 'Bilinmiyor')}")
-                    
+
                     # Session state kontrolü
                     if st.button("🧹 Session State Temizle"):
                         for key in list(st.session_state.keys()):
                             if key not in ['current_user', 'debug_mode']:
                                 del st.session_state[key]
                         st.success("✅ Session state temizlendi!")
-            
 
-            
+
+
             if page == "🏠 Ana Sayfa":
                 # Eski session verilerini temizle - her gün güncel sistem!
                 clear_outdated_session_data()
-                
+
                 # Güncel tarih bilgisi ekle
                 week_info = get_current_week_info()
                 days_to_yks = week_info['days_to_yks']
-                
+
                 bg_style = BACKGROUND_STYLES.get(target_dept, BACKGROUND_STYLES["Varsayılan"])
                 st.markdown(f'<div class="main-header"><h1>{bg_style["icon"]} {user_data["target_department"]} Yolculuğunuz</h1><p>Hedefinize doğru emin adımlarla ilerleyin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
-                
+
                 # İlerleme özeti - kartlar (motivasyondan önce)
                 overall_progress = calculate_subject_progress(user_data)
                 total_completed = sum(data['completed'] for data in overall_progress.values())
                 total_topics = count_total_topics()
                 overall_percent = (total_completed / total_topics * 100) if total_topics > 0 else 0
-                
+
                 col1, col2, col3, col4 = st.columns(4)
-                
+
                 with col1:
                     st.metric("✅ Tamamlanan Konular", f"{total_completed}/{total_topics}")
-                
+
                 with col2:
                     st.metric("📚 Toplam Ders", len(progress_data))
-                
+
                 with col3:
                     avg_per_subject = sum(data['percent'] for data in progress_data.values()) / len(progress_data) if progress_data else 0
                     st.metric("📈 Ders Ortalaması", f"%{avg_per_subject:.1f}")
                 with col4:
                     st.metric("🎯 Hedef Bölüm", user_data.get('target_department', 'Belirlenmedi'), delta_color="off")
-                
+
 
                 # 🎯 GÜNLÜK MOTİVASYON VE ÇALIŞMA TAKİBİ SİSTEMİ - YENİ!
                 st.markdown("---")
                 st.subheader("🎯 Günlük Motivasyon ve Çalışma Takibi")
-                
+
                 # Bugünkü tarih string'i
                 today_str = week_info["today"].strftime("%Y-%m-%d")
-                
+
                 # Günlük motivasyon verilerini çek
                 daily_motivation = json.loads(user_data.get('daily_motivation', '{}'))
                 today_motivation = daily_motivation.get(today_str, {
-                    'score': 5, 
+                    'score': 5,
                     'note': '',
                     'questions': {},
                     'tests': {
@@ -14573,14 +14514,14 @@ def main():
                     'photo_data': None,
                     'photo_caption': ''
                 })
-                
+
                 # Eski format veri uyumluluğu - mevcut eski verileri yeni formata geçir
                 if 'questions' in today_motivation:
                     eski_questions = today_motivation['questions']
                     # Eski format -> Yeni format dönüşümü
                     eski_yeni_mapping = {
                         'matematik': 'tyt_matematik',
-                        'fizik': 'tyt_fizik', 
+                        'fizik': 'tyt_fizik',
                         'kimya': 'tyt_kimya',
                         'biyoloji': 'tyt_biyoloji',
                         'turkce': 'tyt_turkce',
@@ -14591,31 +14532,31 @@ def main():
                         'din': 'tyt_din',
                         'geometri': 'tyt_geometri'
                     }
-                    
+
                     # Eski key'leri varsa yeni format'a çevir (sadece yeni key yoksa)
                     for eski_key, yeni_key in eski_yeni_mapping.items():
                         if eski_key in eski_questions and yeni_key not in eski_questions:
                             eski_questions[yeni_key] = eski_questions.get(eski_key, 0)
                             # Eski key'i silebiliriz ama veri kaybını önlemek için bırakıyoruz
-                
+
                 # TAB sistemi ile ayrım
                 tab_motivation, tab_study = st.tabs(["🎆 Motivasyon", "📊 Soru Takibi"])
-                
+
                 with tab_motivation:
                     # Motivasyon puanlama
                     col_score, col_note = st.columns([1, 2])
-                    
+
                     with col_score:
                         st.markdown("**🎆 Bugünkü motivasyonumu puanla:**")
                         motivation_score = st.slider(
-                            "Motivasyon seviyeniz (1-10)", 
-                            min_value=1, 
-                            max_value=10, 
+                            "Motivasyon seviyeniz (1-10)",
+                            min_value=1,
+                            max_value=10,
                             value=today_motivation['score'],
                             key=f"motivation_{today_str}",
                             help="1: Çok düşük, 10: Çok yüksek"
                         )
-                        
+
                         # Motivasyona göre emoji ve mesaj
                         if motivation_score >= 8:
                             motivation_emoji = "🚀"
@@ -14629,17 +14570,17 @@ def main():
                             motivation_emoji = "😐"
                             motivation_msg = "Orta seviye"
                             color = "#fd7e14"
-                        else:
-                            motivation_emoji = "😔"
+else:
+    motivation_emoji = "😔"
                             motivation_msg = "Biraz destek lazım"
                             color = "#dc3545"
-                        
+
                         st.markdown(f"<div style='text-align: center; background: {color}; color: white; padding: 10px; border-radius: 8px; margin: 10px 0;'><span style='font-size: 20px;'>{motivation_emoji}</span><br><strong>{motivation_msg}</strong></div>", unsafe_allow_html=True)
-                    
+
                     with col_note:
                         st.markdown("**📏 Bugüne not düş:**")
                         daily_note = st.text_area(
-                            "Nasıl hissediyorsun? Bugünü nasıl geçirdin?", 
+                            "Nasıl hissediyorsun? Bugünü nasıl geçirdin?",
                             value=today_motivation['note'],
                             max_chars=300,
                             height=120,
@@ -14647,22 +14588,22 @@ def main():
                             help="Bugünkü düşüncelerinizi, hislerinizi veya yaşadıklarınızı kısaca yazın",
                             placeholder="Örnek: Bugün matematik dersinde çok iyi gitti, kendimi motive hissediyorum. Yarın fizik çalışacağım."
                         )
-                    
+
                     # 📸 GÜNLÜK FOTOĞRAF ÖZELLİĞİ
                     st.markdown("---")
                     st.markdown("**📸 Günlük Fotoğrafın:**")
-                    
+
                     col_photo_upload, col_photo_display = st.columns([1, 1])
-                    
+
                     with col_photo_upload:
                         st.markdown("📷 **Bugünkü anını paylaş**")
                         uploaded_file = st.file_uploader(
-                            "Fotoğraf seç", 
+                            "Fotoğraf seç",
                             type=['png', 'jpg', 'jpeg'],
                             key=f"photo_upload_{today_str}",
                             help="Çalışma masanız, notlarınız veya bugünkü halinizi fotoğraflayın"
                         )
-                        
+
                         # Fotoğraf açıklaması
                         photo_caption = st.text_input(
                             "Fotoğraf açıklaması (isteğe bağlı)",
@@ -14670,12 +14611,12 @@ def main():
                             key=f"photo_caption_{today_str}",
                             placeholder="Bu fotoğraf hakkında bir şeyler yaz..."
                         )
-                    
+
                     with col_photo_display:
                         st.markdown("🖼️ **Bugünkü fotoğrafın**")
                         # Bugünkü fotoğrafı göster
                         today_photo = today_motivation.get('photo_data', None)
-                        
+
                         if uploaded_file is not None:
                             # Yeni yüklenen fotoğrafı göster
                             st.image(uploaded_file, caption=f"📸 Bugün yüklenen: {uploaded_file.name}", use_container_width=True)
@@ -14696,52 +14637,52 @@ def main():
                                 st.image(photo_bytes, caption=f"📸 Bugünkü fotoğraf: {today_photo.get('filename', 'Fotoğraf')}", use_container_width=True)
                             except:
                                 st.info("📷 Fotoğraf yüklenemedi")
-                        else:
-                            st.info("📷 Henüz bugün için fotoğraf yüklenmedi")
+else:
+    st.info("📷 Henüz bugün için fotoğraf yüklenmedi")
                             st.markdown("*Bugünü fotoğrafla ve anı kaydet!*")
-                    
+
                     # Son 3 günün fotoğraf galerisi
                     st.markdown("---")
                     st.markdown("**🖼️ Son Fotoğraflarım:**")
-                    
+
                     # Son 3 günü döngüyle göster
                     photo_cols = st.columns(3)
                     for i, col in enumerate(photo_cols):
                         day_ago = week_info["today"] - timedelta(days=i+1)
                         day_str = day_ago.strftime("%Y-%m-%d")
                         day_name = day_ago.strftime("%d/%m")
-                        
+
                         with col:
                             day_data = daily_motivation.get(day_str, {})
                             day_photo = day_data.get('photo_data', None)
-                            
+
                             if day_photo:
                                 try:
                                     import base64
                                     photo_bytes = base64.b64decode(day_photo['data'])
                                     st.image(photo_bytes, caption=f"📅 {day_name}", use_container_width=True)
-                                    
+
                                     # Fotoğraf açıklaması varsa göster
                                     caption = day_data.get('photo_caption', '')
                                     if caption:
                                         st.caption(f"💬 {caption}")
                                 except:
                                     st.info(f"📷 {day_name}\nFotoğraf yok")
-                            else:
-                                st.info(f"📷 {day_name}\nFotoğraf yok")
-                
+else:
+    st.info(f"📷 {day_name}\nFotoğraf yok")
+
                 with tab_study:
                     st.markdown("**📊 Bugün çözdüğün soruları kaydet:**")
-                    
+
                     # Öğrencinin alanını al
                     user_field = user_data.get('field', 'Belirlenmedi')
-                    
+
                     # Alan bilgisi göster
                     if user_field != 'Belirlenmedi':
                         st.info(f"🎯 **Alanınız:** {user_field} - Bu alanınıza uygun dersler gösteriliyor")
-                    else:
-                        st.warning("⚠️ Profilinizde alan seçimi yapın, size uygun dersleri gösterebilmek için")
-                    
+else:
+    st.warning("⚠️ Profilinizde alan seçimi yapın, size uygun dersleri gösterebilmek için")
+
                     # Paragraf soruları (tüm alanlarda ortak)
                     st.markdown("**📰 TYT Türkçe - Paragraf Soruları:**")
                     paragraf_questions = st.number_input(
@@ -14752,13 +14693,13 @@ def main():
                         key=f"paragraf_{today_str}",
                         help="TYT Türkçe paragraf sorularının sayısı"
                     )
-                    
+
                     st.markdown("---")
                     st.markdown("**🔢 YKS Ders Bazında Soru Sayıları:**")
-                    
+
                     # YKS dersleri - alan bazında
                     questions_data = {}
-                    
+
                     # TYT Dersleri (Tüm alanlarda ortak)
                     tyt_dersleri = [
                         ('tyt_turkce', '📚 TYT Türkçe'),
@@ -14772,7 +14713,7 @@ def main():
                         ('tyt_felsefe', '💭 TYT Felsefe'),
                         ('tyt_din', '🕌 TYT Din Kültürü')
                     ]
-                    
+
                     # AYT Dersleri - Alan bazında
                     if user_field == "Sayısal":
                         ayt_dersleri = [
@@ -14796,66 +14737,66 @@ def main():
                             ('ayt_felsefe', '🤔 AYT Felsefe'),
                             ('ayt_din', '🕌 AYT Din Kültürü ve Ahlak Bilgisi')
                         ]
-                    else:
-                        ayt_dersleri = []  # Alan seçilmemişse AYT dersleri gösterilmez
-                    
+else:
+    ayt_dersleri = []  # Alan seçilmemişse AYT dersleri gösterilmez
+
                     # Layout - 2 sütunlu düzen
                     col1, col2 = st.columns(2)
-                    
+
                     with col1:
                         st.markdown("**📚 TYT DERSLERİ (Tüm Öğrenciler):**")
                         for ders_key, ders_adi in tyt_dersleri:
                             questions_data[ders_key] = st.number_input(
-                                ders_adi, 
-                                min_value=0, max_value=200, 
+                                ders_adi,
+                                min_value=0, max_value=200,
                                 value=today_motivation.get('questions', {}).get(ders_key, 0),
                                 key=f"{ders_key}_{today_str}"
                             )
-                    
+
                     with col2:
                         if ayt_dersleri:
                             st.markdown(f"**🎯 AYT DERSLERİ ({user_field} Alanı):**")
                             for ders_key, ders_adi in ayt_dersleri:
                                 questions_data[ders_key] = st.number_input(
-                                    ders_adi, 
-                                    min_value=0, max_value=200, 
+                                    ders_adi,
+                                    min_value=0, max_value=200,
                                     value=today_motivation.get('questions', {}).get(ders_key, 0),
                                     key=f"{ders_key}_{today_str}"
                                 )
-                        else:
-                            if user_field == 'Belirlenmedi':
+else:
+    if user_field == 'Belirlenmedi':
                                 st.markdown("**⚠️ AYT DERSLERİ:**")
                                 st.warning("🔄 AYT derslerini görmek için profilinizden alanınızı seçin (Sayısal/Eşit Ağırlık/Sözel)")
                                 st.info("🎯 **AYT Dersleri nedir?** 12. sınıfın ikinci yarısında girilecek olan, alanınıza özel derslerdir.")
-                            else:
-                                st.markdown(f"**🎯 AYT DERSLERİ ({user_field} Alanı):**")
+else:
+    st.markdown(f"**🎯 AYT DERSLERİ ({user_field} Alanı):**")
                                 st.info(f"🎆 {user_field} alanı için AYT dersleri yüklendi!")
-                        
+
                         st.markdown("**📝 DENEMELER:**")
                         genel_deneme = st.number_input(
-                            "🎯 Genel Deneme (Tam YKS)", 
-                            min_value=0, max_value=20, 
+                            "🎯 Genel Deneme (Tam YKS)",
+                            min_value=0, max_value=20,
                             value=today_motivation.get('tests', {}).get('genel_deneme', 0),
                             key=f"genel_deneme_{today_str}",
                             help="TYT + AYT tam denemesi"
                         )
                         brans_deneme = st.number_input(
-                            "🎭 Branş Denemesi", 
-                            min_value=0, max_value=50, 
+                            "🎭 Branş Denemesi",
+                            min_value=0, max_value=50,
                             value=today_motivation.get('tests', {}).get('brans_deneme', 0),
                             key=f"brans_deneme_{today_str}",
                             help="Tek ders/konu denemesi"
                         )
-                        
+
                         # Günlük özet
                         st.markdown("**📈 Günlük Özet:**")
                         total_questions = sum(questions_data.values()) + paragraf_questions
                         total_tests = genel_deneme + brans_deneme
-                        
+
                         # Alan bazında özel metrikler
                         tyt_total = sum(v for k, v in questions_data.items() if k.startswith('tyt_'))
                         ayt_total = sum(v for k, v in questions_data.items() if k.startswith('ayt_'))
-                        
+
                         st.info(f"""
                         **📊 {user_field} Alanı Performansı:**
                         - 📚 TYT Soruları: **{tyt_total}**
@@ -14864,7 +14805,7 @@ def main():
                         - 🔢 **TOPLAM SORU: {total_questions}**
                         - 📝 **DENEMELER: {total_tests}**
                         """)
-                
+
                 # Tek kaydet butonu - tüm verileri toplar
                 if st.button("💾 Bugünkü Tüm Verilerimi Kaydet", key=f"save_all_data_{today_str}", type="primary"):
                     # Fotoğraf verilerini al
@@ -14873,7 +14814,7 @@ def main():
                         photo_data = st.session_state[f'temp_photo_{today_str}']
                     elif today_motivation.get('photo_data'):
                         photo_data = today_motivation.get('photo_data')
-                    
+
                     daily_motivation[today_str] = {
                         'score': motivation_score,
                         'note': daily_note,
@@ -14887,54 +14828,51 @@ def main():
                         'photo_caption': photo_caption,
                         'timestamp': datetime.now().isoformat()
                     }
-                    
+
                     # Geçici session state'i temizle
                     if f'temp_photo_{today_str}' in st.session_state:
                         del st.session_state[f'temp_photo_{today_str}']
-                    
+
                     update_user_in_firebase(st.session_state.current_user, {'daily_motivation': json.dumps(daily_motivation)})
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-                    
-                    # Başarı mesajına fotoğraf bilgisini de ekle
+        # Başarı mesajına fotoğraf bilgisini de ekle
                     photo_info = "📸 Fotoğraf da kaydedildi!" if photo_data else ""
                     st.success(f"✅ {today_str} tarihli tüm verileriniz kaydedildi! Motivasyon: {motivation_score}/10, Toplam Soru: {total_questions}, Denemeler: {total_tests} {photo_info}")
-                
+
                 # Son 7 günün performans trendi ve geçmiş verileri
                 if len(daily_motivation) > 0:
                     st.markdown("---")
                     st.markdown("**📈 Son 7 Gün Performans Analizi:**")
-                    
+
                     # Tab sistemi ile ayrım
                     tab_trend, tab_history = st.tabs(["📈 Trend Grafikleri", "📅 Geçmiş Verileri"])
-                    
+
                     with tab_trend:
                         recent_days = []
                         recent_scores = []
                         recent_questions = []
                         recent_tests = []
-                        
+
                         for i in range(6, -1, -1):
                             day = week_info["today"] - timedelta(days=i)
                             day_str = day.strftime("%Y-%m-%d")
                             day_data = daily_motivation.get(day_str, {'score': 0, 'questions': {}, 'tests': {}, 'paragraf_questions': 0})
-                            
+
                             recent_days.append(day.strftime("%m/%d"))
                             recent_scores.append(day_data.get('score', 0) if day_data.get('score', 0) > 0 else None)
-                            
+
                             # Toplam soru sayısı hesapla
                             questions = day_data.get('questions', {})
                             total_q = sum(questions.values()) + day_data.get('paragraf_questions', 0)
                             recent_questions.append(total_q if total_q > 0 else None)
-                            
+
                             # Toplam deneme sayısı hesapla
                             tests = day_data.get('tests', {})
                             total_t = tests.get('genel_deneme', 0) + tests.get('brans_deneme', 0)
                             recent_tests.append(total_t if total_t > 0 else None)
-                        
+
                         # Üç ayrı grafik
                         col_graph1, col_graph2, col_graph3 = st.columns(3)
-                        
+
                         with col_graph1:
                             st.markdown("**🎆 Motivasyon Trendi:**")
                             trend_fig1 = go.Figure()
@@ -14946,7 +14884,7 @@ def main():
                                 marker=dict(size=8, color='#764ba2'),
                                 name='Motivasyon'
                             ))
-                            
+
                             trend_fig1.update_layout(
                                 height=200,
                                 margin=dict(l=10, r=10, t=10, b=30),
@@ -14957,9 +14895,9 @@ def main():
                                 paper_bgcolor='rgba(0,0,0,0)',
                                 plot_bgcolor='rgba(0,0,0,0)'
                             )
-                            
+
                             safe_plotly_chart(trend_fig1, use_container_width=True)
-                        
+
                         with col_graph2:
                             st.markdown("**🔢 Soru Çözme Trendi:**")
                             trend_fig2 = go.Figure()
@@ -14973,7 +14911,7 @@ def main():
                                 fill='tonexty',
                                 fillcolor='rgba(253, 126, 20, 0.2)'
                             ))
-                            
+
                             trend_fig2.update_layout(
                                 height=200,
                                 margin=dict(l=10, r=10, t=10, b=30),
@@ -14983,9 +14921,9 @@ def main():
                                 paper_bgcolor='rgba(0,0,0,0)',
                                 plot_bgcolor='rgba(0,0,0,0)'
                             )
-                            
+
                             safe_plotly_chart(trend_fig2, use_container_width=True)
-                        
+
                         with col_graph3:
                             st.markdown("**🎯 Deneme Trendi:**")
                             trend_fig3 = go.Figure()
@@ -14999,7 +14937,7 @@ def main():
                                 fill='tonexty',
                                 fillcolor='rgba(40, 167, 69, 0.2)'
                             ))
-                            
+
                             trend_fig3.update_layout(
                                 height=200,
                                 margin=dict(l=10, r=10, t=10, b=30),
@@ -15009,12 +14947,12 @@ def main():
                                 paper_bgcolor='rgba(0,0,0,0)',
                                 plot_bgcolor='rgba(0,0,0,0)'
                             )
-                            
+
                             safe_plotly_chart(trend_fig3, use_container_width=True)
-                    
+
                     with tab_history:
                         st.markdown("**📅 Geçmiş Günlerdeki Performansınızı İnceleyin:**")
-                        
+
                         # Son 30 günün verilerini göster
                         history_days = []
                         for i in range(29, -1, -1):
@@ -15022,54 +14960,54 @@ def main():
                             day_str = day.strftime("%Y-%m-%d")
                             if day_str in daily_motivation:
                                 history_days.append((day, day_str, daily_motivation[day_str]))
-                        
+
                         if history_days:
                             for day, day_str, data in history_days[-10:]:  # Son 10 günü göster
                                 with st.expander(f"📅 {day.strftime('%d/%m/%Y')} ({day.strftime('%A')}) - Motivasyon: {data.get('score', 0)}/10", expanded=False):
                                     col_info1, col_info2 = st.columns(2)
-                                    
+
                                     with col_info1:
                                         st.markdown("**🎆 Motivasyon & Notlar:**")
                                         score = data.get('score', 0)
                                         note = data.get('note', 'Not girilmedi')
-                                        
+
                                         if score >= 8:
                                             score_color = "#28a745"
                                             score_emoji = "🚀"
                                         elif score >= 6:
-                                            score_color = "#ffc107" 
+                                            score_color = "#ffc107"
                                             score_emoji = "😊"
                                         elif score >= 4:
                                             score_color = "#fd7e14"
                                             score_emoji = "😐"
-                                        else:
-                                            score_color = "#dc3545"
+else:
+    score_color = "#dc3545"
                                             score_emoji = "😔"
-                                        
+
                                         st.markdown(f"<div style='background: {score_color}; color: white; padding: 8px; border-radius: 6px; text-align: center;'>{score_emoji} <strong>{score}/10</strong></div>", unsafe_allow_html=True)
                                         st.markdown(f"**Not:** {note}")
-                                    
+
                                     with col_info2:
                                         st.markdown("**📈 Çalışma Performansı:**")
                                         questions = data.get('questions', {})
                                         tests = data.get('tests', {})
                                         paragraf = data.get('paragraf_questions', 0)
-                                        
+
                                         total_questions = sum(questions.values()) + paragraf
                                         total_tests = tests.get('genel_deneme', 0) + tests.get('brans_deneme', 0)
-                                        
+
                                         st.metric("Toplam Soru", total_questions)
                                         st.metric("Paragraf Soru", paragraf)
                                         st.metric("Denemeler", total_tests)
-                                        
+
                                         # Ders bazında detal - YKS format uyumlu
                                         if any(questions.values()):
                                             st.markdown("**Ders Bazında:**")
-                                            
+
                                             # YKS ders isimleri mapping
                                             ders_isim_mapping = {
                                                 'tyt_turkce': 'TYT Türkçe',
-                                                'tyt_matematik': 'TYT Matematik', 
+                                                'tyt_matematik': 'TYT Matematik',
                                                 'tyt_geometri': 'TYT Geometri',
                                                 'tyt_fizik': 'TYT Fizik',
                                                 'tyt_kimya': 'TYT Kimya',
@@ -15100,7 +15038,7 @@ def main():
                                                 'din': 'Din Kültürü (Eski)',
                                                 'geometri': 'Geometri (Eski)'
                                             }
-                                            
+
                                             # TYT dersleri önce göster
                                             tyt_dersleri = [(k, v) for k, v in questions.items() if k.startswith('tyt_') and v > 0]
                                             if tyt_dersleri:
@@ -15108,7 +15046,7 @@ def main():
                                                 for ders, sayi in tyt_dersleri:
                                                     ders_adi = ders_isim_mapping.get(ders, ders.replace('_', ' ').title())
                                                     st.write(f"• {ders_adi}: {sayi}")
-                                            
+
                                             # AYT dersleri sonra göster
                                             ayt_dersleri = [(k, v) for k, v in questions.items() if k.startswith('ayt_') and v > 0]
                                             if ayt_dersleri:
@@ -15116,7 +15054,7 @@ def main():
                                                 for ders, sayi in ayt_dersleri:
                                                     ders_adi = ders_isim_mapping.get(ders, ders.replace('_', ' ').title())
                                                     st.write(f"• {ders_adi}: {sayi}")
-                                            
+
                                             # Eski format dersleri (geçiş dönemi uyumluluğu)
                                             eski_dersleri = [(k, v) for k, v in questions.items() if not k.startswith(('tyt_', 'ayt_')) and v > 0]
                                             if eski_dersleri:
@@ -15124,38 +15062,38 @@ def main():
                                                 for ders, sayi in eski_dersleri:
                                                     ders_adi = ders_isim_mapping.get(ders, ders.title())
                                                     st.write(f"• {ders_adi}: {sayi}")
-                        else:
-                            st.info("📅 Henüz kaydedilmiş veri yok. Çalışmaya başlayın ve verilerinizi kaydedin!")
-                
+else:
+    st.info("📅 Henüz kaydedilmiş veri yok. Çalışmaya başlayın ve verilerinizi kaydedin!")
+
                 st.markdown("---")
-                
+
                 # İlerleme özeti kartları yukarda taşındı - bu bölümü kaldır
-                
+
                 st.subheader("📈 Hız Göstergesi İlerleme")
-                
+
                 # Öğrencinin alanına göre dersler
                 user_field = user_data.get('field', 'Belirlenmedi')
                 important_subjects = []
-                
+
                 if user_field == "Sayısal":
                     important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih (isteğe bağlı)", "TYT Coğrafya (isteğe bağlı)", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
                 elif user_field == "Eşit Ağırlık":
                     important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Tarih", "TYT Coğrafya", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik (isteğe bağlı)", "TYT Kimya (isteğe bağlı)", "TYT Biyoloji (isteğe bağlı)", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
                 elif user_field == "Sözel":
                     important_subjects = ["TYT Türkçe", "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
-                else:
-                    # Alan belirlenmemişse genel dersler göster
+else:
+    # Alan belirlenmemişse genel dersler göster
                     important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji"]
                     st.info("⚠️ Profilinizden alanınızı seçerek size özel hız göstergelerini görebilirsiniz!")
-                
+
                 # Mevcut progress_data'da bulunan dersleri filtrele
                 display_subjects = [s for s in important_subjects if s in progress_data and progress_data[s]['total'] > 0]
-                
+
                 # Eğer hiç ders bulunamazsa bilgilendirme göster
                 if not display_subjects:
                     st.warning("📊 Henüz konu takip veriniz yok. Konu Takip sayfasından çalışma verilerinizi girin!")
                     st.info(f"🎯 **{user_field} alanı** için takip edilecek dersler: {', '.join(important_subjects)}")
-                    
+
                     # Konu takip sayfasına yönlendirme
                     st.markdown("""
                     **🚀 Hızlı Başlangıç:**
@@ -15171,15 +15109,15 @@ def main():
                     "AYT Matematik": "🧮", "AYT Fizik": "⚛️", "AYT Kimya": "🔬", "AYT Biyoloji": "🔭",
                     "AYT Edebiyat": "📜", "AYT Tarih": "📖", "AYT Coğrafya": "🗺️"
                 }
-                
+
                 if display_subjects:
                     # Alan bazında ilerleme özeti
                     st.markdown(f"**🎯 {user_field} Alanı İlerleme Özeti:**")
-                    
+
                     total_all_subjects = sum(progress_data[s]['total'] for s in display_subjects)
                     completed_all_subjects = sum(progress_data[s]['completed'] for s in display_subjects)
                     avg_percent = (completed_all_subjects / total_all_subjects * 100) if total_all_subjects > 0 else 0
-                    
+
                     col_summary1, col_summary2, col_summary3, col_summary4 = st.columns(4)
                     with col_summary1:
                         st.metric("📚 Toplam Konu", total_all_subjects)
@@ -15190,36 +15128,36 @@ def main():
                     with col_summary4:
                         # Net 15+ kriteriyle ilgili bilgi
                         st.info("🎯 15+ net = Tamamlandı")
-                    
+
                     st.markdown("---")
                     # 🚗 Gerçek Araba Hız Göstergesi - Plotly ile
                     cols = st.columns(3)  # Sabit 3 sütun
-                    
+
                     for i, subject in enumerate(display_subjects):
                         if subject in progress_data:
                             percent = progress_data[subject]["percent"]
                             subject_name_short = subject.replace("TYT ", "").replace("AYT ", "")
                             completed = progress_data[subject]['completed']
                             total = progress_data[subject]['total']
-                            
+
                             # Renk belirleme - Araba teması
                             if percent >= 80:
                                 color = "#00ff00"  # Yeşil bölge
                                 status = "🚀 Turbo"
                                 gauge_color = "green"
                             elif percent >= 60:
-                                color = "#ffff00"  # Sarı bölge  
+                                color = "#ffff00"  # Sarı bölge
                                 status = "😊 Normal"
                                 gauge_color = "yellow"
                             elif percent >= 40:
                                 color = "#ff8800"  # Turuncu bölge
                                 status = "😐 Yavaş"
                                 gauge_color = "orange"
-                            else:
-                                color = "#ff0000"  # Kırmızı bölge
+else:
+    color = "#ff0000"  # Kırmızı bölge
                                 status = "🐌 Dur"
                                 gauge_color = "red"
-                            
+
                             # İbre rengi dinamik belirleme
                             if percent >= 80:
                                 needle_color = "#00ff00"  # Yeşil ibre
@@ -15229,22 +15167,22 @@ def main():
                                 needle_color = "#ffd700"  # Altın sarısı ibre
                                 status_color = "#f39c12"
                                 glow_color = "rgba(243, 156, 18, 0.8)"
-                            else:
-                                needle_color = "#ff3838"  # Parlak kırmızı ibre
+else:
+    needle_color = "#ff3838"  # Parlak kırmızı ibre
                                 status_color = "#e74c3c"
                                 glow_color = "rgba(231, 76, 60, 0.8)"
 
                             with cols[i % 3]:
                                 # 🚗 GERÇEK ARABA HIZ GÖSTERGESİ - İbreli Tasarım
                                 import numpy as np
-                                
+
                                 fig = go.Figure()
-                                
+
                                 # 1. Speedometer Arka Plan (Yarım Daire)
                                 angles = np.linspace(0, 180, 100)
                                 x_bg = 0.5 + 0.45 * np.cos(np.radians(angles))
                                 y_bg = 0.5 + 0.45 * np.sin(np.radians(angles))
-                                
+
                                 # Ana speedometer dairesi
                                 fig.add_trace(go.Scatter(
                                     x=x_bg, y=y_bg,
@@ -15255,22 +15193,22 @@ def main():
                                     showlegend=False,
                                     hoverinfo='skip'
                                 ))
-                                
+
                                 # 2. Renkli Bölgeler (Performans Alanları)
                                 zones = [
                                     {'range': [0, 40], 'color': 'rgba(231, 76, 60, 0.6)', 'label': 'Yavaş'},
                                     {'range': [40, 70], 'color': 'rgba(243, 156, 18, 0.6)', 'label': 'Orta'},
                                     {'range': [70, 100], 'color': 'rgba(46, 204, 113, 0.6)', 'label': 'Hızlı'}
                                 ]
-                                
+
                                 for zone in zones:
                                     start_angle = 180 - (zone['range'][1] * 1.8)
                                     end_angle = 180 - (zone['range'][0] * 1.8)
                                     zone_angles = np.linspace(start_angle, end_angle, 30)
-                                    
+
                                     x_zone = 0.5 + 0.4 * np.cos(np.radians(zone_angles))
                                     y_zone = 0.5 + 0.4 * np.sin(np.radians(zone_angles))
-                                    
+
                                     fig.add_trace(go.Scatter(
                                         x=x_zone, y=y_zone,
                                         mode='lines',
@@ -15278,19 +15216,19 @@ def main():
                                         showlegend=False,
                                         hoverinfo='skip'
                                     ))
-                                
+
                                 # 3. Tick Marks (Ölçek Çizgileri)
                                 for i_tick in range(0, 101, 10):
                                     angle = 180 - (i_tick * 1.8)
-                                    
+
                                     # Dış tick
                                     x_outer = 0.5 + 0.42 * np.cos(np.radians(angle))
                                     y_outer = 0.5 + 0.42 * np.sin(np.radians(angle))
-                                    
+
                                     # İç tick
                                     x_inner = 0.5 + 0.38 * np.cos(np.radians(angle))
                                     y_inner = 0.5 + 0.38 * np.sin(np.radians(angle))
-                                    
+
                                     fig.add_trace(go.Scatter(
                                         x=[x_inner, x_outer], y=[y_inner, y_outer],
                                         mode='lines',
@@ -15298,11 +15236,11 @@ def main():
                                         showlegend=False,
                                         hoverinfo='skip'
                                     ))
-                                    
+
                                     # Sayılar
                                     x_num = 0.5 + 0.32 * np.cos(np.radians(angle))
                                     y_num = 0.5 + 0.32 * np.sin(np.radians(angle))
-                                    
+
                                     fig.add_annotation(
                                         x=x_num, y=y_num,
                                         text=str(i_tick),
@@ -15312,15 +15250,15 @@ def main():
                                         bordercolor='white',
                                         borderwidth=1
                                     )
-                                
+
                                 # 4. GERÇEK İBRE! 🎯
                                 needle_angle = 180 - (percent * 1.8)
-                                
+
                                 # İbre gövdesi
                                 needle_length = 0.35
                                 needle_x = 0.5 + needle_length * np.cos(np.radians(needle_angle))
                                 needle_y = 0.5 + needle_length * np.sin(np.radians(needle_angle))
-                                
+
                                 # İbre çizgisi (kalın)
                                 fig.add_trace(go.Scatter(
                                     x=[0.5, needle_x], y=[0.5, needle_y],
@@ -15329,17 +15267,17 @@ def main():
                                     showlegend=False,
                                     hoverinfo='skip'
                                 ))
-                                
+
                                 # İbre ucu (daha parlak)
                                 fig.add_trace(go.Scatter(
                                     x=[needle_x], y=[needle_y],
                                     mode='markers',
-                                    marker=dict(color=needle_color, size=12, 
+                                    marker=dict(color=needle_color, size=12,
                                                line=dict(color='white', width=2)),
                                     showlegend=False,
                                     hoverinfo='skip'
                                 ))
-                                
+
                                 # 5. Merkez nokta (pivot)
                                 fig.add_trace(go.Scatter(
                                     x=[0.5], y=[0.5],
@@ -15349,7 +15287,7 @@ def main():
                                     showlegend=False,
                                     hoverinfo='skip'
                                 ))
-                                
+
                                 # 6. Digital Display (Alt Merkez)
                                 fig.add_annotation(
                                     x=0.5, y=0.25,
@@ -15361,7 +15299,7 @@ def main():
                                     borderwidth=2,
                                     borderpad=8
                                 )
-                                
+
                                 # Layout düzenlemesi
                                 fig.update_layout(
                                     title=dict(
@@ -15389,18 +15327,18 @@ def main():
                                     height=300,
                                     margin=dict(l=10, r=10, t=40, b=10)
                                 )
-                                
+
                                 # Speedometer chart göster
                                 safe_plotly_chart(fig, use_container_width=True, key=f"car_speed_{subject}_{i}")
-                                
+
                                 # Alt bilgi - Modern araba konsolu
                                 st.markdown(f"""
-                                <div style="text-align: center; 
-                                           background: linear-gradient(135deg, {status_color}, #2c3e50); 
-                                           color: white; padding: 12px; border-radius: 12px; 
+                                <div style="text-align: center;
+                                           background: linear-gradient(135deg, {status_color}, #2c3e50);
+                                           color: white; padding: 12px; border-radius: 12px;
                                            margin-top: -10px; border: 2px solid {needle_color};
                                            box-shadow: 0 0 15px {glow_color};">
-                                    <div style="font-size: 14px; color: {needle_color}; font-weight: bold; 
+                                    <div style="font-size: 14px; color: {needle_color}; font-weight: bold;
                                                text-shadow: 0 0 5px {glow_color};">{status} ⚡</div>
                                     <div style="font-size: 11px; color: #ecf0f1; margin: 5px 0;">
                                         📊 {completed}/{total} konu tamamlandı
@@ -15410,17 +15348,17 @@ def main():
                                     </div>
                                 </div>
                                 """, unsafe_allow_html=True)
-                
+
                 st.markdown("---")
                 st.subheader("📋 Son Aktivite Özeti")
-                
+
                 # Kullanıcının gerçek verilerinden son aktiviteleri al
                 topic_progress_str = user_data.get('topic_progress', '{}')
                 try:
                     topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str
                 except:
                     topic_progress = {}
-                
+
                 # Son güncellenen konuları bul (net 10+ olan konular)
                 recent_activities = []
                 for topic_key, net_score in topic_progress.items():
@@ -15434,18 +15372,18 @@ def main():
                                 konu = parts[3]
                                 durum = "Tamamlandı" if net_score >= 15 else "Devam Ediyor"
                                 recent_activities.append({
-                                    "ders": ders, 
+                                    "ders": ders,
                                     "konu": konu[:20] + "..." if len(konu) > 20 else konu,
                                     "net": net_score,
                                     "durum": durum
                                 })
                     except (ValueError, TypeError):
                         continue
-                
+
                 # En yüksek netli konuları önce göster
                 recent_activities.sort(key=lambda x: x['net'], reverse=True)
                 recent_activities = recent_activities[:5]  # Sadece ilk 5
-                
+
                 if recent_activities:
                     for activity in recent_activities:
                         with st.container():
@@ -15455,35 +15393,35 @@ def main():
                             with col2:
                                 st.write(f"Net: {activity['net']}")
                             with col3:
-                                if activity['durum'] == "Tamamlandı": 
+                                if activity['durum'] == "Tamamlandı":
                                     st.success("✅")
-                                else: 
-                                    st.info("⏳")
+else:
+    st.info("⏳")
                             with col4:
                                 # Net skor seviyesi
                                 if activity['net'] >= 18:
                                     st.write("🎓")
                                 elif activity['net'] >= 15:
                                     st.write("🚀")
-                                else:
-                                    st.write("💪")
-                else:
-                    st.info("📈 Henüz konu çalışmanız bulunmuyor. Konu Takip sayfasından başlayın!")
+else:
+    st.write("💪")
+else:
+    st.info("📈 Henüz konu çalışmanız bulunmuyor. Konu Takip sayfasından başlayın!")
 
             elif page == "📚 Konu Takip":
                 st.markdown(f'<div class="main-header"><h1>📚 Konu Takip Sistemi</h1><p>Her konuda ustalaşın</p></div>', unsafe_allow_html=True)
-                
+
                 # Soru istatistikleri açıklaması
                 st.info("""
-                **📊 YKS Son 6 Yıl Soru İstatistikleri (2019-2024)**  
-                Her konunun yanındaki sayı, o konudan son 6 yılda **kaç soru çıktığını** gösterir.  
-                🔥 **15+ soru**: Çok sık çıkan konular (Öncelikli)  
-                ⚡ **8-14 soru**: Orta sıklıkta çıkan konular  
-                📚 **1-7 soru**: Az sıklıkta çıkan konular  
+                **📊 YKS Son 6 Yıl Soru İstatistikleri (2019-2024)**
+                Her konunun yanındaki sayı, o konudan son 6 yılda **kaç soru çıktığını** gösterir.
+                🔥 **15+ soru**: Çok sık çıkan konular (Öncelikli)
+                ⚡ **8-14 soru**: Orta sıklıkta çıkan konular
+                📚 **1-7 soru**: Az sıklıkta çıkan konular
                 """)
-                
+
                 user_field = user_data.get('field', 'Belirlenmedi')
-                
+
                 if user_field == "Sayısal":
                     available_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih (isteğe bağlı)", "TYT Coğrafya (isteğe bağlı)", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
                 elif user_field == "Eşit Ağırlık":
@@ -15491,25 +15429,25 @@ def main():
                 elif user_field == "Sözel":
                     available_subjects = ["TYT Türkçe", "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "TYT Din Kültürü", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya", "AYT Felsefe", "AYT Din Kültürü ve Ahlak Bilgisi"]
 
-                else:
-                    available_subjects = list(YKS_TOPICS.keys())
-                
+else:
+    available_subjects = list(YKS_TOPICS.keys())
+
                 # DOM hata önleyici - stabil key kullan
                 selected_subject = st.selectbox("📖 Ders Seçin", available_subjects, key="stable_subject_selector")
 
                 if selected_subject and selected_subject in YKS_TOPICS:
                     st.subheader(f"{selected_subject} Konuları")
-                    
+
                     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
                     subject_content = YKS_TOPICS[selected_subject]
-                    
+
                     # DOM hata önleyici - update tracker
                     if 'topic_updates' not in st.session_state:
                         st.session_state.topic_updates = []
-                    
+
                     # Toplu güncelleme için container
                     update_container = st.empty()
-                    
+
                     # İçerik tipini kontrol et
                     if isinstance(subject_content, dict):
                         # Sözlük formatındaysa
@@ -15529,11 +15467,11 @@ def main():
                                                     question_count = int(question_count) if question_count is not None else 0
                                                 except (TypeError, ValueError):
                                                     question_count = 0
-                                                
+
                                                 if question_count > 0:
                                                     st.write(f"• {detail} <span style='color: #ff6b6b; font-size: 0.8em;'>({question_count} soru)</span>", unsafe_allow_html=True)
-                                                else:
-                                                    st.write(f"• {detail}")
+else:
+    st.write(f"• {detail}")
                                             with col2:
                                                 current_net = topic_progress.get(topic_key, '0')
                                                 try:
@@ -15553,7 +15491,7 @@ def main():
                                                     current_difficulty_int = int(current_difficulty)
                                                 except (ValueError, TypeError):
                                                     current_difficulty_int = 3
-                                                
+
                                                 difficulty_rating = st.selectbox(
                                                     "Zorluk",
                                                     options=[1, 2, 3, 4, 5],
@@ -15563,12 +15501,12 @@ def main():
                                                     label_visibility="collapsed",
                                                     help=f"Zorluk: {TOPIC_DIFFICULTY_SYSTEM[current_difficulty_int]['name']} - {TOPIC_DIFFICULTY_SYSTEM[current_difficulty_int]['study_time']}"
                                                 )
-                                                
+
                                                 # Zorluk güncellemesi
                                                 if difficulty_rating != current_difficulty_int:
                                                     topic_progress[f"{topic_key}_difficulty"] = difficulty_rating
                                                     update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
-                                                    
+
                                             with col5:
                                                 # Soru sıklığı ikonu
                                                 try:
@@ -15577,26 +15515,24 @@ def main():
                                                             st.write("🔥", help=f"Çok sık çıkan konu: {question_count} soru")
                                                         elif question_count >= 8:
                                                             st.write("⚡", help=f"Orta sıklıkta çıkan konu: {question_count} soru")
-                                                        else:
-                                                            st.write("📚", help=f"Az sıklıkta çıkan konu: {question_count} soru")
+else:
+    st.write("📚", help=f"Az sıklıkta çıkan konu: {question_count} soru")
                                                 except Exception as e:
                                                     # Hata durumunda sadece boş icon
                                                     st.write("📚")
-                                            
+
                                             # Güncelleme
                                             if str(new_net) != current_net:
                                                 topic_progress[topic_key] = str(new_net)
                                                 update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-                                                # Haftalık plan cache'ini temizle
+        # Haftalık plan cache'ini temizle
                                                 if 'weekly_plan_cache' in st.session_state:
                                                     del st.session_state.weekly_plan_cache
                                                 # 14+ net ise tamamlama tarihini kaydet
                                                 check_and_update_completion_dates()
                                                 st.session_state.topic_updates.append((detail, new_net))
                                                 # 🔥 KRİTİK: Haftalık hedef konular listesini anında güncelle
-                                                st.rerun()
+st.rerun()
                                 elif isinstance(sub_topics, list):
                                     # Alt konular liste
                                     for detail in sub_topics:
@@ -15609,11 +15545,11 @@ def main():
                                                 question_count = int(question_count) if question_count is not None else 0
                                             except (TypeError, ValueError):
                                                 question_count = 0
-                                            
+
                                             if question_count > 0:
                                                 st.write(f"• {detail} <span style='color: #ff6b6b; font-size: 0.8em;'>({question_count} soru)</span>", unsafe_allow_html=True)
-                                            else:
-                                                st.write(f"• {detail}")
+else:
+    st.write(f"• {detail}")
                                         with col2:
                                             current_net = topic_progress.get(topic_key, '0')
                                             try:
@@ -15633,7 +15569,7 @@ def main():
                                                 current_difficulty_int = int(current_difficulty)
                                             except (ValueError, TypeError):
                                                 current_difficulty_int = 3
-                                            
+
                                             difficulty_rating = st.selectbox(
                                                 "Zorluk",
                                                 options=[1, 2, 3, 4, 5],
@@ -15643,12 +15579,12 @@ def main():
                                                 label_visibility="collapsed",
                                                 help=f"Zorluk: {TOPIC_DIFFICULTY_SYSTEM[current_difficulty_int]['name']} - {TOPIC_DIFFICULTY_SYSTEM[current_difficulty_int]['study_time']}"
                                             )
-                                            
+
                                             # Zorluk güncellemesi
                                             if difficulty_rating != current_difficulty_int:
                                                 topic_progress[f"{topic_key}_difficulty"] = difficulty_rating
                                                 update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
-                                                
+
                                         with col5:
                                             # Soru sıklığı ikonu
                                             try:
@@ -15657,26 +15593,24 @@ def main():
                                                         st.write("🔥", help=f"Çok sık çıkan konu: {question_count} soru")
                                                     elif question_count >= 8:
                                                         st.write("⚡", help=f"Orta sıklıkta çıkan konu: {question_count} soru")
-                                                    else:
-                                                        st.write("📚", help=f"Az sıklıkta çıkan konu: {question_count} soru")
+else:
+    st.write("📚", help=f"Az sıklıkta çıkan konu: {question_count} soru")
                                             except Exception as e:
                                                 # Hata durumunda sadece boş icon
                                                 st.write("📚")
-                                        
+
                                         # Güncelleme
                                         if str(new_net) != current_net:
                                             topic_progress[topic_key] = str(new_net)
                                             update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-                                            # Haftalık plan cache'ini temizle
+        # Haftalık plan cache'ini temizle
                                             if 'weekly_plan_cache' in st.session_state:
                                                 del st.session_state.weekly_plan_cache
                                             # 14+ net ise tamamlama tarihini kaydet
                                             check_and_update_completion_dates()
                                             st.session_state.topic_updates.append((detail, new_net))
                                             # 🔥 KRİTİK: Haftalık hedef konular listesini anında güncelle
-                                            st.rerun()
+st.rerun()
                     elif isinstance(subject_content, list):
                         # Ana içerik liste formatındaysa
                         with st.expander(f"📂 {selected_subject} Konuları", expanded=True):
@@ -15690,11 +15624,11 @@ def main():
                                         question_count = int(question_count) if question_count is not None else 0
                                     except (TypeError, ValueError):
                                         question_count = 0
-                                    
+
                                     if question_count > 0:
                                         st.write(f"• {detail} <span style='color: #ff6b6b; font-size: 0.8em;'>({question_count} soru)</span>", unsafe_allow_html=True)
-                                    else:
-                                        st.write(f"• {detail}")
+else:
+    st.write(f"• {detail}")
                                 with col2:
                                     current_net = topic_progress.get(topic_key, '0')
                                     try:
@@ -15714,7 +15648,7 @@ def main():
                                         current_difficulty_int = int(current_difficulty)
                                     except (ValueError, TypeError):
                                         current_difficulty_int = 3
-                                    
+
                                     difficulty_rating = st.selectbox(
                                         "Zorluk",
                                         options=[1, 2, 3, 4, 5],
@@ -15724,12 +15658,12 @@ def main():
                                         label_visibility="collapsed",
                                         help=f"Zorluk: {TOPIC_DIFFICULTY_SYSTEM[current_difficulty_int]['name']} - {TOPIC_DIFFICULTY_SYSTEM[current_difficulty_int]['study_time']}"
                                     )
-                                    
+
                                     # Zorluk güncellemesi
                                     if difficulty_rating != current_difficulty_int:
                                         topic_progress[f"{topic_key}_difficulty"] = difficulty_rating
                                         update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
-                                        
+
                                 with col5:
                                     # Soru sıklığı ikonu
                                     try:
@@ -15738,43 +15672,39 @@ def main():
                                                 st.write("🔥", help=f"Çok sık çıkan konu: {question_count} soru")
                                             elif question_count >= 8:
                                                 st.write("⚡", help=f"Orta sıklıkta çıkan konu: {question_count} soru")
-                                            else:
-                                                st.write("📚", help=f"Az sıklıkta çıkan konu: {question_count} soru")
+else:
+    st.write("📚", help=f"Az sıklıkta çıkan konu: {question_count} soru")
                                     except Exception as e:
                                         # Hata durumunda sadece boş icon
                                         st.write("📚")
-                                
+
                                 # Güncelleme
                                 if str(new_net) != current_net:
                                     topic_progress[topic_key] = str(new_net)
                                     update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-                                    # Haftalık plan cache'ini temizle
+        # Haftalık plan cache'ini temizle
                                     if 'weekly_plan_cache' in st.session_state:
                                         del st.session_state.weekly_plan_cache
                                     # 14+ net ise tamamlama tarihini kaydet
                                     check_and_update_completion_dates()
                                     st.session_state.topic_updates.append((detail, new_net))
                                     # 🔥 KRİTİK: Haftalık hedef konular listesini anında güncelle
-                                    st.rerun()
-                    
+st.rerun()
+
                     # Toplu güncelleme bildirimi - DOM güvenli
                     if len(st.session_state.topic_updates) > 0:
                         with update_container.container():
                             st.success(f"✅ {len(st.session_state.topic_updates)} konu güncellendi!")
-                            
+
                             # Güncellenen konuları göster
                             for detail, net in st.session_state.topic_updates[-5:]:  # Son 5 güncelleme
                                 st.caption(f"• {detail}: {net} net")
-                    
+
                     # Toplu kaydetme seçeneği
                     if st.button("💾 Tüm Değişiklikleri Kaydet", type="primary", key="save_all_button"):
                         try:
                             update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-                            # Cache temizleme
+        # Cache temizleme
                             if 'weekly_plan_cache' in st.session_state:
                                 del st.session_state.weekly_plan_cache
                             check_and_update_completion_dates()
@@ -15782,7 +15712,7 @@ def main():
                             # Güncelleme listesini temizle
                             st.session_state.topic_updates = []
                         except Exception as e:
-                            st.error(f"Kaydetme hatası: {str(e)}")
+        st.error(f"Kaydetme hatası: {str(e)}")
 
             elif page == "🧠 Çalışma Teknikleri":
                 # Basit çalışma teknikleri sayfası
@@ -15790,17 +15720,17 @@ def main():
                 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 20px; color: white;">
                     <h1 style="text-align: center;">🧠 Çalışma Teknikleri</h1>
                     <p style="text-align: center;">YKS için etkili yöntemler</p>
-                    
+
                     <div style="background: rgba(255,255,255,0.25); backdrop-filter: blur(10px); border-radius: 15px; padding: 20px; margin: 15px 0;">
                         <h3>🍅 Pomodoro Tekniği</h3>
                         <p>25 dakika çalış, 5 dakika ara ver</p>
                     </div>
-                    
+
                     <div style="background: rgba(255,255,255,0.25); backdrop-filter: blur(10px); border-radius: 15px; padding: 20px; margin: 15px 0;">
                         <h3>📚 Feynman Tekniği</h3>
                         <p>Konuyu basitçe açıklayabiliyorsan anlamışsın</p>
                     </div>
-                    
+
                     <div style="background: rgba(255,255,255,0.25); backdrop-filter: blur(10px); border-radius: 15px; padding: 20px; margin: 15px 0;">
                         <h3>🔄 Spaced Repetition</h3>
                         <p>Artan aralıklarla tekrar et</p>
@@ -15809,13 +15739,13 @@ def main():
                 """, unsafe_allow_html=True)
             elif page == "🎯 YKS Canlı Takip":
                 yks_takip_page(user_data)
-            
+
             elif page == "🍅 Pomodoro Timer":
                 pomodoro_timer_page(user_data)
-            
+
             elif page == "🏆 Rekabet Panosu":
                 competition_leaderboard_page(user_data)
-            
+
 
             elif page == "🧠 Psikolojim":
                 run_psychology_page()
@@ -15960,8 +15890,8 @@ def main():
                             tavsiyeler.append("🔴 Netiniz düşük: Öncelik temel konu tekrarları olmalı.")
                         elif float(toplam_net_to_save) < 80.0:
                             tavsiyeler.append("🟡 Orta seviye: Eksik konulara ve hız çalışmasına odaklanın.")
-                        else:
-                            tavsiyeler.append("🟢 İyi seviyedesiniz: Deneme pratiğini sürdürün, süre yönetimini geliştirin.")
+else:
+    tavsiyeler.append("🟢 İyi seviyedesiniz: Deneme pratiğini sürdürün, süre yönetimini geliştirin.")
 
                         # Sadece düşük performanslı dersler için tavsiye ekle
                         dusuk_dersler = []
@@ -15973,7 +15903,7 @@ def main():
                                 dusuk_dersler.append(ders)
                             elif oran < 0.6:
                                 orta_dersler.append(ders)
-                        
+
                         if dusuk_dersler:
                             tavsiyeler.append(f"📚 **Öncelikli Dersler ({len(dusuk_dersler)} ders)**: {', '.join(dusuk_dersler[:3])} {'ve diğerleri' if len(dusuk_dersler) > 3 else ''} - Temel konu tekrarı yapın.")
                         if orta_dersler:
@@ -15984,63 +15914,60 @@ def main():
 
                         # TYT/AYT NET GÜNCELLEMESİ - Otomatik hesapla ve güncelle
                         updates_to_firebase = {'deneme_analizleri': json.dumps(deneme_kayitlari)}
-                        
+
                         # Son 3 denemeyi al ve net hesapla
                         recent_3_exams = deneme_kayitlari[-3:] if len(deneme_kayitlari) >= 3 else deneme_kayitlari
-                        
+
                         # Değişkenleri başta tanımla
                         last_tyt_total = 0
                         last_ayt_total = 0
-                        
+
                         # TYT NET HESAPLAMA
                         if deneme_turu in ["TYT", "TYT-AYT"]:
-                            tyt_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", 
-                                          "TYT Kimya", "TYT Biyoloji", "TYT Tarih", "TYT Coğrafya", 
+                            tyt_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik",
+                                          "TYT Kimya", "TYT Biyoloji", "TYT Tarih", "TYT Coğrafya",
                                           "TYT Felsefe", "TYT Din Kültürü"]
-                            
+
                             # En son denemenin TYT toplam net'ini hesapla
                             last_tyt_total = sum([float(ders_netleri.get(subj, 0)) for subj in tyt_subjects])
                             updates_to_firebase['tyt_last_net'] = str(last_tyt_total)
-                            
+
                             # Son 3 denemenin TYT ortalamasını hesapla
                             tyt_totals = []
                             for exam in recent_3_exams:
                                 if exam.get('tur') in ["TYT", "TYT-AYT"]:
                                     exam_tyt_total = sum([float(exam.get('ders_netleri', {}).get(subj, 0)) for subj in tyt_subjects])
                                     tyt_totals.append(exam_tyt_total)
-                            
+
                             if tyt_totals:
                                 tyt_avg = sum(tyt_totals) / len(tyt_totals)
                                 updates_to_firebase['tyt_avg_net'] = str(tyt_avg)
-                        
+
                         # AYT NET HESAPLAMA
                         if deneme_turu in ["AYT", "TYT-AYT"]:
-                            ayt_subjects = ["AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji", 
+                            ayt_subjects = ["AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji",
                                           "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
-                            
+
                             # En son denemenin AYT toplam net'ini hesapla
                             last_ayt_total = sum([float(ders_netleri.get(subj, 0)) for subj in ayt_subjects])
                             updates_to_firebase['ayt_last_net'] = str(last_ayt_total)
-                            
+
                             # Son 3 denemenin AYT ortalamasını hesapla
                             ayt_totals = []
                             for exam in recent_3_exams:
                                 if exam.get('tur') in ["AYT", "TYT-AYT"]:
                                     exam_ayt_total = sum([float(exam.get('ders_netleri', {}).get(subj, 0)) for subj in ayt_subjects])
                                     ayt_totals.append(exam_ayt_total)
-                            
+
                             if ayt_totals:
                                 ayt_avg = sum(ayt_totals) / len(ayt_totals)
                                 updates_to_firebase['ayt_avg_net'] = str(ayt_avg)
-                        
+
                         # Tüm güncellemeleri Firebase'e kaydet
                         update_user_in_firebase(st.session_state.current_user, updates_to_firebase)
-                        
+
                         # Firebase'den fresh data çek
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-                        
-                        # MEVCUT KULLANICININ USER_DATA'SINI TAMAMEN YENİLE
+        # MEVCUT KULLANICININ USER_DATA'SINI TAMAMEN YENİLE
                         current_user_name = st.session_state.current_user
                         if current_user_name in st.session_state.users_db:
                             # user_data'yı tamamen yenile
@@ -16056,28 +15983,28 @@ def main():
                             success_msg += f"\n🔄 AYT Son Net: {last_ayt_total:.1f} olarak güncellendi"
                             if 'ayt_avg_net' in updates_to_firebase:
                                 success_msg += f"\n📊 AYT Ortalama Net: {float(updates_to_firebase['ayt_avg_net']):.1f} olarak güncellendi"
-                        
+
                         st.success(success_msg)
-                        
+
                         # Güncellenen netleri göster
                         if deneme_turu in ["TYT", "TYT-AYT"] and 'tyt_last_net' in updates_to_firebase:
                             st.info(f"📈 TYT netlerin güncellendi: Son {float(updates_to_firebase['tyt_last_net']):.1f}, Ort {float(updates_to_firebase.get('tyt_avg_net', 0)):.1f}")
                         if deneme_turu in ["AYT", "TYT-AYT"] and 'ayt_last_net' in updates_to_firebase:
                             st.info(f"📈 AYT netlerin güncellendi: Son {float(updates_to_firebase['ayt_last_net']):.1f}, Ort {float(updates_to_firebase.get('ayt_avg_net', 0)):.1f}")
-                        
+
                         # Başarı animasyonu (kısa)
                         st.balloons()
-                        
+
                         # DOM hatasını önlemek için daha kısa delay ve alternatif yenileme
                         time.sleep(0.5)
-                        
+
                         # State'i temizle ve yeniden yükle
                         if 'deneme_form_submitted' not in st.session_state:
                             st.session_state.deneme_form_submitted = True
-                        
-                        st.rerun()
-                    else:
-                        st.error("⚠️ Lütfen deneme adı ve tarihini giriniz")
+
+                st.rerun()
+else:
+    st.error("⚠️ Lütfen deneme adı ve tarihini giriniz")
 
                 # Geçmiş denemeleri gösterme + seçilen deneme detayları
                 if deneme_kayitlari:
@@ -16118,8 +16045,8 @@ def main():
                             # Tüm tavsiyeleri tek bir markdown string'de birleştir
                             tavsiye_text = "\n".join([f"{i+1}. {tavsiye}" for i, tavsiye in enumerate(tavsiyeler)])
                             st.markdown(tavsiye_text)
-                        else:
-                            st.info("📝 Bu deneme için henüz tavsiye kaydedilmemiş.")
+else:
+    st.info("📝 Bu deneme için henüz tavsiye kaydedilmemiş.")
 
                     # ----- EN ALTA: Tüm denemelerin gidişat grafiği -----
                     st.markdown("---")
@@ -16151,8 +16078,8 @@ def main():
                             for i, (ders, oran) in enumerate(low_subjects):
                                 oneriler_listesi.append(f"{i+1}. **{ders}** (%{oran*100:.0f}): Konu tekrarı ve çıkmış soru çözümü; eksik konuları parça parça kapatın.")
                             st.markdown("\n".join(oneriler_listesi))
-                        else:
-                            st.markdown("🎉 Tebrikler! Son denemede ders bazında kayda değer düşük alan bulunmadı.")
+else:
+    st.markdown("🎉 Tebrikler! Son denemede ders bazında kayda değer düşük alan bulunmadı.")
 
                         # Genel çalışma önerileri (kaynaklı, kısa)
                         st.markdown("---")
@@ -16161,7 +16088,7 @@ def main():
 
             elif page == "📊 İstatistikler":
                 st.markdown(f'<div class="main-header"><h1>📊 Detaylı İstatistikler</h1><p>İlerlemenizi analiz edin</p></div>', unsafe_allow_html=True)
-                
+
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     total_completed = sum(data['completed'] for data in progress_data.values())
@@ -16181,7 +16108,7 @@ def main():
                             continue
                     avg_net = (avg_net / net_count) if net_count > 0 else 0
                     st.metric("⭐ Ortalama Net", f"{avg_net:.1f}")
-                
+
                 st.subheader("📈 Ders Bazında İlerleme")
                 if progress_data:
                     subjects = list(progress_data.keys())
@@ -16191,21 +16118,21 @@ def main():
                     st.subheader("📋 Detaylı İlerleme Tablosu")
                     progress_df = pd.DataFrame([{'Ders': s, 'Tamamlanan': d['completed'], 'Toplam': d['total'], 'Oran (%)': d['percent']} for s, d in progress_data.items()])
                     st.dataframe(progress_df, use_container_width=True)
-                else:
-                    st.info("📊 Henüz yeterli veri bulunmuyor. Konu takip sayfasından ilerlemenizi kaydedin.")
-                    
+else:
+    st.info("📊 Henüz yeterli veri bulunmuyor. Konu takip sayfasından ilerlemenizi kaydedin.")
+
             elif page == "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum":
                 show_yks_journey_cinema(user_data, progress_data)
-            
+
             elif page == "🎨 Öğrenme Stilleri Testi":
                 run_vak_learning_styles_test()
-            
+
             elif page == "🧠 Bilişsel Profil Testi":
                 run_cognitive_profile_test()
-            
+
             elif page == "⚡ Motivasyon & Duygu Testi":
                 run_motivation_emotional_test()
-            
+
             elif page == "⏰ Zaman Yönetimi Testi":
                 run_time_management_test()
 
@@ -16216,25 +16143,25 @@ def start_hibrit_breathing():
     # Pomodoro'yu duraklat
     if st.session_state.pomodoro_active:
         st.session_state.breathing_paused_time = st.session_state.time_remaining
-    
+
     # Nefes sistemini başlat
     st.session_state.breathing_active = True
     st.session_state.breath_time_remaining = 60
     st.session_state.breath_start_time = time.time()
-    
+
     # Rastgele bir motivasyon türü seç
     motivation_types = ['quote', 'tip', 'breathing']
     st.session_state.current_motivation_type = random.choice(motivation_types)
-    
+
     if st.session_state.current_motivation_type == 'quote':
         st.session_state.current_motivation_content = random.choice(MOTIVATION_QUOTES)
     elif st.session_state.current_motivation_type == 'tip':
         subject = st.session_state.current_subject
         if subject in MICRO_TIPS:
             st.session_state.current_motivation_content = random.choice(MICRO_TIPS[subject])
-        else:
-            st.session_state.current_motivation_content = random.choice(MICRO_TIPS['Genel'])
-    else:  # breathing
+else:
+    st.session_state.current_motivation_content = random.choice(MICRO_TIPS['Genel'])
+else:  # breathing
         exercise = random.choice(BREATHING_EXERCISES)
         st.session_state.current_motivation_content = f"""
 🫁 **{exercise['name']}**
@@ -16243,7 +16170,7 @@ def start_hibrit_breathing():
 
 ✨ **Faydası:** {exercise['benefit']}
         """
-    
+
     # Kullanım loguna kaydet
     log_entry = {
         'timestamp': datetime.now().isoformat(),
@@ -16252,7 +16179,7 @@ def start_hibrit_breathing():
         'remaining_time_when_used': st.session_state.breathing_paused_time
     }
     st.session_state.breathing_usage_log.append(log_entry)
-    
+
     st.success("💨 Hibrit nefes molası başladı! Pomodoro timer duraklatıldı.")
 
 def complete_breathing_exercise():
@@ -16260,19 +16187,19 @@ def complete_breathing_exercise():
     st.session_state.breathing_active = False
     st.session_state.breath_time_remaining = 60
     st.session_state.breath_start_time = None
-    
+
     # Pomodoro'yu kaldığı yerden devam ettir
     if st.session_state.pomodoro_active:
         st.session_state.time_remaining = st.session_state.breathing_paused_time
         st.session_state.start_time = time.time()
-    
+
     st.success("🎉 Hibrit nefes molası tamamlandı! Pomodoro kaldığı yerden devam ediyor.")
     st.balloons()
 
 def show_breathing_exercise():
     """Hibrit nefes egzersizini göster"""
     breath_seconds = int(st.session_state.breath_time_remaining)
-    
+
     st.markdown(f"""
     <div style="
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -16289,9 +16216,9 @@ def show_breathing_exercise():
             {breath_seconds}s
         </div>
         <div style="
-            font-size: 18px; 
-            font-style: italic; 
-            margin: 20px 0; 
+            font-size: 18px;
+            font-style: italic;
+            margin: 20px 0;
             min-height: 100px;
             padding: 20px;
             background: rgba(255,255,255,0.1);
@@ -16305,7 +16232,7 @@ def show_breathing_exercise():
             🍅 Pomodoro timer duraklatıldı • Kaldığı yerden devam edecek
         </div>
     </div>
-    
+
     <style>
     @keyframes pulse {{
         0% {{ transform: scale(1); }}
@@ -16319,7 +16246,7 @@ def show_breathing_exercise():
 
 def display_modern_vak_analysis(dominant_style, visual_percent, auditory_percent, kinesthetic_percent):
     """Modern ve detaylı VAK analizi gösterir"""
-    
+
     # Paydaşılan bilgi paragrafına göre detaylı özellikler
     vak_detailed_info = {
         "Görsel": {
@@ -16458,26 +16385,26 @@ def display_modern_vak_analysis(dominant_style, visual_percent, auditory_percent
             ]
         }
     }
-    
+
     style_info = vak_detailed_info[dominant_style]
-    
+
     st.markdown("---")
     st.markdown(f"## {style_info['icon']} **{style_info['title']}** - Baskın Stiliniz!")
-    
+
     # Stil dağılımı grafik
     col1, col2 = st.columns([2, 1])
-    
+
     with col1:
         import plotly.express as px
-        
+
         vak_data = {
             'Stil': ['Görsel', 'İşitsel', 'Kinestetik'],
             'Yüzde': [visual_percent, auditory_percent, kinesthetic_percent],
             'Renk': ['#FF6B6B', '#4ECDC4', '#45B7D1']
         }
-        
+
         fig = px.pie(
-            values=vak_data['Yüzde'], 
+            values=vak_data['Yüzde'],
             names=vak_data['Stil'],
             title="📊 Öğrenme Stili Dağılımıniz",
             color_discrete_sequence=['#FF6B6B', '#4ECDC4', '#45B7D1']
@@ -16489,7 +16416,7 @@ def display_modern_vak_analysis(dominant_style, visual_percent, auditory_percent
             showlegend=True
         )
         safe_plotly_chart(fig, use_container_width=True)
-    
+
     with col2:
         st.markdown("### 📈 Puan Detayları")
         styles = [
@@ -16497,11 +16424,11 @@ def display_modern_vak_analysis(dominant_style, visual_percent, auditory_percent
             ("İşitsel 👂", auditory_percent, "#4ECDC4"),
             ("Kinestetik ✋", kinesthetic_percent, "#45B7D1")
         ]
-        
+
         for style_name, percentage, color in styles:
             is_dominant = style_name.split()[0] == dominant_style
             border = "3px solid #gold" if is_dominant else "1px solid #ddd"
-            
+
             st.markdown(f"""
                 <div style="
                     border: {border};
@@ -16515,52 +16442,52 @@ def display_modern_vak_analysis(dominant_style, visual_percent, auditory_percent
                     <span style="font-size: 24px; color: {color};">%{percentage:.1f}</span>
                 </div>
             """, unsafe_allow_html=True)
-    
+
     # Detaylı özellikler
     st.markdown("### 🔍 Detaylı Özellik Analizi")
-    
+
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-        "🌟 Doğal Özellikler", 
-        "🔧 Problem Çözme", 
-        "📉 Değerlendirme", 
-        "🎯 En İyi Öğrenme", 
-        "⚠️ Okul Zorlukları", 
+        "🌟 Doğal Özellikler",
+        "🔧 Problem Çözme",
+        "📉 Değerlendirme",
+        "🎯 En İyi Öğrenme",
+        "⚠️ Okul Zorlukları",
         "📄 Genel Değerlendirme"
     ])
-    
+
     with tab1:
         st.markdown("**Doğal olduğunuz yerler:**")
         for item in style_info['natural_places']:
             st.write(f"• {item}")
-    
+
     with tab2:
         st.markdown("**Problem çözme yollarınız:**")
         for item in style_info['problem_solving']:
             st.write(f"• {item}")
-    
+
     with tab3:
         st.markdown("**Değerlendirme ve test etme ihtiyacınız:**")
         for item in style_info['evaluation_needs']:
             st.write(f"• {item}")
-    
+
     with tab4:
         st.markdown("**En iyi öğrenme yollarınız:**")
         for item in style_info['best_learning']:
             st.write(f"• {item}")
-    
+
     with tab5:
         st.markdown("**Okuldaki güçlükleriniz:**")
         for item in style_info['school_difficulties']:
             st.write(f"• {item}")
-    
+
     with tab6:
         st.markdown("**Genel değerlendirmeniz:**")
         for item in style_info['general_evaluation']:
             st.write(f"• {item}")
-    
+
     # YKS'ye özel stratejiler
     st.markdown("### 🎯 YKS İçin Özel Stratejileriniz")
-    
+
     yks_strategies = {
         "Görsel": [
             "🗺️ **Kavram haritaları** oluşturun ve konuları görsel olarak bağlayın",
@@ -16590,18 +16517,18 @@ def display_modern_vak_analysis(dominant_style, visual_percent, auditory_percent
             "🏃 **Yürüyüş yaparken** ses kayıtları dinleyin"
         ]
     }
-    
+
     strategies = yks_strategies[dominant_style]
-    
+
     for i, strategy in enumerate(strategies, 1):
         st.markdown(f"{i}. {strategy}")
 
 def display_teacher_guide_section(dominant_style):
     """Eğitimciler için rehber bölümü"""
-    
+
     st.markdown("---")
     st.markdown("🎓 ## Eğitimci Rehberi")
-    
+
     teacher_guide = {
         "Görsel": {
             "recommended_methods": [
@@ -16667,21 +16594,21 @@ def display_teacher_guide_section(dominant_style):
             ]
         }
     }
-    
+
     guide = teacher_guide[dominant_style]
-    
+
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
         st.markdown("### ✅ **Tavsiye Edilen Yöntemler**")
         for method in guide['recommended_methods']:
             st.write(f"• {method}")
-    
+
     with col2:
         st.markdown("### 🏢 **Sınıf Düzenlemesi**")
         for setup in guide['classroom_setup']:
             st.write(f"• {setup}")
-    
+
     with col3:
         st.markdown("### ❌ **Kaçınılması Gerekenler**")
         for avoid in guide['avoid']:
@@ -16689,10 +16616,10 @@ def display_teacher_guide_section(dominant_style):
 
 def display_advanced_study_techniques(dominant_style):
     """Gelişmiş çalışma teknikleri"""
-    
+
     st.markdown("---")
     st.markdown("⚙️ ## Gelişmiş Çalışma Teknikleri")
-    
+
     advanced_techniques = {
         "Görsel": {
             "memory_techniques": [
@@ -16752,26 +16679,26 @@ def display_advanced_study_techniques(dominant_style):
             ]
         }
     }
-    
+
     techniques = advanced_techniques[dominant_style]
-    
+
     tab1, tab2, tab3 = st.tabs(["🧠 Hafıza Teknikleri", "🛠️ Çalışma Araçları", "📈 Sınav Hazırlığı"])
-    
+
     with tab1:
         st.markdown("**Hafıza ve Öğrenme Teknikleri:**")
         for technique in techniques['memory_techniques']:
             st.write(f"• {technique}")
-    
+
     with tab2:
         st.markdown("**Tavsiye Edilen Çalışma Araçları:**")
         for tool in techniques['study_tools']:
             st.write(f"• {tool}")
-    
+
     with tab3:
         st.markdown("**Sınav Hazırlık Stratejileri:**")
         for prep in techniques['exam_prep']:
             st.write(f"• {prep}")
-    
+
     # Bonus motivasyon bölümü
     st.markdown("### 🏆 Motivasyon İpuçları")
     motivation_tips = {
@@ -16779,14 +16706,14 @@ def display_advanced_study_techniques(dominant_style):
         "İşitsel": "Motivasyon müziği dinleyin! Başarı hikayeleri podcast'lerini takip edin. Kendinize günün sonunda ses kaydı ile teşekkür mesajı bırakın.",
         "Kinestetik": "Hareket halinde hedef belirleyin! Her başarı için kendinizi fiziksel bir aktivite ile ödüllendirin. İlerleme için fiziksel bir başarı panosu hazırlayın."
     }
-    
+
     st.info(motivation_tips[dominant_style])
 
 # ===== PSİKOLOJİM SAYFA FONKSİYONU =====
 
 def run_psychology_page():
     """GENEL PSİKOLOJİK ANALİZ SİSTEMİ - Kendini Tanı & Doğru Çalış"""
-    
+
     # Modern CSS stilleri
     st.markdown("""
     <style>
@@ -16800,20 +16727,20 @@ def run_psychology_page():
         margin-bottom: 2rem;
         box-shadow: 0 8px 25px rgba(0,0,0,0.12);
     }
-    
+
     .main-header h1 {
         margin: 0 0 0.5rem 0;
         font-size: 2.2rem;
         font-weight: 600;
         text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    
+
     .main-header p {
         margin: 0;
         font-size: 1.1rem;
         opacity: 0.9;
     }
-    
+
     /* Psikoloji sayfası için özel header stili */
     .psychology-header {
         position: relative;
@@ -16823,7 +16750,7 @@ def run_psychology_page():
         justify-content: center;
         align-items: center;
     }
-    
+
     .psychology-header::before {
         content: '';
         position: absolute;
@@ -16835,14 +16762,14 @@ def run_psychology_page():
         border-radius: 15px;
         z-index: 1;
     }
-    
+
     .psychology-header h1,
     .psychology-header p {
         position: relative;
         z-index: 2;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     }
-    
+
     .section-title {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -16852,13 +16779,13 @@ def run_psychology_page():
         text-align: center;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
-    
+
     .section-title h2 {
         margin: 0;
         font-size: 1.6rem;
         font-weight: 600;
     }
-    
+
     /* Modern Test Kartları - Sade ve Okunabilir */
     .analysis-card {
         background: white;
@@ -16869,28 +16796,28 @@ def run_psychology_page():
         transition: all 0.3s ease;
         margin-bottom: 15px;
     }
-    
+
     /* Test Kartları için Renkli Gradient'ler */
     .analysis-card-vak {
         background: linear-gradient(135deg, #8B5CF6, #A855F7, #C084FC);
         border: 1px solid rgba(139, 92, 246, 0.2);
     }
-    
+
     .analysis-card-cognitive {
         background: linear-gradient(135deg, #3B82F6, #1D4ED8, #2563EB);
         border: 1px solid rgba(59, 130, 246, 0.2);
     }
-    
+
     .analysis-card-motivation {
         background: linear-gradient(135deg, #F59E0B, #D97706, #EAB308);
         border: 1px solid rgba(245, 158, 11, 0.2);
     }
-    
+
     .analysis-card-time {
         background: linear-gradient(135deg, #10B981, #059669, #16A34A);
         border: 1px solid rgba(16, 185, 129, 0.2);
     }
-    
+
     /* Renkli kartlar için yazı rengini beyaza çevirelim */
     .analysis-card-vak h3,
     .analysis-card-cognitive h3,
@@ -16899,7 +16826,7 @@ def run_psychology_page():
         color: white;
         text-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
-    
+
     .analysis-card-vak p,
     .analysis-card-cognitive p,
     .analysis-card-motivation p,
@@ -16907,13 +16834,13 @@ def run_psychology_page():
         color: rgba(255,255,255,0.9);
         text-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
-    
+
     .analysis-card:hover {
         transform: translateY(-3px);
         box-shadow: 0 8px 25px rgba(0,0,0,0.12);
         border-color: #667eea;
     }
-    
+
     .analysis-card-vak:hover,
     .analysis-card-cognitive:hover,
     .analysis-card-motivation:hover,
@@ -16921,21 +16848,21 @@ def run_psychology_page():
         transform: translateY(-4px) scale(1.02);
         box-shadow: 0 12px 30px rgba(0,0,0,0.15);
     }
-    
+
     .analysis-card h3 {
         color: #2d3748;
         margin-bottom: 12px;
         font-size: 1.2rem;
         font-weight: 600;
     }
-    
+
     .analysis-card p {
         color: #4a5568;
         margin-bottom: 15px;
         font-size: 0.95rem;
         line-height: 1.5;
     }
-    
+
     .status-badge {
         display: inline-block;
         padding: 6px 14px;
@@ -16944,19 +16871,19 @@ def run_psychology_page():
         font-weight: 600;
         margin-bottom: 15px;
     }
-    
+
     .status-completed {
         background: #e6fffa;
         color: #234e52;
         border: 1px solid #81e6d9;
     }
-    
+
     .status-pending {
         background: #fffbeb;
         color: #92400e;
         border: 1px solid #fbd38d;
     }
-    
+
     /* Genel profil analizi - Daha sade */
     .comprehensive-profile {
         background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
@@ -16967,16 +16894,16 @@ def run_psychology_page():
         box-shadow: 0 8px 25px rgba(0,0,0,0.08);
         border: 1px solid #e2e8f0;
     }
-    
+
     .comprehensive-profile h2 {
         color: #2d3748;
         margin-bottom: 0.5rem;
     }
-    
+
     .comprehensive-profile p {
         color: #4a5568;
     }
-    
+
     .profile-chart {
         background: white;
         border-radius: 10px;
@@ -16985,7 +16912,7 @@ def run_psychology_page():
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         border: 1px solid #e2e8f0;
     }
-    
+
     /* Analiz section */
     .analysis-section {
         background: white;
@@ -16995,14 +16922,14 @@ def run_psychology_page():
         box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         border-left: 4px solid #667eea;
     }
-    
+
     .analysis-section h3 {
         color: #2d3748;
         margin: 0;
         font-size: 1.4rem;
         font-weight: 600;
     }
-    
+
     /* Responsive */
     @media (max-width: 768px) {
         .main-header {
@@ -17017,21 +16944,21 @@ def run_psychology_page():
     }
     </style>
     """, unsafe_allow_html=True)
-    
+
     # Kullanıcı kontrolü
     username = st.session_state.get('current_user', None)
     if not username:
         st.warning("⚠️ Bu sayfaya erişim için önce giriş yapmanız gerekir.")
         st.info("👈 Lütfen sol menüden 'Ana Sayfa' bölümünde giriş yapın.")
         return
-    
+
     users_data = load_users_from_firebase()
     user_data = users_data.get(username, {})
-    
+
     # Ana başlık - Hedef bölüme göre dinamik arka plan
     target_department = user_data.get('target_department', 'Varsayılan')
     bg_style = BACKGROUND_STYLES.get(target_department, BACKGROUND_STYLES["Varsayılan"])
-    
+
     st.markdown(f'''
     <div class="main-header psychology-header" style="background-image: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('{bg_style["image"]}'); background-size: cover; background-position: center; background-attachment: fixed;">
         <h1>🧭 GENEL PSİKOLOJİK ANALİZ SİSTEMİ</h1>
@@ -17039,7 +16966,7 @@ def run_psychology_page():
         <p style="font-size: 0.9rem; opacity: 0.8;">🎯 Hedef: {target_department} {bg_style["icon"]}</p>
     </div>
     ''', unsafe_allow_html=True)
-    
+
     # Test yapılandırmaları
     test_configs = [
         {
@@ -17071,28 +16998,28 @@ def run_psychology_page():
             'data_key': 'time_test_results'
         }
     ]
-    
+
     # 1. BÖLÜM: GENEL PSİKOLOJİK TAHMİNİ ANALİZİM
     st.markdown('''
     <div class="section-title">
         <h2>🔍 Genel Psikolojik Tahmini Analizim</h2>
     </div>
     ''', unsafe_allow_html=True)
-    
+
     # Test kartlarını 2x2 grid ile göster
     cols = st.columns(2)
     completed_tests = []
-    
+
     for i, test in enumerate(test_configs):
         is_completed = bool(user_data.get(test['data_key']))
         if is_completed:
             completed_tests.append(test['id'])
-        
+
         col_index = i % 2
         with cols[col_index]:
             status_class = "status-completed" if is_completed else "status-pending"
             status_text = "✅ Tamamlandı" if is_completed else "⏳ Henüz Yapılmadı"
-            
+
             st.markdown(f'''
             <div class="analysis-card analysis-card-{test['id']}">
                 <h3>{test['icon']} {test['title']}</h3>
@@ -17100,15 +17027,15 @@ def run_psychology_page():
                 <div class="status-badge {status_class}">{status_text}</div>
             </div>
             ''', unsafe_allow_html=True)
-            
+
             # Analiz sonucunu görüntüle butonu
             if is_completed:
                 if st.button(f"📊 Analizini Gör", key=f"view_{test['id']}", use_container_width=True):
                     st.session_state[f'show_{test["id"]}_analysis'] = True
-                    st.rerun()
-            else:
-                st.info("Bu test henüz tamamlanmamış.")
-            
+                st.rerun()
+else:
+    st.info("Bu test henüz tamamlanmamış.")
+
             # Güncelle/Tekrarla butonu
             if st.button(f"🔄 Testimi Güncelle/Tekrarla", key=f"update_{test['id']}", use_container_width=True):
                 # Teste yönlendir
@@ -17121,19 +17048,19 @@ def run_psychology_page():
                 elif test['id'] == 'time':
                     st.session_state.page = "time_management_test"
                 st.rerun()
-    
+
     # Test analizlerini göster
     for test in test_configs:
         if test['id'] in completed_tests and st.session_state.get(f'show_{test["id"]}_analysis', False):
             st.markdown("---")
-            
+
             # Kapat butonu
             if st.button("❌ Analizi Kapat", key=f"close_{test['id']}"):
                 st.session_state[f'show_{test["id"]}_analysis'] = False
                 st.rerun()
-            
+
             display_individual_test_analysis(test, user_data)
-    
+
     # 2. BÖLÜM: GENEL TAHMİNİ PSİKOLOJİK PROFİLİM
     if len(completed_tests) >= 2:
         st.markdown("---")
@@ -17142,12 +17069,12 @@ def run_psychology_page():
             <h2>🎯 Genel Tahmini Psikolojik Profilim</h2>
         </div>
         ''', unsafe_allow_html=True)
-        
+
         display_comprehensive_psychological_profile(completed_tests, user_data)
-    else:
-        st.markdown("---")
+else:
+    st.markdown("---")
         st.info("🎯 **Genel psikolojik profilinizi görebilmek için en az 2 test tamamlayın.** Bu sayede size özel, detaylı öneriler sunabiliriz!")
-    
+
     # Test sonucu yoksa bilgilendirme
     if not completed_tests:
         st.markdown("---")
@@ -17155,7 +17082,7 @@ def run_psychology_page():
 
 def display_comprehensive_psychological_profile(completed_tests, user_data):
     """Tüm testlerden genel psikolojik profil çıkarımı - Örneğe göre yeniden yazıldı"""
-    
+
     st.markdown('''
     <div class="comprehensive-profile">
         <h2>🧭 GENEL PSİKOLOJİK PROFİL ANALİZİN</h2>
@@ -17163,10 +17090,10 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
         <p><strong>Kaynak:</strong> Öğrenme Stilleri + Bilişsel Profil + Motivasyon + Zaman Yönetimi Testleri</p>
     </div>
     ''', unsafe_allow_html=True)
-    
+
     # Test sonuçlarını topla
     profile_data = {}
-    
+
     # VAK Test sonuçları
     if 'vak' in completed_tests:
         vak_scores = user_data.get('learning_style_scores', '')
@@ -17178,35 +17105,35 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
                 profile_data['vak'] = vak_data
             except:
                 pass
-    
+
     # Bilişsel Test sonuçları
     if 'cognitive' in completed_tests:
         cognitive_scores = user_data.get('cognitive_test_scores', '')
         if cognitive_scores:
             try:
                 raw_cognitive = json.loads(cognitive_scores.replace("'", '"'))
-                
+
                 # ADAPTIF VERİ İŞLEME - herhangi bir formattaki veriyi düzenli hale getir
                 analytic_score = 0
                 synthetic_score = 0
                 reflective_score = 0
-                
+
                 # Tüm anahtarları kontrol et ve kategorilere ayır
                 for key, value in raw_cognitive.items():
                     key_lower = key.lower()
-                    
+
                     # Analitik düşünme
                     if any(word in key_lower for word in ['analytic', 'analytical', 'analyze']):
                         analytic_score += float(value)
-                    
-                    # Sintetik/Bütüncül düşünme  
+
+                    # Sintetik/Bütüncül düşünme
                     elif any(word in key_lower for word in ['synthetic', 'synthesis', 'creative', 'visual', 'experiential', 'holistic']):
                         synthetic_score += float(value)
-                    
+
                     # Reflektif düşünme
                     elif any(word in key_lower for word in ['reflective', 'reflection', 'auditory', 'listening']):
                         reflective_score += float(value)
-                    
+
                     # Eğer thinking ile bitiyorsa direkt kullan
                     elif 'thinking' in key_lower:
                         if 'analytic' in key_lower:
@@ -17215,64 +17142,64 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
                             synthetic_score = float(value)
                         elif 'reflective' in key_lower:
                             reflective_score = float(value)
-                
+
                 # Eğer hiç puan bulunamadıysa default değerler
                 if analytic_score == 0 and synthetic_score == 0 and reflective_score == 0:
                     analytic_score = 3.5
                     synthetic_score = 3.2
                     reflective_score = 3.8
-                
+
                 # Son format
                 cognitive_data = {
                     'analytic_thinking': analytic_score,
                     'synthetic_thinking': synthetic_score,
                     'reflective_thinking': reflective_score
                 }
-                    
+
                 profile_data['cognitive'] = cognitive_data
             except:
                 pass
-    
+
     # Motivasyon Test sonuçları
     if 'motivation' in completed_tests:
         motivation_scores = user_data.get('motivation_test_scores', '')
         if motivation_scores:
             try:
                 raw_motivation = json.loads(motivation_scores.replace("'", '"'))
-                
+
                 # ADAPTIF VERİ İŞLEME - herhangi bir formattaki veriyi düzenli hale getir
                 internal_score = 0
                 external_score = 0
                 anxiety_score = 0
                 resilience_score = 0
-                
+
                 # Tüm anahtarları kontrol et ve kategorilere ayır
                 for key, value in raw_motivation.items():
                     key_lower = key.lower()
-                    
+
                     # İçsel motivasyon
                     if any(word in key_lower for word in ['internal', 'intrinsic', 'inner', 'motivation_internal']):
                         internal_score += float(value)
-                    
-                    # Dışsal motivasyon  
+
+                    # Dışsal motivasyon
                     elif any(word in key_lower for word in ['external', 'extrinsic', 'outer', 'motivation_external']):
                         external_score += float(value)
-                    
+
                     # Sınav kaygısı
                     elif any(word in key_lower for word in ['anxiety', 'worry', 'stress', 'exam_anxiety', 'test_anxiety']):
                         anxiety_score += float(value)
-                    
+
                     # Duygusal dayanıklılık
                     elif any(word in key_lower for word in ['resilience', 'emotional', 'strength', 'durability']):
                         resilience_score += float(value)
-                
+
                 # Eğer hiç puan bulunamadıysa default değerler
                 if internal_score == 0 and external_score == 0 and anxiety_score == 0 and resilience_score == 0:
                     internal_score = 3.8
                     external_score = 3.2
                     anxiety_score = 2.5
                     resilience_score = 3.9
-                
+
                 # Son format
                 motivation_data = {
                     'internal_motivation': internal_score,
@@ -17280,18 +17207,18 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
                     'test_anxiety': anxiety_score,
                     'emotional_resilience': resilience_score
                 }
-                
+
                 profile_data['motivation'] = motivation_data
             except:
                 pass
-    
+
     # Zaman Yönetimi Test sonuçları
     if 'time' in completed_tests:
         time_scores = user_data.get('time_test_scores', '')
         if time_scores:
             try:
                 raw_time = json.loads(time_scores.replace("'", '"'))
-                
+
                 # ADAPTIF VERİ İŞLEME - herhangi bir formattaki veriyi düzenli hale getir
                 planning_score = 0
                 procrastination_score = 0
@@ -17300,39 +17227,39 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
                 priority_score = 0
                 discipline_score = 0
                 awareness_score = 0
-                
+
                 # Tüm anahtarları kontrol et ve kategorilere ayır
                 for key, value in raw_time.items():
                     key_lower = key.lower()
-                    
+
                     # Planlama
                     if any(word in key_lower for word in ['planning', 'plan', 'organize', 'structure']):
                         planning_score += float(value)
-                    
-                    # Erteleme  
+
+                    # Erteleme
                     elif any(word in key_lower for word in ['procrastination', 'delay', 'postpone', 'erteleme']):
                         procrastination_score += float(value)
-                    
+
                     # Odak kontrolü
                     elif any(word in key_lower for word in ['focus', 'concentrate', 'attention', 'odak']):
                         focus_score += float(value)
-                    
+
                     # Zaman bilinci
                     elif any(word in key_lower for word in ['time_awareness', 'time', 'temporal', 'zaman']):
                         time_score += float(value)
-                    
+
                     # Öncelik yönetimi
                     elif any(word in key_lower for word in ['priority', 'prioritization', 'öncelik']):
                         priority_score += float(value)
-                    
+
                     # Disiplin
                     elif any(word in key_lower for word in ['discipline', 'disiplin', 'self_control', 'control']):
                         discipline_score += float(value)
-                    
+
                     # Öz-farkındalık
                     elif any(word in key_lower for word in ['self_awareness', 'awareness', 'farkındalık', 'conscious']):
                         awareness_score += float(value)
-                
+
                 # Eğer hiç puan bulunamadıysa default değerler
                 if all(score == 0 for score in [planning_score, procrastination_score, focus_score, time_score, priority_score]):
                     planning_score = 3.4
@@ -17340,7 +17267,7 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
                     focus_score = 3.7
                     time_score = 3.1
                     priority_score = 3.5
-                
+
                 # Son format
                 time_data = {
                     'planning': planning_score,
@@ -17349,52 +17276,52 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
                     'time_awareness': time_score,
                     'priority_management': priority_score
                 }
-                
+
                 # Ek kategoriler varsa ekle
                 if discipline_score > 0:
                     time_data['discipline'] = discipline_score
                 if awareness_score > 0:
                     time_data['self_awareness'] = awareness_score
-                
+
                 profile_data['time'] = time_data
             except:
                 pass
-    
+
     # Debug bilgisi
     if len(profile_data) == 0:
         st.warning("⚠️ Test sonuçları yüklenirken bir sorun oluştu. Lütfen testleri yeniden yapın.")
         return
-    
+
     # DETAYLI PSIKOLOJIK PROFİL ANALİZİ - Örneğe göre hazırlandı
-    
+
     # 1. BİLİŞSEL PROFİL
     if 'cognitive' in profile_data:
         st.markdown("---")
         st.markdown("## 🧠 1. Bilişsel Profilin")
-        
+
         cognitive = profile_data['cognitive']
         # En yüksek bilişsel özelliği bul
         max_cognitive = max(cognitive.items(), key=lambda x: x[1])
         cognitive_style_map = {
             'analytic_thinking': 'Analitik',
-            'synthetic_thinking': 'Bütüncül', 
+            'synthetic_thinking': 'Bütüncül',
             'reflective_thinking': 'Reflektif'
         }
         dominant_cognitive = cognitive_style_map.get(max_cognitive[0], 'Karma')
-        
+
         # İkincil stil
         sorted_cognitive = sorted(cognitive.items(), key=lambda x: x[1], reverse=True)
         secondary_cognitive = cognitive_style_map.get(sorted_cognitive[1][0], '')
-        
+
         st.markdown(f"""
         **Sonuç eğilimi:** {dominant_cognitive} – {secondary_cognitive}
-        
+
         Sen bilgiyi sistematik düşünerek işleyen, neden-sonuç ilişkilerini çözümlemeyi seven bir yapıya sahip olabilirsin.
         Bir konuyu anlamadan ezberlemeyi sevmiyor, önce "neden" sorusuna cevap bulmayı tercih ediyor olabilirsin.
         """)
-        
+
         st.markdown("### 💡 Sana uygun çalışma stratejileri:")
-        
+
         strategies = []
         if max_cognitive[0] == 'analytic_thinking':
             strategies.extend([
@@ -17408,19 +17335,19 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
                 "• **Kavram Haritası:** Tüm bilgileri birbirine bağlayarak bütüncül şemalar oluştur.",
                 "• **Analoji Kurma:** Yeni öğrendiğin konuları bildiğin şeylerle ilişkilendir."
             ])
-        else:
-            strategies.extend([
+else:
+    strategies.extend([
                 "• **Düşünce Günlüğü:** Öğrendiklerini yazarak işle ve üzerinde düşün.",
                 "• **Sessiz Tekrar:** Konuları zihninde gözden geçir ve kendi yorumunu ekle.",
                 "• **Soru-Cevap Metodu:** Kendine sorular sor ve derin düşünerek cevapla."
             ])
-        
+
         for strategy in strategies:
             st.info(strategy)
-        
+
         # TYT'ye özel ipuçları
         st.markdown("### 📘 TYT'ye özel ipuçları:")
-        
+
         tyt_tips = []
         if max_cognitive[0] == 'analytic_thinking':
             tyt_tips.extend([
@@ -17436,47 +17363,47 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
                 "• **TYT Biyoloji:** Canlı sistemlerini bir bütün olarak düşün, parçalar arası bağlantıları kur.",
                 "• **TYT Coğrafya:** Ülkeler, iklim ve ekonomi arasındaki genel bağlantıları kavra."
             ])
-        else:
-            tyt_tips.extend([
+else:
+    tyt_tips.extend([
                 "• **TYT Matematik:** Çözümü yaparken her adımı \"neden böyle yaptım?\" diye sor.",
                 "• **TYT Türkçe:** Metinleri okuduktan sonra kendi düşüncelerini de değerlendır.",
                 "• **TYT Tarih:** Olayları sadece ezberleme, \"bu ne anlama geliyor?\" diye sor.",
                 "• **TYT Felsefe:** Kavramları günlük hayatla ilişkilendir ve üzerinde düşün."
             ])
-        
+
         for tip in tyt_tips:
             st.success(tip)
-    
+
     # 2. ÖĞRENME STİLİ EĞİLİMİ
     if 'vak' in profile_data:
         st.markdown("---")
         st.markdown("## 🎨 2. Öğrenme Stil Eğilimin")
-        
+
         vak = profile_data['vak']
         dominant_style = vak.get('dominant_style', 'Karma')
-        
+
         # Yüzdelik hesaplaması
         visual_score = vak.get('Visual', 0)
-        auditory_score = vak.get('Auditory', 0) 
+        auditory_score = vak.get('Auditory', 0)
         kinesthetic_score = vak.get('Kinesthetic', 0)
-        
+
         total_score = visual_score + auditory_score + kinesthetic_score
         if total_score > 0:
             visual_percent = int((visual_score / total_score) * 100)
             auditory_percent = int((auditory_score / total_score) * 100)
             kinesthetic_percent = int((kinesthetic_score / total_score) * 100)
-        else:
-            visual_percent = auditory_percent = kinesthetic_percent = 33
-        
+else:
+    visual_percent = auditory_percent = kinesthetic_percent = 33
+
         st.markdown(f"""
         **Sonuç eğilimi:** Görsel (%{visual_percent}) – İşitsel (%{auditory_percent}) – Kinestetik (%{kinesthetic_percent})
-        
-        Senin öğrenme eğilimin {"görsel" if visual_percent > 40 else "işitsel" if auditory_percent > 40 else "kinestetik" if kinesthetic_percent > 40 else "karma"} kanala dayanıyor olabilir. 
+
+        Senin öğrenme eğilimin {"görsel" if visual_percent > 40 else "işitsel" if auditory_percent > 40 else "kinestetik" if kinesthetic_percent > 40 else "karma"} kanala dayanıyor olabilir.
         Yani {"renkler, grafikler, şemalar ve video içerikler" if visual_percent > 40 else "sesli açıklamalar, tartışmalar ve müzik" if auditory_percent > 40 else "hareket, dokunma ve uygulama" if kinesthetic_percent > 40 else "farklı yöntemlerin kombinasyonu"} bilgiyi beynine daha güçlü kazıyor olabilir.
         """)
-        
+
         st.markdown("### 🧩 Sana uygun öğrenme teknikleri:")
-        
+
         if visual_percent > 35:
             learning_techniques = [
                 "• **Görsel Kodlama:** Konu özetlerini renkli bloklar veya ikonlarla çıkar.",
@@ -17495,19 +17422,19 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
                 "• **Elle Yazma:** Bilgileri mutlaka el yazısıyla yaz, çiz.",
                 "• **Pratik + Teori:** Her konuyu öğrendikten hemen sonra soru çöz."
             ]
-        else:
-            learning_techniques = [
+else:
+    learning_techniques = [
                 "• **Çoklu Kanal:** Görsel, işitsel ve hareket öğelerini birleştir.",
                 "• **Esnek Yöntem:** Günlük durumuna göre farklı teknikleri dene.",
                 "• **Karma Teknik:** Bir konuyu hem izle, hem dinle, hem de uygula."
             ]
-        
+
         for technique in learning_techniques:
             st.info(technique)
-        
+
         # Ders odaklı öneriler
         st.markdown("### 📘 Ders odaklı öneriler:")
-        
+
         if visual_percent > 35:
             subject_tips = [
                 "• **TYT Coğrafya:** Haritalı çalış, haritaları boş kâğıda yeniden çizmeyi dene.",
@@ -17529,40 +17456,40 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
                 "• **TYT Biyoloji:** Modeller kullan, organ sistemlerini çizerek öğren.",
                 "• **TYT Coğrafya:** Haritaları parmağınla takip et, fiziki özellikleri çiz."
             ]
-        else:
-            subject_tips = [
+else:
+    subject_tips = [
                 "• **Tüm Dersler:** Her konu için en az 2 farklı yöntem kullan.",
                 "• **Esnek Yaklaşım:** Hangi ders için hangi yöntemin etkili olduğunu keşfet.",
                 "• **Kombine Çalışma:** Görsel malzemeler + sesli açıklama + pratik yapma."
             ]
-        
+
         for tip in subject_tips:
             st.success(tip)
-    
+
     # 3. MOTİVASYON & DUYGUSAL DENGE
     if 'motivation' in profile_data:
         st.markdown("---")
         st.markdown("## ⚡ 3. Motivasyon & Duygusal Denge")
-        
+
         motivation = profile_data['motivation']
         internal_mot = motivation.get('internal_motivation', 0)
         external_mot = motivation.get('external_motivation', 0)
-        
+
         total_motivation = internal_mot + external_mot
         if total_motivation > 0:
             internal_percent = int((internal_mot / total_motivation) * 100)
             external_percent = int((external_mot / total_motivation) * 100)
-        else:
-            internal_percent = external_percent = 50
-        
+else:
+    internal_percent = external_percent = 50
+
         st.markdown(f"""
         **Sonuç eğilimi:** İçsel %{internal_percent} – Dışsal %{external_percent}
-        
+
         Öğrenme isteğin büyük ihtimalle {"kendi gelişimini görmekten geliyor. Ancak bazen çevresel beklentiler (aile, sınav baskısı) moralini etkileyebiliyor olabilir." if internal_percent > external_percent else "çevresel faktörlerden (başarı, takdir, rekabet) güç alıyor. İçsel motivasyonunu da geliştirmeye odaklanabilirsin."}
         """)
-        
+
         st.markdown("### 💬 Sana uygun psikolojik destek yöntemleri:")
-        
+
         psychological_methods = []
         if internal_percent > external_percent:
             psychological_methods.extend([
@@ -17571,33 +17498,33 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
                 "• **Kişisel gelişim odağı:** \"Bu konu beni nasıl daha iyi yapacak?\" diye sor.",
                 "• **Özgür seçim:** Çalışma saatlerini ve konularını sen belirle."
             ])
-        else:
-            psychological_methods.extend([
+else:
+    psychological_methods.extend([
                 "• **Hedef ve ödül sistemi:** Her başarın için kendini ödüllendir.",
                 "• **Sosyal paylaşım:** İlerlemeni aile ve arkadaşlarınla paylaş.",
                 "• **Rekabet unsuru:** Arkadaşlarınla sağlıklı rekabet yap.",
                 "• **Başarı görselleştirmesi:** Hedeflediğin sonuçları zihninde canlandır."
             ])
-        
+
         # Ortak öneriler
         psychological_methods.extend([
             "• **Nefes egzersizi (4-7-8):** 4 saniye nefes al, 7 tut, 8 ver → kaygıyı azaltır.",
             "• **Günün sonunda yaz:** \"Bugün az da olsa ilerledim.\"",
             "• **Pozitif konuşma:** Kendine \"yapamam\" yerine \"nasıl yaparım\" de."
         ])
-        
+
         for method in psychological_methods:
             st.info(method)
-    
+
     # 4. ZAMAN YÖNETİMİ & ÇALIŞMA ALIŞKANLIĞI
     if 'time' in profile_data:
         st.markdown("---")
         st.markdown("## ⏰ 4. Zaman Yönetimi & Çalışma Alışkanlığı")
-        
+
         time_data = profile_data['time']
         planning_score = time_data.get('planning', 0)
         procrastination_score = time_data.get('procrastination', 0)
-        
+
         # Profil belirleme
         if planning_score > 3.5 and procrastination_score < 3.0:
             time_profile = "Planlı ve disiplinli"
@@ -17605,17 +17532,17 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
             time_profile = "Planlı ama zaman zaman erteleyici"
         elif planning_score < 3.0 and procrastination_score < 3.0:
             time_profile = "Spontan ama etkili"
-        else:
-            time_profile = "Geliştirilebilir zaman yönetimi"
-        
+else:
+    time_profile = "Geliştirilebilir zaman yönetimi"
+
         st.markdown(f"""
         **Sonuç eğilimi:** {time_profile} olabilirsin.
-        
+
         {"Plan yapmayı seviyor ama bazen yorgunluk veya stres seni \"başlamayı ertelemeye\" itiyor olabilir." if "erteleyici" in time_profile else "Zaman konusunda doğal bir yeteneğin var gibi görünüyor." if "etkili" in time_profile else "Bu alanda kendini geliştirme potansiyelin yüksek."}
         """)
-        
+
         st.markdown("### 🕓 Sana uygun sistemler:")
-        
+
         time_systems = []
         if procrastination_score > 3.0:
             time_systems.extend([
@@ -17623,44 +17550,44 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
                 "• **\"2 Dakika Kuralı\":** 2 dakikada bitecek işleri hemen yap, erteleme.",
                 "• **Erteleme kilidi:** Telefonu başka odaya bırak, dikkat dağıtıcıları kaldır."
             ])
-        
+
         if planning_score < 3.0:
             time_systems.extend([
                 "• **\"Mini hedef\" sistemi:** Tek seferde büyük planlar yerine 3 ana hedef (sabah–öğle–akşam).",
                 "• **Haftalık tema:** Her haftayı bir derse odakla (Bu hafta matematik haftası).",
                 "• **Esnek planlama:** Sabit saatler yerine \"öncelik sıralı\" görevler yap."
             ])
-        
+
         time_systems.extend([
             "• **\"Görsel ilerleme grafiği\":** Günlük yüzdelik ilerlemeyi takip et, motivasyonun artar.",
             "• **Başlama ritüeli:** Çalışmaya ısınmak için 10 dakikalık \"başlama seansı\" yap.",
             "• **Dönüşümlü çalışma:** Sevdiğin bir dersle zor bir dersi dönüşümlü çalış."
         ])
-        
+
         for system in time_systems:
             st.info(system)
-        
+
         st.markdown("### 📘 Uygulama önerisi:")
-        
+
         application_tips = [
             "• **Sabah rutini:** Güne aynı şekilde başla, beynin hazır olsun.",
             "• **Çalışma öncesi:** Masayı topla, su hazırla, 3 derin nefes al.",
             "• **Mola aktiviteleri:** Uzanma, su içme, pencereden bakma - telefon değil!"
         ]
-        
+
         for tip in application_tips:
             st.success(tip)
-    
+
     # 5. GENEL BEYİN PROFİLİ (KISA ÖZET)
     st.markdown("---")
     st.markdown("## 🔮 GENEL BEYİN PROFİLİN (Kısa Özet)")
-    
+
     # Genel profil özeti
     cognitive_summary = ""
     learning_summary = ""
     motivation_summary = ""
     time_summary = ""
-    
+
     if 'cognitive' in profile_data:
         cognitive = profile_data['cognitive']
         max_cognitive = max(cognitive.items(), key=lambda x: x[1])
@@ -17668,56 +17595,56 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
             cognitive_summary = "analitik ve sistematik düşünebilen"
         elif max_cognitive[0] == 'synthetic_thinking':
             cognitive_summary = "bütüncül ve yaratıcı düşünebilen"
-        else:
-            cognitive_summary = "reflektif ve derin düşünebilen"
-    
+else:
+    cognitive_summary = "reflektif ve derin düşünebilen"
+
     if 'vak' in profile_data:
         vak = profile_data['vak']
         visual_score = vak.get('Visual', 0)
         auditory_score = vak.get('Auditory', 0)
         kinesthetic_score = vak.get('Kinesthetic', 0)
-        
+
         if visual_score > auditory_score and visual_score > kinesthetic_score:
             learning_summary = "görsel"
         elif auditory_score > kinesthetic_score:
             learning_summary = "işitsel"
-        else:
-            learning_summary = "kinestetik"
-    
+else:
+    learning_summary = "kinestetik"
+
     if 'motivation' in profile_data:
         motivation = profile_data['motivation']
         if motivation.get('internal_motivation', 0) > motivation.get('external_motivation', 0):
             motivation_summary = "içsel motivasyonu güçlü"
-        else:
-            motivation_summary = "dışsal motivasyonu güçlü"
-    
+else:
+    motivation_summary = "dışsal motivasyonu güçlü"
+
     if 'time' in profile_data:
         time_data = profile_data['time']
         if time_data.get('planning', 0) > 3.5:
             if time_data.get('procrastination', 0) > 3.0:
                 time_summary = "planlı ama zaman zaman duygusal ertelemeye açık"
-            else:
-                time_summary = "planlı ve disiplinli"
-        else:
-            time_summary = "esnek ama geliştirilebilir zaman yönetimli"
-    
+else:
+    time_summary = "planlı ve disiplinli"
+else:
+    time_summary = "esnek ama geliştirilebilir zaman yönetimli"
+
     summary_text = f"{cognitive_summary}, {learning_summary} öğrenme stiline sahip, {motivation_summary}, {time_summary} bir öğrenci profiline sahip olabilirsin."
-    
+
     st.info(f"""
     **{summary_text.capitalize()}**
-    
+
     Bu tarz öğrenciler, kendi sistemlerini kurduklarında uzun vadede çok yüksek başarı elde ederler.
     """)
-    
+
     # Motivasyonel sloganlar
     st.markdown("### 💫 Senin çalışma mottoların:")
-    
+
     mottos = [
         "**\"Bugün az da olsa ilerledim.\"**",
-        "**\"Anladığım her şey kalıcı hale geliyor.\"**", 
+        "**\"Anladığım her şey kalıcı hale geliyor.\"**",
         "**\"Bir adım bile bir ilerlemedir.\"**"
     ]
-    
+
     for motto in mottos:
         st.success(motto)
 
@@ -17728,7 +17655,7 @@ def display_individual_test_analysis(test_config, user_data):
         <h3>{test_config['icon']} {test_config['title']} - Detaylı Analiz</h3>
     </div>
     ''', unsafe_allow_html=True)
-    
+
     # Test türüne göre analiz göster
     if test_config['id'] == 'vak':
         display_vak_analysis(user_data)
@@ -17759,7 +17686,7 @@ def setup_matplotlib_for_plotting():
     # Configure platform-appropriate fonts for cross-platform compatibility
     plt.rcParams["font.sans-serif"] = ["Noto Sans CJK SC", "WenQuanYi Zen Hei", "PingFang SC", "Arial Unicode MS", "Hiragino Sans GB", "DejaVu Sans"]
     plt.rcParams["axes.unicode_minus"] = False
-    
+
     # Basic styling
     plt.rcParams["figure.facecolor"] = "white"
     plt.rcParams["axes.facecolor"] = "white"
@@ -17771,62 +17698,62 @@ def display_vak_analysis(user_data):
     """VAK testi detaylı analizi - Basit ve anlaşılır grafik gösterimi"""
     style_scores_str = user_data.get('learning_style_scores', '')
     dominant_style = user_data.get('learning_style', '')
-    
+
     # VAK test sonuçları kontrol et - hem eski hem yeni field isimleri
     vak_test_completed = user_data.get('vak_test_results', '') or user_data.get('learning_style_results', '')
-    
+
     # Eğer test tamamlanmışsa ve veri varsa
     if vak_test_completed and (style_scores_str or dominant_style):
         try:
             import plotly.express as px
             import json
-            
+
             # Verileri parse et
             if style_scores_str:
                 style_scores = json.loads(style_scores_str.replace("'", "\""))
-            else:
-                # Default değerler - test tamamlanmışsa
+else:
+    # Default değerler - test tamamlanmışsa
                 style_scores = {'visual': 35, 'auditory': 30, 'kinesthetic': 35}
                 dominant_style = 'Görsel' if not dominant_style else dominant_style
-            
+
             # Yüzdeleri hesapla
             visual_percent = style_scores.get('visual', 0)
             auditory_percent = style_scores.get('auditory', 0)
             kinesthetic_percent = style_scores.get('kinesthetic', 0)
-            
+
             # Dominant style bilgisini al
             vak_detailed_info = {
                 'Görsel': {'icon': '👁️', 'title': 'Görsel Öğrenme'},
                 'İşitsel': {'icon': '👂', 'title': 'İşitsel Öğrenme'},
                 'Kinestetik': {'icon': '✋', 'title': 'Kinestetik Öğrenme'}
             }
-            
+
             # Baskın stil belirleme
             max_score = max(visual_percent, auditory_percent, kinesthetic_percent)
             if visual_percent == max_score:
                 dominant_style = 'Görsel'
             elif auditory_percent == max_score:
                 dominant_style = 'İşitsel'
-            else:
-                dominant_style = 'Kinestetik'
-                
+else:
+    dominant_style = 'Kinestetik'
+
             style_info = vak_detailed_info[dominant_style]
-            
+
             st.markdown("---")
             st.markdown(f"## {style_info['icon']} **{style_info['title']}** - Baskın Stiliniz!")
-            
+
             # Stil dağılımı grafik
             col1, col2 = st.columns([2, 1])
-            
+
             with col1:
                 vak_data = {
                     'Stil': ['Görsel', 'İşitsel', 'Kinestetik'],
                     'Yüzde': [visual_percent, auditory_percent, kinesthetic_percent],
                     'Renk': ['#FF6B6B', '#4ECDC4', '#45B7D1']
                 }
-                
+
                 fig = px.pie(
-                    values=vak_data['Yüzde'], 
+                    values=vak_data['Yüzde'],
                     names=vak_data['Stil'],
                     title="📊 Öğrenme Stili Dağılımınız",
                     color_discrete_sequence=['#FF6B6B', '#4ECDC4', '#45B7D1']
@@ -17838,7 +17765,7 @@ def display_vak_analysis(user_data):
                     showlegend=True
                 )
                 safe_plotly_chart(fig, use_container_width=True)
-            
+
             with col2:
                 st.markdown("### 📈 Puan Detayları")
                 styles = [
@@ -17846,11 +17773,11 @@ def display_vak_analysis(user_data):
                     ("İşitsel 👂", auditory_percent, "#4ECDC4"),
                     ("Kinestetik ✋", kinesthetic_percent, "#45B7D1")
                 ]
-                
+
                 for style_name, percentage, color in styles:
                     is_dominant = style_name.split()[0] == dominant_style
                     border = "3px solid #FFD700" if is_dominant else "1px solid #ddd"
-                    
+
                     st.markdown(f"""
                         <div style="
                             border: {border};
@@ -17864,26 +17791,26 @@ def display_vak_analysis(user_data):
                             <span style="font-size: 24px; color: {color};">%{percentage:.1f}</span>
                         </div>
                     """, unsafe_allow_html=True)
-            
+
             # DETAYLI ANALİZ YAZILARI - Basit format
             st.markdown("---")
-            
+
             # Stil açıklaması
             style_descriptions = {
                 'Görsel': "Sen bilgiyi en iyi gözlerle algılayan bir öğrencisin. Zihninde canlandırdığın resimler, renkler ve şemalar, öğrenme sürecini çok daha kolay ve kalıcı hale getirebilir.",
                 'İşitsel': "Sen bilgiyi en iyi kulağınla algılayan bir öğrencisin. Sesler, müzik ve konuşmalar senin için en etkili öğrenme araçlarıdır.",
                 'Kinestetik': "Sen bilgiyi en iyi hareket ederek ve yaparak algılayan bir öğrencisin. Ellerinle dokunmak, hareket etmek ve uygulama yapmak senin için en etkili öğrenme yöntemidir."
             }
-            
+
             st.info(style_descriptions[dominant_style])
-            
+
             # Güçlü Yönler
             st.markdown("### 💪 Güçlü Yönlerin:")
-            
+
             strengths = {
                 'Görsel': [
                     "Harita, grafik ve şemaları kolay anlayabilirsin",
-                    "Renkli notlar ve görsellerle daha hızlı öğrenebilirsin", 
+                    "Renkli notlar ve görsellerle daha hızlı öğrenebilirsin",
                     "Karmaşık bilgileri zihninde görselleştirme yeteneğin güçlüdür"
                 ],
                 'İşitsel': [
@@ -17897,13 +17824,13 @@ def display_vak_analysis(user_data):
                     "Hareket halindeyken daha verimli çalışabilirsin"
                 ]
             }
-            
+
             for strength in strengths[dominant_style]:
                 st.success(f"• {strength}")
-            
+
             # Zayıf Yönler
             st.markdown("### ⚠️ Zayıf Yönlerin:")
-            
+
             weaknesses = {
                 'Görsel': [
                     "Sadece dinleyerek öğrenmekte zorlanabilirsin",
@@ -17918,13 +17845,13 @@ def display_vak_analysis(user_data):
                     "Teorik konuları kavramak zaman alabilir"
                 ]
             }
-            
+
             for weakness in weaknesses[dominant_style]:
                 st.warning(f"• {weakness}")
-            
+
             # Akademik Gelişim Önerileri
             st.markdown("### 🎓 Akademik Gelişim Önerilerin:")
-            
+
             academic_tips = {
                 'Görsel': [
                     "**Zihin Haritalama:** Her konu için renkli zihin haritaları oluştur",
@@ -17945,14 +17872,14 @@ def display_vak_analysis(user_data):
                     "**Kısa Molalar:** 25 dakika çalış, 5 dakika hareket et"
                 ]
             }
-            
+
             for tip in academic_tips[dominant_style]:
                 st.info(f"• {tip}")
-                        
+
         except Exception as e:
             import traceback
-            st.error(f"VAK analizi gösterilirken hata oluştu: {str(e)}")
-            st.error(f"Detay: {traceback.format_exc()}")
+        st.error(f"VAK analizi gösterilirken hata oluştu: {str(e)}")
+        st.error(f"Detay: {traceback.format_exc()}")
             # Fallback basit görünüm
             if dominant_style:
                 st.markdown(f"**Baskın Öğrenme Stili:** {dominant_style}")
@@ -17962,37 +17889,37 @@ def display_cognitive_analysis(user_data):
     """Bilişsel test detaylı analizi - Basit grafik gösterimi"""
     cognitive_results = user_data.get('cognitive_test_results', '')
     cognitive_scores = user_data.get('cognitive_test_scores', '')
-    
+
     if cognitive_results and (cognitive_scores or cognitive_results):
         try:
             import plotly.express as px
             import json
-            
+
             # Verileri parse et
             if cognitive_scores:
                 raw_scores = json.loads(cognitive_scores.replace("'", '"'))
-                
+
                 # ADAPTIF VERİ İŞLEME - herhangi bir formattaki veriyi düzenli hale getir
                 analytic_score = 0
                 synthetic_score = 0
                 reflective_score = 0
-                
+
                 # Tüm anahtarları kontrol et ve kategorilere ayır
                 for key, value in raw_scores.items():
                     key_lower = key.lower()
-                    
+
                     # Analitik düşünme
                     if any(word in key_lower for word in ['analytic', 'analytical', 'analyze']):
                         analytic_score += float(value)
-                    
-                    # Sintetik/Bütüncül düşünme  
+
+                    # Sintetik/Bütüncül düşünme
                     elif any(word in key_lower for word in ['synthetic', 'synthesis', 'creative', 'visual', 'experiential', 'holistic']):
                         synthetic_score += float(value)
-                    
+
                     # Reflektif düşünme
                     elif any(word in key_lower for word in ['reflective', 'reflection', 'auditory', 'listening']):
                         reflective_score += float(value)
-                    
+
                     # Eğer thinking ile bitiyorsa direkt kullan
                     elif 'thinking' in key_lower:
                         if 'analytic' in key_lower:
@@ -18001,31 +17928,31 @@ def display_cognitive_analysis(user_data):
                             synthetic_score = float(value)
                         elif 'reflective' in key_lower:
                             reflective_score = float(value)
-                
+
                 # Eğer hiç puan bulunamadıysa default değerler
                 if analytic_score == 0 and synthetic_score == 0 and reflective_score == 0:
                     analytic_score = 3.5
                     synthetic_score = 3.2
                     reflective_score = 3.8
-                
+
                 # Son format
                 scores_data = {
                     'analytic_thinking': analytic_score,
                     'synthetic_thinking': synthetic_score,
                     'reflective_thinking': reflective_score
                 }
-                    
-            else:
-                # Default değerler - test tamamlanmışsa
+
+else:
+    # Default değerler - test tamamlanmışsa
                 scores_data = {'analytic_thinking': 3.5, 'synthetic_thinking': 3.2, 'reflective_thinking': 3.8}
-            
+
             # Yüzdeleri hesapla
             total_score = sum(scores_data.values())
             percentages = {key: (value/total_score)*100 for key, value in scores_data.items()}
-            
+
             # En yüksek skoru bul
             max_category = max(scores_data, key=scores_data.get)
-            
+
             # Kategori bilgileri
             category_info = {
                 'analytic_thinking': {
@@ -18034,7 +17961,7 @@ def display_cognitive_analysis(user_data):
                     'color': '#FF6B6B'
                 },
                 'synthetic_thinking': {
-                    'name': 'Bütüncül Düşünce', 
+                    'name': 'Bütüncül Düşünce',
                     'icon': '🎨',
                     'color': '#4ECDC4'
                 },
@@ -18044,15 +17971,15 @@ def display_cognitive_analysis(user_data):
                     'color': '#45B7D1'
                 }
             }
-            
+
             dominant_info = category_info[max_category]
-            
+
             st.markdown("---")
             st.markdown(f"## {dominant_info['icon']} **{dominant_info['name']}** - Baskın Düşünce Stiliniz!")
-            
+
             # Grafik bölümü
             col1, col2 = st.columns([2, 1])
-            
+
             with col1:
                 # Pie chart
                 fig = px.pie(
@@ -18068,16 +17995,16 @@ def display_cognitive_analysis(user_data):
                     showlegend=True
                 )
                 safe_plotly_chart(fig, use_container_width=True)
-            
+
             with col2:
                 st.markdown("### 📈 Puan Detayları")
-                
+
                 for key, value in scores_data.items():
                     info = category_info[key]
                     percentage = percentages[key]
                     is_dominant = key == max_category
                     border = "3px solid gold" if is_dominant else "1px solid #ddd"
-                    
+
                     st.markdown(f"""
                         <div style="
                             border: {border};
@@ -18092,11 +18019,11 @@ def display_cognitive_analysis(user_data):
                             <small style="color: {info['color']};">({value:.1f}/5 puan)</small>
                         </div>
                     """, unsafe_allow_html=True)
-            
+
             # Baskın stil açıklamaları
             st.markdown("---")
             st.markdown(f"### 🎯 **{dominant_info['name']}** Özellikleri")
-            
+
             cognitive_profiles = {
                 'analytic_thinking': {
                     'description': 'Sistematik düşünme ve problem çözme becerileriniz güçlü.',
@@ -18114,75 +18041,75 @@ def display_cognitive_analysis(user_data):
                     'study_tips': ['Öğrenme günlüğü tutun', 'Düzenli self-değerlendirme yapın', 'Hata analizleri oluşturun', 'Stratejik çalışma planları hazırlayın']
                 }
             }
-            
+
             profile = cognitive_profiles[max_category]
             st.markdown(profile['description'])
-            
+
             col1, col2 = st.columns(2)
-            
+
             with col1:
                 st.markdown("#### 💪 Güçlü Yanlarınız")
                 for strength in profile['strengths']:
                     st.markdown(f"• {strength}")
-            
+
             with col2:
                 st.markdown("#### 📚 Çalışma Önerileriniz")
                 for tip in profile['study_tips']:
                     st.markdown(f"• {tip}")
-                    
+
         except Exception as e:
-            st.error(f"Analiz gösterilirken hata: {str(e)}")
+        st.error(f"Analiz gösterilirken hata: {str(e)}")
             st.info("🧠 **Bilişsel Profil:** Test sonuçlarınız kaydedildi.")
-    else:
-        st.warning("⚠️ Test sonuçları yüklenemedi.")
+else:
+    st.warning("⚠️ Test sonuçları yüklenemedi.")
 
 def display_motivation_analysis(user_data):
     """Motivasyon ve duygusal denge analizi - Basit grafik gösterimi"""
     motivation_results = user_data.get('motivation_test_results', '')
     motivation_scores = user_data.get('motivation_test_scores', '')
-    
+
     if motivation_results and (motivation_scores or motivation_results):
         try:
             import plotly.express as px
             import json
-            
+
             # Verileri parse et
             if motivation_scores:
                 raw_scores = json.loads(motivation_scores.replace("'", '"'))
-                
+
                 # ADAPTIF VERİ İŞLEME - herhangi bir formattaki veriyi düzenli hale getir
                 internal_score = 0
                 external_score = 0
                 anxiety_score = 0
                 resilience_score = 0
-                
+
                 # Tüm anahtarları kontrol et ve kategorilere ayır
                 for key, value in raw_scores.items():
                     key_lower = key.lower()
-                    
+
                     # İçsel motivasyon
                     if any(word in key_lower for word in ['internal', 'intrinsic', 'inner', 'motivation_internal']):
                         internal_score += float(value)
-                    
-                    # Dışsal motivasyon  
+
+                    # Dışsal motivasyon
                     elif any(word in key_lower for word in ['external', 'extrinsic', 'outer', 'motivation_external']):
                         external_score += float(value)
-                    
+
                     # Sınav kaygısı
                     elif any(word in key_lower for word in ['anxiety', 'worry', 'stress', 'exam_anxiety', 'test_anxiety']):
                         anxiety_score += float(value)
-                    
+
                     # Duygusal dayanıklılık
                     elif any(word in key_lower for word in ['resilience', 'emotional', 'strength', 'durability']):
                         resilience_score += float(value)
-                
+
                 # Eğer hiç puan bulunamadıysa default değerler
                 if internal_score == 0 and external_score == 0 and anxiety_score == 0 and resilience_score == 0:
                     internal_score = 3.8
                     external_score = 3.2
                     anxiety_score = 2.5
                     resilience_score = 3.9
-                
+
                 # Son format
                 scores_data = {
                     'internal_motivation': internal_score,
@@ -18190,21 +18117,21 @@ def display_motivation_analysis(user_data):
                     'test_anxiety': anxiety_score,
                     'emotional_resilience': resilience_score
                 }
-                
-            else:
-                # Default değerler - test tamamlanmışsa
+
+else:
+    # Default değerler - test tamamlanmışsa
                 scores_data = {
-                    'internal_motivation': 3.8, 'external_motivation': 3.2, 
+                    'internal_motivation': 3.8, 'external_motivation': 3.2,
                     'test_anxiety': 2.5, 'emotional_resilience': 3.9
                 }
-            
+
             # Yüzdeleri hesapla
             total_score = sum(scores_data.values())
             percentages = {key: (value/total_score)*100 for key, value in scores_data.items()}
-            
+
             # En yüksek skoru bul
             max_category = max(scores_data, key=scores_data.get)
-            
+
             # Kategori bilgileri
             category_info = {
                 'internal_motivation': {
@@ -18213,7 +18140,7 @@ def display_motivation_analysis(user_data):
                     'color': '#FF6B6B'
                 },
                 'external_motivation': {
-                    'name': 'Dışsal Motivasyon', 
+                    'name': 'Dışsal Motivasyon',
                     'icon': '🎯',
                     'color': '#4ECDC4'
                 },
@@ -18228,15 +18155,15 @@ def display_motivation_analysis(user_data):
                     'color': '#96CEB4'
                 }
             }
-            
+
             dominant_info = category_info[max_category]
-            
+
             st.markdown("---")
             st.markdown(f"## {dominant_info['icon']} **{dominant_info['name']}** - Baskın Özelliğiniz!")
-            
+
             # Grafik bölümü
             col1, col2 = st.columns([2, 1])
-            
+
             with col1:
                 # Pie chart
                 fig = px.pie(
@@ -18252,16 +18179,16 @@ def display_motivation_analysis(user_data):
                     showlegend=True
                 )
                 safe_plotly_chart(fig, use_container_width=True)
-            
+
             with col2:
                 st.markdown("### 📈 Puan Detayları")
-                
+
                 for key, value in scores_data.items():
                     info = category_info[key]
                     percentage = percentages[key]
                     is_dominant = key == max_category
                     border = "3px solid gold" if is_dominant else "1px solid #ddd"
-                    
+
                     st.markdown(f"""
                         <div style="
                             border: {border};
@@ -18276,11 +18203,11 @@ def display_motivation_analysis(user_data):
                             <small style="color: {info['color']};">({value:.1f}/5 puan)</small>
                         </div>
                     """, unsafe_allow_html=True)
-            
+
             # Baskın özellik açıklamaları
             st.markdown("---")
             st.markdown(f"### 🎯 **{dominant_info['name']}** Özellikleri")
-            
+
             motivation_profiles = {
                 'internal_motivation': {
                     'description': 'Kendi iç dünyanızdan gelen motivasyonla hareket edersiniz.',
@@ -18303,42 +18230,42 @@ def display_motivation_analysis(user_data):
                     'study_tips': ['Zorlu konulara cesurca yaklaşın', 'Hatalarınızdan hızla öğrenin', 'Uzun vadeli planlar yapın', 'Kendinize güvenin']
                 }
             }
-            
+
             profile = motivation_profiles[max_category]
             st.markdown(profile['description'])
-            
+
             col1, col2 = st.columns(2)
-            
+
             with col1:
                 st.markdown("#### 💪 Güçlü Yanlarınız")
                 for strength in profile['strengths']:
                     st.markdown(f"• {strength}")
-            
+
             with col2:
                 st.markdown("#### 📚 Çalışma Önerileriniz")
                 for tip in profile['study_tips']:
                     st.markdown(f"• {tip}")
-                    
+
         except Exception as e:
-            st.error(f"Motivasyon analizi gösterilirken hata oluştu: {str(e)}")
+        st.error(f"Motivasyon analizi gösterilirken hata oluştu: {str(e)}")
             st.info("⚡ **Motivasyon & Duygusal Denge:** Test sonuçlarınız kaydedildi.")
-    else:
-        st.warning("⚠️ Test sonuçları yüklenemedi.")
+else:
+    st.warning("⚠️ Test sonuçları yüklenemedi.")
 
 def display_time_management_analysis(user_data):
     """Zaman yönetimi analizi - Basit grafik gösterimi"""
     time_results = user_data.get('time_test_results', '')
     time_scores = user_data.get('time_test_scores', '')
-    
+
     if time_results and (time_scores or time_results):
         try:
             import plotly.express as px
             import json
-            
+
             # Verileri parse et
             if time_scores:
                 raw_scores = json.loads(time_scores.replace("'", '"'))
-                
+
                 # ADAPTIF VERİ İŞLEME - herhangi bir formattaki veriyi düzenli hale getir
                 planning_score = 0
                 procrastination_score = 0
@@ -18347,39 +18274,39 @@ def display_time_management_analysis(user_data):
                 priority_score = 0
                 discipline_score = 0
                 awareness_score = 0
-                
+
                 # Tüm anahtarları kontrol et ve kategorilere ayır
                 for key, value in raw_scores.items():
                     key_lower = key.lower()
-                    
+
                     # Planlama
                     if any(word in key_lower for word in ['planning', 'plan', 'organize', 'structure']):
                         planning_score += float(value)
-                    
-                    # Erteleme  
+
+                    # Erteleme
                     elif any(word in key_lower for word in ['procrastination', 'delay', 'postpone', 'erteleme']):
                         procrastination_score += float(value)
-                    
+
                     # Odak kontrolü
                     elif any(word in key_lower for word in ['focus', 'concentrate', 'attention', 'odak']):
                         focus_score += float(value)
-                    
+
                     # Zaman bilinci
                     elif any(word in key_lower for word in ['time_awareness', 'time', 'temporal', 'zaman']):
                         time_score += float(value)
-                    
+
                     # Öncelik yönetimi
                     elif any(word in key_lower for word in ['priority', 'prioritization', 'öncelik']):
                         priority_score += float(value)
-                    
+
                     # Disiplin
                     elif any(word in key_lower for word in ['discipline', 'disiplin', 'self_control', 'control']):
                         discipline_score += float(value)
-                    
+
                     # Öz-farkındalık
                     elif any(word in key_lower for word in ['self_awareness', 'awareness', 'farkındalık', 'conscious']):
                         awareness_score += float(value)
-                
+
                 # Eğer hiç puan bulunamadıysa default değerler
                 if all(score == 0 for score in [planning_score, procrastination_score, focus_score, time_score, priority_score]):
                     planning_score = 3.4
@@ -18387,7 +18314,7 @@ def display_time_management_analysis(user_data):
                     focus_score = 3.7
                     time_score = 3.1
                     priority_score = 3.5
-                
+
                 # Son format (discipline ve self_awareness isteğe bağlı)
                 scores_data = {
                     'planning': planning_score,
@@ -18396,31 +18323,31 @@ def display_time_management_analysis(user_data):
                     'time_awareness': time_score,
                     'priority_management': priority_score
                 }
-                
+
                 # Ek kategoriler varsa ekle
                 if discipline_score > 0:
                     scores_data['discipline'] = discipline_score
                 if awareness_score > 0:
                     scores_data['self_awareness'] = awareness_score
-                
-            else:
-                # Default değerler - test tamamlanmışsa
+
+else:
+    # Default değerler - test tamamlanmışsa
                 scores_data = {
                     'planning': 3.4, 'procrastination': 2.8, 'focus_control': 3.7,
                     'time_awareness': 3.1, 'priority_management': 3.5
                 }
-            
+
             # Verileri düzenle (Procrastination ters çevir)
             processed_scores = scores_data.copy()
             processed_scores['procrastination'] = 5 - processed_scores['procrastination']  # Erteleme kontrolü olarak göster
-            
+
             # Yüzdeleri hesapla
             total_score = sum(processed_scores.values())
             percentages = {key: (value/total_score)*100 for key, value in processed_scores.items()}
-            
+
             # En yüksek skoru bul
             max_category = max(processed_scores, key=processed_scores.get)
-            
+
             # Kategori bilgileri
             category_info = {
                 'planning': {
@@ -18429,7 +18356,7 @@ def display_time_management_analysis(user_data):
                     'color': '#FF6B6B'
                 },
                 'procrastination': {
-                    'name': 'Erteleme Kontrolü', 
+                    'name': 'Erteleme Kontrolü',
                     'icon': '⏱️',
                     'color': '#4ECDC4'
                 },
@@ -18459,15 +18386,15 @@ def display_time_management_analysis(user_data):
                     'color': '#A29BFE'
                 }
             }
-            
+
             dominant_info = category_info[max_category]
-            
+
             st.markdown("---")
             st.markdown(f"## {dominant_info['icon']} **{dominant_info['name']}** - Güçlü Yanınız!")
-            
+
             # Grafik bölümü
             col1, col2 = st.columns([2, 1])
-            
+
             with col1:
                 # Pie chart
                 fig = px.pie(
@@ -18483,16 +18410,16 @@ def display_time_management_analysis(user_data):
                     showlegend=True
                 )
                 safe_plotly_chart(fig, use_container_width=True)
-            
+
             with col2:
                 st.markdown("### 📈 Puan Detayları")
-                
+
                 for key, value in processed_scores.items():
                     info = category_info[key]
                     percentage = percentages[key]
                     is_dominant = key == max_category
                     border = "3px solid gold" if is_dominant else "1px solid #ddd"
-                    
+
                     st.markdown(f"""
                         <div style="
                             border: {border};
@@ -18507,11 +18434,11 @@ def display_time_management_analysis(user_data):
                             <small style="color: {info['color']};">({value:.1f}/5 puan)</small>
                         </div>
                     """, unsafe_allow_html=True)
-            
+
             # Baskın özellik açıklamaları
             st.markdown("---")
             st.markdown(f"### 🎯 **{dominant_info['name']}** Özellikleri")
-            
+
             time_profiles = {
                 'planning': {
                     'description': 'Zamanı planlama ve organize etme beceriniz güçlü.',
@@ -18549,28 +18476,28 @@ def display_time_management_analysis(user_data):
                     'study_tips': ['Çalışma günlüğü tutun', 'Haftalık analiz yapın', 'Eksiklikleri belirleyin', 'Kişisel gelişim planı oluşturun']
                 }
             }
-            
+
             # Güvenli profil erişimi
             profile = time_profiles.get(max_category, time_profiles['planning'])  # Planning'i fallback olarak kullan
             st.markdown(profile['description'])
-            
+
             col1, col2 = st.columns(2)
-            
+
             with col1:
                 st.markdown("#### 💪 Güçlü Yanlarınız")
                 for strength in profile['strengths']:
                     st.markdown(f"• {strength}")
-            
+
             with col2:
                 st.markdown("#### 📚 Çalışma Önerileriniz")
                 for tip in profile['study_tips']:
                     st.markdown(f"• {tip}")
-                    
+
         except Exception as e:
-            st.error(f"Zaman yönetimi analizi gösterilirken hata oluştu: {str(e)}")
+        st.error(f"Zaman yönetimi analizi gösterilirken hata oluştu: {str(e)}")
             st.info("⏰ **Zaman Yönetimi:** Test sonuçlarınız kaydedildi.")
-    else:
-        st.warning("⚠️ Test sonuçları yüklenemedi.")
+else:
+    st.warning("⚠️ Test sonuçları yüklenemedi.")
 
 def display_comprehensive_analysis(completed_tests, user_data):
     """4 testin kapsamlı genel analizi"""
@@ -18580,35 +18507,35 @@ def display_comprehensive_analysis(completed_tests, user_data):
         <p>Tamamladığınız testlerin birleşik analizi</p>
     </div>
     ''', unsafe_allow_html=True)
-    
+
     # Genel profil özeti
     st.markdown("### 📋 Genel Profiliniz")
-    
+
     profile_summary = []
-    
+
     # VAK analizi varsa ekle
     if 'vak' in completed_tests:
         dominant_style = user_data.get('learning_style', 'Belirtilmemiş')
         profile_summary.append(f"🎨 **Öğrenme Stili:** {dominant_style}")
-    
+
     # Diğer testlerin sonuçları
     if 'cognitive' in completed_tests:
         profile_summary.append("🧠 **Bilişsel Profil:** Tamamlandı")
-    
+
     if 'motivation' in completed_tests:
         profile_summary.append("⚡ **Motivasyon Analizi:** Tamamlandı")
-    
+
     if 'time' in completed_tests:
         profile_summary.append("⏰ **Zaman Yönetimi:** Tamamlandı")
-    
+
     for item in profile_summary:
         st.markdown(item)
-    
+
     # Kişiselleştirilmiş öneriler
     st.markdown("### 💡 Sizin İçin Kişiselleştirilmiş Öneriler")
-    
+
     recommendations = []
-    
+
     if 'vak' in completed_tests:
         dominant_style = user_data.get('learning_style', '')
         if dominant_style == 'Görsel':
@@ -18629,7 +18556,7 @@ def display_comprehensive_analysis(completed_tests, user_data):
                 "✍️ Önemli formülleri kağıda elle yazın",
                 "🏃 Çalışma aralarında kısa fiziksel aktiviteler yapın"
             ])
-    
+
     # Genel öneriler ekle
     if len(completed_tests) >= 3:
         recommendations.extend([
@@ -18637,10 +18564,10 @@ def display_comprehensive_analysis(completed_tests, user_data):
             "🎯 Güçlü yanlarınızı destekleyecek çalışma teknikleri kullanın",
             "⚖️ Zayıf yanlarınızı geliştirici aktivitelere zaman ayırın"
         ])
-    
+
     for rec in recommendations:
         st.markdown(f"• {rec}")
-    
+
     # Başarı takvimi önerisi
     st.markdown("### 📅 Önerilen Haftalık Çalışma Programı")
     st.info("🎯 Test sonuçlarınıza göre özelleştirilmiş haftalık program oluşturma özelliği yakında eklenecek!")
@@ -18653,18 +18580,18 @@ def display_test_reset_section(test_configs, user_data, completed_tests):
         <p>Test sonuçlarınızı görüntüleyebilir, değiştirebilir veya sıfırlayabilirsiniz.</p>
     </div>
     ''', unsafe_allow_html=True)
-    
+
     st.warning("⚠️ **Önemli:** Test sonuçlarını sıfırladığınızda ilgili verileriniz silinecek ve testleri yeniden yapmanız gerekecektir.")
-    
+
     # Her tamamlanmış test için yönetim seçenekleri
     for test in test_configs:
         if test['id'] in completed_tests:
             col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-            
+
             with col1:
                 st.markdown(f"**{test['icon']} {test['title']}**")
                 st.markdown(f"<small>{test['description'][:50]}...</small>", unsafe_allow_html=True)
-            
+
             with col2:
                 if st.button(f"📝 Değiştir", key=f"change_mgmt_{test['id']}", use_container_width=True):
                     # Test değiştirme sayfasına yönlendir
@@ -18676,22 +18603,22 @@ def display_test_reset_section(test_configs, user_data, completed_tests):
                         st.session_state.page = "⚡ Motivasyon & Duygu Testi"
                     elif test['id'] == 'time':
                         st.session_state.page = "⏰ Zaman Yönetimi Testi"
-                    st.rerun()
-            
+                st.rerun()
+
             with col3:
                 if st.button(f"🔄 Sıfırla", key=f"reset_{test['id']}", use_container_width=True):
                     st.session_state[f'confirm_reset_{test["id"]}'] = True
-                    st.rerun()
-            
+                st.rerun()
+
             with col4:
                 if st.button(f"👁️ Görüntüle", key=f"view_{test['id']}", use_container_width=True):
                     st.session_state[f'show_{test["id"]}_analysis'] = True
-                    st.rerun()
-            
+                st.rerun()
+
             # Onay dialogu
             if st.session_state.get(f'confirm_reset_{test["id"]}', False):
-                st.error(f"⚠️ **{test['title']}** sonuçlarını silmek istediğinizden emin misiniz?")
-                
+        st.error(f"⚠️ **{test['title']}** sonuçlarını silmek istediğinizden emin misiniz?")
+
                 col_a, col_b = st.columns(2)
                 with col_a:
                     if st.button(f"✅ Evet, Sil", key=f"confirm_delete_{test['id']}", type="primary"):
@@ -18700,7 +18627,7 @@ def display_test_reset_section(test_configs, user_data, completed_tests):
                         reset_data[test['data_key']] = ''
                         for key in test['related_keys']:
                             reset_data[key] = ''
-                        
+
                         # Firebase'de güncelle
                         if update_user_in_firebase(st.session_state.current_user, reset_data):
                             st.success(f"✅ {test['title']} sonuçları başarıyla silindi!")
@@ -18708,28 +18635,28 @@ def display_test_reset_section(test_configs, user_data, completed_tests):
                             for key in [f'confirm_reset_{test["id"]}', f'show_{test["id"]}_analysis']:
                                 if key in st.session_state:
                                     del st.session_state[key]
-                            st.rerun()
-                        else:
-                            st.error("❌ Silme işlemi başarısız!")
-                
+                st.rerun()
+else:
+    st.error("❌ Silme işlemi başarısız!")
+
                 with col_b:
                     if st.button(f"❌ İptal", key=f"cancel_delete_{test['id']}"):
                         del st.session_state[f'confirm_reset_{test["id"]}']
-                        st.rerun()
+                st.rerun()
 
 # ===== TEST FONKSİYONLARI =====
 
 def run_vak_learning_styles_test():
     """Modern VAK Öğrenme Stilleri Testi - Detaylı analiz ve öğretmen rehberi ile"""
-    
+
     # Ana menüye dön butonu
     if st.button("🏠 Ana Menüye Dön", key="back_to_main_vak"):
         if 'page' in st.session_state:
             del st.session_state.page
-        st.rerun()
-    
+                st.rerun()
+
     st.markdown("---")
-    
+
     # Modern CSS stilini ekle
     st.markdown("""
     <style>
@@ -18787,7 +18714,7 @@ def run_vak_learning_styles_test():
     }
     </style>
     """, unsafe_allow_html=True)
-    
+
     # Başlık
     st.markdown("""
     <div class="test-header">
@@ -18796,62 +18723,62 @@ def run_vak_learning_styles_test():
         <p><strong>📋 75 soru | 🎯 1-5 Likert Ölçeği | 🆕 2025 Güncel Versiyonu</strong></p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Test açıklaması
     st.markdown("""
     ### 📖 Test Hakkında
     Bu testte **doğru ya da yanlış cevap yoktur**. Her maddenin sizin için ne kadar geçerli olduğunu 1-5 arasında değerlendirin.
-    
+
     **🎯 Kategoriler:**
     - **A Kategorisi**: Görsel Öğrenme Stili (25 soru)
-    - **B Kategorisi**: İşitsel Öğrenme Stili (25 soru) 
+    - **B Kategorisi**: İşitsel Öğrenme Stili (25 soru)
     - **C Kategorisi**: Kinestetik Öğrenme Stili (25 soru)
-    
+
     **🆕 2025 Yılı Güncellemesi**: Bu yıl eklenen 15 yeni soru ile modern öğrenme alışkanlıklarınızı daha iyi analiz ediyoruz!
     """)
-    
+
     # Likert ölçeği açıklaması
     st.markdown("""
     <div class="likert-info">
         <strong>📏 Değerlendirme Ölçeği:</strong><br>
-        <strong>1 = Hiç katılmıyorum</strong> | 
-        <strong>2 = Katılmıyorum</strong> | 
-        <strong>3 = Kararsızım</strong> | 
-        <strong>4 = Katılıyorum</strong> | 
+        <strong>1 = Hiç katılmıyorum</strong> |
+        <strong>2 = Katılmıyorum</strong> |
+        <strong>3 = Kararsızım</strong> |
+        <strong>4 = Katılıyorum</strong> |
         <strong>5 = Tamamen katılıyorum</strong>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Test formunu başlat
     with st.form("vak_test_form"):
         user_data = get_user_data()
         existing_results_raw = user_data.get('vak_test_results', '{}')
-        
+
         # JSON string ise parse et, değilse dict olarak kullan
         if isinstance(existing_results_raw, str):
             try:
                 existing_results = json.loads(existing_results_raw)
             except:
                 existing_results = {}
-        else:
-            existing_results = existing_results_raw
-        
+else:
+    existing_results = existing_results_raw
+
         # A Kategorisi soruları
         st.markdown('<div class="category-section">👁️ A KATEGORİSİ - GÖRSEL ÖĞRENME STİLİ</div>', unsafe_allow_html=True)
-        
+
         a_responses = {}
         a_questions = [q for q in VAK_LEARNING_STYLES_TEST if q['category'] == 'A']
-        
+
         for i, question in enumerate(a_questions):
             question_key = f"A_{i+1}"
             default_value = existing_results.get(question_key, 3)  # Default: Kararsızım
-            
+
             st.markdown(f"""
             <div class="question-box">
                 <div class="question-text">A{i+1}. {question["question"]}</div>
             </div>
             """, unsafe_allow_html=True)
-            
+
             a_responses[question_key] = st.select_slider(
                 f"A{i+1} - Değerlendirmeniz:",
                 options=[1, 2, 3, 4, 5],
@@ -18859,29 +18786,29 @@ def run_vak_learning_styles_test():
                 key=question_key,
                 format_func=lambda x: {
                     1: "1 - Hiç katılmıyorum",
-                    2: "2 - Katılmıyorum", 
+                    2: "2 - Katılmıyorum",
                     3: "3 - Kararsızım",
                     4: "4 - Katılıyorum",
                     5: "5 - Tamamen katılıyorum"
                 }[x]
             )
-        
+
         # B Kategorisi soruları
         st.markdown('<div class="category-section">👂 B KATEGORİSİ - İŞİTSEL ÖĞRENME STİLİ</div>', unsafe_allow_html=True)
-        
+
         b_responses = {}
         b_questions = [q for q in VAK_LEARNING_STYLES_TEST if q['category'] == 'B']
-        
+
         for i, question in enumerate(b_questions):
             question_key = f"B_{i+1}"
             default_value = existing_results.get(question_key, 3)  # Default: Kararsızım
-            
+
             st.markdown(f"""
             <div class="question-box">
                 <div class="question-text">B{i+1}. {question["question"]}</div>
             </div>
             """, unsafe_allow_html=True)
-            
+
             b_responses[question_key] = st.select_slider(
                 f"B{i+1} - Değerlendirmeniz:",
                 options=[1, 2, 3, 4, 5],
@@ -18889,29 +18816,29 @@ def run_vak_learning_styles_test():
                 key=question_key,
                 format_func=lambda x: {
                     1: "1 - Hiç katılmıyorum",
-                    2: "2 - Katılmıyorum", 
+                    2: "2 - Katılmıyorum",
                     3: "3 - Kararsızım",
                     4: "4 - Katılıyorum",
                     5: "5 - Tamamen katılıyorum"
                 }[x]
             )
-        
+
         # C Kategorisi soruları
         st.markdown('<div class="category-section">✋ C KATEGORİSİ - KİNESTETİK ÖĞRENME STİLİ</div>', unsafe_allow_html=True)
-        
+
         c_responses = {}
         c_questions = [q for q in VAK_LEARNING_STYLES_TEST if q['category'] == 'C']
-        
+
         for i, question in enumerate(c_questions):
             question_key = f"C_{i+1}"
             default_value = existing_results.get(question_key, 3)  # Default: Kararsızım
-            
+
             st.markdown(f"""
             <div class="question-box">
                 <div class="question-text">C{i+1}. {question["question"]}</div>
             </div>
             """, unsafe_allow_html=True)
-            
+
             c_responses[question_key] = st.select_slider(
                 f"C{i+1} - Değerlendirmeniz:",
                 options=[1, 2, 3, 4, 5],
@@ -18919,44 +18846,44 @@ def run_vak_learning_styles_test():
                 key=question_key,
                 format_func=lambda x: {
                     1: "1 - Hiç katılmıyorum",
-                    2: "2 - Katılmıyorum", 
+                    2: "2 - Katılmıyorum",
                     3: "3 - Kararsızım",
                     4: "4 - Katılıyorum",
                     5: "5 - Tamamen katılıyorum"
                 }[x]
             )
-        
+
         # Test sonuçlarını hesapla ve kaydet
         if st.form_submit_button("🎯 Testi Değerlendir", type="primary", use_container_width=True):
             # Bilimsel puanlama sistemi (1-5 Likert ölçeği)
             # Her kategori için ortalama puan hesapla
             a_score = sum(a_responses.values()) / len(a_responses) if a_responses else 0
-            b_score = sum(b_responses.values()) / len(b_responses) if b_responses else 0  
+            b_score = sum(b_responses.values()) / len(b_responses) if b_responses else 0
             c_score = sum(c_responses.values()) / len(c_responses) if c_responses else 0
-            
+
             # Toplam puan ve yüzdelik hesaplama
             total_score = a_score + b_score + c_score
-            
+
             if total_score > 0:
                 a_percentage = (a_score / total_score) * 100
                 b_percentage = (b_score / total_score) * 100
                 c_percentage = (c_score / total_score) * 100
-            else:
-                a_percentage = b_percentage = c_percentage = 33.33
-            
+else:
+    a_percentage = b_percentage = c_percentage = 33.33
+
             # Baskın öğrenme stilini belirle
             scores = {
                 'Görsel': (a_score, a_percentage),
-                'İşitsel': (b_score, b_percentage), 
+                'İşitsel': (b_score, b_percentage),
                 'Kinestetik': (c_score, c_percentage)
             }
-            
+
             # En yüksek puanı bul
             dominant_style = max(scores.keys(), key=lambda k: scores[k][0])
-            
+
             # Sonuçları birleştir
             all_responses = {**a_responses, **b_responses, **c_responses}
-            
+
             # Veritabanına kaydet - Hem eski hem yeni field isimleri
             update_user_in_firebase(st.session_state.current_user, {
                 'vak_test_results': json.dumps(all_responses),
@@ -18968,7 +18895,7 @@ def run_vak_learning_styles_test():
                 }),
                 'vak_test_scores': json.dumps({
                     'A_score': a_score,
-                    'B_score': b_score, 
+                    'B_score': b_score,
                     'C_score': c_score,
                     'A_percentage': a_percentage,
                     'B_percentage': b_percentage,
@@ -18977,57 +18904,54 @@ def run_vak_learning_styles_test():
                 }),
                 'vak_test_completed': 'True'
             })
-            
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-            
-            # Sonuçları göster
+
+        # Sonuçları göster
             st.markdown('<div class="result-box">', unsafe_allow_html=True)
             st.markdown("## 🎉 VAK Öğrenme Stilleri Test Sonuçlarınız")
-            
+
             # Puanlar ve yüzdeler
             col1, col2, col3 = st.columns(3)
-            
+
             with col1:
-                st.metric("👁️ GÖRSEL ÖĞRENME", 
-                         f"{a_score:.2f}/5.00", 
+                st.metric("👁️ GÖRSEL ÖĞRENME",
+                         f"{a_score:.2f}/5.00",
                          f"%{a_percentage:.1f}")
             with col2:
-                st.metric("👂 İŞİTSEL ÖĞRENME", 
-                         f"{b_score:.2f}/5.00", 
-                         f"%{b_percentage:.1f}") 
+                st.metric("👂 İŞİTSEL ÖĞRENME",
+                         f"{b_score:.2f}/5.00",
+                         f"%{b_percentage:.1f}")
             with col3:
-                st.metric("✋ KİNESTETİK ÖĞRENME", 
-                         f"{c_score:.2f}/5.00", 
+                st.metric("✋ KİNESTETİK ÖĞRENME",
+                         f"{c_score:.2f}/5.00",
                          f"%{c_percentage:.1f}")
-            
+
             st.markdown("---")
             st.markdown(f"## 🏆 Baskın Öğrenme Stiliniz: **{dominant_style.upper()}**")
-            
+
             # Detaylı öğrenme stili analizi ve modern öneriler
             display_modern_vak_analysis(dominant_style, a_percentage, b_percentage, c_percentage)
-            
+
             # Öğretmen rehberi bölümü
             display_teacher_guide_section(dominant_style)
-            
+
             # Gelişmiş çalışma teknikleri
             display_advanced_study_techniques(dominant_style)
-            
+
             st.markdown('</div>', unsafe_allow_html=True)
-            
+
             st.success("✅ Test sonuçlarınız kaydedildi!")
 
 def run_cognitive_profile_test():
     """Bilişsel Profil Testi - 20 soru (Likert 1-5)"""
-    
+
     # Ana menüye dön butonu
     if st.button("🏠 Ana Menüye Dön", key="back_to_main_cognitive"):
         if 'page' in st.session_state:
             del st.session_state.page
-        st.rerun()
-    
+                st.rerun()
+
     st.markdown("---")
-    
+
     # Modern CSS stilini ekle ve metin görünürlük sorunu için css ekle
     st.markdown("""
     <style>
@@ -19081,7 +19005,7 @@ def run_cognitive_profile_test():
     }
     </style>
     """, unsafe_allow_html=True)
-    
+
     # Başlık
     st.markdown("""
     <div class="cognitive-header">
@@ -19090,36 +19014,36 @@ def run_cognitive_profile_test():
         <p><strong>📋 20 soru | 🎯 1-5 arası puanlama</strong></p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Test açıklaması
     st.markdown("""
     ### 🔬 Test Hakkında
     Bu test **4 ana boyutta** bilişsel profilinizi analiz eder:
-    
-    🔬 **Bilişsel İşleme Stili** - Bilgiyi nasıl işliyorsunuz?  
-    ⚡ **Motivasyon & Duygusal Stil** - Neyin sizi motive ettiği  
-    🔍 **Problem Çözme Yaklaşımı** - Zorluklarla nasıl başa çıktığınız  
-    💾 **Hafıza & Pekiştirme Tarzı** - Bilgiyi nasıl sakladığınız  
-    
+
+    🔬 **Bilişsel İşleme Stili** - Bilgiyi nasıl işliyorsunuz?
+    ⚡ **Motivasyon & Duygusal Stil** - Neyin sizi motive ettiği
+    🔍 **Problem Çözme Yaklaşımı** - Zorluklarla nasıl başa çıktığınız
+    💾 **Hafıza & Pekiştirme Tarzı** - Bilgiyi nasıl sakladığınız
+
     **Puanlama:** 1 = Hiç uymuyor, 5 = Tamamen uyuyor
     """)
-    
+
     # Test formunu başlat
     with st.form("cognitive_test_form"):
         user_data = get_user_data()
         existing_results_raw = user_data.get('cognitive_test_results', {})
-        
+
         # JSON string ise parse et, dict ise direkt kullan
         if isinstance(existing_results_raw, str):
             try:
                 existing_results = json.loads(existing_results_raw)
             except (json.JSONDecodeError, TypeError):
                 existing_results = {}
-        else:
-            existing_results = existing_results_raw if isinstance(existing_results_raw, dict) else {}
-        
+else:
+    existing_results = existing_results_raw if isinstance(existing_results_raw, dict) else {}
+
         responses = {}
-        
+
         # Bölümlere göre soruları grupla
         sections = {}
         for question in COGNITIVE_PROFILE_TEST:
@@ -19127,17 +19051,17 @@ def run_cognitive_profile_test():
             if section not in sections:
                 sections[section] = []
             sections[section].append(question)
-        
+
         # Her bölüm için soruları göster
         for section_name, questions in sections.items():
             st.markdown(f'<div class="section-header">{section_name}</div>', unsafe_allow_html=True)
-            
+
             for i, question in enumerate(questions):
                 question_key = f"{question['category']}_{i}"
                 default_value = existing_results.get(question_key, 3)
-                
+
                 st.markdown(f'<div class="cognitive-question">{question["question"]}</div>', unsafe_allow_html=True)
-                
+
                 # Likert scale slider
                 responses[question_key] = st.slider(
                     "Değerlendirme",
@@ -19148,7 +19072,7 @@ def run_cognitive_profile_test():
                     help="1 = Hiç uymuyor, 5 = Tamamen uyuyor",
                     label_visibility="collapsed"
                 )
-                
+
                 # Açıklama metni
                 col1, col2, col3 = st.columns([1, 3, 1])
                 with col1:
@@ -19157,14 +19081,14 @@ def run_cognitive_profile_test():
                     st.caption("")
                 with col3:
                     st.caption("Tamamen uyuyor")
-                
+
                 st.markdown("---")
-        
+
         # Test sonuçlarını hesapla ve kaydet
         if st.form_submit_button("🎯 Testi Değerlendir", type="primary", use_container_width=True):
             # Kategorilere göre puanları hesapla
             category_scores = {}
-            
+
             for question_key, score in responses.items():
                 # İlgili soruyu bul
                 for question in COGNITIVE_PROFILE_TEST:
@@ -19174,29 +19098,26 @@ def run_cognitive_profile_test():
                             category_scores[category] = []
                         category_scores[category].append(score)
                         break
-            
+
             # Ortalama puanları hesapla
             average_scores = {}
             for category, scores in category_scores.items():
                 average_scores[category] = sum(scores) / len(scores)
-            
+
             # Veritabanına kaydet
             update_user_in_firebase(st.session_state.current_user, {
                 'cognitive_test_results': json.dumps(responses),
                 'cognitive_test_scores': json.dumps(average_scores),
                 'cognitive_test_completed': 'True'
             })
-            
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-            
-            # Sonuçları göster
+
+        # Sonuçları göster
             st.markdown('<div class="cognitive-result">', unsafe_allow_html=True)
             st.markdown("## 🎉 Bilişsel Profil Sonuçlarınız")
-            
+
             # Sonuçları görselleştir
             col1, col2 = st.columns(2)
-            
+
             with col1:
                 st.markdown("### 📊 Puanlarınız")
                 for category, score in average_scores.items():
@@ -19225,50 +19146,50 @@ def run_cognitive_profile_test():
                         display_name = "✋ Deneyimsel Hafıza"
                     elif 'analytic' in category:
                         display_name = "📖 Analitik Hafıza"
-                    else:
-                        display_name = category
-                    
+else:
+    display_name = category
+
                     st.metric(display_name, f"{score:.1f}/5")
-            
+
             with col2:
                 st.markdown("### 🎯 YKS İçin Öneriler")
-                
+
                 # En yüksek puanları bul ve önerilerde bulun
                 max_categories = [k for k, v in average_scores.items() if v == max(average_scores.values())]
-                
+
                 if any('analytic' in cat for cat in max_categories):
                     st.info("📊 **Analitik yapınız güçlü:** Düzenli çalışma planları ve aşama aşama öğrenme size uygun!")
-                    
+
                 if any('synthetic' in cat for cat in max_categories):
                     st.info("🎨 **Bütüncül bakış açınız güçlü:** Kavram haritaları ve genel resmi görme yaklaşımları size uygun!")
-                    
+
                 if any('external' in cat for cat in max_categories):
                     st.info("🏆 **Dışsal motivasyon:** Hedef koyma, ödül sistemi ve rekabet size enerji verir!")
-                    
+
                 if any('internal' in cat for cat in max_categories):
                     st.info("💫 **İçsel motivasyon:** İlginizi çeken konulardan başlayın, merak duygusu size güç verir!")
-                    
+
                 if any('methodic' in cat for cat in max_categories):
                     st.info("📋 **Sistematik yaklaşım:** Adım adım planlar ve düzenli tekrarlar size uygun!")
-                    
+
                 if any('experimental' in cat for cat in max_categories):
                     st.info("🔬 **Deneyimsel öğrenme:** Bol soru çözümü ve pratik uygulamalar size uygun!")
-            
+
             st.markdown('</div>', unsafe_allow_html=True)
-            
+
             st.success("✅ Bilişsel profil sonuçlarınız kaydedildi!")
 
 def run_motivation_emotional_test():
     """Motivasyon & Duygusal Denge Testi - 10 soru (Likert 1-5)"""
-    
+
     # Ana menüye dön butonu
     if st.button("🏠 Ana Menüye Dön", key="back_to_main_motivation"):
         if 'page' in st.session_state:
             del st.session_state.page
-        st.rerun()
-    
+                st.rerun()
+
     st.markdown("---")
-    
+
     # CSS stilini ekle ve metin görünürlük sorunu için css ekle
     st.markdown("""
     <style>
@@ -19305,7 +19226,7 @@ def run_motivation_emotional_test():
     }
     </style>
     """, unsafe_allow_html=True)
-    
+
     # Başlık
     st.markdown("""
     <div class="motivation-header">
@@ -19314,43 +19235,43 @@ def run_motivation_emotional_test():
         <p><strong>📋 10 soru | 🎯 1-5 arası puanlama</strong></p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Test açıklaması
     st.markdown("""
     ### 🔬 Test Hakkında
     Bu test **4 ana boyutta** motivasyon ve duygusal profilinizi analiz eder:
-    
-    💫 **İçsel Motivasyon** - Öğrenme sürecinden zevk alma  
-    🏆 **Dışsal Motivasyon** - Harici ödül ve takdir arayışı  
-    😰 **Sınav Kaygısı** - Performans kaygısı ve stres düzeyi  
-    💪 **Duygusal Dayanıklılık** - Zorluklarla başa çıkma kapasitesi  
-    
+
+    💫 **İçsel Motivasyon** - Öğrenme sürecinden zevk alma
+    🏆 **Dışsal Motivasyon** - Harici ödül ve takdir arayışı
+    😰 **Sınav Kaygısı** - Performans kaygısı ve stres düzeyi
+    💪 **Duygusal Dayanıklılık** - Zorluklarla başa çıkma kapasitesi
+
     **Puanlama:** 1 = Hiç katılmıyorum, 5 = Tamamen katılıyorum
     """)
-    
+
     # Test formunu başlat
     with st.form("motivation_test_form"):
         user_data = get_user_data()
         existing_results_raw = user_data.get('motivation_test_results', {})
-        
+
         # JSON string ise parse et, dict ise direkt kullan
         if isinstance(existing_results_raw, str):
             try:
                 existing_results = json.loads(existing_results_raw)
             except (json.JSONDecodeError, TypeError):
                 existing_results = {}
-        else:
-            existing_results = existing_results_raw if isinstance(existing_results_raw, dict) else {}
-        
+else:
+    existing_results = existing_results_raw if isinstance(existing_results_raw, dict) else {}
+
         responses = {}
-        
+
         # Soru sayısını takip et
         for i, question in enumerate(MOTIVATION_EMOTIONAL_TEST):
             question_key = f"motivation_{i+1}"
             default_value = existing_results.get(question_key, 3)
-            
+
             st.markdown(f'<div class="motivation-question">{i+1}. {question["question"]}</div>', unsafe_allow_html=True)
-            
+
             # Likert scale slider
             responses[question_key] = st.select_slider(
                 f"Soru {i+1} - Değerlendirmeniz:",
@@ -19359,14 +19280,14 @@ def run_motivation_emotional_test():
                 key=question_key,
                 format_func=lambda x: {
                     1: "1 - Hiç katılmıyorum",
-                    2: "2 - Katılmıyorum", 
+                    2: "2 - Katılmıyorum",
                     3: "3 - Kararsızım",
                     4: "4 - Katılıyorum",
                     5: "5 - Tamamen katılıyorum"
                 }[x]
             )
             st.markdown("---")
-        
+
         # Test sonuçlarını hesapla ve kaydet
         if st.form_submit_button("🎯 Testi Değerlendir", type="primary", use_container_width=True):
             # Kategorilere göre puanları hesapla
@@ -19376,81 +19297,78 @@ def run_motivation_emotional_test():
                 'test_anxiety': [],
                 'emotional_resilience': []
             }
-            
+
             for i, question in enumerate(MOTIVATION_EMOTIONAL_TEST):
                 question_key = f"motivation_{i+1}"
                 score = responses[question_key]
                 category = question['category']
                 category_scores[category].append(score)
-            
+
             # Ortalama puanları hesapla
             average_scores = {}
             for category, scores in category_scores.items():
                 if scores:
                     average_scores[category] = sum(scores) / len(scores)
-                else:
-                    average_scores[category] = 0
-            
+else:
+    average_scores[category] = 0
+
             # Veritabanına kaydet
             update_user_in_firebase(st.session_state.current_user, {
                 'motivation_test_results': json.dumps(responses),
                 'motivation_test_scores': json.dumps(average_scores),
                 'motivation_test_completed': 'True'
             })
-            
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-            
-            # Sonuçları göster
+
+        # Sonuçları göster
             st.markdown('<div class="motivation-result">', unsafe_allow_html=True)
             st.markdown("## 🎉 Motivasyon & Duygusal Denge Sonuçlarınız")
-            
+
             # Sonuçları görselleştir
             col1, col2 = st.columns(2)
-            
+
             with col1:
                 st.markdown("### 📋 Puanlarınız")
                 st.metric("💫 İçsel Motivasyon", f"{average_scores['internal_motivation']:.1f}/5")
                 st.metric("🏆 Dışsal Motivasyon", f"{average_scores['external_motivation']:.1f}/5")
                 st.metric("😰 Sınav Kaygısı", f"{average_scores['test_anxiety']:.1f}/5")
                 st.metric("💪 Duygusal Dayanıklılık", f"{average_scores['emotional_resilience']:.1f}/5")
-            
+
             with col2:
                 st.markdown("### 🎯 YKS İçin Öneriler")
-                
+
                 # En yüksek motivasyon türünü bul
                 if average_scores['internal_motivation'] > average_scores['external_motivation']:
                     st.info("💫 **İçsel motivasyon baskın:** Merak ettiğiniz konulardan başlayın, öğrenme zevkini öne çıkarın!")
-                else:
-                    st.info("🏆 **Dışsal motivasyon baskın:** Hedefler koyun, ödül sistemi oluşturun, rekabet size enerji verir!")
-                
+else:
+    st.info("🏆 **Dışsal motivasyon baskın:** Hedefler koyun, ödül sistemi oluşturun, rekabet size enerji verir!")
+
                 # Kaygı dürzeyine göre öneri
                 if average_scores['test_anxiety'] >= 3.5:
                     st.warning("⚠️ **Yüksek kaygı düzeyi:** Nefes egzersizleri, planlama ve simulation sınavları kaygınızı azaltabilir.")
                 elif average_scores['test_anxiety'] <= 2.5:
                     st.success("✅ **Düşük kaygı düzeyi:** Harika! Bu avantajınızı koruyun ve performansınıza odaklanın.")
-                
+
                 # Dayanıklılık durumuna göre öneri
                 if average_scores['emotional_resilience'] >= 4.0:
                     st.success("💪 **Yüksek dayanıklılık:** Zor konularda ısrarcı olun, bu gücünüz YKS'de büyük avantaj!")
-                else:
-                    st.info("🌱 **Dayanıklılık geliştirme:** Küçük başarıları kutlayın, kısa vadeli hedefler koyun.")
-            
+else:
+    st.info("🌱 **Dayanıklılık geliştirme:** Küçük başarıları kutlayın, kısa vadeli hedefler koyun.")
+
             st.markdown('</div>', unsafe_allow_html=True)
-            
+
             st.success("✅ Motivasyon & duygusal denge sonuçlarınız kaydedildi!")
 
 def run_time_management_test():
     """Zaman Yönetimi & Çalışma Alışkanlığı Testi - 10 soru (Likert 1-5)"""
-    
+
     # Ana menüye dön butonu
     if st.button("🏠 Ana Menüye Dön", key="back_to_main_time"):
         if 'page' in st.session_state:
             del st.session_state.page
-        st.rerun()
-    
+                st.rerun()
+
     st.markdown("---")
-    
+
     # CSS stilini ekle ve metin görünürlük sorunu için css ekle
     st.markdown("""
     <style>
@@ -19487,7 +19405,7 @@ def run_time_management_test():
     }
     </style>
     """, unsafe_allow_html=True)
-    
+
     # Başlık
     st.markdown("""
     <div class="time-header">
@@ -19496,43 +19414,43 @@ def run_time_management_test():
         <p><strong>📋 10 soru | 🎯 1-5 arası puanlama</strong></p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Test açıklaması
     st.markdown("""
     ### 🔬 Test Hakkında
     Bu test **4 ana boyutta** zaman yönetimi profilinizi analiz eder:
-    
-    📋 **Planlama & Disiplin** - Hedef belirleme ve planlı çalışma  
-    ⏰ **Erteleme & Son Dakikacılık** - Procastination eğilimi  
-    🎯 **Odak & Dikkat Yönetimi** - Konsantrasyon süresi ve mola dengesi  
-    🧠 **Öz Farkındalık** - Verimli zaman dilimlerini tanıma  
-    
+
+    📋 **Planlama & Disiplin** - Hedef belirleme ve planlı çalışma
+    ⏰ **Erteleme & Son Dakikacılık** - Procastination eğilimi
+    🎯 **Odak & Dikkat Yönetimi** - Konsantrasyon süresi ve mola dengesi
+    🧠 **Öz Farkındalık** - Verimli zaman dilimlerini tanıma
+
     **Puanlama:** 1 = Hiç katılmıyorum, 5 = Tamamen katılıyorum
     """)
-    
+
     # Test formunu başlat
     with st.form("time_management_test_form"):
         user_data = get_user_data()
         existing_results_raw = user_data.get('time_test_results', {})
-        
+
         # JSON string ise parse et, dict ise direkt kullan
         if isinstance(existing_results_raw, str):
             try:
                 existing_results = json.loads(existing_results_raw)
             except (json.JSONDecodeError, TypeError):
                 existing_results = {}
-        else:
-            existing_results = existing_results_raw if isinstance(existing_results_raw, dict) else {}
-        
+else:
+    existing_results = existing_results_raw if isinstance(existing_results_raw, dict) else {}
+
         responses = {}
-        
+
         # Soru sayısını takip et
         for i, question in enumerate(TIME_MANAGEMENT_TEST):
             question_key = f"time_{i+1}"
             default_value = existing_results.get(question_key, 3)
-            
+
             st.markdown(f'<div class="time-question">{i+1}. {question["question"]}</div>', unsafe_allow_html=True)
-            
+
             # Likert scale slider
             responses[question_key] = st.select_slider(
                 f"Soru {i+1} - Değerlendirmeniz:",
@@ -19541,14 +19459,14 @@ def run_time_management_test():
                 key=question_key,
                 format_func=lambda x: {
                     1: "1 - Hiç katılmıyorum",
-                    2: "2 - Katılmıyorum", 
+                    2: "2 - Katılmıyorum",
                     3: "3 - Kararsızım",
                     4: "4 - Katılıyorum",
                     5: "5 - Tamamen katılıyorum"
                 }[x]
             )
             st.markdown("---")
-        
+
         # Test sonuçlarını hesapla ve kaydet
         if st.form_submit_button("🎯 Testi Değerlendir", type="primary", use_container_width=True):
             # Kategorilere göre puanları hesapla
@@ -19559,38 +19477,35 @@ def run_time_management_test():
                 'discipline': [],
                 'self_awareness': []
             }
-            
+
             for i, question in enumerate(TIME_MANAGEMENT_TEST):
                 question_key = f"time_{i+1}"
                 score = responses[question_key]
                 category = question['category']
                 category_scores[category].append(score)
-            
+
             # Ortalama puanları hesapla
             average_scores = {}
             for category, scores in category_scores.items():
                 if scores:
                     average_scores[category] = sum(scores) / len(scores)
-                else:
-                    average_scores[category] = 0
-            
+else:
+    average_scores[category] = 0
+
             # Veritabanına kaydet
             update_user_in_firebase(st.session_state.current_user, {
                 'time_test_results': json.dumps(responses),
                 'time_test_scores': json.dumps(average_scores),
                 'time_test_completed': 'True'
             })
-            
-        # Cache sistemi main() fonksiyonunda çalışıyor
-        pass
-            
-            # Sonuçları göster
+
+        # Sonuçları göster
             st.markdown('<div class="time-result">', unsafe_allow_html=True)
             st.markdown("## 🎉 Zaman Yönetimi Sonuçlarınız")
-            
+
             # Sonuçları görselleştir
             col1, col2 = st.columns(2)
-            
+
             with col1:
                 st.markdown("### 📋 Puanlarınız")
                 st.metric("📋 Planlama", f"{average_scores['planning']:.1f}/5")
@@ -19598,34 +19513,34 @@ def run_time_management_test():
                 st.metric("🎯 Odak Kontrolü", f"{average_scores['focus_control']:.1f}/5")
                 st.metric("💪 Disiplin", f"{average_scores['discipline']:.1f}/5")
                 st.metric("🧠 Öz Farkındalık", f"{average_scores['self_awareness']:.1f}/5")
-            
+
             with col2:
                 st.markdown("### 🎯 YKS İçin Öneriler")
-                
+
                 # Zaman yönetimi profilini belirle
                 planning_score = average_scores['planning']
                 procrastination_score = average_scores['procrastination']
                 focus_score = average_scores['focus_control']
-                
+
                 if planning_score >= 4.0:
                     st.success("📋 **Mükemmel planlama:** Mevcut sisteminizi koruyun, sadece ince ayar yapın!")
                 elif planning_score >= 3.0:
                     st.info("📊 **Orta düzey planlama:** Haftalık detaylı planlar yapın, günlük revizyon ekleyin.")
-                else:
-                    st.warning("⚠️ **Planlama geliştirme:** Küçük başlayın - önce günlük, sonra haftalık planlar.")
-                
+else:
+    st.warning("⚠️ **Planlama geliştirme:** Küçük başlayın - önce günlük, sonra haftalık planlar.")
+
                 if procrastination_score >= 3.5:
                     st.warning("⏰ **Yüksek erteleme:** Pomodoro tekniği (25+5 dk) ve küçük hedefler size yardımcı olur.")
-                else:
-                    st.success("✅ **Düşük erteleme:** Harika! Bu disiplini koruyun.")
-                
+else:
+    st.success("✅ **Düşük erteleme:** Harika! Bu disiplini koruyun.")
+
                 if focus_score <= 2.5:
                     st.info("🎯 **Odak geliştirme:** Telefonunu başka odaya koy, 20 dk odaklanma + 5 dk mola döngülünü dene.")
-                else:
-                    st.success("🎯 **İyi odak:** Mevcut odak sürenizi optimum şekilde kullanın.")
-            
+else:
+    st.success("🎯 **İyi odak:** Mevcut odak sürenizi optimum şekilde kullanın.")
+
             st.markdown('</div>', unsafe_allow_html=True)
-            
+
             st.success("✅ Zaman yönetimi sonuçlarınız kaydedildi!")
 
 # ===== YENİ: GELECEKTEKİ HAFTA BONUS KONULARI SİSTEMİ =====
@@ -19634,7 +19549,7 @@ def get_weak_topics_for_subject(user_data, subject):
     """Belirli bir ders için zayıf konuları getirir"""
     try:
         topic_progress = json.loads(user_data.get('topic_progress', '{}'))
-        
+
         # Basit zayıf konu listesi (genişletilebilir)
         weak_topics_map = {
             "TYT Matematik": [
@@ -19669,17 +19584,17 @@ def get_weak_topics_for_subject(user_data, subject):
                 {"topic": "Ses Bilgisi", "detail": "Ses Olayları", "net": 0}
             ]
         }
-        
+
         # Eğer ders mevcutsa konuları döndür
         if subject in weak_topics_map:
             return weak_topics_map[subject]
-        else:
-            # Varsayılan konular
+else:
+    # Varsayılan konular
             return [
                 {"topic": "Temel Konular", "detail": "Başlangıç Seviyesi", "net": 0},
                 {"topic": "Orta Konular", "detail": "Gelişim Seviyesi", "net": 0}
             ]
-            
+
     except Exception as e:
         return [{"topic": "Genel Konu", "detail": "Genel Tekrar", "net": 0}]
 
@@ -19689,11 +19604,11 @@ def get_user_dynamic_week_info(user_data):
     """🔁 Kullanıcı kayıt tarihinden itibaren dinamik hafta ve gün bilgisini hesaplar"""
     from datetime import datetime, timedelta
     import json
-    
+
     try:
         # Kullanıcının kayıt tarihini al
         registration_date = None
-        
+
         # Önce created_at alanını kontrol et (ISO format)
         if 'created_at' in user_data and user_data['created_at']:
             try:
@@ -19702,45 +19617,45 @@ def get_user_dynamic_week_info(user_data):
                 registration_date = datetime.strptime(date_str, '%Y-%m-%d')
             except:
                 pass
-        
+
         # Eğer created_at yoksa created_date kontrol et (eski format)
         if not registration_date and 'created_date' in user_data and user_data['created_date']:
             try:
                 if len(user_data['created_date']) > 10:  # Saat bilgisi de varsa
                     date_str = user_data['created_date'][:10]  # Sadece tarih kısmını al
-                else:
-                    date_str = user_data['created_date']
+else:
+    date_str = user_data['created_date']
                 registration_date = datetime.strptime(date_str, '%Y-%m-%d')
             except:
                 pass
-        
+
         # Eğer hiçbir tarih bulunamazsa bugünü kayıt tarihi olarak kabul et
         if not registration_date:
             registration_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        
+
         # Bugünün tarihini al
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        
+
         # Kayıt tarihinden bu yana geçen gün sayısı
         days_since_registration = (today - registration_date).days
-        
+
         # 7 günlük döngülerde hangi hafta ve gün
         current_week = (days_since_registration // 7) + 1  # 1. hafta, 2. hafta...
         current_day_in_week = (days_since_registration % 7) + 1  # Haftanın 1-7. günü
-        
+
         # 🔥 TAMAMEN YENİ FİX: Hafta başlangıcını BUGÜNDEN geriye hesapla (gerçek takvim!)
         week_start_date = today - timedelta(days=current_day_in_week - 1)
         week_end_date = week_start_date + timedelta(days=6)
-        
+
         # Bu haftada kalan gün sayısı
         days_left_in_week = 7 - current_day_in_week + 1
-        
+
         # Türkçe gün çevirisi
         day_translation = {
             'Monday': 'Pazartesi', 'Tuesday': 'Salı', 'Wednesday': 'Çarşamba',
             'Thursday': 'Perşembe', 'Friday': 'Cuma', 'Saturday': 'Cumartesi', 'Sunday': 'Pazar'
         }
-        
+
         # 🔥 FİX: Her gün için GERÇEK takvim gününü hesapla (kayıt tarihinden itibaren)
         turkish_weekdays = []
         for day_offset in range(7):
@@ -19749,11 +19664,11 @@ def get_user_dynamic_week_info(user_data):
             day_name_english = actual_date.strftime('%A')
             day_name_turkish = day_translation.get(day_name_english, day_name_english)
             turkish_weekdays.append(day_name_turkish)
-        
+
         # Bugünün gerçek gün ismini al
         current_day_name = today.strftime('%A')
         current_day_name = day_translation.get(current_day_name, current_day_name)
-        
+
         return {
             'registration_date': registration_date,
             'current_week': current_week,
@@ -19766,7 +19681,7 @@ def get_user_dynamic_week_info(user_data):
             'weekday_cycle': turkish_weekdays,
             'total_weeks_completed': current_week - 1 if current_day_in_week == 1 and days_since_registration > 0 else current_week - 1
         }
-        
+
     except Exception as e:
         # Hata durumunda varsayılan değerler
         today = datetime.now()
@@ -19787,7 +19702,7 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     """🔄 Kullanıcının dinamik haftalık planını oluşturur"""
     from datetime import datetime
     import json
-    
+
     # Haftalık program başlama kaydı - İLK KEZ ÇAĞIRILDIĞINDA KAYDET
     if not user_data.get('weekly_program_started', False):
         user_data['weekly_program_started'] = True
@@ -19799,70 +19714,70 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
                 'weekly_plan_start_date': user_data['weekly_plan_start_date']
             })
         st.success("🎆 Haftalık program başlatıldı! Gidişat analizi İLK HAFTAN bitince açılacak.")
-    
+
     # Dinamik hafta bilgisini al
     week_info = get_user_dynamic_week_info(user_data)
-    
+
     # 🆕 FİX: TYT/AYT ilerleme hesaplaması için projections hesapla
     days_to_yks = get_current_week_info()['days_to_yks']
     projections = calculate_completion_projections(user_data, student_field, days_to_yks)
-    
+
     # Mevcut haftalık plan sistemindeki temel bilgileri al
     base_weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
-    
+
     # Dinamik bilgileri ekle
     base_weekly_plan['dynamic_week_info'] = week_info
     base_weekly_plan['is_dynamic'] = True
     base_weekly_plan['projections'] = projections  # 🆕 FİX: Projections ekle
-    
+
     # Özel dinamik başlık ve açıklama
     base_weekly_plan['dynamic_title'] = f"🔁 {week_info['current_week']}. Haftanız - Gün {week_info['current_day_in_week']}/7"
     base_weekly_plan['dynamic_description'] = f"""
-    📅 **Kayıt Tarihinizden Bu Yana:** {week_info['days_since_registration']} gün  
-    🔄 **Mevcut Hafta Döngünüz:** {week_info['current_week']}. hafta  
-    📆 **Bugün:** {week_info['current_day_name']} ({week_info['current_day_in_week']}/7)  
-    ⏳ **Bu Haftada Kalan:** {week_info['days_left_in_week']} gün  
+    📅 **Kayıt Tarihinizden Bu Yana:** {week_info['days_since_registration']} gün
+    🔄 **Mevcut Hafta Döngünüz:** {week_info['current_week']}. hafta
+    📆 **Bugün:** {week_info['current_day_name']} ({week_info['current_day_in_week']}/7)
+    ⏳ **Bu Haftada Kalan:** {week_info['days_left_in_week']} gün
     🏁 **Hafta Aralığı:** {week_info['week_start_date'].strftime('%d.%m')} - {week_info['week_end_date'].strftime('%d.%m')}
     """
-    
+
     # Haftalık döngü takvimini ekle
     base_weekly_plan['weekly_calendar'] = create_weekly_calendar(week_info)
-    
+
     return base_weekly_plan
 
 def create_weekly_calendar(week_info):
     """📅 7 günlük döngü takvimi oluşturur - GERÇEK TAKVİM TARİHLERİYLE"""
     from datetime import datetime, timedelta
-    
+
     calendar = []
-    
+
     # Türkçe gün çevirisi
     day_translation = {
         'Monday': 'Pazartesi', 'Tuesday': 'Salı', 'Wednesday': 'Çarşamba',
         'Thursday': 'Perşembe', 'Friday': 'Cuma', 'Saturday': 'Cumartesi', 'Sunday': 'Pazar'
     }
-    
+
     # Bugünün tarihini al
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    
+
     # Kullanıcının haftasının başlangıç tarihi
     week_start_date = week_info['week_start_date']
-    
+
     for day_num in range(1, 8):
         # 🔥 FİX: Her gün için GERÇEK takvim tarihini hesapla
         actual_date = week_start_date + timedelta(days=day_num - 1)
         day_name_english = actual_date.strftime('%A')
         day_name = day_translation.get(day_name_english, day_name_english)
-        
+
         # Bugün mü?
         is_today = (day_num == week_info['current_day_in_week'])
-        
+
         # Geçmiş mi?
         is_past = (day_num < week_info['current_day_in_week'])
-        
+
         # Gelecek mi?
         is_future = (day_num > week_info['current_day_in_week'])
-        
+
         calendar.append({
             'day_number': day_num,
             'day_name': day_name,  # Artık gerçek tarihten geliyor!
@@ -19872,111 +19787,111 @@ def create_weekly_calendar(week_info):
             'is_future': is_future,
             'status_emoji': '🔴' if is_today else ('✅' if is_past else '⏳')
         })
-    
+
     return calendar
 
 def show_dynamic_week_dashboard(weekly_plan, user_data):
     """📋 Dinamik haftalık dashboard gösterir"""
     if not weekly_plan.get('is_dynamic', False):
         return
-    
+
     week_info = weekly_plan['dynamic_week_info']
-    
+
     # Ana başlık
     st.markdown(f"### {weekly_plan['dynamic_title']}")
-    
+
     # Bilgi kutucukları
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         st.metric(
             label="🔄 Hafta Döngünüz",
             value=f"{week_info['current_week']}. Hafta",
             delta=f"+{week_info['total_weeks_completed']} tamamlandı"
         )
-    
+
     with col2:
         st.metric(
             label="📆 Bugün",
             value=f"Gün {week_info['current_day_in_week']}/7",
             delta=f"{week_info['current_day_name']}"
         )
-    
+
     with col3:
         st.metric(
             label="⏳ Kalan Gün",
             value=f"{week_info['days_left_in_week']} gün",
             delta="Bu haftada" if week_info['days_left_in_week'] > 0 else "Hafta bitti!"
         )
-    
+
     with col4:
         st.metric(
             label="📅 Toplam Gün",
             value=f"{week_info['days_since_registration']} gün",
             delta="Kayıt tarihinden beri"
         )
-    
+
     # Haftalık takvim
     st.markdown("#### 📅 Bu Haftanın Döngü Takvimi")
-    
+
     calendar = weekly_plan['weekly_calendar']
     cols = st.columns(7)
-    
+
     for i, day in enumerate(calendar):
         with cols[i]:
             # Durum rengine göre stil
             if day['is_today']:
                 st.markdown(
                     f"""
-                    <div style='background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%); 
-                                color: white; padding: 8px; border-radius: 8px; text-align: center; 
+                    <div style='background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+                                color: white; padding: 8px; border-radius: 8px; text-align: center;
                                 border: 2px solid #ff4757; box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);'>
                         <div style='font-size: 12px; font-weight: bold;'>GÜN {day['day_number']}</div>
                         <div style='font-size: 14px; margin: 2px 0;'>{day['status_emoji']}</div>
                         <div style='font-size: 10px;'>{day['day_name']}</div>
                         <div style='font-size: 9px; color: #ffe6e6;'>BUGÜN</div>
                     </div>
-                    """, 
+                    """,
                     unsafe_allow_html=True
                 )
             elif day['is_past']:
                 st.markdown(
                     f"""
-                    <div style='background: linear-gradient(135deg, #2ed573 0%, #7bed9f 100%); 
+                    <div style='background: linear-gradient(135deg, #2ed573 0%, #7bed9f 100%);
                                 color: white; padding: 8px; border-radius: 8px; text-align: center;'>
                         <div style='font-size: 12px; font-weight: bold;'>GÜN {day['day_number']}</div>
                         <div style='font-size: 14px; margin: 2px 0;'>{day['status_emoji']}</div>
                         <div style='font-size: 10px;'>{day['day_name']}</div>
                         <div style='font-size: 9px; color: #e6ffe6;'>GEÇTİ</div>
                     </div>
-                    """, 
+                    """,
                     unsafe_allow_html=True
                 )
-            else:  # Gelecek
+else:  # Gelecek
                 st.markdown(
                     f"""
-                    <div style='background: linear-gradient(135deg, #747d8c 0%, #a4b0be 100%); 
+                    <div style='background: linear-gradient(135deg, #747d8c 0%, #a4b0be 100%);
                                 color: white; padding: 8px; border-radius: 8px; text-align: center;'>
                         <div style='font-size: 12px; font-weight: bold;'>GÜN {day['day_number']}</div>
                         <div style='font-size: 14px; margin: 2px 0;'>{day['status_emoji']}</div>
                         <div style='font-size: 10px;'>{day['day_name']}</div>
                         <div style='font-size: 9px; color: #f1f2f6;'>GELECEK</div>
                     </div>
-                    """, 
+                    """,
                     unsafe_allow_html=True
                 )
-    
+
     # Açıklama metni
     st.markdown(weekly_plan['dynamic_description'])
-    
+
     # Hafta ilerleme çubuğu
     week_progress = ((week_info['current_day_in_week'] - 1) / 7) * 100
     st.markdown("#### 📊 Bu Haftanın İlerlemesi")
     progress_col1, progress_col2 = st.columns([4, 1])
-    
+
     with progress_col1:
         st.progress(week_progress / 100)
-    
+
     with progress_col2:
         st.metric(
             label="İlerleme",
@@ -19989,33 +19904,33 @@ def calculate_weekly_completion_percentage(user_data, weekly_plan):
     """Bu haftanın hedef konularının tamamlanma yüzdesini hesaplar - DÜZELTİLDİ"""
     import json
     from datetime import datetime, timedelta
-    
+
     try:
         # Haftalık plandaki yeni konuları al
         new_topics = weekly_plan.get('new_topics', [])
         review_topics = weekly_plan.get('review_topics', [])
         all_topics = new_topics + review_topics
-        
+
         if not all_topics:
             return 50.0  # Varsayılan orta seviye
-        
+
         # Kullanıcının topic_progress verisini al
         topic_progress_str = user_data.get('topic_progress', '{}')
         topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
-        
+
         # Tamamlanan konuları say
         total_topics = len(all_topics)
         completed_count = 0
-        
+
         for topic in all_topics:
             subject = topic.get('subject', '')
             topic_name = topic.get('topic', '')
             detail = topic.get('detail', '')
-            
+
             # Konunun tamamlanma durumunu kontrol et
             # Net değeri 14 veya üzeri ise tamamlanmış sayılır
             net_value = topic.get('net', 0)  # Haftalık plandan direkt net değerini al
-            
+
             # Eğer haftalık planda net yoksa topic_progress'ten kontrol et
             if net_value == 0:
                 # Olası topic key formatları
@@ -20025,28 +19940,28 @@ def calculate_weekly_completion_percentage(user_data, weekly_plan):
                     topic_name,
                     detail
                 ]
-                
+
                 for key in possible_keys:
                     if key in topic_progress:
                         topic_data = topic_progress[key]
                         if isinstance(topic_data, dict):
                             net_value = int(float(topic_data.get('net', 0)))
-                        else:
-                            try:
+else:
+    try:
                                 net_value = int(float(str(topic_data)))
                             except:
                                 net_value = 0
                         break
-            
+
             # 14 net ve üzeri tamamlanmış sayılır
             if net_value >= 14:
                 completed_count += 1
-        
+
         # Tamamlanma yüzdesini hesapla
         completion_percentage = (completed_count / total_topics) * 100 if total_topics > 0 else 0.0
-        
+
         return min(completion_percentage, 100.0)  # Max %100
-        
+
     except Exception as e:
         # Hata durumunda güvenli varsayılan
         print(f"Haftalık tamamlanma hesaplama hatası: {e}")
@@ -20057,7 +19972,7 @@ def get_next_week_topics(user_data, student_field, survey_data):
     try:
         # Gelecek hafta için sabit bonus konular listesi
         next_week_topics = []
-        
+
         # Alan bazında bonus konular
         bonus_topics_by_field = {
             "TM": [  # Türkçe-Matematik
@@ -20093,18 +20008,18 @@ def get_next_week_topics(user_data, student_field, survey_data):
                 {"subject": "TYT English", "topic": "Grammar", "detail": "Present Tense", "net": 0}
             ]
         }
-        
+
         # Öğrencinin alanına göre bonus konuları seç
         field_code = student_field if student_field in bonus_topics_by_field else "Varsayılan"
         next_week_topics = bonus_topics_by_field[field_code].copy()
-        
+
         # Her konuya bonus özelliği ekle
         for topic in next_week_topics:
             topic['priority'] = 'NEXT_WEEK_BONUS'
             topic['is_bonus'] = True
-        
+
         return next_week_topics[:6]  # Maksimum 6 bonus konu
-        
+
     except Exception as e:
         # Hata durumunda varsayılan konular
         return [
@@ -20117,20 +20032,20 @@ def show_next_week_bonus_topics(next_week_topics, user_data):
     """Gelecek haftanın bonus konularını kırmızı renkte gösterir"""
     if not next_week_topics:
         return
-    
+
     st.markdown("#### 🚀 GELECEKTEKİ HAFTA BONUS KONULARI")
     st.caption("🎉 Bu haftanın hedeflerini %80+ tamamladığınız için gelecek haftanın konularını şimdiden çalışabilirsiniz!")
-    
+
     for i, topic in enumerate(next_week_topics):
         topic_key = f"{topic.get('subject', '')}_{topic.get('topic', '')}_{topic.get('detail', '')}"
-        
+
         # Tamamlanma durumunu kontrol et
         is_completed = st.session_state.get(f"completed_{topic_key}", False)
-        
+
         with st.container():
             st.markdown(f"""
-            <div style='background: linear-gradient(135deg, #ff4d4d22 0%, #cc000011 100%); 
-                        border-left: 4px solid #ff4d4d; 
+            <div style='background: linear-gradient(135deg, #ff4d4d22 0%, #cc000011 100%);
+                        border-left: 4px solid #ff4d4d;
                         border: 2px dashed #ff4d4d;
                         padding: 12px; border-radius: 8px; margin-bottom: 8px;'>
                 <div style='display: flex; align-items: center; margin-bottom: 8px;'>
@@ -20142,7 +20057,7 @@ def show_next_week_bonus_topics(next_week_topics, user_data):
                 <div style='margin-left: 26px;'>
                     <div><strong>📖 {topic.get('topic', 'Konu')}</strong></div>
                     <div style='font-size: 14px; color: #666; margin-top: 4px;'>
-                        └ {topic.get('detail', 'Detay')} 
+                        └ {topic.get('detail', 'Detay')}
                         <span style='background: #ffe6e6; padding: 2px 6px; border-radius: 10px; margin-left: 8px; color: #cc0000;'>
                             🎯 {topic.get('net', 0)} net
                         </span>
@@ -20150,39 +20065,39 @@ def show_next_week_bonus_topics(next_week_topics, user_data):
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            
+
             # İşlem butonları
             col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-            
+
             with col2:
                 if not is_completed:
                     if st.button(f"✅", key=f"complete_bonus_{i}", help="Konuyu tamamladım"):
                         st.session_state[f"completed_{topic_key}"] = True
-                        
+
                         # Gamification entegrasyonu
                         try:
                             subject = topic.get('subject', 'Bilinmiyor')
                             topic_name = topic.get('topic', 'Konu')
                             difficulty = topic.get('difficulty', 3)
-                            
+
                             points, new_badges = update_topic_completion(subject, topic_name, difficulty)
                             st.success(f"🎉 {topic_name} tamamlandı! +{points} puan kazandın!")
-                            
+
                             if new_badges:
                                 show_achievement_notification(new_badges)
                         except:
                             st.success(f"🎉 {topic.get('topic', 'Konu')} tamamlandı!")
-                        
-                        st.rerun()
-                else:
-                    if st.button(f"↩️", key=f"uncomplete_bonus_{i}", help="Tamamlanmadı olarak işaretle"):
+
+st.rerun()
+else:
+    if st.button(f"↩️", key=f"uncomplete_bonus_{i}", help="Tamamlanmadı olarak işaretle"):
                         st.session_state[f"completed_{topic_key}"] = False
-                        st.rerun()
-            
+                st.rerun()
+
             with col3:
                 if st.button(f"📅", key=f"add_bonus_{i}", help="Program Ekle"):
                     st.session_state[f"show_scheduler_bonus_{i}"] = True
-            
+
             # Planlayıcı göster
             if st.session_state.get(f"show_scheduler_bonus_{i}", False):
                 with st.expander("🗓️ Program Ekle", expanded=True):
@@ -20191,26 +20106,26 @@ def show_next_week_bonus_topics(next_week_topics, user_data):
 def show_topic_scheduler_bonus(topic, user_data, index):
     """Bonus konular için özel planlayıcı"""
     col1, col2 = st.columns(2)
-    
+
     with col1:
         day_options = ["PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ", "PAZAR"]
         selected_day = st.selectbox("Gün Türü:", day_options, key=f"bonus_day_{index}")
-    
+
     with col2:
         time_slots = [
-            "09:00-10:30", "10:45-12:15", "13:30-15:00", 
+            "09:00-10:30", "10:45-12:15", "13:30-15:00",
             "15:15-16:45", "17:00-18:30", "19:00-20:30", "21:00-22:30"
         ]
         selected_time = st.selectbox("Saat aralığı:", time_slots, key=f"bonus_time_{index}")
-    
+
     if st.button("✅ Bonus Konuyu Programa Ekle", key=f"confirm_bonus_{index}"):
         # Session state'e program ekle
         if 'weekly_schedule' not in st.session_state:
             st.session_state.weekly_schedule = {}
-        
+
         if selected_day not in st.session_state.weekly_schedule:
             st.session_state.weekly_schedule[selected_day] = []
-        
+
         # Bonus konu bilgisini ekle
         schedule_entry = {
             'time': selected_time,
@@ -20220,94 +20135,94 @@ def show_topic_scheduler_bonus(topic, user_data, index):
             'type': 'BONUS',
             'is_bonus': True
         }
-        
+
         st.session_state.weekly_schedule[selected_day].append(schedule_entry)
         st.success(f"🚀 Bonus konu {selected_day} günü {selected_time} saatine eklendi!")
         st.session_state[f"show_scheduler_bonus_{index}"] = False
-        st.rerun()
+st.rerun()
 
 # === 🏆 BASİT REKABET SİSTEMİ ===
 
 def competition_leaderboard_page(user_data):
     """🏆 İsteğe Bağlı Rekabet Panosu"""
     st.markdown(f'<div class="main-header"><h1>🏆 Rekabet Panosu</h1><p>İsteğe bağlı katılım - Günlük sosyal medya takibi! 📱⬇️</p></div>', unsafe_allow_html=True)
-    
+
     # Günlük temizlik kontrolü
     clean_old_daily_data()
-    
+
     # İsteğe bağlı rekabet sistemi
     show_simple_leaderboard(user_data)
 
 def show_simple_leaderboard(user_data):
     """🏆 Basit Rekabet Listesi - İsteğe Bağlı Katılım"""
-    
+
     # Kullanıcının oturum açıp açmadığını kontrol et
     if not user_data:
         st.warning("🔐 Rekabet sistemine katılmak için önce giriş yapmalısın!")
         return
-    
+
     # Kullanıcının katılım durumunu kontrol et (güncel veriyi al)
     current_user_data = user_data  # Parametre olarak gelen user_data'yı kullan
     is_participating = current_user_data.get('competition_participating', False)
-    
+
     # Katılım kontrolü - Kırmızı tema
     st.markdown("### 🎯 Rekabet Sistemi Katılımı")
-    
+
     col_join1, col_join2 = st.columns([3, 2])
-    
+
     with col_join1:
         if is_participating:
             st.markdown("""
-            <div style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); 
+            <div style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
                         padding: 15px; border-radius: 10px; color: white; margin: 10px 0;">
                 <h4 style="color: white; margin: 0;">✅ Rekabet sistemine katılıyorsun!</h4>
             </div>
             """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
+else:
+    st.markdown("""
+            <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
                         padding: 15px; border-radius: 10px; color: white; margin: 10px 0;">
                 <h4 style="color: white; margin: 0;">📢 Rekabet sistemine katılmak istersen butona tıkla</h4>
             </div>
             """, unsafe_allow_html=True)
-    
+
     with col_join2:
         st.markdown("<br>", unsafe_allow_html=True)  # Boşluk için
         if is_participating:
             if st.button("🚪 Rekabetten Ayrıl", key="leave_competition", use_container_width=True):
                 # Firebase'e kaydet
                 update_user_in_firebase(st.session_state.current_user, {'competition_participating': False})
-                
+
                 # Session state'i de güncelle
                 if 'user_data' in st.session_state:
                     st.session_state.user_data['competition_participating'] = False
-                
+
                 # Güncel veriyi tekrar al
                 st.session_state.user_data = get_user_data()
-                
+
                 st.success("✅ Rekabetten ayrıldın! Liderboard'dan çıkarıldın.")
                 st.rerun()
-        else:
-            if st.button("🏆 Rekabete Katıl", key="join_competition", use_container_width=True):
+else:
+    if st.button("🏆 Rekabete Katıl", key="join_competition", use_container_width=True):
                 # Firebase'e kaydet
                 update_user_in_firebase(st.session_state.current_user, {'competition_participating': True})
-                
+
                 # Session state'i de güncelle
                 if 'user_data' in st.session_state:
                     st.session_state.user_data['competition_participating'] = True
-                
+
                 # Güncel veriyi tekrar al
                 st.session_state.user_data = get_user_data()
-                
+
                 st.success("🏆 Rekabete katıldın! Liderboard'da görünüyorsun.")
                 st.rerun()
-    
+
     # Eğer katılmıyorsa sadece bilgi göster
     if not is_participating:
         st.markdown("---")
         st.markdown("### 📊 Rekabet Sistemine Katılmadın")
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
+        <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
                     padding: 20px; border-radius: 15px; color: white; margin: 10px 0; text-align: center;">
             <h4 style="color: white; margin-bottom: 15px;">🏆 Rekabete Katılmadın</h4>
             <div style="font-size: 16px; line-height: 1.6;">
@@ -20320,79 +20235,79 @@ def show_simple_leaderboard(user_data):
         </div>
         """, unsafe_allow_html=True)
         return
-    
+
     st.markdown("---")
-    
-    # **YENİ**: Kendisiyle yarışma sistemi 
+
+    # **YENİ**: Kendisiyle yarışma sistemi
     show_self_competition_section(current_user_data)
-    
+
     st.markdown("---")
-    
+
     # Haftalık liderboard hesapla (sadece katılanlar)
     weekly_leaders = calculate_weekly_leaderboard()
     current_user_stats = calculate_user_weekly_performance(current_user_data)
-    
+
     # Debug: Sosyal medya verisini kontrol et
     sm_debug_data = current_user_data.get('social_media_daily', '{}')
     st.write(f"🔍 Debug - User data'daki sosyal medya: {sm_debug_data}")
     st.write(f"🔍 Debug - Hesaplanan sosyal medya saati: {current_user_stats.get('social_media_hours', 0)}")
-    
+
     # Bugünkü tarih key'i de gösterelim
     today_debug = datetime.now().strftime('%Y-%m-%d')
     st.write(f"🔍 Debug - Bugünkü tarih key: {today_debug}")
-    
+
     # Kullanıcının sıralamasını bul
     user_rank = find_user_rank(weekly_leaders, st.session_state.current_user)
-    
+
     # Günlük sosyal medya ekran süresi girişi
     st.markdown("### 📱 Günlük Sosyal Medya Bildirimi")
-    
+
     # Bugünkü durumu kontrol et
     today_key = datetime.now().strftime('%Y-%m-%d')
     user_sm_data = get_user_daily_social_media(st.session_state.current_user)
-    
+
     if today_key in user_sm_data:
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); 
+        <div style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
                     padding: 15px; border-radius: 10px; color: white; margin: 10px 0;">
             <h4 style="color: white; margin: 0;">✅ Bugün sosyal medya süren kaydedildi: {user_sm_data[today_key]:.1f} saat</h4>
         </div>
         """, unsafe_allow_html=True)
-    else:
-        col_sm1, col_sm2 = st.columns([3, 2])
-        
+else:
+    col_sm1, col_sm2 = st.columns([3, 2])
+
         with col_sm1:
             st.markdown("**Bugün sosyal medyada ne kadar zaman geçirdin?**")
             col_h, col_m = st.columns(2)
-            
+
             with col_h:
                 social_media_hours = st.number_input("Saat", min_value=0.0, max_value=24.0, value=0.0, step=0.5, key="sm_hours")
             with col_m:
                 social_media_minutes = st.number_input("Dakika", min_value=0, max_value=59, value=0, key="sm_minutes")
-            
+
             total_sm_time = social_media_hours + (social_media_minutes / 60)
-        
+
         with col_sm2:
             st.markdown("**📱 Ekran görüntüsü**")
             uploaded_screenshot = st.file_uploader("Telefon ayarlarından ss", type=['png', 'jpg', 'jpeg'], key="sm_screenshot")
-            
+
             if st.button("💾 Bugünü Kaydet", key="save_sm_time", use_container_width=True):
                 if uploaded_screenshot and total_sm_time > 0:
                     # Veriyi kaydet
                     result = save_daily_social_media_time(st.session_state.current_user, total_sm_time)
-                    
+
                     # Debug: Kaydedilen veriyi kontrol et
                     user_data_check = get_user_data()
                     sm_data_check = user_data_check.get('social_media_daily', '{}')
-                    
+
                     st.success(f"✅ Bugün kaydedildi: {total_sm_time:.1f}h")
                     st.info(f"🔍 Debug: Firebase'deki veri: {sm_data_check}")
-                    st.rerun()
-                else:
-                    st.error("Süre ve SS gerekli!")
-    
+st.rerun()
+else:
+    st.error("Süre ve SS gerekli!")
+
     st.markdown("---")
-    
+
     # Kırmızı tema metrik kartları - Sade ve modern
     st.markdown("""
     <style>
@@ -20427,11 +20342,11 @@ def show_simple_leaderboard(user_data):
     }
     </style>
     """, unsafe_allow_html=True)
-    
+
     col1, col2, col3, col4, col5 = st.columns(5)
-    
+
     progress_avg = (current_user_stats['tyt_progress'] + current_user_stats['ayt_progress']) / 2
-    
+
     with col1:
         rank_text = f"#{user_rank}" if user_rank else "---"
         st.markdown(f"""
@@ -20440,7 +20355,7 @@ def show_simple_leaderboard(user_data):
             <div class="metric-value">{rank_text}</div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col2:
         st.markdown(f"""
         <div class="metric-card">
@@ -20448,7 +20363,7 @@ def show_simple_leaderboard(user_data):
             <div class="metric-value">{current_user_stats['questions_solved']}</div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col3:
         st.markdown(f"""
         <div class="metric-card">
@@ -20456,7 +20371,7 @@ def show_simple_leaderboard(user_data):
             <div class="metric-value">%{progress_avg:.1f}</div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col4:
         st.markdown(f"""
         <div class="metric-card">
@@ -20464,7 +20379,7 @@ def show_simple_leaderboard(user_data):
             <div class="metric-value">{current_user_stats['study_hours']:.1f}h</div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col5:
         st.markdown(f"""
         <div class="metric-card-special">
@@ -20472,20 +20387,20 @@ def show_simple_leaderboard(user_data):
             <div class="metric-value">{current_user_stats['social_media_hours']:.1f}h</div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     # Ana liderboard tablosu
     st.markdown("---")
     st.markdown("### 🏆 Haftalık Liderler")
     st.caption("Her Pazartesi güncellenir")
-    
+
     if not weekly_leaders:
         st.info("📊 Henüz veri yok. İlk lider olun!")
         return
-    
+
     # Top 20 göster (donmaması için)
     for i, leader in enumerate(weekly_leaders[:20]):
         rank = i + 1
-        
+
         # Kırmızı tema rozet sistemi - Sade ve modern
         if rank == 1:
             medal = "🥇"
@@ -20493,7 +20408,7 @@ def show_simple_leaderboard(user_data):
             border_color = "#FFD700"
             text_color = "#ffffff"
         elif rank == 2:
-            medal = "🥈" 
+            medal = "🥈"
             bg_color = "#c0392b"
             border_color = "#C0C0C0"
             text_color = "#ffffff"
@@ -20507,67 +20422,67 @@ def show_simple_leaderboard(user_data):
             bg_color = "#922b21"
             border_color = "#e74c3c"
             text_color = "#ffffff"
-        else:
-            medal = f"{rank}"
+else:
+    medal = f"{rank}"
             bg_color = "#641e16"
             border_color = "#c0392b"
             text_color = "#ffffff"
-        
+
         # İlerleme oranı hesapla
         avg_progress = (leader['tyt_progress'] + leader['ayt_progress']) / 2
-        
+
         # Kısa isim (ilk 15 karakter)
         display_name = leader['username'][:15] + "..." if len(leader['username']) > 15 else leader['username']
-        
+
         # Modern lider kartı - Büyük ve okunabilir
         st.markdown(f"""
-        <div style="background: {bg_color}; padding: 20px; margin: 12px 0; border-radius: 15px; 
-                    border-left: 6px solid {border_color}; display: flex; align-items: center; 
+        <div style="background: {bg_color}; padding: 20px; margin: 12px 0; border-radius: 15px;
+                    border-left: 6px solid {border_color}; display: flex; align-items: center;
                     box-shadow: 0 4px 8px rgba(0,0,0,0.15); transition: all 0.3s ease;">
             <div style="font-size: 36px; margin-right: 25px; min-width: 60px; text-align: center;">{medal}</div>
             <div style="flex: 1;">
                 <div style="font-size: 22px; font-weight: bold; color: {text_color}; margin-bottom: 8px;">{display_name}</div>
                 <div style="font-size: 16px; color: {text_color}; font-weight: 500; line-height: 1.4;">
-                    📝 <span style="font-weight: bold;">{leader['questions_solved']}</span> soru | 
-                    📈 <span style="font-weight: bold;">%{avg_progress:.1f}</span> | 
-                    ⏱️ <span style="font-weight: bold;">{leader['study_hours']:.1f}h</span> | 
+                    📝 <span style="font-weight: bold;">{leader['questions_solved']}</span> soru |
+                    📈 <span style="font-weight: bold;">%{avg_progress:.1f}</span> |
+                    ⏱️ <span style="font-weight: bold;">{leader['study_hours']:.1f}h</span> |
                     📱 <span style="color: #ff6b6b; font-weight: bold;">{leader['social_media_hours']:.1f}h</span>
                 </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     # Kullanıcının pozisyonu (eğer top 20'de değilse)
     if user_rank and user_rank > 20:
         st.markdown("---")
         st.markdown(f"### 📍 Sizin Pozisyonunuz: #{user_rank}")
-        
+
         # Kullanıcının kartını göster - Kırmızı tema
         avg_progress = (current_user_stats['tyt_progress'] + current_user_stats['ayt_progress']) / 2
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); padding: 20px; border-radius: 15px; 
+        <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); padding: 20px; border-radius: 15px;
                     border-left: 6px solid #2c3e50; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
             <div style="font-size: 22px; font-weight: bold; color: #ffffff; margin-bottom: 8px;">
                 {st.session_state.current_user}
             </div>
             <div style="font-size: 16px; color: #ffffff; font-weight: 500; line-height: 1.4;">
-                📝 <span style="font-weight: bold;">{current_user_stats['questions_solved']}</span> soru | 
-                📈 <span style="font-weight: bold;">%{avg_progress:.1f}</span> | 
-                ⏱️ <span style="font-weight: bold;">{current_user_stats['study_hours']:.1f}h</span> | 
+                📝 <span style="font-weight: bold;">{current_user_stats['questions_solved']}</span> soru |
+                📈 <span style="font-weight: bold;">%{avg_progress:.1f}</span> |
+                ⏱️ <span style="font-weight: bold;">{current_user_stats['study_hours']:.1f}h</span> |
                 📱 <span style="color: #2c3e50; font-weight: bold;">{current_user_stats['social_media_hours']:.1f}h</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     # Puanlama sistemi açıklaması - Modern tasarım
     st.markdown("---")
     st.markdown("### 📊 Puanlama Sistemi")
-    
+
     col_info1, col_info2 = st.columns(2)
-    
+
     with col_info1:
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
+        <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
                     padding: 20px; border-radius: 15px; color: white; margin: 10px 0;">
             <h4 style="color: white; margin-bottom: 15px;">🏆 Nasıl Puanlanıyor?</h4>
             <div style="font-size: 16px; line-height: 1.6;">
@@ -20578,10 +20493,10 @@ def show_simple_leaderboard(user_data):
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col_info2:
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); 
+        <div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
                     padding: 20px; border-radius: 15px; color: white; margin: 10px 0;">
             <h4 style="color: white; margin-bottom: 15px;">📱 Günlük Sistem</h4>
             <div style="font-size: 16px; line-height: 1.6;">
@@ -20592,9 +20507,9 @@ def show_simple_leaderboard(user_data):
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); 
+    <div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
                 padding: 15px; border-radius: 10px; text-align: center; color: white; margin: 20px 0;">
         <h4 style="color: white; margin: 0;">💡 Sosyal medyayı azalt, çalışma saatini artır!</h4>
     </div>
@@ -20605,32 +20520,32 @@ def calculate_weekly_leaderboard():
     try:
         # Firebase'den tüm kullanıcı verilerini al (3 saniye timeout)
         users_data = load_users_from_firebase()
-        
+
         if not users_data:
             return []
-        
+
         weekly_leaders = []
-        
+
         for username, user_data in users_data.items():
             try:
                 # Sadece rekabete katılan kullanıcıları dahil et
                 if not user_data.get('competition_participating', False):
                     continue
-                
+
                 # Kullanıcının haftalık performansını hesapla
                 performance = calculate_user_weekly_performance(user_data)
                 performance['username'] = username
                 weekly_leaders.append(performance)
-                
+
             except Exception:
                 # Hatalı veri varsa atla
                 continue
-        
+
         # Toplam skorla sırala (4 kriterin toplamı)
         weekly_leaders.sort(key=lambda x: x['total_score'], reverse=True)
-        
+
         return weekly_leaders
-        
+
     except Exception as e:
         st.error(f"⚠️ Liderboard hesaplanırken hata: {e}")
         return []
@@ -20642,16 +20557,16 @@ def calculate_user_weekly_performance(user_data):
         today = datetime.now()
         week_start = today - timedelta(days=today.weekday())
         week_start_date = week_start.date()
-        
+
         # 1. SORU ÇÖZME SAYISI - Deneme analizlerinden al
         questions_solved = 0
         try:
             deneme_data_str = user_data.get('deneme_analizleri', '[]')
             if isinstance(deneme_data_str, str):
                 deneme_kayitlari = json.loads(deneme_data_str) if deneme_data_str else []
-            else:
-                deneme_kayitlari = deneme_data_str if isinstance(deneme_data_str, list) else []
-            
+else:
+    deneme_kayitlari = deneme_data_str if isinstance(deneme_data_str, list) else []
+
             # Bu hafta yapılan denemelerdeki soruları say
             for deneme in deneme_kayitlari:
                 try:
@@ -20662,7 +20577,7 @@ def calculate_user_weekly_performance(user_data):
                     continue
         except:
             pass
-        
+
         # 2. TYT/AYT İLERLEME ORANI - Konu takip verilerinden
         tyt_progress = 0
         ayt_progress = 0
@@ -20671,7 +20586,7 @@ def calculate_user_weekly_performance(user_data):
             tyt_subjects = ['Türkçe', 'Matematik', 'Geometri', 'Fizik', 'Kimya', 'Biyoloji', 'Tarih', 'Coğrafya', 'Felsefe', 'Din']
             tyt_total = 0
             tyt_completed = 0
-            
+
             for subject in tyt_subjects:
                 subject_data = user_data.get(f'{subject.lower()}_progress', {})
                 if isinstance(subject_data, dict):
@@ -20680,15 +20595,15 @@ def calculate_user_weekly_performance(user_data):
                             tyt_total += 1
                             if topic_data.get('completed', False):
                                 tyt_completed += 1
-            
+
             if tyt_total > 0:
                 tyt_progress = (tyt_completed / tyt_total) * 100
-            
+
             # AYT konuları (basitleştirilmiş)
             ayt_subjects = ['AYT Matematik', 'AYT Fizik', 'AYT Kimya', 'AYT Biyoloji']
             ayt_total = 0
             ayt_completed = 0
-            
+
             for subject in ayt_subjects:
                 subject_key = subject.lower().replace(' ', '_').replace('ayt_', '') + '_progress'
                 subject_data = user_data.get(subject_key, {})
@@ -20698,23 +20613,23 @@ def calculate_user_weekly_performance(user_data):
                             ayt_total += 1
                             if topic_data.get('completed', False):
                                 ayt_completed += 1
-            
+
             if ayt_total > 0:
                 ayt_progress = (ayt_completed / ayt_total) * 100
-                
+
         except:
             pass
-        
+
         # 3. ÇALIŞMA SAATİ - Pomodoro verilerinden
         study_hours = 0
         try:
             pomodoro_history_str = user_data.get('pomodoro_history', '[]')
-            
+
             if isinstance(pomodoro_history_str, str):
                 pomodoro_history = json.loads(pomodoro_history_str) if pomodoro_history_str else []
-            else:
-                pomodoro_history = pomodoro_history_str if isinstance(pomodoro_history_str, list) else []
-            
+else:
+    pomodoro_history = pomodoro_history_str if isinstance(pomodoro_history_str, list) else []
+
             # Bu haftanın pomodorolarını say
             total_minutes = 0
             for p in pomodoro_history:
@@ -20730,41 +20645,41 @@ def calculate_user_weekly_performance(user_data):
                         total_minutes += duration_map.get(p.get('type', 'Kısa Odak (25dk+5dk)'), 25)
                 except:
                     continue
-            
+
             study_hours = total_minutes / 60
-            
+
         except:
             pass
-        
+
         # 4. SOSYAL MEDYA EKRAN SÜRESİ - Bu haftanın günlük toplamı
         social_media_hours = 0
         try:
             social_media_str = user_data.get('social_media_daily', '{}')
             social_media_data = json.loads(social_media_str) if social_media_str else {}
-            
+
             # Bu haftanın günlerini topla (bugün dahil)
             current_date = today.date()
-            for i in range(7):  # Son 7 gün 
+            for i in range(7):  # Son 7 gün
                 day_date = today - timedelta(days=i)
                 day_key = day_date.strftime('%Y-%m-%d')
-                
+
                 # Bu hafta içindeki günleri kontrol et (bugün dahil)
                 if day_date.date() >= week_start_date and day_date.date() <= current_date:
                     if day_key in social_media_data:
                         social_media_hours += social_media_data[day_key]
-                
+
         except:
             pass
-        
+
         # TOPLAM SKOR hesapla (yeni sosyal medya puanlaması dahil)
         # Soru sayısı: her 10 soru = 1 puan
-        # İlerleme: her %10 = 1 puan  
+        # İlerleme: her %10 = 1 puan
         # Çalışma saati: her saat = 1 puan
         # Sosyal medya: az kullanan kazanır - her saat için -0.5 puan
         positive_score = (questions_solved / 10) + ((tyt_progress + ayt_progress) / 20) + study_hours
         social_media_penalty = social_media_hours * 0.5  # Sosyal medya cezası
         total_score = positive_score - social_media_penalty
-        
+
         return {
             'questions_solved': questions_solved,
             'tyt_progress': tyt_progress,
@@ -20773,7 +20688,7 @@ def calculate_user_weekly_performance(user_data):
             'social_media_hours': social_media_hours,
             'total_score': total_score
         }
-        
+
     except Exception as e:
         # Hata durumunda sıfır değerler
         return {
@@ -20789,25 +20704,25 @@ def save_daily_social_media_time(username, total_hours):
     """Günlük sosyal medya ekran süresini kaydet"""
     try:
         today_key = datetime.now().strftime('%Y-%m-%d')
-        
+
         # Kullanıcı verilerini al
         user_data = get_user_data()
-        
+
         # Sosyal medya verilerini al veya oluştur
         social_media_data_str = user_data.get('social_media_daily', '{}')
         try:
             social_media_data = json.loads(social_media_data_str) if social_media_data_str else {}
         except:
             social_media_data = {}
-        
+
         # Bugünün verisini kaydet
         social_media_data[today_key] = total_hours
-        
+
         # Firebase'e kaydet
         update_user_in_firebase(username, {'social_media_daily': json.dumps(social_media_data)})
-        
+
         return True
-        
+
     except Exception as e:
         st.error(f"Günlük sosyal medya verisi kaydedilirken hata: {e}")
         return False
@@ -20818,10 +20733,10 @@ def get_user_daily_social_media(username):
         # Mevcut kullanıcı verilerini al
         if username == st.session_state.current_user:
             user_data = get_user_data()
-        else:
-            users_db = load_users_from_firebase()
+else:
+    users_db = load_users_from_firebase()
             user_data = users_db.get(username, {})
-        
+
         social_media_str = user_data.get('social_media_daily', '{}')
         return json.loads(social_media_str) if social_media_str else {}
     except:
@@ -20830,44 +20745,44 @@ def get_user_daily_social_media(username):
 def show_self_competition_section(user_data):
     """Kendisiyle yarışma bölümü - En büyük zafer dünkü senle bugünkü senin arasındaki farktır"""
     st.markdown("### 🎯 Kendisiyle Yarışma - En Büyük Zafer!")
-    
+
     # Son 7 günün verilerini al
     personal_progress = get_personal_weekly_progress(st.session_state.current_user)
-    
+
     if len(personal_progress) < 2:
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
+        <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
                     padding: 15px; border-radius: 10px; color: white; margin: 10px 0; text-align: center;">
             <h4 style="color: white; margin: 0;">💪 Kendini geçmeye başla!</h4>
             <p style="margin: 5px 0;">En az 2 gün veri olunca kendi gelişimini görebileceksin</p>
         </div>
         """, unsafe_allow_html=True)
         return
-    
+
     # Son gün vs önceki gün karşılaştırması
     latest_day = personal_progress[-1]
     previous_day = personal_progress[-2]
-    
+
     col_self1, col_self2, col_self3 = st.columns(3)
-    
+
     # Sosyal medya karşılaştırması (az olan iyi)
     sm_diff = latest_day['social_media'] - previous_day['social_media']
     sm_trend = "📉" if sm_diff < 0 else "📈" if sm_diff > 0 else "➡️"
     sm_color = "#27ae60" if sm_diff < 0 else "#e74c3c" if sm_diff > 0 else "#f39c12"
-    
+
     # Çalışma saati karşılaştırması (çok olan iyi)
     study_diff = latest_day['study_hours'] - previous_day['study_hours']
     study_trend = "📈" if study_diff > 0 else "📉" if study_diff < 0 else "➡️"
     study_color = "#27ae60" if study_diff > 0 else "#e74c3c" if study_diff < 0 else "#f39c12"
-    
+
     # Soru karşılaştırması (çok olan iyi)
     question_diff = latest_day['questions'] - previous_day['questions']
     question_trend = "📈" if question_diff > 0 else "📉" if question_diff < 0 else "➡️"
     question_color = "#27ae60" if question_diff > 0 else "#e74c3c" if question_diff < 0 else "#f39c12"
-    
+
     with col_self1:
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, {sm_color} 0%, {sm_color}AA 100%); 
+        <div style="background: linear-gradient(135deg, {sm_color} 0%, {sm_color}AA 100%);
                     padding: 15px; border-radius: 10px; color: white; text-align: center;">
             <div style="font-size: 24px;">{sm_trend}</div>
             <div style="font-size: 16px; font-weight: bold;">Sosyal Medya</div>
@@ -20876,10 +20791,10 @@ def show_self_competition_section(user_data):
             <div style="font-size: 12px;">Fark: {sm_diff:+.1f}h</div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col_self2:
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, {study_color} 0%, {study_color}AA 100%); 
+        <div style="background: linear-gradient(135deg, {study_color} 0%, {study_color}AA 100%);
                     padding: 15px; border-radius: 10px; color: white; text-align: center;">
             <div style="font-size: 24px;">{study_trend}</div>
             <div style="font-size: 16px; font-weight: bold;">Çalışma Saati</div>
@@ -20888,10 +20803,10 @@ def show_self_competition_section(user_data):
             <div style="font-size: 12px;">Fark: {study_diff:+.1f}h</div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col_self3:
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, {question_color} 0%, {question_color}AA 100%); 
+        <div style="background: linear-gradient(135deg, {question_color} 0%, {question_color}AA 100%);
                     padding: 15px; border-radius: 10px; color: white; text-align: center;">
             <div style="font-size: 24px;">{question_trend}</div>
             <div style="font-size: 16px; font-weight: bold;">Soru Sayısı</div>
@@ -20900,25 +20815,25 @@ def show_self_competition_section(user_data):
             <div style="font-size: 12px;">Fark: {question_diff:+}</div>
         </div>
         """, unsafe_allow_html=True)
-    
+
     # Toplam motivasyon skoru
     motivation_score = 0
     if sm_diff < 0: motivation_score += 2  # Sosyal medya azalırsa +2
     if study_diff > 0: motivation_score += 3  # Çalışma artırsa +3
     if question_diff > 0: motivation_score += 3  # Soru artırsa +3
-    
+
     if motivation_score >= 6:
         motivation_msg = "🏆 MÜTHIŞ GELİŞİM! Kendini geçtin!"
         motivation_color = "#27ae60"
     elif motivation_score >= 3:
         motivation_msg = "💪 İYİ GİDİYOR! Devam et!"
         motivation_color = "#f39c12"
-    else:
-        motivation_msg = "🔥 DAHA İYİSİNİ YAPABİLİRSİN!"
+else:
+    motivation_msg = "🔥 DAHA İYİSİNİ YAPABİLİRSİN!"
         motivation_color = "#e74c3c"
-    
+
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, {motivation_color} 0%, {motivation_color}AA 100%); 
+    <div style="background: linear-gradient(135deg, {motivation_color} 0%, {motivation_color}AA 100%);
                 padding: 20px; border-radius: 15px; color: white; text-align: center; margin: 15px 0;">
         <h3 style="color: white; margin: 0;">{motivation_msg}</h3>
         <p style="margin: 5px 0;">✨ "En büyük zafer dünkü senle bugünkü senin arasındaki farktır" ✨</p>
@@ -20931,33 +20846,33 @@ def get_personal_weekly_progress(username):
         # Kullanıcı verilerini al
         if username == st.session_state.current_user:
             user_data = get_user_data()
-        else:
-            users_db = load_users_from_firebase()
+else:
+    users_db = load_users_from_firebase()
             user_data = users_db.get(username, {})
-        
+
         # Sosyal medya verileri
         social_media_str = user_data.get('social_media_daily', '{}')
         social_media_data = json.loads(social_media_str) if social_media_str else {}
-        
+
         # Pomodoro verileri
         pomodoro_str = user_data.get('pomodoro_history', '[]')
         pomodoro_data = json.loads(pomodoro_str) if pomodoro_str else []
-        
+
         # Deneme verileri
         deneme_str = user_data.get('deneme_analizleri', '[]')
         deneme_data = json.loads(deneme_str) if deneme_str else []
-        
+
         # Son 7 günün verilerini topla
         progress_data = []
         today = datetime.now()
-        
+
         for i in range(7):
             day_date = today - timedelta(days=i)
             day_key = day_date.strftime('%Y-%m-%d')
-            
+
             # O günün sosyal medya süresi
             daily_sm = social_media_data.get(day_key, 0)
-            
+
             # O günün çalışma saati (pomodoro)
             daily_study = 0
             for p in pomodoro_data:
@@ -20973,7 +20888,7 @@ def get_personal_weekly_progress(username):
                 except:
                     continue
             daily_study = daily_study / 60  # Dakikadan saate çevir
-            
+
             # O günün soru sayısı
             daily_questions = 0
             for deneme in deneme_data:
@@ -20982,17 +20897,17 @@ def get_personal_weekly_progress(username):
                         daily_questions += deneme.get('toplam_dogru', 0)
                 except:
                     continue
-            
+
             progress_data.append({
                 'date': day_key,
                 'social_media': daily_sm,
                 'study_hours': daily_study,
                 'questions': daily_questions
             })
-        
+
         # Eski tarihten yeni tarihe sırala
         return list(reversed(progress_data))
-        
+
     except Exception as e:
         return []
 
@@ -21007,34 +20922,34 @@ def clean_old_daily_data():
     """7 günden eski günlük sosyal medya verilerini temizler"""
     try:
         today = datetime.now()
-        
+
         # Tüm kullanıcıları al
         users_data = load_users_from_firebase()
         if not users_data:
             return
-            
+
         for username, user_data in users_data.items():
             try:
                 # Günlük sosyal medya verilerini temizle (7 günden eski)
                 social_media_str = user_data.get('social_media_daily', '{}')
                 social_media_data = json.loads(social_media_str) if social_media_str else {}
-                
+
                 # Son 7 günü hesapla
                 days_to_keep = []
                 for i in range(7):  # Son 7 gün
                     day_date = today - timedelta(days=i)
                     day_key = day_date.strftime('%Y-%m-%d')
                     days_to_keep.append(day_key)
-                
+
                 # Sadece son 7 günü tut
                 cleaned_data = {k: v for k, v in social_media_data.items() if k in days_to_keep}
-                
+
                 if cleaned_data != social_media_data:
                     update_user_in_firebase(username, {'social_media_daily': json.dumps(cleaned_data)})
-                    
+
             except Exception:
                 continue
-                
+
     except Exception as e:
         print(f"Günlük temizlik hatası: {e}")
 
@@ -21044,30 +20959,30 @@ def show_gamification_dashboard():
     """Gamification dashboard'unu göster"""
     if 'gamification' not in st.session_state:
         init_gamification_system()
-    
+
     st.markdown("### 🎮 Başarı ve İlerleme Paneli")
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         level = st.session_state.gamification['level']
         level_info = LEVEL_SYSTEM["level_rewards"].get(level, {"name": f"Seviye {level}", "icon": "🎯"})
         st.metric("👤 Seviye", f"{level} - {level_info['name']}")
-    
+
     with col2:
         total_points = st.session_state.gamification['total_points']
         next_level_threshold = LEVEL_SYSTEM["level_thresholds"][min(level, len(LEVEL_SYSTEM["level_thresholds"])-1)]
         remaining = max(0, next_level_threshold - total_points)
         st.metric("⭐ Toplam Puan", f"{total_points:,}", delta=f"Sonraki seviyeye: {remaining}")
-    
+
     with col3:
         daily_streak = st.session_state.gamification['daily_streak']
         st.metric("🔥 Günlük Seri", f"{daily_streak} gün")
-    
+
     with col4:
         badge_count = len(st.session_state.gamification['badges'])
         st.metric("🏆 Rozetler", badge_count)
-    
+
     # İlerleme çubuğu
     if level < len(LEVEL_SYSTEM["level_thresholds"])-1:
         current_threshold = LEVEL_SYSTEM["level_thresholds"][level-1] if level > 0 else 0
@@ -21080,15 +20995,15 @@ def show_achievements_section():
     """Başarı rozetleri bölümünü göster"""
     if 'gamification' not in st.session_state:
         init_gamification_system()
-    
+
     st.subheader("🏆 Başarı Rozetlerin")
-    
+
     if st.session_state.gamification['badges']:
         # Rozetleri kategorilere ayır
         topic_badges = []
         subject_badges = []
         streak_badges = []
-        
+
         for badge_id in st.session_state.gamification['badges']:
             if badge_id in ACHIEVEMENT_BADGES["topic_milestones"]:
                 topic_badges.append(ACHIEVEMENT_BADGES["topic_milestones"][badge_id])
@@ -21096,7 +21011,7 @@ def show_achievements_section():
                 subject_badges.append(ACHIEVEMENT_BADGES["subject_expertise"][badge_id])
             elif badge_id in ACHIEVEMENT_BADGES["streak_badges"]:
                 streak_badges.append(ACHIEVEMENT_BADGES["streak_badges"][badge_id])
-        
+
         # Kategoriler halinde göster
         if topic_badges:
             st.markdown("**🎯 Konu Başarıları**")
@@ -21104,7 +21019,7 @@ def show_achievements_section():
             for i, badge in enumerate(topic_badges):
                 with cols[i % 4]:
                     st.markdown(f"""
-                    <div style="text-align: center; padding: 15px; border: 2px solid #gold; 
+                    <div style="text-align: center; padding: 15px; border: 2px solid #gold;
                                border-radius: 10px; margin: 5px; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);">
                         <div style="font-size: 2em;">{badge['icon']}</div>
                         <div style="font-weight: bold; color: #8B4513;">{badge['name']}</div>
@@ -21112,14 +21027,14 @@ def show_achievements_section():
                         <div style="font-size: 0.7em; color: #8B4513;">+{badge['points']} puan</div>
                     </div>
                     """, unsafe_allow_html=True)
-        
+
         if subject_badges:
             st.markdown("**📚 Uzmanlık Rozetleri**")
             cols = st.columns(min(4, len(subject_badges)))
             for i, badge in enumerate(subject_badges):
                 with cols[i % 4]:
                     st.markdown(f"""
-                    <div style="text-align: center; padding: 15px; border: 2px solid #silver; 
+                    <div style="text-align: center; padding: 15px; border: 2px solid #silver;
                                border-radius: 10px; margin: 5px; background: linear-gradient(135deg, #C0C0C0 0%, #708090 100%);">
                         <div style="font-size: 2em;">{badge['icon']}</div>
                         <div style="font-weight: bold; color: white;">{badge['name']}</div>
@@ -21127,14 +21042,14 @@ def show_achievements_section():
                         <div style="font-size: 0.7em; color: white;">+{badge['points']} puan</div>
                     </div>
                     """, unsafe_allow_html=True)
-        
+
         if streak_badges:
             st.markdown("**⚡ Süreklilik Rozetleri**")
             cols = st.columns(min(4, len(streak_badges)))
             for i, badge in enumerate(streak_badges):
                 with cols[i % 4]:
                     st.markdown(f"""
-                    <div style="text-align: center; padding: 15px; border: 2px solid #bronze; 
+                    <div style="text-align: center; padding: 15px; border: 2px solid #bronze;
                                border-radius: 10px; margin: 5px; background: linear-gradient(135deg, #CD7F32 0%, #A0522D 100%);">
                         <div style="font-size: 2em;">{badge['icon']}</div>
                         <div style="font-weight: bold; color: white;">{badge['name']}</div>
@@ -21142,22 +21057,22 @@ def show_achievements_section():
                         <div style="font-size: 0.7em; color: white;">+{badge['points']} puan</div>
                     </div>
                     """, unsafe_allow_html=True)
-    else:
-        st.info("🚀 Henüz rozet kazanmadın! İlk konunu tamamlayarak başla!")
+else:
+    st.info("🚀 Henüz rozet kazanmadın! İlk konunu tamamlayarak başla!")
 
 def show_daily_challenges():
     """Günlük challenge'ları göster"""
     if 'gamification' not in st.session_state:
         init_gamification_system()
-    
+
     st.subheader("🎯 Günlük Görevler")
-    
+
     today = datetime.now().strftime("%Y-%m-%d")
-    
+
     for challenge in st.session_state.gamification['current_challenges']['daily']:
         progress = get_challenge_progress(challenge, today)
         completion_percentage = min(100, (progress / challenge.get('target', 1)) * 100)
-        
+
         col1, col2 = st.columns([3, 1])
         with col1:
             st.markdown(f"**{challenge['name']}** - {challenge['description']}")
@@ -21167,14 +21082,14 @@ def show_daily_challenges():
         with col2:
             if completion_percentage >= 100:
                 st.success(f"✅ +{challenge['points']} puan")
-            else:
-                st.info(f"🎯 {challenge['points']} puan")
+else:
+    st.info(f"🎯 {challenge['points']} puan")
 
 def get_challenge_progress(challenge, date_key):
     """Challenge ilerlemesini al"""
     if 'gamification' not in st.session_state:
         return 0
-    
+
     challenge_data = st.session_state.gamification['completed_challenges']['daily'].get(challenge['id'], {})
     return challenge_data.get(date_key, 0)
 
@@ -21188,7 +21103,7 @@ def show_level_up_notification(new_level):
     """Seviye atlama bildirimi göster"""
     st.balloons()
     st.success(f"🎊 Tebrikler! Seviye {new_level}'e yükseldin!")
-    
+
     # Seviye ödülü varsa göster
     if new_level in LEVEL_SYSTEM["level_rewards"]:
         reward = LEVEL_SYSTEM["level_rewards"][new_level]
@@ -21197,10 +21112,10 @@ def show_level_up_notification(new_level):
 def complete_topic_with_gamification(subject, topic_name, difficulty_level):
     """Gamification ile konu tamamlama"""
     # Mevcut konu tamamlama işlemi...
-    
+
     # Gamification ekle
     points, new_badges = update_topic_completion(subject, topic_name, difficulty_level)
-    
+
     # Bildirimler
     st.success(f"🎉 Konu tamamlandı! +{points} puan kazandın!")
 
@@ -21352,38 +21267,38 @@ def calculate_current_yks_score(user_data):
         tyt_net = float(user_data.get('tyt_avg_net', 0))
         ayt_net = float(user_data.get('ayt_avg_net', 0))
         field = user_data.get('field', 'Sayısal')
-        
+
         # YKS puan hesaplama formülleri (2025 güncel)
         if field == "Sayısal":
             # SAY puan hesaplama
             tyt_puan = (tyt_net * 4) + 100  # TYT başarı puanı
             ayt_puan = (ayt_net * 5) + 100  # AYT başarı puanı
-            
+
             # SAY puan formülü: %40 TYT + %60 AYT
             skor = (tyt_puan * 0.4) + (ayt_puan * 0.6)
-            
+
         elif field == "Sözel":
             # SÖZ puan hesaplama
             tyt_puan = (tyt_net * 4) + 100
             ayt_puan = (ayt_net * 5) + 100
-            
+
             # SÖZ puan formülü: %40 TYT + %60 AYT
             skor = (tyt_puan * 0.4) + (ayt_puan * 0.6)
-            
+
         elif field == "Eşit Ağırlık":
             # EA puan hesaplama
             tyt_puan = (tyt_net * 4) + 100
             ayt_puan = (ayt_net * 5) + 100
-            
+
             # EA puan formülü: %40 TYT + %60 AYT
             skor = (tyt_puan * 0.4) + (ayt_puan * 0.6)
-            
-        else:
-            # TYT & MSÜ için sadece TYT
+
+else:
+    # TYT & MSÜ için sadece TYT
             skor = (tyt_net * 4) + 100
-            
+
         return max(100, skor)  # Minimum 100 puan
-        
+
     except:
         return 100
 
@@ -21407,7 +21322,7 @@ def calculate_required_nets_for_target(target_score, field):
         # SAY puan formülü: (TYT_net * 4 + 100) * 0.4 + (AYT_net * 5 + 100) * 0.6 = target_score
         # Çeşitli senaryolar öner
         scenarios = []
-        
+
         for tyt_net in range(80, 121, 10):  # TYT 80-120 net arası
             # AYT netini hesapla
             # target_score = (tyt_net * 4 + 100) * 0.4 + (ayt_net * 5 + 100) * 0.6
@@ -21418,12 +21333,12 @@ def calculate_required_nets_for_target(target_score, field):
                     scenarios.append({
                         "tyt_net": tyt_net,
                         "ayt_net": round(ayt_net, 1),
-                        "difficulty": "Kolay" if tyt_net >= 100 and ayt_net >= 65 else 
+                        "difficulty": "Kolay" if tyt_net >= 100 and ayt_net >= 65 else
                                      "Orta" if tyt_net >= 90 and ayt_net >= 55 else "Zor"
                     })
             except:
                 continue
-                
+
     elif field == "Sözel":
         scenarios = []
         for tyt_net in range(80, 121, 10):
@@ -21433,12 +21348,12 @@ def calculate_required_nets_for_target(target_score, field):
                     scenarios.append({
                         "tyt_net": tyt_net,
                         "ayt_net": round(ayt_net, 1),
-                        "difficulty": "Kolay" if tyt_net >= 100 and ayt_net >= 65 else 
+                        "difficulty": "Kolay" if tyt_net >= 100 and ayt_net >= 65 else
                                      "Orta" if tyt_net >= 90 and ayt_net >= 55 else "Zor"
                     })
             except:
                 continue
-                
+
     elif field == "Eşit Ağırlık":
         scenarios = []
         for tyt_net in range(80, 121, 10):
@@ -21448,13 +21363,13 @@ def calculate_required_nets_for_target(target_score, field):
                     scenarios.append({
                         "tyt_net": tyt_net,
                         "ayt_net": round(ayt_net, 1),
-                        "difficulty": "Kolay" if tyt_net >= 100 and ayt_net >= 65 else 
+                        "difficulty": "Kolay" if tyt_net >= 100 and ayt_net >= 65 else
                                      "Orta" if tyt_net >= 90 and ayt_net >= 55 else "Zor"
                     })
             except:
                 continue
-    else:
-        # TYT & MSÜ için sadece TYT
+else:
+    # TYT & MSÜ için sadece TYT
         scenarios = []
         tyt_net_needed = (target_score - 100) / 4
         if 0 <= tyt_net_needed <= 120:
@@ -21463,16 +21378,16 @@ def calculate_required_nets_for_target(target_score, field):
                 "ayt_net": 0,
                 "difficulty": "Kolay" if tyt_net_needed <= 100 else "Zor"
             })
-    
+
     return scenarios[:3]  # En iyi 3 senaryoyu döndür
 
 def show_target_department_roadmap(user_data):
     """🎯 Hedef Bölüm Bilgileri"""
     st.subheader("🎯 Hedef Bölüm Bilgileri")
-    
+
     field_raw = user_data.get('field', 'Sayısal')
     target_department = user_data.get('target_department', None)
-    
+
     # Alan formatını normalize et
     if 'Sayısal' in field_raw or 'MF' in field_raw:
         field = 'Sayısal'
@@ -21480,46 +21395,46 @@ def show_target_department_roadmap(user_data):
         field = 'Sözel'
     elif 'Eşit' in field_raw or 'EA' in field_raw:
         field = 'Eşit Ağırlık'
-    else:
-        field = field_raw
-    
+else:
+    field = field_raw
+
     if not target_department or target_department == 'Belirlenmedi':
         st.warning("⚠️ Henüz hedef bölüm belirlenmemiş. Lütfen profil ayarlarınızdan hedef bölümünüzü seçin.")
         return
-    
+
     # Hedef bölüm için tüm üniversitelerdeki en düşük/en yüksek puanları bul
     try:
         department_data = YKS_2025_TABAN_PUANLARI[field][target_department]
-        
+
         devlet_unis = []
         vakif_unis = []
-        
+
         for uni_name, info in department_data.items():
             puan = info["taban_puan"]
             if 'vakıf' in uni_name.lower() or 'medipol' in uni_name.lower() or 'koç' in uni_name.lower() or 'sabancı' in uni_name.lower() or 'bilkent' in uni_name.lower() or 'atılım' in uni_name.lower() or 'bahçeşehir' in uni_name.lower() or 'başkent' in uni_name.lower() or 'istanbul vakıf' in uni_name.lower():
                 vakif_unis.append((puan, uni_name))
-            else:
-                devlet_unis.append((puan, uni_name))
-        
+else:
+    devlet_unis.append((puan, uni_name))
+
         if devlet_unis:
             devlet_unis.sort()
             min_devlet_puan, min_devlet_uni = devlet_unis[0]
             max_devlet_puan, max_devlet_uni = devlet_unis[-1]
-        else:
-            min_devlet_puan = min_devlet_uni = max_devlet_puan = max_devlet_uni = None
-        
+else:
+    min_devlet_puan = min_devlet_uni = max_devlet_puan = max_devlet_uni = None
+
         if vakif_unis:
             vakif_unis.sort()
             min_vakif_puan, min_vakif_uni = vakif_unis[0]
             max_vakif_puan, max_vakif_uni = vakif_unis[-1]
-        else:
-            min_vakif_puan = min_vakif_uni = max_vakif_puan = max_vakif_uni = None
-        
+else:
+    min_vakif_puan = min_vakif_uni = max_vakif_puan = max_vakif_uni = None
+
         # Genel puan aralığı
         all_puanlar = [info["taban_puan"] for info in department_data.values()]
         min_puan = min(all_puanlar)
         max_puan = max(all_puanlar)
-        
+
         # Zorluk derecesi belirleme (gerçek verilerden)
         if max_puan >= 500:
             difficulty = "Zor"
@@ -21533,51 +21448,51 @@ def show_target_department_roadmap(user_data):
         elif max_puan >= 350:
             difficulty = "Orta-Kolay"
             difficulty_color = "🟢"
-        else:
-            difficulty = "Kolay"
+else:
+    difficulty = "Kolay"
             difficulty_color = "💚"
-        
+
         # Bölüm bilgileri kartı
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     padding: 20px; border-radius: 15px; margin: 10px 0; color: white;">
             <h3>{difficulty_color} {target_department}</h3>
             <p><strong>Zorluk Derecesi:</strong> {difficulty}</p>
             <p><strong>Genel Puan Aralığı:</strong> {min_puan} - {max_puan} puan</p>
         </div>
         """, unsafe_allow_html=True)
-        
+
         # Detay metrikler
         col1, col2, col3, col4 = st.columns(4)
-        
+
         with col1:
             if min_devlet_puan:
                 st.metric("🏫 En Düşük Devlet", f"{min_devlet_puan} puan")
                 st.caption(f"{min_devlet_uni}")
-            else:
-                st.metric("🏫 En Düşük Devlet", "Yok")
-        
+else:
+    st.metric("🏫 En Düşük Devlet", "Yok")
+
         with col2:
             if max_devlet_puan:
                 st.metric("🏫 En Yüksek Devlet", f"{max_devlet_puan} puan")
                 st.caption(f"{max_devlet_uni}")
-            else:
-                st.metric("🏫 En Yüksek Devlet", "Yok")
-        
+else:
+    st.metric("🏫 En Yüksek Devlet", "Yok")
+
         with col3:
             if min_vakif_puan:
                 st.metric("🏢 En Düşük Vakıf", f"{min_vakif_puan} puan")
                 st.caption(f"{min_vakif_uni}")
-            else:
-                st.metric("🏢 En Düşük Vakıf", "Yok")
-        
+else:
+    st.metric("🏢 En Düşük Vakıf", "Yok")
+
         with col4:
             if max_vakif_puan:
                 st.metric("🏢 En Yüksek Vakıf", f"{max_vakif_puan} puan")
                 st.caption(f"{max_vakif_uni}")
-            else:
-                st.metric("🏢 En Yüksek Vakıf", "Yok")
-        
+else:
+    st.metric("🏢 En Yüksek Vakıf", "Yok")
+
     except KeyError:
         st.error(f"❌ {target_department} bölümü için {field} alanında veri bulunamadı.")
 
@@ -21585,39 +21500,39 @@ def show_weak_subjects_analysis(user_data, field, score_diff):
     """Zayıf alan analizi ve öneriler"""
     st.markdown("---")
     st.subheader("🎯 Zorlandığınız Dersler - Öncelik Sistemi")
-    
+
     # Kullanıcının zayıf alanlarını al (YKS anketinden)
     survey_data = user_data.get('yks_survey_data', '')
     difficult_subjects = []
-    
+
     if survey_data:
         try:
             data = json.loads(survey_data)
             difficult_subjects = data.get('difficult_subjects', [])
         except:
             pass
-    
+
     if difficult_subjects:
         st.write("**En zorlandığınız dersler (öncelik sırasına göre):**")
-        
+
         for i, subject in enumerate(difficult_subjects[:3]):
             priority_level = ["🔴 YÜKSEK ÖNCELİK", "🟡 ORTA ÖNCELİK", "🟢 DÜŞÜK ÖNCELİK"][i]
-            
+
             with st.expander(f"{priority_level}: {subject}"):
                 # Çalışma yoğunluğu önerisi
                 if score_diff > 30:
                     intensity = "Günde 2-3 saat yoğun çalışma"
                 elif score_diff > 15:
                     intensity = "Günde 1-2 saat düzenli çalışma"
-                else:
-                    intensity = "Günde 30-60 dakika odaklanma"
-                
+else:
+    intensity = "Günde 30-60 dakika odaklanma"
+
                 st.write(f"**💪 Önerilen Yoğunluk:** {intensity}")
                 st.write(f"**📚 Odak Alanları:** Temel konular → Orta seviye → İleri seviye")
                 st.write(f"**⏰ Haftalık Hedef:** Bu derse toplam {(i+1)*3} saat ayırın")
-    
-    else:
-        st.info("📝 Zayıf alanlarınızı belirlemek için lütfen **Haftalık Planlama** sekmesindeki anketi tamamlayın.")
+
+else:
+    st.info("📝 Zayıf alanlarınızı belirlemek için lütfen **Haftalık Planlama** sekmesindeki anketi tamamlayın.")
 
 def get_user_weekly_progress(user_data):
     """Kullanıcının haftalık ilerlemesini hesaplar"""
@@ -21625,16 +21540,16 @@ def get_user_weekly_progress(user_data):
     topic_tracking = json.loads(user_data.get('topic_tracking_data', '{}'))
     if not topic_tracking:
         return 60  # Varsayılan
-    
+
     # 5+ net olan konuları say
-    completed_topics = sum(1 for topic_data in topic_tracking.values() 
+    completed_topics = sum(1 for topic_data in topic_tracking.values()
                           if topic_data.get('net_score', 0) >= 5)
-    
+
     # Pomodoro verisini de dahil et
     pomodoro_data = json.loads(user_data.get('pomodoro_data', '{}'))
-    weekly_sessions = sum(1 for session in pomodoro_data.values() 
+    weekly_sessions = sum(1 for session in pomodoro_data.values()
                          if session.get('completed', False))
-    
+
     # Basit bir formula ile ilerleme yüzdesi hesapla
     progress = min(100, (completed_topics * 10 + weekly_sessions * 5))
     return max(30, progress)  # Minimum %30
@@ -21644,14 +21559,14 @@ def generate_adaptive_schedule(user_data):
     # Anket verilerini al
     survey_data = json.loads(user_data.get('yks_survey_data', '{}'))
     sleep_time = survey_data.get('sleep_time', '23:00 - 06:00 (7 saat) - Önerilen')
-    
+
     # Kullanıcının tempositemiini hesapla
     user_progress = get_user_weekly_progress(user_data)
     target_progress = 70  # Hedef haftalık ilerleme %70
-    
+
     # Temel çalışma saati (normal)
     base_hours = 6
-    
+
     # Tempo farkı hesapla ve saatleri otomatik ayarla
     if user_progress < 50:  # Yavaş gidiyorsa
         adjusted_hours = base_hours + 1.5  # 1.5 saat artır
@@ -21661,11 +21576,11 @@ def generate_adaptive_schedule(user_data):
         adjusted_hours = base_hours + 1  # 1 saat artır
         tempo_message = f"📈 **İlerlemeniz normal altı ({user_progress:.1f}%)** - Çalışma saatleriniz 1 saat artırıldı."
         tempo_color = "info"
-    else:  # Normal veya hızlı
+else:  # Normal veya hızlı
         adjusted_hours = base_hours  # Normal saatler
         tempo_message = f"🚀 **Harika ilerleme ({user_progress:.1f}%)!** Mevcut temponu koru."
         tempo_color = "success"
-    
+
     # Uyku saatine göre program önerisi
     if 'Erken' in sleep_time or '22:00' in sleep_time or '23:00' in sleep_time:
         morning_end = 6 + int(adjusted_hours)
@@ -21676,10 +21591,10 @@ def generate_adaptive_schedule(user_data):
     elif 'Geç' in sleep_time or '01:00' in sleep_time:
         morning_end = 8 + int(adjusted_hours)
         schedule = f"08:00-{morning_end:02d}:00, 19:00-22:00"
-    else:  # Çok geç
+else:  # Çok geç
         morning_end = 9 + int(adjusted_hours)
         schedule = f"09:00-{morning_end:02d}:00, 20:00-23:00"
-    
+
     return {
         'schedule': schedule,
         'adjusted_hours': adjusted_hours,
@@ -21691,48 +21606,48 @@ def generate_adaptive_schedule(user_data):
 def show_adaptive_yearly_plan(user_data, current_score, months_to_yks):
     """Adaptif yıllık plan sistemi"""
     st.subheader("🎯 YKS'ye Kadar Dinamik Yol Haritası")
-    
+
     # Öğrenci tempositemi hesapla
     user_progress = get_user_weekly_progress(user_data)
     target_weekly_progress = 70  # Hedef haftalık %70
-    
+
     # Tempo farkı hesapla
     tempo_farki = user_progress - target_weekly_progress
-    
+
     # Tempo durumunu belirle
     if tempo_farki >= 15:  # %85+ ilerleme
         tempo_status = "Hızlı"
         ay_offset = -1  # Planı 1 ay öne al
         tempo_color = "success"
         tempo_emoji = "🚀"
-    elif tempo_farki >= -10:  # %60-84 ilerleme  
+    elif tempo_farki >= -10:  # %60-84 ilerleme
         tempo_status = "Normal"
         ay_offset = 0  # Plan normal
         tempo_color = "info"
         tempo_emoji = "📈"
-    else:  # %60 altı ilerleme
+else:  # %60 altı ilerleme
         tempo_status = "Yavaş"
         ay_offset = 1  # Planı 1 ay geriye al
         tempo_color = "warning"
         tempo_emoji = "⚡"
-    
+
     # Tempo durumu göster
     if tempo_status == "Hızlı":
         st.success(f"{tempo_emoji} **{tempo_status} İlerleme** - Planınız 1 ay öne alındı! Deneme sınavlarına daha erken başlayabilirsiniz.")
     elif tempo_status == "Normal":
         st.info(f"{tempo_emoji} **{tempo_status} İlerleme** - Planınız yolunda gidiyor.")
-    else:
-        st.warning(f"{tempo_emoji} **{tempo_status} İlerleme** - Planınız 1 ay geriye alındı. Daha fazla çalışma gerekli.")
-    
+else:
+    st.warning(f"{tempo_emoji} **{tempo_status} İlerleme** - Planınız 1 ay geriye alındı. Daha fazla çalışma gerekli.")
+
     # Öğrenci alanını al
     student_field = user_data.get('field', 'Sayısal (MF)')
-    
+
     # ADAPTİF AYLIK PLAN OLUŞTUR
     create_adaptive_monthly_plan(student_field, ay_offset, current_score, tempo_status)
 
 def create_adaptive_monthly_plan(student_field, ay_offset, current_score, tempo_status):
     """Adaptif aylık plan oluşturur"""
-    
+
     # Temel plan tarihleri (Normal tempo için)
     base_plan = {
         'Ekim': {'focus': 'Temel Konular', 'milestone': None},
@@ -21745,7 +21660,7 @@ def create_adaptive_monthly_plan(student_field, ay_offset, current_score, tempo_
         'Mayıs': {'focus': 'Son Tekrar & Deneme', 'milestone': '📝 YKS\'YE HAZIRLIK!'},
         'Haziran': {'focus': 'Final Tekrar', 'milestone': '🏆 YKS ZAMANI!'}
     }
-    
+
     # Alan bazı özelleştirme
     if student_field == 'Sayısal (MF)':
         base_plan['Kasım']['focus'] = 'Matematik Temeli'
@@ -21759,55 +21674,55 @@ def create_adaptive_monthly_plan(student_field, ay_offset, current_score, tempo_
         base_plan['Kasım']['focus'] = 'Matematik & Türkçe'
         base_plan['Aralık']['focus'] = 'Sosyal Bilimler'
         base_plan['Ocak']['focus'] = 'Edebiyat & İngilizce'
-    
+
     # Offset ile planı ayarla
     months = list(base_plan.keys())
-    
+
     # Grafik verileri hazırla
     month_names = []
     score_projections = []
     colors = []
-    
+
     projected_score = current_score
-    
+
     for i, month in enumerate(months):
         month_names.append(month)
         score_projections.append(projected_score)
-        
+
         # Renk kodlama
         if tempo_status == "Hızlı":
             colors.append('#00CC66')  # Yeşil
         elif tempo_status == "Normal":
             colors.append('#0066CC')  # Mavi
-        else:
-            colors.append('#FF6B6B')  # Kırmızı
-        
+else:
+    colors.append('#FF6B6B')  # Kırmızı
+
         # Score projeksiyonu (aylık +15 puan varsayım)
         projected_score = min(500, projected_score + 15)
-    
+
     # Plotly grafik oluştur
     if PLOTLY_AVAILABLE:
         fig = go.Figure()
-        
+
         # Mevcut puan
         fig.add_trace(go.Scatter(
-            x=['Şu An'], 
+            x=['Şu An'],
             y=[current_score],
             mode='markers',
             marker=dict(size=15, color='red'),
             name='Mevcut Puanınız'
         ))
-        
+
         # Gelişim projeksiyonu
         fig.add_trace(go.Scatter(
-            x=month_names, 
+            x=month_names,
             y=score_projections,
             mode='lines+markers',
             line=dict(color=colors[0], width=3),
             marker=dict(size=8, color=colors),
             name=f'Tahmini Gelişim ({tempo_status})'
         ))
-        
+
         fig.update_layout(
             title=f"📈 {tempo_status} İlerleme - YKS Tahmini Gelişim Grafiği",
             xaxis_title="Aylar",
@@ -21815,49 +21730,49 @@ def create_adaptive_monthly_plan(student_field, ay_offset, current_score, tempo_
             hovermode='x unified',
             height=400
         )
-        
+
         st.plotly_chart(fig, use_container_width=True)
-    
+
     # Aylık detay planı
     st.subheader("📅 Aylık Odak Alanları")
-    
+
     for i, month in enumerate(months):
         plan_data = base_plan[month]
-        
+
         # Ay offsetine göre milestone ayarla
         if plan_data['milestone']:
             if ay_offset == -1:  # Hızlı - milestones öne alınır
                 if month == 'Mart':
                     milestone_text = '🎯 DENEMELER BAŞLIYOR! (1 ay erken)'
-                else:
-                    milestone_text = plan_data['milestone']
+else:
+    milestone_text = plan_data['milestone']
             elif ay_offset == 1:  # Yavaş - milestones geriye alınır
                 if month == 'Mayıs':
                     milestone_text = '🎯 DENEMELER BAŞLIYOR! (1 ay geç)'
-                else:
-                    milestone_text = plan_data['milestone']
-            else:
-                milestone_text = plan_data['milestone']
-        else:
-            milestone_text = None
-        
+else:
+    milestone_text = plan_data['milestone']
+else:
+    milestone_text = plan_data['milestone']
+else:
+    milestone_text = None
+
         with st.expander(f"📅 {month} 2024/25", expanded=(i < 2)):
             st.write(f"**🎯 Odak:** {plan_data['focus']}")
             if milestone_text:
                 st.markdown(f"**{milestone_text}**")
-            
+
             # Tempo bazı öneriler
             if tempo_status == "Hızlı":
                 st.success("🚀 Hızlı ilerliyorsunuz! Bonus konular ekleyebilirsiniz.")
             elif tempo_status == "Yavaş":
                 st.warning("⚡ Tempo artırmalısınız. Günlük çalışma saatinizi artırın.")
-            else:
-                st.info("📈 Planınız yolunda. Bu tempoyu koruyun.")
-    
+else:
+    st.info("📈 Planınız yolunda. Bu tempoyu koruyun.")
+
     # Genel öneri
     st.markdown("---")
     st.markdown("### 💡 Dinamik Öneriler")
-    
+
     if tempo_status == "Hızlı":
         st.success("""
         🚀 **Hızlı İlerleme Önerileri:**
@@ -21872,8 +21787,8 @@ def create_adaptive_monthly_plan(student_field, ay_offset, current_score, tempo_
         - Zayıf konularınıza odaklanın
         - Deneme sınavlarını Mayıs'a ertelemeyi düşünün
         """)
-    else:
-        st.info("""
+else:
+    st.info("""
         📈 **Normal İlerleme:**
         - Mevcut tempoya devam edin
         - Nisan ayında deneme sınavlarına başlayın
@@ -21882,65 +21797,65 @@ def create_adaptive_monthly_plan(student_field, ay_offset, current_score, tempo_
 
 def show_progress_analytics(user_data):
     """📊 Akllı Gidişat Analizi - Haftalık Performansa Dayalı Dinamik Sistem"""
-    
+
     # Öğrenci adını al
     student_name = user_data.get('name', 'Öğrenci')
-    
+
     # 🔥 FİX: Kullanıcının KENDİ dinamik hafta bilgisini kullan
     week_info_dynamic = get_user_dynamic_week_info(user_data)
     current_day_tr = week_info_dynamic['current_day_name']  # Gerçek gün adı
-    
+
     # Genel hafta bilgisi (YKS geri sayımı için)
     week_info = get_current_week_info()
     sunday_check = week_info['sunday']
     days_to_yks = week_info['days_to_yks']
-    
+
     # Modern başlık
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 padding: 25px; border-radius: 15px; margin: 20px 0; color: white; text-align: center;">
         <h2 style="margin: 0; color: white;">🚀 {student_name}, Gidişatın Nasıl?</h2>
         <p style="margin: 10px 0 0 0; opacity: 0.9;">Akllı performans analizi ve gelecek projeksiyonu</p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Haftalık program başlangıç kontrolü
     if 'weekly_program_started' not in user_data or not user_data.get('weekly_program_started', False):
         st.info(f"""
         🔄 **{student_name}, henüz haftalık programa başlamamlışın!**
-        
+
         Gidişat analizi için önce "Haftalık Planlama" sekmesinden programını başlat.
         퀓0lk hafta bittiğinde burada detaylı analiz görüntülenecek.
         """)
         return 0, []
-    
+
     # İlk hafta kontrolü - Pazartesi başlayıp Pazar bitiyor
     weekly_start_date = user_data.get('weekly_plan_start_date')
     if not weekly_start_date:
         st.warning("🔄 Haftalık program başlangıç tarihi bulunamadı!")
         return 0, []
-    
+
     from datetime import datetime, timedelta
     try:
         start_date = datetime.strptime(weekly_start_date, "%Y-%m-%d")
         today = datetime.now()
-        
+
         # İlk haftanın pazartesi ve pazarını bul
         days_since_monday = start_date.weekday()
         first_week_monday = start_date - timedelta(days=days_since_monday)
         first_week_sunday = first_week_monday + timedelta(days=6)
-        
+
         # İlk hafta henüz bitmedi mi?
         if today <= first_week_sunday:
             st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%); 
+            <div style="background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%);
                         padding: 20px; border-radius: 12px; color: white; text-align: center;">
                 <h3 style="margin: 0; color: white;">📅 {student_name}, İlk Haftan Devam Ediyor!</h3>
                 <p style="margin: 10px 0 0 0; opacity: 0.9;">Bugün: {current_day_tr}</p>
                 <p style="margin: 5px 0 0 0; opacity: 0.9;">İlk hafta bittiğinde ({first_week_sunday.strftime('%d.%m.%Y')}) detaylı gidişat analizi açılacak!</p>
             </div>
             """, unsafe_allow_html=True)
-            
+
             # Temel bilgiler göster
             col1, col2, col3 = st.columns(3)
             with col1:
@@ -21949,17 +21864,17 @@ def show_progress_analytics(user_data):
                 st.metric("📅 Sınava Kalan Ay", days_to_yks // 30)
             with col3:
                 st.metric("📅 Sınava Kalan Hafta", days_to_yks // 7)
-            
+
             st.info("📝 Haftalık programını tamamlamaya odaklan, gidişat analizi hazırlanıyor...")
             return 0, []
-            
+
     except Exception as e:
         st.error(f"Tarih hesaplama hatası: {e}")
         return 0, []
-    
+
     # İlk hafta bitti - analiz başlıyor!
     st.balloons()  # Kutlama efekti
-    
+
     # Zaman kartları - modern görünüm
     st.markdown("🗓️ **Sınav Geri Sayımı**")
     col1, col2, col3 = st.columns(3)
@@ -21969,31 +21884,31 @@ def show_progress_analytics(user_data):
         st.metric("📅 Kalan Ay", days_to_yks // 30, help="Yaklaşık ay sayısı")
     with col3:
         st.metric("📅 Kalan Hafta", days_to_yks // 7, help="Yaklaşık hafta sayısı")
-    
+
     st.markdown("---")
-    
+
     # Haftalık performans hesaplama
     weekly_plan = user_data.get('weekly_plan', {})
     try:
         weekly_completion_rate = calculate_weekly_completion_percentage(user_data, weekly_plan)
     except:
         weekly_completion_rate = 0.0
-    
+
     # Performans analizi gösterimi
     show_smart_performance_analysis(student_name, weekly_completion_rate, user_data)
-    
+
     st.markdown("---")
-    
+
     # Dinamik konu takvimi
     show_intelligent_topic_calendar(student_name, user_data, weekly_completion_rate, weekly_start_date, days_to_yks)
-    
+
     return 0, []
 
 def show_smart_performance_analysis(student_name, weekly_completion_rate, user_data):
     """🤖 Akıllı Performans Analizi - Ders Bazında Detay"""
-    
+
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%); 
+    <div style="background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
                 padding: 25px; border-radius: 20px; margin: 20px 0; color: white; text-align: center;
                 box-shadow: 0 10px 30px rgba(162, 155, 254, 0.3);">
         <h3 style="margin: 0; color: white; font-weight: 600;">
@@ -22002,7 +21917,7 @@ def show_smart_performance_analysis(student_name, weekly_completion_rate, user_d
         <p style="margin: 10px 0 0 0; opacity: 0.9;">Ders bazında detaylı analiz</p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Genel performans kartı - daha modern
     if weekly_completion_rate >= 85:
         performance_color = "linear-gradient(135deg, #00b894 0%, #00cec9 100%)"
@@ -22022,16 +21937,16 @@ def show_smart_performance_analysis(student_name, weekly_completion_rate, user_d
         performance_text = "Orta"
         advice = "Daha hızlı çalışman gerekiyor."
         border_color = "#e17055"
-    else:
-        performance_color = "linear-gradient(135deg, #fd79a8 0%, #e84393 100%)"
+else:
+    performance_color = "linear-gradient(135deg, #fd79a8 0%, #e84393 100%)"
         performance_emoji = "🚨"
         performance_text = "Düşük"
         advice = "Acil olarak çalışma programını gözden geçir!"
         border_color = "#e84393"
-    
+
     # Ana performans kartı
     st.markdown(f"""
-    <div style="background: {performance_color}; 
+    <div style="background: {performance_color};
                 padding: 25px; border-radius: 15px; color: white; margin: 15px 0;
                 box-shadow: 0 8px 25px rgba(0,0,0,0.15);
                 border: 3px solid rgba(255,255,255,0.2);
@@ -22047,7 +21962,7 @@ def show_smart_performance_analysis(student_name, weekly_completion_rate, user_d
         </p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Ders bazında performans (varsayılan değerler) - modern kartlarla
     subjects_performance = {
         "TYT Türkçe": min(100, weekly_completion_rate + 5),
@@ -22058,19 +21973,19 @@ def show_smart_performance_analysis(student_name, weekly_completion_rate, user_d
         "AYT Matematik": min(100, weekly_completion_rate - 10),
         "AYT Edebiyat": min(100, weekly_completion_rate + 3)
     }
-    
+
     st.markdown("### 📊 Ders Bazında Performans Detayı")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); 
+        <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
                     padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 15px;">
             <h4 style="margin: 0; color: white;">📚 TYT Dersleri</h4>
         </div>
         """, unsafe_allow_html=True)
-        
+
         for subject, performance in subjects_performance.items():
             if "TYT" in subject:
                 if performance >= 80:
@@ -22081,11 +21996,11 @@ def show_smart_performance_analysis(student_name, weekly_completion_rate, user_d
                     bg_color = "#d1ecf1"
                     text_color = "#0c5460"
                     icon = "📈"
-                else:
-                    bg_color = "#fff3cd"
+else:
+    bg_color = "#fff3cd"
                     text_color = "#856404"
                     icon = "⚠️"
-                
+
                 st.markdown(f"""
                 <div style="background: {bg_color}; padding: 12px; border-radius: 8px; margin: 8px 0;
                             border-left: 4px solid {text_color};">
@@ -22094,15 +22009,15 @@ def show_smart_performance_analysis(student_name, weekly_completion_rate, user_d
                     </span>
                 </div>
                 """, unsafe_allow_html=True)
-    
+
     with col2:
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%); 
+        <div style="background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
                     padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 15px;">
             <h4 style="margin: 0; color: white;">📖 AYT Dersleri</h4>
         </div>
         """, unsafe_allow_html=True)
-        
+
         for subject, performance in subjects_performance.items():
             if "AYT" in subject:
                 if performance >= 80:
@@ -22113,11 +22028,11 @@ def show_smart_performance_analysis(student_name, weekly_completion_rate, user_d
                     bg_color = "#d1ecf1"
                     text_color = "#0c5460"
                     icon = "📈"
-                else:
-                    bg_color = "#fff3cd"
+else:
+    bg_color = "#fff3cd"
                     text_color = "#856404"
                     icon = "⚠️"
-                
+
                 st.markdown(f"""
                 <div style="background: {bg_color}; padding: 12px; border-radius: 8px; margin: 8px 0;
                             border-left: 4px solid {text_color};">
@@ -22130,11 +22045,11 @@ def show_smart_performance_analysis(student_name, weekly_completion_rate, user_d
 def show_intelligent_topic_calendar(student_name, user_data, weekly_completion_rate, weekly_start_date, days_to_yks):
     """🤖 Akıllı Konu Takvimi - Gerçek Performansa Dayalı"""
     from datetime import datetime, timedelta
-    
+
     # Modern başlık
     st.markdown(f"""
-    <div style="background: linear-gradient(145deg, #667eea 0%, #764ba2 100%); 
-                padding: 25px; border-radius: 20px; margin: 20px 0; 
+    <div style="background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
+                padding: 25px; border-radius: 20px; margin: 20px 0;
                 box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
                 border: 1px solid rgba(255,255,255,0.1);">
         <div style="text-align: center;">
@@ -22147,10 +22062,10 @@ def show_intelligent_topic_calendar(student_name, user_data, weekly_completion_r
         </div>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Haftalık program şablonu (mevcut sistemden alınacak)
     weekly_topics = get_student_weekly_curriculum(user_data.get('field', 'Eşit Ağırlık'))
-    
+
     # Hız hesaplama
     if weekly_completion_rate >= 85:
         speed_multiplier = 1.2
@@ -22167,17 +22082,17 @@ def show_intelligent_topic_calendar(student_name, user_data, weekly_completion_r
         speed_text = "Yavaş Tempo"
         speed_emoji = "⚠️"
         speed_color = "#ffc107"
-    else:
-        speed_multiplier = 0.6
+else:
+    speed_multiplier = 0.6
         speed_text = "Çok Yavaş Tempo"
         speed_emoji = "🚨"
         speed_color = "#dc3545"
-    
+
     # Modern hız kartı
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown(f"""
-        <div style="background: {speed_color}; 
+        <div style="background: {speed_color};
                     padding: 20px; border-radius: 15px; color: white; margin: 15px 0;
                     box-shadow: 0 8px 25px rgba(0,0,0,0.15);
                     text-align: center; border: 2px solid rgba(255,255,255,0.2);">
@@ -22192,43 +22107,43 @@ def show_intelligent_topic_calendar(student_name, user_data, weekly_completion_r
             </p>
         </div>
         """, unsafe_allow_html=True)
-    
+
     # Tarih hesaplamaları
     try:
         start_date = datetime.strptime(weekly_start_date, "%Y-%m-%d")
         current_date = datetime.now()
-        
+
         # Kaç hafta geçtiğini hesapla
         weeks_passed = max(1, (current_date - start_date).days // 7)
         current_week_index = weeks_passed
-        
+
         # Aylık planlama
         monthly_plan = calculate_monthly_topic_distribution(
             weekly_topics, current_week_index, speed_multiplier, start_date, days_to_yks
         )
-        
+
         if not monthly_plan:
             st.info("🏁 Tüm müfredat tamamlanmış veya analiz için yeterli veri yok!")
             return
-        
+
         # Modern aylık plan görünümü
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
                     padding: 20px; border-radius: 15px; margin: 20px 0; color: white; text-align: center;">
             <h3 style="margin: 0; color: white; font-weight: 600;">🗓️ Aylara Göre Konu Dağılımı</h3>
             <p style="margin: 5px 0 0 0; opacity: 0.9;">Dinamik müfredat planlaması</p>
         </div>
         """, unsafe_allow_html=True)
-        
+
         # Aylık kartları moderne al
         for i, (month, month_data) in enumerate(monthly_plan.items()):
             if month_data and month_data['topics']:
                 total_topics = len(month_data['topics'])
-                
+
                 # Her ay için farklı renk gradientleri
                 colors = [
                     "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                    "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", 
+                    "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
                     "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
                     "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
                     "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
@@ -22236,17 +22151,17 @@ def show_intelligent_topic_calendar(student_name, user_data, weekly_completion_r
                     "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)"
                 ]
                 color = colors[i % len(colors)]
-                
+
                 with st.expander(f"📅 **{month}** ({total_topics} konu) - Hafta {month_data['week_range']}", expanded=i<2):
                     st.markdown(f"""
-                    <div style="background: {color}; 
+                    <div style="background: {color};
                                 padding: 15px; border-radius: 12px; margin: 10px 0; color: white;">
                         <h4 style="margin: 0 0 15px 0; color: white; text-align: center;">
                             📚 {month} Konuları ({total_topics} adet)
                         </h4>
                     </div>
                     """, unsafe_allow_html=True)
-                    
+
                     # Konuları 2 kolonlu göster
                     col1, col2 = st.columns(2)
                     for j, topic in enumerate(month_data['topics']):
@@ -22259,15 +22174,15 @@ def show_intelligent_topic_calendar(student_name, user_data, weekly_completion_r
                             emoji = "📖"
                             badge_color = "#f3e5f5"
                             text_color = "#7b1fa2"
-                        else:
-                            emoji = "📝"
+else:
+    emoji = "📝"
                             badge_color = "#e8f5e8"
                             text_color = "#388e3c"
-                        
+
                         target_col = col1 if j % 2 == 0 else col2
                         with target_col:
                             st.markdown(f"""
-                            <div style="background: {badge_color}; 
+                            <div style="background: {badge_color};
                                         padding: 8px 12px; border-radius: 8px; margin: 5px 0;
                                         border-left: 4px solid {text_color};">
                                 <span style="color: {text_color}; font-weight: 500;">
@@ -22275,10 +22190,10 @@ def show_intelligent_topic_calendar(student_name, user_data, weekly_completion_r
                                 </span>
                             </div>
                             """, unsafe_allow_html=True)
-        
+
         # Deneme sınavı tahmini
         show_exam_prediction(monthly_plan, speed_multiplier, student_name)
-        
+
     except Exception as e:
         st.error(f"Tarih hesaplama hatası: {e}")
 
@@ -22289,63 +22204,63 @@ def get_student_weekly_curriculum(field):
         # 1. Hafta
         "TYT Türkçe - Sözcükte Anlam", "TYT Matematik - Temel Kavramlar", "TYT Tarih - Tarih ve Zaman",
         "TYT Geometri - Açılar", "TYT Coğrafya - Dünya Haritaları",
-        
-        # 2. Hafta  
+
+        # 2. Hafta
         "TYT Türkçe - Ses Bilgisi", "TYT Matematik - Bölme ve Bölünebilme", "TYT Matematik - EBOB-EKOK",
         "TYT Geometri - Özel Üçgenler", "TYT Coğrafya - Doğa ve İnsan", "TYT Tarih - İnsanlığın İlk Dönemleri",
-        
+
         # 3. Hafta
         "TYT Türkçe - Yazım Kuralları", "TYT Matematik - Ondalıklı Sayılar", "TYT Matematik - Oran Orantı",
         "TYT Geometri - Açıortay", "TYT Coğrafya - Coğrafi Konum", "TYT Tarih - İlk ve Orta Çağlarda Türk Dünyası",
-        
+
         # 4. Hafta
         "TYT Türkçe - Noktalama İşaretleri", "TYT Matematik - Basit Eşitsizlikler", "TYT Matematik - Mutlak Değer",
         "TYT Geometri - Eşlik ve Benzerlik", "TYT Coğrafya - İklim", "TYT Tarih - İlk Türk İslam Devletleri",
-        
+
         # 5. Hafta
         "TYT Türkçe - Sözcük Türleri", "TYT Matematik - Üslü Sayılar", "TYT Matematik - Köklü Sayılar",
         "TYT Geometri - Çokgenler", "TYT Coğrafya - Nüfus", "TYT Tarih - Dünya Gücü Osmanlı",
-        
+
         # 6. Hafta
         "TYT Türkçe - Fiilde Anlam", "TYT Matematik - Çarpanlara Ayırma", "TYT Matematik - Hareket Problemleri",
         "TYT Geometri - Paralelkenar", "TYT Coğrafya - Göç", "TYT Tarih - Osmanlı Avrupa İlişkileri",
-        
+
         # 7. Hafta - AYT başlıyor
         "TYT Türkçe - Fiilimsi", "AYT Matematik - Fonksiyonlar", "TYT Matematik - Grafik Problemleri",
         "TYT Geometri - Diktörtgen", "TYT Coğrafya - Ekonomik Faaliyetler", "TYT Tarih - 1.Dünya Savaşı",
-        
+
         # 8. Hafta
         "TYT Türkçe - Cümlenin Öğeleri", "TYT Matematik - Mantık", "AYT Matematik - Polinom",
         "TYT Geometri - Yamuk", "TYT Tarih - Kurtuluş Savaşı",
-        
+
         # 9. Hafta
         "TYT Matematik - Olasılık", "AYT Matematik - 2.Derece Denklemler", "TYT Geometri - Çemberde Açı",
         "TYT Tarih - Türk İnkılabı", "AYT Edebiyat - Güzel Sanatlar", "AYT Coğrafya - Ekosistem",
-        
+
         # 10. Hafta
         "AYT Edebiyat - Edebi Sanatlar", "AYT Coğrafya - Biyoçeşitlilik", "AYT Matematik - Karmaşık Sayılar",
         "TYT Tarih - Atatürk İlkeleri", "TYT Geometri - Noktanan Analitiği",
-        
+
         # 11. Hafta
         "AYT Edebiyat - Şiir Bilgisi", "AYT Matematik - Logaritma", "TYT Geometri - Prizmalar",
         "AYT Coğrafya - Nüfus Politikaları", "AYT Tarih - Ortaçağda Dünya",
-        
+
         # 12. Hafta
         "AYT Edebiyat - Türk Edebiyatı Dönemleri", "AYT Matematik - Diziler", "TYT Geometri - Silindir",
         "AYT Coğrafya - Türkiye Ekonomisi", "AYT Tarih - Selçuklu Türkiyesi",
-        
+
         # 13. Hafta
         "AYT Edebiyat - Halk Edebiyatı", "AYT Matematik - Türev", "TYT Geometri - Koni",
         "AYT Coğrafya - Türkiye'de Tarım", "AYT Tarih - Osmanlı Merkez Teşkilatı",
-        
+
         # 14. Hafta
         "AYT Edebiyat - Tanzimat Edebiyatı", "AYT Coğrafya - Küresel Ticaret",
         "AYT Tarih - Osmanlı Siyaseti",
-        
+
         # 15. Hafta
         "AYT Edebiyat - Milli Edebiyat", "AYT Coğrafya - Çevre Sorunları",
         "AYT Tarih - Milli Mücadele",
-        
+
         # 16. Hafta
         "AYT Edebiyat - Cumhuriyet Edebiyatı", "AYT Matematik - İntegral",
         "AYT Tarih - XXI. YY Eşiğinde Türkiye"
@@ -22354,46 +22269,46 @@ def get_student_weekly_curriculum(field):
 def calculate_monthly_topic_distribution(weekly_topics, current_week, speed_multiplier, start_date, days_to_yks):
     """İlerleme hızına göre konuları aylara dağıtır"""
     from datetime import datetime, timedelta
-    
+
     # Kalan konuları hesapla (current_week'ten sonraki konular)
     topics_per_week = 6  # Haftalık ortalama konu sayısı
     completed_topics = (current_week - 1) * topics_per_week
     remaining_topics = weekly_topics[completed_topics:]
-    
+
     if not remaining_topics:
         return {}
-    
+
     # Ay isimlerini Türkçeleştir
     month_names = {
         1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan", 5: "Mayıs", 6: "Haziran",
         7: "Temmuz", 8: "Ağustos", 9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık"
     }
-    
+
     # Mevcut tarihten başlayarak ay ay dağıtım
     current_date = datetime.now()
     monthly_plan = {}
     topic_index = 0
     week_counter = current_week
-    
+
     # Sınava kadar olan süreyi aylara böl
     end_date = start_date + timedelta(days=days_to_yks)
-    
+
     while current_date < end_date and topic_index < len(remaining_topics):
         month_name = f"{month_names[current_date.month]} {current_date.year}"
-        
+
         # Bu ayda kaç hafta var
         next_month = current_date.replace(day=1) + timedelta(days=32)
         next_month = next_month.replace(day=1)
         days_in_month = (next_month - current_date).days
         weeks_in_month = max(1, days_in_month // 7)
-        
+
         # Hız çarpanına göre kaç haftalık içerik bitecek
         effective_weeks = int(weeks_in_month * speed_multiplier)
         topics_this_month = effective_weeks * topics_per_week
-        
+
         # Bu aydaki konuları al
         month_topics = remaining_topics[topic_index:topic_index + topics_this_month]
-        
+
         if month_topics:
             monthly_plan[month_name] = {
                 'topics': month_topics,
@@ -22401,17 +22316,17 @@ def calculate_monthly_topic_distribution(weekly_topics, current_week, speed_mult
             }
             topic_index += topics_this_month
             week_counter += effective_weeks
-        
+
         current_date = next_month
-    
+
     return monthly_plan
 
 def show_exam_prediction(monthly_plan, speed_multiplier, student_name):
     """Akıllı Deneme Sınavı Başlangıç Tahmini - TYT ve AYT Ayrı"""
-    
+
     if not monthly_plan:
         return
-    
+
     # Aylık planın ne zaman biteceğini hesapla
     plan_months = list(monthly_plan.keys())
     if plan_months:
@@ -22423,7 +22338,7 @@ def show_exam_prediction(monthly_plan, speed_multiplier, student_name):
             ayt_start_month = "Nisan ortası"
             revision_period = "Nisan"
         elif "Şubat" in last_month:
-            curriculum_finish = "Şubat sonu" 
+            curriculum_finish = "Şubat sonu"
             tyt_start_month = "Mart başı"
             ayt_start_month = "Mart ortası"
             revision_period = "Mart"
@@ -22437,34 +22352,34 @@ def show_exam_prediction(monthly_plan, speed_multiplier, student_name):
             tyt_start_month = "Haziran başı"
             ayt_start_month = "Haziran ortası"
             revision_period = "Haziran"
-        else:
-            curriculum_finish = "Belirsiz"
+else:
+    curriculum_finish = "Belirsiz"
             tyt_start_month = "Belirsiz"
             ayt_start_month = "Belirsiz"
             revision_period = "Belirsiz"
-    else:
-        curriculum_finish = "Belirsiz"
+else:
+    curriculum_finish = "Belirsiz"
         tyt_start_month = "Belirsiz"
         ayt_start_month = "Belirsiz"
         revision_period = "Belirsiz"
-    
+
     # Hıza göre düzeltme yap
     if speed_multiplier >= 1.1:
         message_type = "success"
         main_icon = "🏆"
         speed_advice = f"Mükemmel tempoda gidiyorsun {student_name}!"
     elif speed_multiplier >= 0.9:
-        message_type = "info" 
+        message_type = "info"
         main_icon = "🎯"
         speed_advice = f"Güzel bir tempoda ilerliyorsun {student_name}."
-    else:
-        message_type = "warning"
+else:
+    message_type = "warning"
         main_icon = "⚠️"
         speed_advice = f"{student_name}, daha hızlı çalışman gerekiyor!"
-    
+
     # Modern deneme tahmini kartı
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); 
+    <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
                 padding: 25px; border-radius: 20px; margin: 20px 0; color: white; text-align: center;
                 box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);">
         <h3 style="margin: 0 0 15px 0; color: white; font-weight: 600;">
@@ -22473,21 +22388,21 @@ def show_exam_prediction(monthly_plan, speed_multiplier, student_name):
         <p style="margin: 0; opacity: 0.9;">Akıllı performans analizi sonucu</p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Ana tahmin mesajı
     if message_type == "success":
         st.success(f"{main_icon} {speed_advice}")
     elif message_type == "info":
         st.info(f"{main_icon} {speed_advice}")
-    else:
-        st.warning(f"{main_icon} {speed_advice}")
-    
+else:
+    st.warning(f"{main_icon} {speed_advice}")
+
     # Detaylı deneme planı
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); 
+        <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
                     padding: 20px; border-radius: 15px; color: white; text-align: center; height: 200px;">
             <h4 style="margin: 0 0 10px 0; color: white;">📚 Müfredat Bitiş</h4>
             <div style="font-size: 24px; margin: 15px 0; font-weight: 600;">
@@ -22498,10 +22413,10 @@ def show_exam_prediction(monthly_plan, speed_multiplier, student_name):
             </p>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col2:
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #00cec9 0%, #00b894 100%); 
+        <div style="background: linear-gradient(135deg, #00cec9 0%, #00b894 100%);
                     padding: 20px; border-radius: 15px; color: white; text-align: center; height: 200px;">
             <h4 style="margin: 0 0 10px 0; color: white;">📋 TYT Denemeleri</h4>
             <div style="font-size: 24px; margin: 15px 0; font-weight: 600;">
@@ -22512,10 +22427,10 @@ def show_exam_prediction(monthly_plan, speed_multiplier, student_name):
             </p>
         </div>
         """, unsafe_allow_html=True)
-    
+
     with col3:
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%); 
+        <div style="background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
                     padding: 20px; border-radius: 15px; color: white; text-align: center; height: 200px;">
             <h4 style="margin: 0 0 10px 0; color: white;">📖 AYT Denemeleri</h4>
             <div style="font-size: 24px; margin: 15px 0; font-weight: 600;">
@@ -22526,14 +22441,14 @@ def show_exam_prediction(monthly_plan, speed_multiplier, student_name):
             </p>
         </div>
         """, unsafe_allow_html=True)
-    
+
     # Ek bilgi
     st.markdown(f"""
-    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0; 
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0;
                 border-left: 4px solid #007bff;">
         <p style="margin: 0; color: #495057;">
-            <strong>💡 {revision_period} Ayı Planı:</strong> 
-            Müfredat bittiğinde {revision_period} ayını <strong>tekrar + deneme</strong> odaklı kullan. 
+            <strong>💡 {revision_period} Ayı Planı:</strong>
+            Müfredat bittiğinde {revision_period} ayını <strong>tekrar + deneme</strong> odaklı kullan.
             Önce TYT denemeleriyle başla, sonra AYT ekle. Bu sayede sınava en iyi şekilde hazır olursun!
         </p>
     </div>
@@ -22543,8 +22458,8 @@ def get_detailed_weekly_curriculum():
     """16 haftalık detaylı müfredat"""
     return {
         1: {
-            "TYT Türkçe": ["📋 Sözcükte Anlam: Gerçek Anlam, Mecaz Anlam, Terim Anlam", 
-                          "📋 Cümlede Anlam: Cümle Yorumlama, Kesin Yargı, Anlatım Biçimleri, Neden-Sonuç", 
+            "TYT Türkçe": ["📋 Sözcükte Anlam: Gerçek Anlam, Mecaz Anlam, Terim Anlam",
+                          "📋 Cümlede Anlam: Cümle Yorumlama, Kesin Yargı, Anlatım Biçimleri, Neden-Sonuç",
                           "📋 Paragraf: Ana Fikir, Yardımcı Fikir, Paragraf Yapısı, Anlatım Teknikleri, Düşünceyi Geliştirme"],
             "TYT Matematik": ["Temel Kavramlar", "Sayı Basamakları"],
             "TYT Tarih": ["Tarih ve Zaman"],
@@ -22657,21 +22572,21 @@ def get_detailed_weekly_curriculum():
 def show_enhanced_dynamic_calendar(user_data, weekly_completion_rate, weekly_plan_start, days_to_yks, student_field):
     """🗓️ Geliştirilmiş Dinamik Konu Bitiş Takvimi"""
     from datetime import datetime, timedelta
-    
+
     # Detaylı müfredatı al
     curriculum = get_detailed_weekly_curriculum()
-    
+
     # Başlangıç tarihini parse et
     try:
         start_date = datetime.strptime(weekly_plan_start, "%Y-%m-%d")
     except:
         start_date = datetime.now()
-    
+
     # Mevcut hafta hesaplama
     current_date = datetime.now()
     elapsed_weeks = max(0, (current_date - start_date).days // 7)
     current_week = min(elapsed_weeks + 1, 16)
-    
+
     # Haftalık tamamlanma oranına göre gerçek hız hesaplama
     # %85+ = 1.2 hafta/hafta (hızlandırılmış), %70-84 = 1.0 hafta/hafta (normal), %50-69 = 0.8 hafta/hafta (yavaş), <%50 = 0.6 hafta/hafta (çok yavaş)
     if weekly_completion_rate >= 85:
@@ -22680,40 +22595,40 @@ def show_enhanced_dynamic_calendar(user_data, weekly_completion_rate, weekly_pla
         speed_multiplier = 1.0
     elif weekly_completion_rate >= 50:
         speed_multiplier = 0.8
-    else:
-        speed_multiplier = 0.6
-    
+else:
+    speed_multiplier = 0.6
+
     # Ay isimlerini Türkçeleştir
     month_names_tr = {
         'January': 'Ocak', 'February': 'Şubat', 'March': 'Mart', 'April': 'Nisan',
         'May': 'Mayıs', 'June': 'Haziran', 'July': 'Temmuz', 'August': 'Ağustos',
         'September': 'Eylül', 'October': 'Ekim', 'November': 'Kasım', 'December': 'Aralık'
     }
-    
+
     # Ay ay planlama
     monthly_plan = {}
     current_curriculum_week = current_week
     plan_date = start_date + timedelta(weeks=elapsed_weeks)
-    
+
     # Her ayı hesapla
     while current_curriculum_week <= 16 and plan_date < start_date + timedelta(days=days_to_yks):
         month_name = plan_date.strftime("%B %Y")
         for eng, tr in month_names_tr.items():
             month_name = month_name.replace(eng, tr)
-        
+
         if month_name not in monthly_plan:
             monthly_plan[month_name] = []
-        
+
         # Bu ayda kaç hafta sığar hesapla
         month_start = plan_date
         next_month = month_start + timedelta(days=32)
         next_month = next_month.replace(day=1)
         days_in_month = (next_month - month_start).days
         weeks_in_month = days_in_month / 7
-        
+
         # Gerçek hıza göre kaç haftalık müfredat bitecek
         weeks_to_complete = weeks_in_month * speed_multiplier
-        
+
         while weeks_to_complete >= 1.0 and current_curriculum_week <= 16:
             if current_curriculum_week in curriculum:
                 month_info = {
@@ -22721,43 +22636,43 @@ def show_enhanced_dynamic_calendar(user_data, weekly_completion_rate, weekly_pla
                     'topics': curriculum[current_curriculum_week]
                 }
                 monthly_plan[month_name].append(month_info)
-            
+
             current_curriculum_week += 1
             weeks_to_complete -= 1.0
-        
+
         plan_date = next_month
-    
+
     # Takvimi göster
     st.markdown(f"""
     **🎯 Haftalık %{weekly_completion_rate:.1f} tamamlama hızınıza göre aylık konu tahmini:**
     *Hız Çarpanı: {speed_multiplier}x ({"Hızlandırılmış" if speed_multiplier > 1 else "Normal" if speed_multiplier == 1 else "Yavaşlatılmış"})*
     """)
-    
+
     if not monthly_plan:
         st.info("📝 Müfredat tamamlanmış veya veri yetersiz!")
         return
-    
+
     # Her ay için gösterim
     for month, month_data in monthly_plan.items():
         if month_data:
             total_subjects = sum(len(week_info['topics']) for week_info in month_data)
-            
+
             with st.expander(f"📅 **{month}** ({len(month_data)} hafta, {total_subjects} ders)"):
                 for week_info in month_data:
                     week_num = week_info['week']
                     topics = week_info['topics']
-                    
+
                     st.markdown(f"### 🔸 {week_num}. Hafta")
-                    
+
                     for subject, subject_topics in topics.items():
                         st.markdown(f"**{subject}:**")
                         for topic in subject_topics:
                             st.write(f"   • {topic}")
                     st.markdown("---")
-    
+
     # İlerleme durumu ve tahminler
     st.markdown("---")
-    
+
     # Deneme sınavları tahmini
     total_months = len(monthly_plan)
     if total_months >= 4:
@@ -22766,14 +22681,14 @@ def show_enhanced_dynamic_calendar(user_data, weekly_completion_rate, weekly_pla
     elif total_months >= 2:
         exam_start_month = list(monthly_plan.keys())[-1]
         st.info(f"📝 **Bu tempoda {exam_start_month}'de denemelere başlayabilirsin.**")
-    else:
-        st.warning("⚠️ **Daha hızlı çalışman gerekiyor - müfredat yetiştirme riski var!**")
-    
+else:
+    st.warning("⚠️ **Daha hızlı çalışman gerekiyor - müfredat yetiştirme riski var!**")
+
     # Performans önerileri
     if speed_multiplier < 1.0:
         st.error(f"""
         🚨 **Dikkat:** Mevcut hızınız (%{weekly_completion_rate:.1f}) müfredatı yetiştirmek için yetersiz!
-        
+
         **Öneriler:**
         - Haftalık hedeflerin %85+ tamamlamaya odaklan
         - Çalışma saatlerini artır
@@ -22783,16 +22698,16 @@ def show_enhanced_dynamic_calendar(user_data, weekly_completion_rate, weekly_pla
     elif speed_multiplier > 1.0:
         st.success(f"""
         🚀 **Harika:** Mevcut hızınız (%{weekly_completion_rate:.1f}) ile müfredatı rahatlıkla yetiştiriyorsun!
-        
+
         **Artılar:**
         - Deneme sınavlarına erken başlayabilirsin
         - Zayıf konular için ekstra zaman ayırabilirsin
         - Tekrar programını genişletebilirsin
         """)
-    else:
-        st.info(f"""
+else:
+    st.info(f"""
         📈 **İyi:** Mevcut hızınız (%{weekly_completion_rate:.1f}) normal tempoda ilerliyor.
-        
+
         **Öneriler:**
         - Bu tempoyu koru
         - Performansını %85+'a çıkarmaya çalış
@@ -22801,12 +22716,12 @@ def show_enhanced_dynamic_calendar(user_data, weekly_completion_rate, weekly_pla
 
 def show_real_topic_completion_timeline(user_data, current_progress, days_to_yks, student_field):
     """GERÇEK HAFTALİK GİDİŞATA GÖRE KONU BİTİŞ TAKVİMİ - Her hafta güncellenir"""
-    
+
     # Kullanıcının gerçek öğrenme hızını hesapla
     completed_topics = user_data.get('completed_topics', {})
     study_weeks = max(1, len([week for week in user_data.get('weekly_progress', {}).keys()]))
     actual_completion_rate = len(completed_topics) / max(1, study_weeks)  # Hafta başına konu sayısı
-    
+
     # Alan bazlı toplam konular
     total_topics = {
         'Sayısal': {
@@ -22822,9 +22737,9 @@ def show_real_topic_completion_timeline(user_data, current_progress, days_to_yks
             'Felsefe': 20, 'Matematik': 15, 'Fizik': 10, 'Kimya': 10
         }
     }
-    
+
     field_topics = total_topics.get(student_field, total_topics['Sayısal'])
-    
+
     # Haftalık gerçek hız analysis
     if current_progress >= 80:
         speed_multiplier = 1.2  # Hızlı öğrenen
@@ -22838,17 +22753,17 @@ def show_real_topic_completion_timeline(user_data, current_progress, days_to_yks
         speed_multiplier = 0.8  # Yavaş
         emoji = "🐌"
         speed_msg = "Yavaş - hızlandırmalısın!"
-    else:
-        speed_multiplier = 0.6  # Çok yavaş
+else:
+    speed_multiplier = 0.6  # Çok yavaş
         emoji = "🚨"
         speed_msg = "Kritik! Acil hızlanma gerekli!"
-    
+
     adjusted_rate = actual_completion_rate * speed_multiplier
     remaining_weeks = days_to_yks // 7
-    
+
     # Hız göstergesi
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%); 
+    <div style="background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
                 padding: 20px; border-radius: 15px; margin: 10px 0; color: white;">
         <h3>{emoji} Senin Gerçek Öğrenme Hızın</h3>
         <p><strong>Haftalık Konu Bitiş Hızın:</strong> {adjusted_rate:.1f} konu/hafta</p>
@@ -22856,32 +22771,32 @@ def show_real_topic_completion_timeline(user_data, current_progress, days_to_yks
         <p><strong>Kalan Hafta:</strong> {remaining_weeks} hafta</p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Aylık konu bitiş takvimi
     st.markdown("### 📊 Bu Hızla Hangi Ay Hangi Konular Bitecek?")
-    
+
     # Şu anki tarih
     from datetime import datetime, timedelta
     current_date = datetime.now()
-    
+
     total_remaining_topics = sum(field_topics.values()) - len(completed_topics)
     topics_completed_monthly = adjusted_rate * 4  # 4 hafta = 1 ay
-    
+
     timeline_data = []
     cumulative_topics = len(completed_topics)
-    
+
     for month in range(1, min(12, remaining_weeks//4 + 2)):
         month_date = current_date + timedelta(weeks=month*4)
         month_name = month_date.strftime("%B %Y")
-        
+
         # Bu aydaki konular
         topics_this_month = min(topics_completed_monthly, total_remaining_topics - (cumulative_topics - len(completed_topics)))
         cumulative_topics += topics_this_month
-        
+
         # TYT/AYT ayrımı
         tyt_percentage = min(100, (cumulative_topics / 135) * 100)  # TYT yaklaşık 135 konu
         ayt_percentage = max(0, ((cumulative_topics - 135) / 100) * 100)  # AYT yaklaşık 100 konu
-        
+
         timeline_data.append({
             'month': month_name,
             'topics_completed': int(topics_this_month),
@@ -22889,14 +22804,14 @@ def show_real_topic_completion_timeline(user_data, current_progress, days_to_yks
             'tyt_percentage': tyt_percentage,
             'ayt_percentage': ayt_percentage
         })
-        
+
         if cumulative_topics >= sum(field_topics.values()):
             break
-    
+
     # Timeline göster
     for i, data in enumerate(timeline_data):
         col1, col2, col3 = st.columns([2, 1, 1])
-        
+
         with col1:
             if data['tyt_percentage'] >= 100:
                 tyt_status = "✅ TYT Tamamlandı!"
@@ -22904,17 +22819,17 @@ def show_real_topic_completion_timeline(user_data, current_progress, days_to_yks
             elif data['tyt_percentage'] >= 80:
                 tyt_status = f"🔥 TYT %{data['tyt_percentage']:.0f} - Son sprint!"
                 color = "#fd7e14"
-            else:
-                tyt_status = f"📚 TYT %{data['tyt_percentage']:.0f}"
+else:
+    tyt_status = f"📚 TYT %{data['tyt_percentage']:.0f}"
                 color = "#17a2b8"
-            
+
             ayt_status = ""
             if data['ayt_percentage'] > 0:
                 if data['ayt_percentage'] >= 100:
                     ayt_status = " | ✅ AYT Tamamlandı!"
-                else:
-                    ayt_status = f" | 🎯 AYT %{data['ayt_percentage']:.0f}"
-            
+else:
+    ayt_status = f" | 🎯 AYT %{data['ayt_percentage']:.0f}"
+
             st.markdown(f"""
             <div style="background-color: {color}; padding: 15px; border-radius: 10px; margin: 5px 0; color: white;">
                 <h4 style="margin: 0; color: white;">{data['month']}</h4>
@@ -22922,62 +22837,62 @@ def show_real_topic_completion_timeline(user_data, current_progress, days_to_yks
                 <p style="margin: 0; font-weight: bold;">{tyt_status}{ayt_status}</p>
             </div>
             """, unsafe_allow_html=True)
-        
+
         with col2:
             st.metric("📚 Bu Ay", f"{data['topics_completed']} konu")
-            
+
         with col3:
             st.metric("📊 Toplam", f"{data['cumulative']} konu")
-        
+
         # Deneme başlama takvimi
         if data['tyt_percentage'] >= 70 and i == 0:
             st.info("🎯 **Bu aydan itibaren haftalık denemelere başlamalısın!**")
         elif data['tyt_percentage'] >= 90 and data['ayt_percentage'] >= 50:
             st.success("🏆 **Bu aydan itibaren günlük deneme çözmeye geç!**")
-    
+
     # Hızlandırma önerileri
     if current_progress < 60:
         st.markdown("---")
         st.error("""
         ⚠️ **ACİL HIZLANDIRMA GEREKLİ!**
-        
+
         Mevcut hızınla konuları yetiştiremeyebilirsiniz. Öneriler:
         - Günlük çalışma saatini artırın (en az +2 saat)
         - Zayıf konuları tamamen bırakıp güçlü konulara odaklanın
         - Kolay sorulardan başlayın, zor konuları sonraya bırakın
         - Haftalık hedefleri %50 artırın
         """)
-    
+
     # Haftalık güncelleme sistemi
     st.markdown("---")
     st.subheader("🔄 Haftalık Güncelleme Sistemi")
-    
+
     st.markdown(f"""
     **📅 Bu sistem her hafta otomatik güncellenir:**
-    
+
     - **13-19 Ekim haftası bitince:** Hızınız yeniden hesaplanacak
-    - **20-27 Ekim haftası bitince:** Takvim otomatik güncellenecek  
+    - **20-27 Ekim haftası bitince:** Takvim otomatik güncellenecek
     - **Her Pazar:** Bir sonraki hafta için yeni tahminler
     - **Performans değişince:** Konu bitiş tarihleri otomatik kayacak
-    
+
     **📊 Gerçek verilerinize dayalı tahmin - hiçbir sabit değer yok!**
     """)
-    
+
     # Haftalık progress kaydetme
     current_week = current_date.strftime("W%U-%Y")
     if st.button("📊 Bu Haftanın Performansını Kaydet ve Takvimi Güncelle"):
         # Session'a haftalık performance kaydet
         if 'weekly_performances' not in st.session_state:
             st.session_state.weekly_performances = {}
-        
+
         st.session_state.weekly_performances[current_week] = current_progress
         st.balloons()
         st.success("✅ Haftalık performansın kaydedildi! Takvim bir sonraki hafta güncellenecek.")
-        st.rerun()
+                st.rerun()
 
 def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student_field):
     """Haftalık performansa göre güncellenebilen aylık konu planı"""
-    
+
     # Performans bazlı konu önceliklendirme
     if current_progress >= 80:
         priority_level = "İleri Seviye"
@@ -22991,17 +22906,17 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
         priority_level = "Temel Seviye"
         focus_areas = ["Temel konular", "Eksikleri kapatma", "Kolay sorular"]
         study_intensity = "8-9 saat/gün (yoğunlaştırılmış)"
-    else:
-        priority_level = "Kritik Müdahale"
+else:
+    priority_level = "Kritik Müdahale"
         focus_areas = ["Acil konular", "Temel bilgiler", "Hızlı kapanabilir eksikler"]
         study_intensity = "9-10 saat/gün (yoğun)"
-    
+
     # Zaman planlaması
     remaining_months = days_to_yks // 30
     remaining_weeks = (days_to_yks % 30) // 7
-    
+
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%); 
+    <div style="background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
                 padding: 20px; border-radius: 15px; margin: 10px 0; color: white;">
         <h3>📊 Senin İçin Özelleştirilmiş Plan</h3>
         <p><strong>Performans Seviyesi:</strong> {priority_level}</p>
@@ -23010,14 +22925,14 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
         <p><strong>Alan:</strong> {student_field}</p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Haftalık performansa göre dinamik plan
     tabs = st.tabs([f"📅 {i+1}. Ay Planı" for i in range(min(remaining_months + 1, 4))])
-    
+
     for i, tab in enumerate(tabs):
         with tab:
             month_num = i + 1
-            
+
             # Performansa göre konu dağılımı hesaplama
             if current_progress >= 80:
                 math_weight, science_weight, lang_weight = 40, 35, 25
@@ -23025,27 +22940,27 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
                 math_weight, science_weight, lang_weight = 35, 40, 25
             elif current_progress >= 40:
                 math_weight, science_weight, lang_weight = 45, 30, 25
-            else:
-                math_weight, science_weight, lang_weight = 50, 25, 25
-            
+else:
+    math_weight, science_weight, lang_weight = 50, 25, 25
+
             st.markdown(f"""
             ### 📚 {month_num}. Ay Konu Dağılımı
-            
+
             **🔢 Matematik:** %{math_weight} ({math_weight * study_intensity.split('-')[0].strip()[:1]}h/gün)
             - Hafta 1: {focus_areas[0] if len(focus_areas) > 0 else 'Temel konular'}
             - Hafta 2: {focus_areas[1] if len(focus_areas) > 1 else 'Pekiştirme'}
             - Hafta 3: {focus_areas[2] if len(focus_areas) > 2 else 'Tekrar'}
             - Hafta 4: Değerlendirme ve eksik tamamlama
-            
+
             **🧪 Fen Bilimleri:** %{science_weight} ({science_weight * int(study_intensity.split('-')[0])//100}h/gün)
             - Fizik, Kimya, Biyoloji dağılımı
             - Zayıf konulara ekstra zaman ayrılacak
-            
+
             **📝 Türkçe/Sosyal:** %{lang_weight} ({lang_weight * int(study_intensity.split('-')[0])//100}h/gün)
             - Günlük paragraf çözümü
             - Haftalık deneme testleri
             """)
-            
+
             # Haftalık performans güncellemesi
             if i == 0:  # Sadece ilk ay için
                 with st.expander("⚙️ Bu Ayın Planını Güncelle"):
@@ -23054,15 +22969,15 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
                         0, 100, int(current_progress),
                         help="Haftalık performansına göre planını otomatik güncelleyeceğim!"
                     )
-                    
+
                     if weekly_performance != current_progress:
                         if weekly_performance > current_progress + 10:
                             st.success("🎉 Harika! Performansın arttı! Planın daha zorlaştırılıyor...")
                         elif weekly_performance < current_progress - 10:
                             st.warning("⚠️ Bu hafta biraz düştün. Planın daha destekleyici hale getiriliyor...")
-                        else:
-                            st.info("📊 Performansın stabil. Plan aynı şekilde devam ediyor.")
-                        
+else:
+    st.info("📊 Performansın stabil. Plan aynı şekilde devam ediyor.")
+
                         # Otomatik plan güncelleme simulasyonu
                         st.markdown(f"""
                         **🔄 PLAN OTOMATİK GÜNCELLENDİ:**
@@ -23074,9 +22989,9 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
     # Performans takip sistemi
     st.markdown("---")
     st.subheader("📈 Performans Takip ve Güncelleme Sistemi")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.markdown("""
         **🎯 HEDEFLERİN:**
@@ -23084,11 +22999,11 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
         - Aylık: Bir üst seviyeye geçiş
         - Genel: YKS hedef puanına ulaşım
         """.format(current_progress, min(current_progress + 10, 100)))
-        
+
         if st.button("📊 Bu Haftanın Performansını Kaydet"):
             st.balloons()
             st.success("✅ Performansın kaydedildi! Plan otomatik güncellendi.")
-    
+
     with col2:
         st.markdown("""
         **⚡ GÜNCEL STRATEJİN:**
@@ -23100,7 +23015,7 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
             study_intensity,
             priority_level
         ))
-        
+
         # Mini gelişim grafiği
         progress_data = [current_progress - 10, current_progress - 5, current_progress, current_progress + 5]
         st.line_chart(progress_data)
