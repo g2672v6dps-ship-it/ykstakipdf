@@ -203,7 +203,7 @@ Tarih: {datetime.now().strftime('%d.%m.%Y')}
             for topic in topic_list:
                 pdf_content += f"  • {topic}\n"
             else:
-        pdf_content += "\nBu hafta için henüz konu planı oluşturulmamış.\n"
+                pdf_content += "\nBu hafta için henüz konu planı oluşturulmamış.\n"
 
     return pdf_content
 
