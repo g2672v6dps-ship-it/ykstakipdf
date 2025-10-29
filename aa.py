@@ -89,7 +89,7 @@ def safe_plotly_chart(fig, **kwargs):
     """Plotly yoksa uyarı gösterir, varsa grafiği çizer"""
     if PLOTLY_AVAILABLE:
         st.plotly_chart(fig, **kwargs)
-            else:
+    else:
         st.warning("📊 Grafik görüntülenemedi - Plotly yüklü değil")
 
 # Sayfa yapılandırması
