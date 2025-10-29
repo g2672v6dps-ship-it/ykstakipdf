@@ -157,7 +157,7 @@ def admin_login():
                 st.success("✅ Giriş başarılı! Yönlendiriliyor...")
                 time.sleep(1)
                 st.rerun()
-            else:
+        else:
         st.error("❌ Hatalı kullanıcı adı veya şifre!")
 
 def admin_logout():
