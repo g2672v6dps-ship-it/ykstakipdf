@@ -22908,7 +22908,7 @@ YKS_2025_TABAN_PUANLARI = {
             "Ankara Üniversitesi": {"taban_puan": 465.78, "kontenjan": 200, "puan_turu": "EA"},
             "Hacettepe Üniversitesi": {"taban_puan": 454.98, "kontenjan": 160, "puan_turu": "EA"},
             "Gazi Üniversitesi": {"taban_puan": 448.92, "kontenjan": 150, "puan_turu": "EA"},
-            "Bursa Uludağ Üniversitesi": {"taban_puan": 421.17, "kontenjan": 100, "puan_turu": "EA"}
+            "ERZİNCAN BİNALİ YILDIRIM ÜNİVERSİTESİ": {"taban_puan": 393.72, "kontenjan": 180, "puan_turu": "EA"}
         },
         "Öğretmenlik": {
             "Hacettepe Üniversitesi": {"taban_puan": 480, "kontenjan": 120, "puan_turu": "EA"},
