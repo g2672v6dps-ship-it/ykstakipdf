@@ -284,17 +284,17 @@ def get_real_student_data_for_admin():
                 last_login = datetime.now() - timedelta(days=30)
 
         # Haftalık performans hesaplama (varsa gerçek verilerden)
-        weekly_progress = user_data.get('weekly_progress', {})
+                weekly_progress = user_data.get('weekly_progress', {})
         if weekly_progress:
     # Gerçek ilerleme verisi varsa hesapla
-    completed_topics = sum([len(progress.get('completed_topics', []))
+            completed_topics = sum([len(progress.get('completed_topics', []))
                             for progress in weekly_progress.values()])
-    total_topics = sum([len(progress.get('planned_topics', []))
+            total_topics = sum([len(progress.get('planned_topics', []))
                         for progress in weekly_progress.values()])
 
-    if total_topics > 0:
-        weekly_performance = int((completed_topics / total_topics) * 100)
-    else:
+        if total_topics > 0:
+            weekly_performance = int((completed_topics / total_topics) * 100)
+        else:
         if veri_var_mi:  # burada gerçek kontrolünü yaz (örnek: if data_available:)
             weekly_performance = 0
         else:
