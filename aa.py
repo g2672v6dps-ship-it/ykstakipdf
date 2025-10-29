@@ -292,7 +292,7 @@ def get_real_student_data_for_admin():
                               for progress in weekly_progress.values()])
             if total_topics > 0:
                 weekly_performance = int((completed_topics / total_topics) * 100)
-        else:
+            else:
                 weekly_performance = 0
         else:
             # Veri yoksa ortalama değer ver
