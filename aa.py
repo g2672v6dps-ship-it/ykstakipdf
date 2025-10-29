@@ -297,7 +297,7 @@ def get_real_student_data_for_admin():
                 weekly_performance = 0
             else:
             # Veri yoksa ortalama değer ver
-            weekly_performance = 65
+                weekly_performance = 65
 
         # Çalışma saatleri (varsa gerçek verilerden)
         total_hours = user_data.get('total_study_hours', 0)
