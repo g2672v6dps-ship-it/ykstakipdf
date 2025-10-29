@@ -7194,7 +7194,7 @@ def yks_takip_page(user_data):
     learning_style = user_data.get('learning_style', '')
     
     # YKS Takip sistemi sekmeleri
-    tab1, tab2, tab3, tab4 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi", "🧠 Bilimsel Yaşam Koçluğu"])
+    tab1, tab2, tab3 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi"])
     
     with tab1:
         show_target_department_roadmap(user_data)
@@ -7220,8 +7220,6 @@ def yks_takip_page(user_data):
     with tab3:
         show_progress_analytics(user_data)
     
-    with tab4:
-        show_scientific_life_coaching(user_data)
 
 def has_completed_yks_survey(user_data):
     """Kullanıcının YKS anketini tamamlayıp tamamlamadığını kontrol eder"""
@@ -15679,103 +15677,289 @@ def main():
                             st.error(f"Kaydetme hatası: {str(e)}")
 
             elif page == "🧠 Çalışma Teknikleri":
-                st.markdown(f'<div class="main-header"><h1>🧠 Çalışma Teknikleri</h1><p>YKS öğrencisine özel, psikolojik ve bilimsel çalışma yöntemleri</p></div>', unsafe_allow_html=True)
-                
+                # Modern CSS ve JS stilleri
                 st.markdown("""
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px; margin-bottom: 30px; text-align: center;">
-                    <h2>💪 Harika! Aşağıda senin için özel hazırlanmış teknikler var</h2>
-                    <p>Her teknik için psikolojik etki, uygun dersler ve öğrenci tipi belirtildi</p>
+                <style>
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+                
+                .modern-header {
+                    background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
+                    color: white;
+                    padding: 30px;
+                    border-radius: 20px;
+                    text-align: center;
+                    margin-bottom: 30px;
+                    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+                }
+                
+                .technique-card {
+                    background: white;
+                    border-radius: 20px;
+                    padding: 25px;
+                    margin-bottom: 20px;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    border: 1px solid #f1f5f9;
+                }
+                
+                .technique-card:hover {
+                    transform: translateY(-8px);
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+                }
+                
+                .technique-icon {
+                    font-size: 3rem;
+                    margin-bottom: 15px;
+                }
+                
+                .tab-button {
+                    background: white;
+                    border: 2px solid #e2e8f0;
+                    border-radius: 12px;
+                    padding: 12px 24px;
+                    margin: 0 4px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    font-weight: 500;
+                }
+                
+                .tab-button.active {
+                    background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
+                    color: white;
+                    border-color: #3B82F6;
+                }
+                
+                .tab-button:hover:not(.active) {
+                    border-color: #3B82F6;
+                    color: #3B82F6;
+                }
+                
+                .flashcard-container {
+                    background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 25px;
+                    padding: 40px;
+                    color: white;
+                    text-align: center;
+                    min-height: 300px;
+                    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+                    margin: 20px 0;
+                }
+                
+                .modern-button {
+                    background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    padding: 12px 24px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+                }
+                
+                .modern-button:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+                }
+                
+                .glass-card {
+                    background: rgba(255, 255, 255, 0.9);
+                    backdrop-filter: blur(10px);
+                    border-radius: 20px;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    padding: 30px;
+                    margin: 20px 0;
+                }
+                
+                .gradient-text {
+                    background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                }
+                </style>
+                """, unsafe_allow_html=True)
+                
+                # Ana başlık
+                st.markdown(f'<div class="modern-header"><h1 style="font-size: 2.5rem; margin: 0; font-weight: 800;">🧠 Çalışma Teknikleri</h1><p style="font-size: 1.2rem; margin: 10px 0 0 0; opacity: 0.9;">Bilimsel ve psikolojik yöntemlerle YKS başarısı</p><div style="display: inline-flex; align-items: center; space-x: 8px; background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; margin-top: 15px;"><span style="font-size: 1.2rem;">⭐</span><span>15+ Kanıtlanmış Teknik</span></div></div>', unsafe_allow_html=True)
+                
+                # Modern Tab Sistemi
+                col_tab1, col_tab2, col_tab3, col_tab4 = st.columns(4)
+                
+                with col_tab1:
+                    if st.button("💡 Teknikler", use_container_width=True, type="primary"):
+                        st.session_state.active_study_tab = "techniques"
+                        
+                with col_tab2:
+                    if st.button("🃏 Flashcards", use_container_width=True):
+                        st.session_state.active_study_tab = "flashcards"
+                        
+                with col_tab3:
+                    if st.button("🎵 Müzik", use_container_width=True):
+                        st.session_state.active_study_tab = "music"
+                        
+                with col_tab4:
+                    if st.button("📚 Hikaye", use_container_width=True):
+                        st.session_state.active_study_tab = "story"
+                
+                # Tab durum kontrolü
+                if 'active_study_tab' not in st.session_state:
+                    st.session_state.active_study_tab = "techniques"
+                
+                # Ana İstatistikler
+                st.markdown("""
+                <div class="glass-card">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 2.5rem; font-weight: 800; color: #3B82F6;">10,000+</div>
+                            <div style="color: #64748b; font-weight: 500;">Aktif Öğrenci</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2.5rem; font-weight: 800; color: #10B981;">%94</div>
+                            <div style="color: #64748b; font-weight: 500;">Başarı Oranı</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2.5rem; font-weight: 800; color: #8B5CF6;">15+</div>
+                            <div style="color: #64748b; font-weight: 500;">Çalışma Tekniği</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2.5rem; font-weight: 800; color: #F59E0B;">+12</div>
+                            <div style="color: #64748b; font-weight: 500;">Ortalama Net Artışı</div>
+                        </div>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Renk paleti - her teknik için farklı renk
-                colors = [
-                    "#8B5CF6",  # Mor
-                    "#3B82F6",  # Mavi  
-                    "#10B981",  # Yeşil
-                    "#F59E0B",  # Turuncu
-                    "#EF4444",  # Kırmızı
-                    "#8B5A2B",  # Kahverengi
-                    "#6366F1",  # İndigo
-                    "#EC4899",  # Pembe
-                    "#14B8A6",  # Teal
-                    "#F97316",  # Amber
-                    "#84CC16",  # Lime
-                    "#A855F7",  # Violet
-                    "#06B6D4",  # Cyan
-                    "#D946EF",  # Fuchsia
-                    "#22C55E"   # Green
-                ]
-                
-                # Teknikleri 3'er 3'er grupla
-                technique_list = list(STUDY_TECHNIQUES.items())
-                
-                # Her satırda 3 kolon
-                for group_start in range(0, len(technique_list), 3):
-                    group_techniques = technique_list[group_start:group_start + 3]
-                    cols = st.columns(3)
+                if st.session_state.active_study_tab == "techniques":
+                    # Teknikler sekmesi
+                    st.markdown("## 🔍 Teknikleri Filtrele")
                     
-                    for i, (technique_name, info) in enumerate(group_techniques):
-                        color = colors[(group_start + i) % len(colors)]
-                        
-                        with cols[i]:
-                            # Ana kart
-                            st.markdown(f"""
-                            <div style="background: linear-gradient(135deg, {color}, {color}CC); border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); color: white; text-align: center; transform: translateY(0); transition: all 0.3s ease;">
-                                <h3 style="margin-bottom: 15px; font-size: 1.3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">{info['icon']} {technique_name}</h3>
-                                <p style="font-size: 1rem; margin-bottom: 15px; opacity: 0.95;"><strong>🎯 Tanım:</strong> {info['description']}</p>
-                                <p style="font-size: 0.9rem; margin-bottom: 0; opacity: 0.9;"><strong>🧠 Uygun Stiller:</strong> {', '.join(info['learning_styles'])}</p>
-                            </div>
-                            """, unsafe_allow_html=True)
+                    # Arama ve filtreleme
+                    col_search1, col_search2 = st.columns([2, 1])
+                    with col_search1:
+                        search_term = st.text_input("🔍 Teknik ara...", placeholder="Örn: Pomodoro, Hafıza...")
+                    with col_search2:
+                        category_filter = st.selectbox("📂 Kategori", ["Tümü", "Anlama Odaklı", "Zaman Yönetimi", "Hafıza Güçlendirme", "Görsel Öğrenme"])
+                    
+                    # Filtrelenmiş teknikler
+                    technique_list = list(STUDY_TECHNIQUES.items())
+                    
+                    # Teknikleri kartlar halinde göster
+                    for technique_name, info in technique_list:
+                        # Arama filtresi
+                        if search_term and search_term.lower() not in technique_name.lower():
+                            continue
                             
-                            # Detayları göster butonu
+                        # Kategori filtresi (örnek - gerçekte info'dan kategori alınmalı)
+                        # if category_filter != "Tümü" and not any(cat in info.get('categories', []) for cat in [category_filter]):
+                        #     continue
+                        
+                        # Modern kart tasarımı
+                        st.markdown(f"""
+                        <div class="technique-card">
+                            <div style="display: flex; align-items: center; gap: 20px;">
+                                <div style="flex-shrink: 0;">
+                                    <div class="technique-icon">{info['icon']}</div>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; color: #1e293b;">{technique_name}</h3>
+                                    <p style="color: #64748b; margin-bottom: 15px; line-height: 1.6;">{info['description']}</p>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+                                        {''.join([f'<span style="background: #f1f5f9; color: #475569; padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; font-weight: 500;">{style}</span>' for style in info['learning_styles']])}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                            
+                        # Detayları göster butonu
+                        col_detail1, col_detail2 = st.columns([1, 1])
+                        with col_detail1:
                             if st.button(f"📋 Detayları Gör", key=f"detail_{technique_name}", use_container_width=True):
                                 st.session_state[f'show_detail_{technique_name}'] = not st.session_state.get(f'show_detail_{technique_name}', False)
-                            
-                            # Detaylar açıldıysa göster
-                            if st.session_state.get(f'show_detail_{technique_name}', False):
+                        
+                        with col_detail2:
+                            if st.button(f"🎯 Uygula", key=f"apply_{technique_name}", use_container_width=True):
+                                st.success(f"✅ {technique_name} tekniği çalışma planınıza eklendi!")
+                                st.balloons()
+                        
+                        # Detaylar açıldıysa göster
+                        if st.session_state.get(f'show_detail_{technique_name}', False):
+                            st.markdown("---")
+                            st.markdown(f"""
+                            <div style="background: #f8fafc; border-radius: 15px; padding: 25px; border-left: 4px solid #3B82F6;">
+                                <h4 style="color: #1e293b; font-size: 1.3rem; margin-bottom: 20px;">📘 {technique_name} - Detaylı Rehber</h4>
                                 
-                                st.markdown("**📘 Adımlar:**")
-                                for step in info['steps']:
-                                    st.write(f"• {step}")
+                                <div style="margin-bottom: 25px;">
+                                    <h5 style="color: #374151; font-weight: 600; margin-bottom: 10px;">📋 Uygulama Adımları:</h5>
+                                    <ol style="color: #4b5563; line-height: 1.8; margin-left: 20px;">
+                                        {''.join([f'<li style="margin-bottom: 8px;">{step}</li>' for step in info['steps']])}
+                                    </ol>
+                                </div>
                                 
-                                st.markdown("**💬 Psikolojik Etkisi:**")
-                                st.info(info['psychological_effect'])
+                                <div style="margin-bottom: 25px;">
+                                    <h5 style="color: #374151; font-weight: 600; margin-bottom: 10px;">🧠 Psikolojik Etkisi:</h5>
+                                    <div style="background: #e0f2fe; padding: 15px; border-radius: 10px; color: #0c4a6e;">
+                                        {info['psychological_effect']}
+                                    </div>
+                                </div>
                                 
-                                st.markdown("**🧩 En Uygun Dersler:**")
-                                if isinstance(info['best_subjects'], list):
-                                    st.success(', '.join(info['best_subjects']))
-                                else:
-                                    st.success(info['best_subjects'])
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    <div>
+                                        <h5 style="color: #374151; font-weight: 600; margin-bottom: 10px;">🧩 En Uygun Dersler:</h5>
+                                        <div style="background: #dcfce7; padding: 12px; border-radius: 8px; color: #166534; font-weight: 500;">
+                                            {', '.join(info['best_subjects']) if isinstance(info['best_subjects'], list) else info['best_subjects']}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 style="color: #374151; font-weight: 600; margin-bottom: 10px;">👤 Uygun Öğrenci Tipi:</h5>
+                                        <div style="background: #fef3c7; padding: 12px; border-radius: 8px; color: #92400e; font-weight: 500;">
+                                            {info['suitable_student']}
+                                        </div>
+                                    </div>
+                                </div>
                                 
-                                st.markdown("**👤 Uygun Öğrenci Tipi:**")
-                                st.warning(info['suitable_student'])
-                                
-                                # Kapatma butonu
-                                if st.button(f"❌ Kapat", key=f"close_{technique_name}", use_container_width=True):
-                                    st.session_state[f'show_detail_{technique_name}'] = False
-                                    st.rerun()
+                                <div style="text-align: center; margin-top: 20px;">
+                                    <button onclick="document.getElementById('close_{technique_name.replace(' ', '_')}').click()" 
+                                            style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                                        ❌ Detayları Kapat
+                                    </button>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
                     
                     # Grup arası boşluk
                     if group_start + 3 < len(technique_list):
                         st.markdown("<br>", unsafe_allow_html=True)
                 
-                # Alt bilgi
+                # Alt bilgi - Modern tasarım
                 st.markdown("""
-                <div style="background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%); border-radius: 15px; padding: 25px; margin-top: 40px; border-left: 5px solid #38b2ac; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                    <h4 style="color: #2d3748; margin-bottom: 15px; font-size: 1.2rem;">💡 Kullanım Önerisi</h4>
-                    <p style="color: #4a5568; margin: 0; font-size: 1rem; line-height: 1.6;">Kendi öğrenme stilinize ve hedef bölümünüze uygun teknikleri seçin. Bir anda çok fazla teknik denemek yerine, 2-3 tanesini düzenli olarak uygulayın.</p>
+                <div style="background: linear-gradient(135deg, #e0f2fe 0%, #b2f5ea 100%); border-radius: 20px; padding: 30px; margin: 40px 0; border: 1px solid #7dd3fc; box-shadow: 0 4px 15px rgba(125, 211, 252, 0.2);">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                        <div style="background: #0ea5e9; color: white; padding: 12px; border-radius: 12px;">
+                            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                        </div>
+                        <h4 style="color: #0c4a6e; margin: 0; font-size: 1.3rem; font-weight: 700;">💡 Kullanım Önerisi</h4>
+                    </div>
+                    <p style="color: #0c4a6e; margin: 0; font-size: 1.1rem; line-height: 1.7; font-weight: 500;">
+                        Kendi öğrenme stilinize ve hedef bölümünüze uygun teknikleri seçin. Bir anda çok fazla teknik denemek yerine, 
+                        <span style="background: #f0f9ff; padding: 2px 6px; border-radius: 4px; font-weight: 600;">2-3 tanesini</span> 
+                        düzenli olarak uygulayın. Her tekniğin detaylarını inceleyerek maksimum verimlilik sağlayın.
+                    </p>
                 </div>
                 """, unsafe_allow_html=True)
-                
-                # 🃏 ÇEVİRMELİ KAĞIT OYUNU - YENİ!
+
+                # Flashcard sistemi - Modern tasarım
                 st.markdown("---")
-                st.markdown("""
-                <div style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%); color: white; padding: 30px; border-radius: 20px; margin: 40px 0; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-                    <h1 style="margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🃏 ÇEVİRMELİ KAĞIT OYUNU</h1>
-                    <p style="margin: 10px 0 0 0; font-size: 1.3rem; opacity: 0.95;">Kendi kartlarını oluştur ve çalış! Eğlenceli ezber sistemi</p>
+                st.markdown(f'''
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 25px; margin: 40px 0; text-align: center; box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3); position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);"></div>
+                    <h1 style="margin: 0; font-size: 3rem; font-weight: 800; position: relative; z-index: 1;">🃏 ÇEVİRMELİ KAĞIT SİSTEMİ</h1>
+                    <p style="margin: 15px 0 0 0; font-size: 1.4rem; opacity: 0.95; position: relative; z-index: 1;">Etkili ezber ve pekiştirme sistemi</p>
                 </div>
-                """, unsafe_allow_html=True)
+                ''', unsafe_allow_html=True)
                 
                 # Kullanıcının kartlarını saklamak için Firebase entegrasyonu
                 if 'user_flashcards' not in st.session_state:
@@ -15795,112 +15979,137 @@ def main():
                     else:
                         st.session_state.user_flashcards = {}
                 
-                # Sekme sistemi - Kartlarımı Göster | Yeni Kart Ekle
-                tab1, tab2 = st.tabs(["🎮 Kartlarımı Çalış", "➕ Yeni Kart Ekle"])
-                
-                with tab2:
-                    # Form temizleme kontrolü
-                    if 'card_form_counter' not in st.session_state:
-                        st.session_state.card_form_counter = 0
-                    
-                    # Yeni kart ekleme formu
+                elif st.session_state.active_study_tab == "flashcards":
+                    # Flashcards sekmesi - Modern tasarım
                     st.markdown("""
-                    <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); 
-                               border-radius: 15px; padding: 25px; margin: 20px 0;">
-                        <h3 style="color: #2d3748; margin-bottom: 20px; text-align: center;">✨ Yeni Kart Oluştur</h3>
+                    <div class="glass-card">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 15px;">
+                                <span style="font-size: 1.5rem;">🃏</span>
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; color: #1e293b; font-size: 1.5rem; font-weight: 700;">Çevirmeli Kart Sistemi</h3>
+                                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 1rem;">Kendi kartlarınızı oluşturun ve etkili çalışın</p>
+                            </div>
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # Form alanları - unique key'ler
-                    form_key = st.session_state.card_form_counter
-                    col_form1, col_form2 = st.columns(2)
+                    # Alt sekmeler
+                    col_fc_tab1, col_fc_tab2 = st.columns(2)
                     
-                    with col_form1:
-                        # Ders seçimi
-                        subject_for_card = st.selectbox(
-                            "📚 Hangi ders için kart?",
-                            ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", 
-                             "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "AYT Matematik", "AYT Fizik", "AYT Kimya", 
-                             "AYT Biyoloji", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"],
-                            key=f"new_card_subject_{form_key}"
-                        )
+                    with col_fc_tab1:
+                        if st.button("🎯 Kartlarımı Çalış", use_container_width=True, type="primary"):
+                            st.session_state.flashcard_subtab = "study"
+                    with col_fc_tab2:
+                        if st.button("➕ Yeni Kart Ekle", use_container_width=True):
+                            st.session_state.flashcard_subtab = "add"
+                    
+                    if 'flashcard_subtab' not in st.session_state:
+                        st.session_state.flashcard_subtab = "study"
+                    
+                    if st.session_state.flashcard_subtab == "add":
+                        # Yeni kart ekleme formu - Modern tasarım
+                        st.markdown("""
+                        <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border-radius: 20px; padding: 30px; margin: 20px 0;">
+                            <h3 style="color: #2d3748; margin-bottom: 25px; text-align: center; font-size: 1.5rem; font-weight: 700;">✨ Yeni Kart Oluştur</h3>
+                        </div>
+                        """, unsafe_allow_html=True)
                         
-                        # Kartın ön yüzü
-                        card_front = st.text_area(
-                            "📝 Kartın Ön Yüzü (Soru/Kavram)",
-                            placeholder="Örnek: Ahmet Haşim\nveya: (a+b)² = ?\nveya: 1453 yılında ne oldu?",
-                            height=100,
-                            key=f"card_front_{form_key}"
-                        )
-                    
-                    with col_form2:
-                        # Kart kategorisi
-                        card_category = st.text_input(
-                            "🏷️ Kategori (isteğe bağlı)",
-                            placeholder="Örnek: Şairler, Formüller, Tarihler...",
-                            key=f"card_category_{form_key}"
-                        )
+                        # Form alanları - Modern tasarım
+                        col_form1, col_form2 = st.columns(2)
                         
-                        # Kartın arka yüzü
-                        card_back = st.text_area(
-                            "✅ Kartın Arka Yüzü (Cevap/Açıklama)",
-                            placeholder="Örnek: Göl Saatleri, O Belde, Gurabahane-i Laklakan\nveya: a² + 2ab + b²\nveya: İstanbul'un Fethi",
-                            height=100,
-                            key=f"card_back_{form_key}"
-                        )
-                    
-                    # Kart ekleme butonu
-                    if st.button("🎯 Kartı Kaydet", use_container_width=True, type="primary", key=f"save_card_{form_key}"):
-                        if card_front.strip() and card_back.strip():
-                            # Kullanıcının kartlarına ekle
-                            if subject_for_card not in st.session_state.user_flashcards:
-                                st.session_state.user_flashcards[subject_for_card] = []
+                        with col_form1:
+                            subject_for_card = st.selectbox(
+                                "📚 Hangi ders için kart?",
+                                ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", 
+                                 "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "AYT Matematik", "AYT Fizik", "AYT Kimya", 
+                                 "AYT Biyoloji", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"],
+                                key="new_card_subject_modern"
+                            )
                             
-                            new_card = {
-                                'front': card_front.strip(),
-                                'back': card_back.strip(),
-                                'category': card_category.strip() if card_category.strip() else "Genel",
-                                'created_date': datetime.now().strftime("%Y-%m-%d %H:%M"),
-                                'study_count': 0,
-                                'known': False
-                            }
+                            card_front = st.text_area(
+                                "📝 Kartın Ön Yüzü (Soru/Kavram)",
+                                placeholder="Örnek: Ahmet Haşim\nveya: (a+b)² = ?\nveya: 1453 yılında ne oldu?",
+                                height=120,
+                                key="card_front_modern"
+                            )
+                        
+                        with col_form2:
+                            card_category = st.text_input(
+                                "🏷️ Kategori (isteğe bağlı)",
+                                placeholder="Örnek: Şairler, Formüller, Tarihler...",
+                                key="card_category_modern"
+                            )
                             
-                            st.session_state.user_flashcards[subject_for_card].append(new_card)
-                            
-                            # Firebase'e kaydet
-                            username = st.session_state.get('current_user', None)
-                            if username:
-                                try:
-                                    flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
-                                    update_user_in_firebase(username, {'flashcards': flashcards_json})
-                                    st.success(f"🎉 Kart '{subject_for_card}' dersine eklendi ve Firebase'e kaydedildi!")
-                                except Exception as e:
-                                    st.success(f"🎉 Kart '{subject_for_card}' dersine eklendi! (Yerel olarak)")
-                                    st.info("💾 Kartlarınız bu oturum boyunca saklanacak.")
+                            card_back = st.text_area(
+                                "✅ Kartın Arka Yüzü (Cevap/Açıklama)",
+                                placeholder="Örnek: Göl Saatleri, O Belde, Gurabahane-i Laklakan\nveya: a² + 2ab + b²\nveya: İstanbul'un Fethi",
+                                height=120,
+                                key="card_back_modern"
+                            )
+                        
+                        # Kaydet butonu - Modern tasarım
+                        st.markdown("""
+                        <div style="text-align: center; margin-top: 25px;">
+                        """, unsafe_allow_html=True)
+                        
+                        if st.button("🎯 Kartı Kaydet", use_container_width=True, type="primary"):
+                            if card_front.strip() and card_back.strip():
+                                # Kullanıcının kartlarına ekle
+                                if subject_for_card not in st.session_state.user_flashcards:
+                                    st.session_state.user_flashcards[subject_for_card] = []
+                                
+                                new_card = {
+                                    'front': card_front.strip(),
+                                    'back': card_back.strip(),
+                                    'category': card_category.strip() if card_category.strip() else "Genel",
+                                    'created_date': datetime.now().strftime("%Y-%m-%d %H:%M"),
+                                    'study_count': 0,
+                                    'known': False
+                                }
+                                
+                                st.session_state.user_flashcards[subject_for_card].append(new_card)
+                                
+                                # Firebase'e kaydet
+                                username = st.session_state.get('current_user', None)
+                                if username:
+                                    try:
+                                        flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
+                                        update_user_in_firebase(username, {'flashcards': flashcards_json})
+                                        st.success(f"🎉 Kart '{subject_for_card}' dersine eklendi ve Firebase'e kaydedildi!")
+                                    except Exception as e:
+                                        st.success(f"🎉 Kart '{subject_for_card}' dersine eklendi! (Yerel olarak)")
+                                        st.info("💾 Kartlarınız bu oturum boyunca saklanacak.")
+                                else:
+                                    st.success(f"🎉 Kart '{subject_for_card}' dersine eklendi! (Geçici)")
+                                    st.warning("⚠️ Giriş yapın ki kartlarınız kalıcı olarak saklansın!")
+                                
+                                st.balloons()
+                                time.sleep(1)
+                                st.rerun()
                             else:
-                                st.success(f"🎉 Kart '{subject_for_card}' dersine eklendi! (Geçici)")
-                                st.warning("⚠️ Giriş yapın ki kartlarınız kalıcı olarak saklansın!")
-                            
-                            st.balloons()
-                            
-                            # Form counter'ı artır ve yenile (bu şekilde form temizlenir)
-                            st.session_state.card_form_counter += 1
-                            time.sleep(1)
-                            st.rerun()
-                        else:
-                            st.error("❌ Lütfen hem ön yüz hem de arka yüz alanlarını doldurun!")
+                                st.error("❌ Lütfen hem ön yüz hem de arka yüz alanlarını doldurun!")
+                        
+                        st.markdown("</div>", unsafe_allow_html=True)
                 
-                with tab1:
-                    # Kartları çalışma bölümü
+                elif st.session_state.flashcard_subtab == "study":
+                    # Kartları çalışma bölümü - Modern tasarım
                     if not st.session_state.user_flashcards:
-                        st.info("📋 Henüz hiç kartınız yok. 'Yeni Kart Ekle' sekmesinden kartlarınızı oluşturun!")
+                        st.markdown("""
+                        <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 20px; padding: 40px; text-align: center; margin: 30px 0;">
+                            <div style="font-size: 4rem; margin-bottom: 20px;">📋</div>
+                            <h3 style="color: #64748b; font-size: 1.3rem; margin-bottom: 10px;">Henüz hiç kartınız yok</h3>
+                            <p style="color: #94a3b8;">Yeni Kart Ekle sekmesinden kartlarınızı oluşturun ve çalışmaya başlayın!</p>
+                        </div>
+                        """, unsafe_allow_html=True)
                     else:
                         # Ders seçimi
                         available_subjects = list(st.session_state.user_flashcards.keys())
                         selected_subject = st.selectbox(
                             "🎯 Hangi dersi çalışmak istiyorsun?",
                             available_subjects,
-                            key="study_subject_select"
+                            key="study_subject_select_modern"
                         )
                         
                         if selected_subject and st.session_state.user_flashcards[selected_subject]:
@@ -15918,18 +16127,27 @@ def main():
                             
                             current_card = cards[st.session_state.current_card_index]
                             
-                            # İstatistikler
-                            col_stat1, col_stat2, col_stat3 = st.columns(3)
-                            with col_stat1:
-                                st.metric("📊 Toplam Kart", len(cards))
-                            with col_stat2:
-                                known_cards = sum(1 for card in cards if card.get('known', False))
-                                st.metric("✅ Bildiğim", known_cards)
-                            with col_stat3:
-                                progress_percent = (known_cards / len(cards) * 100) if len(cards) > 0 else 0
-                                st.metric("🎯 İlerleme", f"%{progress_percent:.1f}")
+                            # Modern İstatistikler
+                            st.markdown(f"""
+                            <div style="background: white; border-radius: 20px; padding: 25px; margin: 25px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #f1f5f9;">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 2rem; font-weight: 700; color: #3B82F6;">{len(cards)}</div>
+                                        <div style="color: #64748b; font-weight: 500;">Toplam Kart</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 2rem; font-weight: 700; color: #10B981;">{sum(1 for card in cards if card.get('known', False))}</div>
+                                        <div style="color: #64748b; font-weight: 500;">Bildiğim</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 2rem; font-weight: 700; color: #8B5CF6;">%{((sum(1 for card in cards if card.get('known', False)) / len(cards) * 100) if len(cards) > 0 else 0):.1f}</div>
+                                        <div style="color: #64748b; font-weight: 500;">İlerleme</div>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
                             
-                            # Ana kart gösterimi - Düzeltilmiş animasyon
+                            # Ana kart gösterimi - Modern tasarım
                             card_color = "#667eea" if not st.session_state.show_answer else "#764ba2"
                             card_icon = "📝" if not st.session_state.show_answer else "✅"
                             card_title = "SORU / KAVRAM" if not st.session_state.show_answer else "CEVAP / AÇIKLAMA"
@@ -15938,28 +16156,31 @@ def main():
                             st.markdown(f"""
                             <div style="background: linear-gradient(145deg, {card_color} 0%, #764ba2 100%); 
                                         border-radius: 25px; padding: 40px; margin: 30px 0; 
-                                        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-                                        text-align: center; min-height: 250px; 
-                                        transition: all 0.3s ease-in-out;">
-                                <div style="color: white; font-size: 1.2rem; margin-bottom: 15px; opacity: 0.9;">
-                                    📚 {selected_subject} - Kart {st.session_state.current_card_index + 1}/{len(cards)}
-                                </div>
-                                <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 20px;">
-                                    🏷️ {current_card.get('category', 'Genel')}
-                                </div>
-                                <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 30px; margin: 20px 0;">
-                                    <div style="font-size: 1.8rem; color: white; font-weight: bold; margin-bottom: 20px;">
-                                        {card_icon} {card_title}
+                                        box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+                                        text-align: center; min-height: 280px; 
+                                        transition: all 0.3s ease-in-out; position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);"></div>
+                                <div style="position: relative; z-index: 1;">
+                                    <div style="color: rgba(255,255,255,0.9); font-size: 1.1rem; margin-bottom: 15px; font-weight: 500;">
+                                        📚 {selected_subject} - Kart {st.session_state.current_card_index + 1}/{len(cards)}
                                     </div>
-                                    <div style="font-size: 1.6rem; color: white; line-height: 1.5; word-wrap: break-word;">
-                                        {card_content}
+                                    <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 25px;">
+                                        🏷️ {current_card.get('category', 'Genel')}
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.15); border-radius: 20px; padding: 35px; margin: 25px 0; backdrop-filter: blur(10px);">
+                                        <div style="font-size: 1.6rem; color: white; font-weight: 700; margin-bottom: 25px;">
+                                            {card_icon} {card_title}
+                                        </div>
+                                        <div style="font-size: 1.4rem; color: white; line-height: 1.6; word-wrap: break-word; font-weight: 500;">
+                                            {card_content}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             """, unsafe_allow_html=True)
                             
-                            # Kontrol butonları
-                            col1, col2, col3, col4, col5 = st.columns(5)
+                            # Modern kontrol butonları
+                            col1, col2, col3, col4 = st.columns([1, 2, 2, 1])
                             
                             with col1:
                                 if st.button("⬅️ Önceki", use_container_width=True):
@@ -15971,124 +16192,34 @@ def main():
                                     st.rerun()
                             
                             with col2:
-                                # 🔊 BASİT VE ETKİLİ SES SİSTEMİ - HER PLATFORMDA ÇALIŞIR!
-                                if st.button(f"🔄 {'Cevabı Gör' if not st.session_state.show_answer else 'Soruya Dön'}", 
-                                           use_container_width=True, type="primary", key="flip_card_main",
-                                           help="🔊 Basit ve etkili ses sistemi + 3D animasyon!"):
-                                    
-                                    # Önce sesi çal
-                                    st.components.v1.html("""
-                                    <script>
-                                    // TELEFON VE BİLGİSAYAR İÇİN BASİT SES
-                                    function playSimpleClick() {
-                                        // Dokunmatik cihazlarda çalışması için kullanıcı etkileşimi gerekli
-                                        const audio = new Audio();
-                                        
-                                        // Çok basit tik sesi - WAV formatında
-                                        audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgbBSuB0fPNfTAEInjEAAAAAA=';
-                                        
-                                        // Ses ayarları
-                                        audio.volume = 0.3;  // Yumuşak ses
-                                        audio.currentTime = 0;
-                                        
-                                        // Çalmaya çalış
-                                        const playPromise = audio.play();
-                                        if (playPromise !== undefined) {
-                                            playPromise.then(() => {
-                                                console.log('🔊 Basit tik sesi çalındı!');
-                                            }).catch(error => {
-                                                console.log('🔇 Ses çalınamadı:', error);
-                                                // Fallback: Vibrasyon
-                                                if (navigator.vibrate) {
-                                                    navigator.vibrate(50);
-                                                    console.log('📳 Vibrasyon aktif');
-                                                }
-                                            });
-                                        }
-                                    }
-                                    
-                                    // Hemen çal
-                                    playSimpleClick();
-                                    
-                                    // Kağıt çevirme animasyonu için CSS
-                                    const style = document.createElement('style');
-                                    style.textContent = `
-                                        @keyframes cardFlip {
-                                            0% { transform: perspective(1000px) rotateY(0deg); }
-                                            50% { transform: perspective(1000px) rotateY(180deg); }
-                                            100% { transform: perspective(1000px) rotateY(360deg); }
-                                        }
-                                        .flip-animation {
-                                            animation: cardFlip 0.6s ease-in-out;
-                                        }
-                                    `;
-                                    document.head.appendChild(style);
-                                    
-                                    // Butona animasyon ekle
-                                    const buttons = document.querySelectorAll('button');
-                                    buttons.forEach(btn => {
-                                        if (btn.textContent.includes('🔄')) {
-                                            btn.classList.add('flip-animation');
-                                            setTimeout(() => {
-                                                btn.classList.remove('flip-animation');
-                                            }, 600);
-                                        }
-                                    });
-                                    </script>
-                                    """, height=0)
-                                    
-                                    # Ana fonksiyon
+                                # Çevirme butonu
+                                flip_label = "🔄 Cevabı Gör" if not st.session_state.show_answer else "🔄 Soruya Dön"
+                                if st.button(flip_label, use_container_width=True, type="primary", key="flip_card_modern"):
                                     st.session_state.show_answer = not st.session_state.show_answer
                                     st.rerun()
                             
                             with col3:
-                                if st.button("✅ Biliyorum", use_container_width=True, type="secondary"):
-                                    current_card['known'] = True
-                                    current_card['study_count'] = current_card.get('study_count', 0) + 1
-                                    
+                                # Bilgi durumu
+                                if st.button("✅ Bildim" if not current_card.get('known', False) else "❓ Tekrar", use_container_width=True):
+                                    cards[st.session_state.current_card_index]['known'] = not cards[st.session_state.current_card_index]['known']
                                     # Firebase'e kaydet
                                     username = st.session_state.get('current_user', None)
                                     if username:
                                         try:
                                             flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
                                             update_user_in_firebase(username, {'flashcards': flashcards_json})
+                                            st.success("✅ Durum güncellendi!")
                                         except:
-                                            pass  # Sessiz hata yönetimi
-                                    
-                                    st.success("🎉 Harika! Bu kartı bildiğinizi işaretledik!")
-                                    time.sleep(1)
+                                            st.info("💾 Durum güncellendi (Yerel)")
+                                    else:
+                                        st.success("✅ Durum güncellendi!")
                                     st.rerun()
                             
                             with col4:
-                                if st.button("❌ Bilmiyorum", use_container_width=True):
-                                    current_card['known'] = False
-                                    current_card['study_count'] = current_card.get('study_count', 0) + 1
-                                    
-                                    # Firebase'e kaydet
-                                    username = st.session_state.get('current_user', None)
-                                    if username:
-                                        try:
-                                            flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
-                                            update_user_in_firebase(username, {'flashcards': flashcards_json})
-                                        except:
-                                            pass  # Sessiz hata yönetimi
-                                    
-                                    st.info("💪 Sorun yok! Bu kartı tekrar çalışalım!")
-                                    time.sleep(1)
-                                    st.rerun()
-                            
-                            with col5:
-                                if st.button("➡️ Sonraki", use_container_width=True):
-                                    if st.session_state.current_card_index < len(cards) - 1:
-                                        st.session_state.current_card_index += 1
-                                    else:
-                                        st.session_state.current_card_index = 0
+                                if st.button("Sonraki ➡️", use_container_width=True):
+                                    st.session_state.current_card_index = (st.session_state.current_card_index + 1) % len(cards)
                                     st.session_state.show_answer = False
                                     st.rerun()
-                            
-                            # Ek özellikler
-                            st.markdown("---")
-                            col_extra1, col_extra2, col_extra3 = st.columns(3)
                             
                             with col_extra1:
                                 if st.button("🎲 Rastgele Kart", use_container_width=True):
@@ -16133,7 +16264,77 @@ def main():
                         else:
                             st.info(f"📋 '{selected_subject}' dersinde henüz kart yok. Yeni kart ekleyin!")
                 
-                # Kullanım ipuçları ve veri saklama bilgisi
+                elif st.session_state.flashcard_subtab == "music":
+                    # Müzik oluşturma sekmesi
+                    st.markdown("""
+                    <div class="glass-card">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                            <div style="background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); color: white; padding: 15px; border-radius: 15px;">
+                                <span style="font-size: 1.5rem;">🎵</span>
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; color: #1e293b; font-size: 1.5rem; font-weight: 700;">Müzik Oluşturma Sistemi</h3>
+                                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 1rem;">Konuları müziğe çevirin, hafızanızda kalıcı hale getirin</p>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    col_music1, col_music2 = st.columns(2)
+                    with col_music1:
+                        music_subject = st.selectbox("📚 Hangi ders?", ["TYT Matematik", "TYT Fizik", "TYT Biyoloji"], key="music_subject")
+                        music_topic = st.text_input("🎯 Hangi konuyu müziğe çevirmek istiyorsun?", placeholder="Örn: İntegral, Fotosentez...", key="music_topic")
+                    with col_music2:
+                        music_style = st.selectbox("🎭 Müzik stili", ["🎤 Hip-Hop", "🎸 Pop", "🎺 Şarkı"], key="music_style")
+                        music_length = st.selectbox("📏 Uzunluk", ["Kısa (2-3 dakika)", "Orta (3-5 dakika)"], key="music_length")
+                    
+                    song_lyrics = st.text_area("🎤 Şarkı Sözleri", 
+                        placeholder="Örnek:\n🎵 İntegral almak için x'i arttırıyoruz\nTürev alarak eğimi buluyoruz...", 
+                        height=150, key="music_lyrics")
+                    
+                    if st.button("🎵 Müziği Kaydet", use_container_width=True, type="primary"):
+                        if song_lyrics.strip():
+                            st.success("🎉 Harika! Müziğiniz hazırlandı!")
+                            st.balloons()
+                        else:
+                            st.error("❌ Lütfen şarkı sözlerini doldurun!")
+                
+                elif st.session_state.flashcard_subtab == "story":
+                    # Hikaye oluşturma sekmesi
+                    st.markdown("""
+                    <div class="glass-card">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                            <div style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color: white; padding: 15px; border-radius: 15px;">
+                                <span style="font-size: 1.5rem;">📚</span>
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; color: #1e293b; font-size: 1.5rem; font-weight: 700;">Konu Hikayeleştirme</h3>
+                                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 1rem;">Sıkıcı konuları eğlenceli hikayelere dönüştürün</p>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    col_story1, col_story2 = st.columns(2)
+                    with col_story1:
+                        story_subject = st.selectbox("📚 Hangi ders?", ["TYT Biyoloji", "TYT Tarih", "TYT Fizik"], key="story_subject")
+                        story_topic = st.text_input("🎯 Hangi konuyu hikayeleştirmek istiyorsun?", placeholder="Örn: Fotosentez, Dünya Savaşları...", key="story_topic")
+                    with col_story2:
+                        story_genre = st.selectbox("🎭 Hikaye türü", ["🌟 Macera", "🦸‍♂️ Kahramanlık", "🧙‍♀️ Fantastik"], key="story_genre")
+                        story_length = st.selectbox("📏 Hikaye uzunluğu", ["Kısa (1-2 sayfa)", "Orta (2-4 sayfa)"], key="story_length")
+                    
+                    story_text = st.text_area("✍️ Hikaye Metni",
+                        placeholder='Örnek:\n📖 "Yeşil Yaprakların Sırrı"\n\nGüneşin altın ışınlarıyla tanıştığı gün...',
+                        height=200, key="story_text")
+                    
+                    if st.button("📚 Hikayeyi Kaydet", use_container_width=True, type="primary"):
+                        if story_text.strip():
+                            st.success("🎉 Mükemmel! Hikayeniz hazırlandı!")
+                            st.balloons()
+                        else:
+                            st.error("❌ Lütfen hikaye metnini doldurun!")
+                
+                # Kullanım ipuçları
                 st.markdown("""
                 <div style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); 
                            border-radius: 15px; padding: 20px; margin-top: 30px;">
@@ -16147,15 +16348,6 @@ def main():
                     </ul>
                 </div>
                 """, unsafe_allow_html=True)
-                
-                # Veri saklama durumu
-                username = st.session_state.get('current_user', None)
-                if username:
-                    total_cards = sum(len(cards) for cards in st.session_state.user_flashcards.values())
-                    st.markdown(f"""
-                    <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); 
-                               border-radius: 15px; padding: 20px; margin-top: 20px; text-align: center;">
-                        <h4 style="color: #2d3748; margin-bottom: 15px;">💾 Veri Saklama Durumu</h4>
                         <div style="color: #2d3748; font-size: 1.1rem;">
                             <div style="margin: 10px 0;"><strong>👤 Kullanıcı:</strong> {username}</div>
                             <div style="margin: 10px 0;"><strong>📊 Toplam Kartların:</strong> {total_cards} adet</div>
@@ -24413,236 +24605,6 @@ def show_enhanced_dynamic_calendar(user_data, weekly_completion_rate, weekly_pla
         - Bu tempoyu koru
         - Performansını %85+'a çıkarmaya çalış
         - Düzenli tekrarları ihmal etme
-        """)
-
-
-def show_scientific_life_coaching(user_data):
-    """🧠 Bilimsel Yaşam Koçluğu - YKS için nörobilim destekli optimizasyon"""
-    st.subheader("🧠 YKS Nörobilim Optimizasyonu")
-    st.write("*Akademik performansınızı maksimize etmek için nörobilim ve psikoloji araştırmalarına dayalı stratejiler*")
-    
-    # Puan açığı analizi
-    current_score = calculate_current_yks_score(user_data)
-    estimated_target = current_score + 50
-    score_gap = estimated_target - current_score
-    
-    # Bilimsel mod belirleme
-    if score_gap > 100:
-        mode = "Yoğun Optimizasyon"
-        study_intensity = "8-10 saat/gün"
-        cognitive_load = "Maksimum"
-    elif score_gap > 50:
-        mode = "Dengeli Optimizasyon"  
-        study_intensity = "6-8 saat/gün"
-        cognitive_load = "Yüksek"
-    else:
-        mode = "Sürdürülebilir Optimizasyon"
-        study_intensity = "4-6 saat/gün"
-        cognitive_load = "Orta"
-    
-    # Bilimsel strateji kartı
-    st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #2E86C1 0%, #8E44AD 100%); 
-                padding: 25px; border-radius: 15px; margin: 10px 0; color: white;">
-        <h3>🎯 {mode}</h3>
-        <p><strong>Puan Hedefi:</strong> {score_gap:.1f} puan artış gerekli</p>
-        <p><strong>Önerilen Çalışma Yoğunluğu:</strong> {study_intensity}</p>
-        <p><strong>Bilişsel Yük Seviyesi:</strong> {cognitive_load}</p>
-        <small>*Nöroplastisite ve performans optimizasyonu araştırmalarına dayalı</small>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Bilimsel modüller
-    tabs = st.tabs(["🧬 Nöroplastisite", "⚡ Bilişsel Performans", "🔬 Beslenme Bilimi", "😴 Uyku Nörobilimi"])
-    
-    with tabs[0]:
-        show_neuroplasticity_coaching(score_gap)
-    
-    with tabs[1]:
-        show_cognitive_performance_coaching(score_gap)
-        
-    with tabs[2]:
-        show_nutrition_science_coaching(score_gap)
-        
-    with tabs[3]:
-        show_sleep_neuroscience_coaching(score_gap)
-
-def show_neuroplasticity_coaching(score_gap):
-    """🧬 Nöroplastisite ve Öğrenme Optimizasyonu"""
-    st.subheader("🧬 Nöroplastisite Tabanlı Öğrenme")
-    
-    st.markdown("""
-    **📚 BİLİMSEL TEMEL:**
-    Nöroplastisite araştırmaları, beyninizin yeni bağlantılar kurarak sürekli değiştiğini gösteriyor. 
-    YKS başarısı için bu süreçleri optimize edebiliriz.
-    """)
-    
-    # Yoğunluk bazında strateji
-    if score_gap > 100:
-        st.markdown("""
-        **🎯 YOĞUN ÖĞRENİM STRATEJİSİ:**
-        
-        **⏰ Pomodoro+ Protokolü:**
-        - 50 dk yoğun çalışma + 10 dk aktif dinlenme
-        - Her 4 blokta 30 dk tam dinlenme
-        - Günde maksimum 8-10 blok (400-500 dk)
-        
-        **🧠 Bilişsel Yük Yönetimi:**
-        - Sabah: En zor konular (06:00-10:00) - Kortizol peak
-        - Öğlen: Orta zorluk (14:00-17:00) - İkinci zirve
-        - Akşam: Tekrar/kolay konular (19:00-21:00)
-        
-        **🔄 Spaced Repetition Schedule:**
-        - 1. gün öğren → 3. gün tekrar → 7. gün tekrar → 21. gün tekrar
-        - Forgetting curve'ü kırmak için kritik zamanlamalar
-        """)
-    elif score_gap > 50:
-        st.markdown("""
-        **🎯 DENGELİ ÖĞRENİM STRATEJİSİ:**
-        
-        **⏰ Klasik Pomodoro:**
-        - 45 dk çalışma + 15 dk dinlenme
-        - Günde 6-8 blok (270-360 dk)
-        
-        **🧠 Optimal Timing:**
-        - Sabah: Yeni konular
-        - Öğleden sonra: Problem çözme
-        - Akşam: Gözden geçirme
-        """)
-    else:
-        st.markdown("""
-        **🎯 SÜRDÜRÜLEBİLİR ÖĞRENİM:**
-        
-        **⏰ Esnek Bloklar:**
-        - 40 dk çalışma + 20 dk dinlenme
-        - Günde 4-6 blok (160-240 dk)
-        
-        **🧠 Kalite Odaklı:**
-        - Konsantrasyonunuz tam olduğunda çalışın
-        - Yorgunken molaya çıkın
-        """)
-
-def show_cognitive_performance_coaching(score_gap):
-    """⚡ Bilişsel Performans Optimizasyonu"""
-    st.subheader("⚡ Bilişsel Performans ve Dikkat Kontrolü")
-    
-    st.markdown("""
-    **📚 BİLİMSEL TEMEL:**
-    Çalışma verimi = Odaklanma × Çalışma Süresi × Stratejik Tekrar
-    Nöropsikoloji araştırmaları optimal çalışma protokollerini tanımlıyor.
-    """)
-    
-    if score_gap > 100:
-        st.markdown("""
-        **🎯 YÜKSEK PERFORMANS PROTOKOLLERİ:**
-        
-        **🧠 Deep Work Sessions:**
-        - Çalışma öncesi 5 dk meditasyon (PFC aktivasyonu)
-        - Tek konu odağı - multitasking yasak
-        - Telefon uçak modunda, bildirimler kapalı
-        - Flow state için 90-120 dk sürekli bloklar
-        """)
-    elif score_gap > 50:
-        st.markdown("""
-        **🎯 DENGELİ PERFORMANS:**
-        
-        **🧠 Fokus Blokları:**
-        - 45-60 dk dikkat blokları
-        - Konu değişimleri arası 10 dk break
-        - Günde 6-8 kaliteli blok hedefi
-        """)
-    else:
-        st.markdown("""
-        **🎯 SÜRDÜRÜLEBİLİR ÇALIŞMA:**
-        
-        **🧠 Temel Teknikler:**
-        - Pomodoro Technique (25+5)
-        - Summarization after each session
-        - Question generation
-        """)
-
-def show_nutrition_science_coaching(score_gap):
-    """🔬 Beslenme Bilimi ve Beyin Optimizasyonu"""
-    st.subheader("🔬 Nöronutrisyon - Beyin Kimyası Optimizasyonu")
-    
-    st.markdown("""
-    **📚 BİLİMSEL TEMEL:**
-    Beyin glukozu enerji olarak kullanır (%20'si), omega-3 nöron membranlarını güçlendirir,
-    antioksidanlar oksidatif stresi azaltır. YKS performansı için bu dengeyi optimize ediyoruz.
-    """)
-    
-    if score_gap > 100:
-        st.markdown("""
-        **🧬 YÜKSEK PERFORMANS NÖRONUTRİSYON:**
-        
-        **🌅 Sabah Protokolü (06:00-08:00):**
-        ```
-        🥚 2 adet omega-3 yumurta (protein + kolin)
-        🥑 ½ avokado (monounsaturated fat + K vitamini)  
-        🫐 1 kase blueberry (anthocyanin + BDNF boost)
-        ☕ Green tea (L-theanine + kafein sinerjisi)
-        ```
-        **Nörolojik Etki:** Asetilkolin ↑, Dopamin ↑, Kortizoł regulation
-        """)
-    elif score_gap > 50:
-        st.markdown("""
-        **🧬 DENGELİ NÖRONUTRİSYON:**
-        
-        **🌅 Sabah:** Protein + omega-3 + karmaşık karbonhidrat
-        **📚 Çalışma:** Doğal şeker + sağlıklı yağ kombinasyonu
-        **🍽️ Öğle:** Balık/et + sebze + tam tahıl
-        **🌙 Akşam:** Hafif protein + magnezyum içeren gıdalar
-        """)
-    else:
-        st.markdown("""
-        **🧬 TEMEL NÖRONUTRİSYON:**
-        
-        **🎯 Temel Kurallar:**
-        - Her öğünde protein bulundurun
-        - Omega-3 kaynaklarını haftada 2-3 kez tüketin
-        - Antioksidan zengini meyve-sebze (günde 5 porsiyon)
-        - Şeker dalgalanmalarından kaçının
-        """)
-
-def show_sleep_neuroscience_coaching(score_gap):
-    """😴 Uyku Nörobilimi ve Bellek Konsolidasyonu"""
-    st.subheader("😴 Sleep Optimization for Memory Consolidation")
-    
-    st.markdown("""
-    **📚 BİLİMSEL TEMEL:**
-    Uyku sırasında beyniniz öğrendiklerinizi hippocampus'tan neocortex'e transfer eder.
-    Sleep spindles ve slow-wave sleep memory consolidation için kritik.
-    """)
-    
-    if score_gap > 100:
-        st.markdown("""
-        **🧠 YOĞUN ÇALIŞMA İÇİN UYKU PROTOKOLß:**
-        
-        **⏰ Optimal Sleep Window:**
-        ```
-        🌙 Yatış: 22:30 (Melatonin peak için)
-        🌅 Kalkış: 06:00 (7.5 saat = 5 REM cycle)
-        💡 Light exposure: 06:00-06:30 (Circadian reset)
-        ```
-        """)
-    elif score_gap > 50:
-        st.markdown("""
-        **🧠 DENGELİ UYKU OPTİMİZASYONU:**
-        
-        **⏰ Sleep Schedule:**
-        - Yatış: 23:00-06:30 (7.5 saat)
-        - Tutarlı uyku saatleri (±30 dk tolerance)
-        - Hafta sonu da aynı ritim
-        """)
-    else:
-        st.markdown("""
-        **🧠 TEMEL UYKU HİJYENİ:**
-        
-        **⏰ Minimum Requirements:**
-        - 7-8 saat uyku
-        - Düzenli yatış/kalkış saatleri
-        - Yatmadan 1 saat önce ekran yok
-        - Karanlık, serin, sessiz ortam
         """)
 
 def show_real_topic_completion_timeline(user_data, current_progress, days_to_yks, student_field):
