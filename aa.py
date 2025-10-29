@@ -291,16 +291,16 @@ def get_real_student_data_for_admin():
                                   for progress in weekly_progress.values()])
             total_topics = sum([len(progress.get('planned_topics', []))
                               for progress in weekly_progress.values()])
-            if total_topics > 0:
-                weekly_performance = int((completed_topics / total_topics) * 100)
-            else:
-                weekly_performance = 0
-            else:
-            # Veri yoksa ortalama değer ver
-                weekly_performance = 65
+        if total_topics > 0:
+            weekly_performance = int((completed_topics / total_topics) * 100)
+        else:
+        if veri_var_mi:  # burada gerçek kontrolünü yaz (örnek: if data_available:)
+            weekly_performance = 0
+        else:
+        # Veri yoksa ortalama değer ver
+            weekly_performance = 65
 
-        # Çalışma saatleri (varsa gerçek verilerden)
-        total_hours = user_data.get('total_study_hours', 0)
+            total_hours = user_data.get('total_study_hours', 0)
         if total_hours == 0:
             # Veri yoksa tahmin et
             total_hours = weekly_performance // 2 + 20
