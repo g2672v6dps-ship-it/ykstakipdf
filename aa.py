@@ -16348,19 +16348,26 @@ def main():
                     </ul>
                 </div>
                 """, unsafe_allow_html=True)
-                        <div style="color: #2d3748; font-size: 1.1rem;">
-                            <div style="margin: 10px 0;"><strong>👤 Kullanıcı:</strong> {username}</div>
-                            <div style="margin: 10px 0;"><strong>📊 Toplam Kartların:</strong> {total_cards} adet</div>
-                            <div style="margin: 10px 0;"><strong>💾 Saklama:</strong> <span style="color: #27ae60; font-weight: bold;">KALICI ✅</span></div>
-                            <div style="margin: 10px 0;"><strong>🔄 Senkronizasyon:</strong> <span style="color: #27ae60;">Firebase Database</span></div>
-                            <div style="margin: 10px 0; font-size: 0.9rem; opacity: 0.8;">
-                                <strong>⏰ Süre:</strong> Kartların hesabınızda kalıcı olarak saklanıyor.<br>
-                                Farklı cihazlardan giriş yaptığınızda tüm kartlarınızı görebilirsiniz!
-                            </div>
+                
+                st.markdown(f"""
+                <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); 
+                           border-radius: 15px; padding: 20px; margin-top: 20px;">
+                    <h4 style="color: #2d3748; margin-bottom: 15px;">📱 Hesap Bilgileri</h4>
+                    <div style="color: #2d3748; font-size: 1.1rem;">
+                        <div style="margin: 10px 0;"><strong>👤 Kullanıcı:</strong> {username}</div>
+                        <div style="margin: 10px 0;"><strong>📊 Toplam Kartların:</strong> {total_cards} adet</div>
+                        <div style="margin: 10px 0;"><strong>💾 Saklama:</strong> <span style="color: #27ae60; font-weight: bold;">KALICI ✅</span></div>
+                        <div style="margin: 10px 0;"><strong>🔄 Senkronizasyon:</strong> <span style="color: #27ae60;">Firebase Database</span></div>
+                        <div style="margin: 10px 0; font-size: 0.9rem; opacity: 0.8;">
+                            <strong>⏰ Süre:</strong> Kartların hesabınızda kalıcı olarak saklanıyor.<br>
+                            Farklı cihazlardan giriş yaptığınızda tüm kartlarınızı görebilirsiniz!
                         </div>
                     </div>
-                    """, unsafe_allow_html=True)
-                else:
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Eğer kullanıcı giriş yapmamışsa uyarı mesajı
+                if not st.session_state.get('current_user'):
                     st.markdown("""
                     <div style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); 
                                border-radius: 15px; padding: 20px; margin-top: 20px; text-align: center;">
