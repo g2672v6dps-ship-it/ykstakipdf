@@ -643,7 +643,7 @@ if FIREBASE_AVAILABLE:
                 cred = credentials.Certificate("firebase_key.json")
             
             firebase_admin.initialize_app(cred, {
-                'databaseURL':'https://yks-takip-c26d5-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
+                'databaseURL':'https://dfpsiko-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
             })
         
         db_ref = db.reference('users')
