@@ -22899,7 +22899,7 @@ YKS_2025_TABAN_PUANLARI = {
             "Hacettepe Üniversitesi": {"taban_puan": 452.36, "kontenjan": 80, "puan_turu": "EA"},
             "İstanbul Üniversitesi": {"taban_puan": 447.29, "kontenjan": 95, "puan_turu": "EA"},
             "Ege Üniversitesi": {"taban_puan": 437.84, "kontenjan": 75, "puan_turu": "EA"},
-            "Bursa Uludağ Üniversitesi": {"taban_puan": 425.68, "kontenjan": 65, "puan_turu": "EA"},
+            "Bursa Uludağ Üniversitesi": {"taban_puan": 393,72695, "kontenjan": 180, "puan_turu": "EA"},
             "Ağrı İbrahim Çeçen Üniversitesi": {"taban_puan": 330.40, "kontenjan": 40, "puan_turu": "EA"}
         },
         "Hukuk": {
@@ -22908,7 +22908,8 @@ YKS_2025_TABAN_PUANLARI = {
             "Ankara Üniversitesi": {"taban_puan": 465.78, "kontenjan": 200, "puan_turu": "EA"},
             "Hacettepe Üniversitesi": {"taban_puan": 454.98, "kontenjan": 160, "puan_turu": "EA"},
             "Gazi Üniversitesi": {"taban_puan": 448.92, "kontenjan": 150, "puan_turu": "EA"},
-            "Bursa Uludağ Üniversitesi": {"taban_puan": 421.17, "kontenjan": 100, "puan_turu": "EA"}
+            "ERZİNCAN BİNALİ YILDIRIM ÜNİVERSİTESİ
+Hukuk Fakültesi": {"taban_puan": 421.17, "kontenjan": 100, "puan_turu": "EA"}
         },
         "Öğretmenlik": {
             "Hacettepe Üniversitesi": {"taban_puan": 480, "kontenjan": 120, "puan_turu": "EA"},
