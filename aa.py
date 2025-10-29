@@ -281,7 +281,7 @@ def get_real_student_data_for_admin():
             except:
                 last_login = datetime.now() - timedelta(days=30)
             else:
-            last_login = datetime.now() - timedelta(days=30)
+                last_login = datetime.now() - timedelta(days=30)
 
         # Haftalık performans hesaplama (varsa gerçek verilerden)
         weekly_progress = user_data.get('weekly_progress', {})
