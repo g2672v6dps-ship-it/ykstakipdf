@@ -293,18 +293,18 @@ def get_real_student_data_for_admin():
                         for progress in weekly_progress.values()])
 
         if total_topics > 0:
-            weekly_performance = int((completed_topics / total_topics) * 100)
-        else:
+                weekly_performance = int((completed_topics / total_topics) * 100)
+            else:
         if veri_var_mi:  # burada gerçek kontrolünü yaz (örnek: if data_available:)
             weekly_performance = 0
-        else:
+            else:
             # Veri yoksa ortalama değer ver
-            weekly_performance = 65
-else:
+                weekly_performance = 65
+            else:
     # weekly_progress yoksa varsayılan değerler
-    weekly_performance = 65
-    completed_topics = 0
-    total_topics = 0
+                weekly_performance = 65
+                completed_topics = 0
+                total_topics = 0
 
 # Çalışma saatleri (varsa gerçek verilerden)
 total_hours = user_data.get('total_study_hours', 0)
