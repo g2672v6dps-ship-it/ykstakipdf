@@ -217,98 +217,70 @@ def show_print_button(user_data, weekly_plan):
 
 # === ADMIN DASHBOARD FONKSİYONLARI ===
 
+@st.cache_data(ttl=300)
 def get_real_student_data_for_admin():
-    """Gerçek öğrenci verilerini Firebase'den çek ve admin paneli için formatla"""
+    \"\"\"Admin paneli için kullanıcı verisini optimize edip döner (cache'li).\"\"\"
     from datetime import datetime, timedelta
-    import json
-    
-    # Firebase'den kullanıcı verilerini al
-    if 'users_db' not in st.session_state:
-        st.session_state.users_db = load_users_from_firebase()
-    
-    users_db = st.session_state.users_db
+
+    users_db = load_users_from_firebase()
     students = []
-    
-    # DEBUG: Veri durumu kontrolü
-    st.sidebar.write(f"📊 **Debug Info:**")
-    st.sidebar.write(f"• Toplam user DB kaydı: {len(users_db) if users_db else 0}")
-    if users_db:
-        st.sidebar.write(f"• Kullanıcılar: {list(users_db.keys())}")
-    
+
+    # DEBUG bilgisi (hafifletilmiş)
+    try:
+        st.sidebar.write(f\"📊 **Debug Info:**\")
+        st.sidebar.write(f\"• Toplam user DB kaydı: {len(users_db) if users_db else 0}\")
+        if users_db:
+            st.sidebar.write(f\"• Kullanıcılar: {list(users_db.keys())}\")
+    except Exception:
+        pass
+
     if not users_db:
-        st.warning("⚠️ Hiç öğrenci verisi bulunamadı!")
-        st.info("💡 Firebase'den veri çekilemedi veya hiç kayıt yapılmamış.")
         return []
-    
+
     for username, user_data in users_db.items():
-        # Sadece gerçek öğrenci verilerini al (admin hariç)
-        if username in ["admin", "adminYKS2025"]:
+        if username in [\"admin\", \"adminYKS2025\"]:
             continue
-            
-        # Veri kontrolü
+
         name = user_data.get('name', 'İsimsiz Öğrenci')
         surname = user_data.get('surname', '')
-        full_name = f"{name} {surname}".strip()
-        
-        # Son giriş tarihi
+        full_name = f\"{name} {surname}\".strip()
         last_login_str = user_data.get('last_login')
         if last_login_str:
             try:
                 last_login = datetime.fromisoformat(last_login_str.replace('Z', '+00:00'))
-            except:
+            except Exception:
                 last_login = datetime.now() - timedelta(days=30)
         else:
             last_login = datetime.now() - timedelta(days=30)
-        
-        # Haftalık performans hesaplama (varsa gerçek verilerden)
+
         weekly_progress = user_data.get('weekly_progress', {})
         if weekly_progress:
-            # Gerçek ilerleme verisi varsa hesapla
-            completed_topics = sum([len(progress.get('completed_topics', [])) 
-                                  for progress in weekly_progress.values()])
-            total_topics = sum([len(progress.get('planned_topics', [])) 
-                              for progress in weekly_progress.values()])
-            if total_topics > 0:
-                weekly_performance = int((completed_topics / total_topics) * 100)
-            else:
-                weekly_performance = 0
+            completed_topics = sum(len(p.get('completed_topics', [])) for p in weekly_progress.values())
+            total_topics = sum(len(p.get('planned_topics', [])) for p in weekly_progress.values())
+            weekly_performance = int((completed_topics / total_topics) * 100) if total_topics > 0 else 0
         else:
-            # Veri yoksa ortalama değer ver
             weekly_performance = 65
-            
-        # Çalışma saatleri (varsa gerçek verilerden)
-        total_hours = user_data.get('total_study_hours', 0)
-        if total_hours == 0:
-            # Veri yoksa tahmin et
-            total_hours = weekly_performance // 2 + 20
-            
-        # Deneme sayısı
-        exam_count = user_data.get('exam_count', 0)
-        if exam_count == 0:
-            exam_count = max(1, weekly_performance // 20)
-        
-        # Durum belirleme
-        days_since_login = (datetime.now() - last_login).days
-        status = "Aktif" if days_since_login <= 7 else "Pasif"
-        
-        student = {
-            "username": username,
-            "name": full_name if full_name != "İsimsiz Öğrenci" else username,
-            "field": user_data.get('field', 'Belirtilmemiş'),
-            "last_login": last_login,
-            "weekly_performance": weekly_performance,
-            "total_hours": total_hours,
-            "exam_count": exam_count,
-            "status": status,
-            "grade": user_data.get('grade', '12. Sınıf'),
-            "target": user_data.get('target', 'Belirtilmemiş')
-        }
-        students.append(student)
-    
-    # Performansa göre sırala (yüksekten düşüğe)
+
+        total_hours = user_data.get('total_study_hours', 0) or (weekly_performance // 2 + 20)
+        exam_count = user_data.get('exam_count', 0) or max(1, weekly_performance // 20)
+        status = \"Aktif\" if (datetime.now() - last_login).days <= 7 else \"Pasif\"
+
+        students.append({
+            \"username\": username,
+            \"name\": full_name if full_name != \"\" else username,
+            \"field\": user_data.get('field', 'Belirtilmemiş'),
+            \"last_login\": last_login,
+            \"weekly_performance\": weekly_performance,
+            \"total_hours\": total_hours,
+            \"exam_count\": exam_count,
+            \"status\": status,
+            \"grade\": user_data.get('grade', '12. Sınıf'),
+            \"target\": user_data.get('target', 'Belirtilmemiş')
+        })
+
     students.sort(key=lambda x: x['weekly_performance'], reverse=True)
-    
     return students
+
 
 def generate_mock_student_data():
     """Örnek öğrenci verileri oluştur"""
@@ -623,39 +595,37 @@ def play_break_start_sound():
     
     st.components.v1.html(sound_html, height=0)
 
-# Firebase başlatma
+# Firebase başlatma (optimize)
 firebase_connected = False
 db_ref = None
 
 if FIREBASE_AVAILABLE:
     try:
-        # Firebase'in zaten başlatılıp başlatılmadığını kontrol et
+        # Başlatma yalnızca bir kez yapılır
         if not firebase_admin._apps:
-            # Firebase Admin SDK'yı başlat
-            # GitHub/Streamlit Cloud deployment için environment variable kontrolü
             if 'FIREBASE_KEY' in os.environ:
-                # Production: Environment variable'dan JSON key'i al
                 firebase_json = os.environ["FIREBASE_KEY"]
                 firebase_config = json.loads(firebase_json)
                 cred = credentials.Certificate(firebase_config)
             else:
-                # Local development: JSON dosyasından al
                 cred = credentials.Certificate("firebase_key.json")
-            
+
             firebase_admin.initialize_app(cred, {
-                'databaseURL':'https://yeniseninalanin-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
+                'databaseURL': 'https://yeniseninalanin-default-rtdb.firebaseio.com/'
             })
-        
+
+        # Referansı genel /users köküne atıyoruz; fakat veri çekme fonksiyonları
+        # artık sadece gerekli parçaları çekecek (cache ile).
         db_ref = db.reference('users')
         firebase_connected = True
-        st.success("🔥 Firebase bağlantısı başarılı!")
-        
+        st.success("🔥 Firebase bağlantısı başarılı! (optimize)")
     except Exception as e:
         st.warning(f"⚠️ Firebase bağlantısı kurulamadı: {e}")
         firebase_connected = False
         db_ref = None
 else:
     st.info("📦 Firebase modülü yüklenmedi - yerel test modu aktif")
+
 
 # FALLBACK: Geçici test kullanıcıları
 if not firebase_connected:
@@ -705,36 +675,47 @@ if not firebase_connected:
 def load_users_from_firebase():
     """Firebase'den kullanıcı verilerini yükler (Fallback destekli)"""
     try:
+        if firebase_connected and db_r# 🔥 Firebase veri çekme (optimize + cache)
+@st.cache_data(ttl=300)
+def load_users_from_firebase():
+    \"\"\"Firebase'den kullanıcı verilerini 5 dakikada bir çeker (cache'li).\"\"\"
+    try:
         if firebase_connected and db_ref:
-            users_data = db_ref.get()  # ✅ DÜZELTME: /users yolu zaten tanımlı
-            return users_data if users_data else {}
-        else:
-            # FALLBACK: Local test kullanıcıları
-            if hasattr(st.session_state, 'fallback_users'):
-                return st.session_state.fallback_users
-            return {}
-    except Exception as e:
-        st.error(f"Firebase veri yükleme hatası: {e}")
+            data = db_ref.get()
+            return data if data else {}
         # FALLBACK: Local test kullanıcıları
         if hasattr(st.session_state, 'fallback_users'):
             return st.session_state.fallback_users
         return {}
+    except Exception as e:
+        # Hata durumunda fallback dön
+        st.error(f\"Firebase veri yükleme hatası: {e}\")
+        if hasattr(st.session_state, 'fallback_users'):
+            return st.session_state.fallback_users
+        return {}
 
-def update_user_in_firebase(username, data):
-    """Firebase'de kullanıcı verilerini günceller (Fallback destekli) + SESSION STATE SENKRONIZASYONU"""
+@st.cache_data(def update_user_in_firebase(username, data):
+    \"\"\"Firebase'de kullanıcı verilerini günceller (cache temizleme dahil).\"\"\"
     try:
         if firebase_connected and db_ref:
-            db_ref.child(username).update(data)  # ✅ DÜZELTME: /users yolu zaten tanımlı
-            
-            # 🆕 KRİTİK FİX: SESSION STATE'İ ANINDA SENKRONIZE ET!
-            # Bu sayede F5'e basmadan güncel veri görünür
+            db_ref.child(username).update(data)
+
+            # Cache'leri temizle ki bir sonraki okuma güncel veriyi alsın
+            try:
+                load_users_from_firebase.clear()
+            except Exception:
+                pass
+            try:
+                load_single_user.clear()
+            except Exception:
+                pass
+
+            # SESSION STATE'i güncelle (varsa)
             if 'users_db' in st.session_state and username in st.session_state.users_db:
                 st.session_state.users_db[username].update(data)
-            
-            # 🔥 EKSTRA: Haftalık plan cache'ini sil
+            # Haftalık plan cache'ini sil
             if 'weekly_plan_cache' in st.session_state:
                 del st.session_state.weekly_plan_cache
-            
             return True
         else:
             # FALLBACK: Local test kullanıcıları
@@ -742,22 +723,26 @@ def update_user_in_firebase(username, data):
                 if username not in st.session_state.fallback_users:
                     st.session_state.fallback_users[username] = {}
                 st.session_state.fallback_users[username].update(data)
-            
-            # 🆕 FALLBACK için de session state güncelle
+
+            # SESSION STATE güncelle
             if 'users_db' in st.session_state and username in st.session_state.users_db:
                 st.session_state.users_db[username].update(data)
-            
-            # 🔥 EKSTRA: Haftalık plan cache'ini sil
             if 'weekly_plan_cache' in st.session_state:
                 del st.session_state.weekly_plan_cache
-            
             return True
     except Exception as e:
-        st.error(f"Firebase veri güncelleme hatası: {e}")
-        # FALLBACK: Local test kullanıcıları
+        st.error(f\"Firebase veri güncelleme hatası: {e}\")
+        # Hata olsa bile fallback'ı güncelle
         if hasattr(st.session_state, 'fallback_users'):
             if username not in st.session_state.fallback_users:
                 st.session_state.fallback_users[username] = {}
+            st.session_state.fallback_users[username].update(data)
+        if 'users_db' in st.session_state and username in st.session_state.users_db:
+            st.session_state.users_db[username].update(data)
+        if 'weekly_plan_cache' in st.session_state:
+            del st.session_state.weekly_plan_cache
+        return True
+               st.session_state.fallback_users[username] = {}
             st.session_state.fallback_users[username].update(data)
         
         # 🆕 Hata durumunda bile session state güncelle
