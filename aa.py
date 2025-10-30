@@ -219,7 +219,8 @@ def show_print_button(user_data, weekly_plan):
 
 @st.cache_data(ttl=300)
 def get_real_student_data_for_admin():
-    \"\"\"Admin paneli için kullanıcı verisini optimize edip döner (cache'li).\"\"\"
+   """Admin paneli için kullanıcı verisini optimize edip döner (cache'li)."""
+
     from datetime import datetime, timedelta
 
     users_db = load_users_from_firebase()
