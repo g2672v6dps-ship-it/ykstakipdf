@@ -21,7 +21,7 @@ def refresh_users_cache():
         st.session_state[f"{cache_key}_timestamp"] = current_time.isoformat()
         # st.success(f"✅ Veriler cache'e alındı")
         # st.info("⚡ Cache'ten veri yüklendi")
-pass
+        pass
 
 # Cache sistemi import'u
 
@@ -247,11 +247,11 @@ def get_real_student_data_for_admin():
     # Firebase'den kullanıcı verilerini al (Cache sistemi ile)
     refresh_users_cache()
     if 'users_db' not in st.session_state:
-users_db = st.session_state.users_db
+        users_db = st.session_state.users_db
     else:
-st.warning("⚠️ Firebase'den veri çekilemedi!")
-return []
-students = []
+        st.warning("⚠️ Firebase'den veri çekilemedi!")
+        return []
+    students = []
 
     # DEBUG: Veri durumu kontrolü
     st.sidebar.write(f"📊 **Debug Info:**")
@@ -259,55 +259,55 @@ students = []
     st.sidebar.write(f"• Kullanıcılar: {list(users_db.keys())}")
 
     if not users_db:
-st.warning("⚠️ Hiç öğrenci verisi bulunamadı!")
-st.info("💡 Firebase'den veri çekilemedi veya hiç kayıt yapılmamış.")
-return []
+        st.warning("⚠️ Hiç öğrenci verisi bulunamadı!")
+        st.info("💡 Firebase'den veri çekilemedi veya hiç kayıt yapılmamış.")
+        return []
 
     for username, user_data in users_db.items():
-# Sadece gerçek öğrenci verilerini al (admin hariç)
+        # Sadece gerçek öğrenci verilerini al (admin hariç)
         if username in ["admin", "adminYKS2025"]:
-continue
+            continue
 
-# Veri kontrolü
-name = user_data.get('name', 'İsimsiz Öğrenci')
-surname = user_data.get('surname', '')
-full_name = f"{name} {surname}".strip()
+        # Veri kontrolü
+        name = user_data.get('name', 'İsimsiz Öğrenci')
+        surname = user_data.get('surname', '')
+        full_name = f"{name} {surname}".strip()
 
 # Son giriş tarihi
 last_login_str = user_data.get('last_login')
-        if last_login_str:
-try:
-last_login = datetime.fromisoformat(last_login_str.replace('Z', '+00:00'))
-            except Exception as e:
-last_login = datetime.now() - timedelta(days=30)
+if last_login_str:
+    try:
+        last_login = datetime.fromisoformat(last_login_str.replace('Z', '+00:00'))
+    except Exception as e:
+        last_login = datetime.now() - timedelta(days=30)
 else:
-last_login = datetime.now() - timedelta(days=30)
+    last_login = datetime.now() - timedelta(days=30)
 
 # Haftalık performans hesaplama (varsa gerçek verilerden)
 weekly_progress = user_data.get('weekly_progress', {})
 if weekly_progress:  # Gerçek ilerleme verisi varsa hesapla
-completed_topics = sum([len(progress.get('completed_topics', []))
-for progress in weekly_progress.values()])
-total_topics = sum([len(progress.get('planned_topics', []))
-for progress in weekly_progress.values()])
+    completed_topics = sum([len(progress.get('completed_topics', []))
+    for progress in weekly_progress.values()])
+    total_topics = sum([len(progress.get('planned_topics', []))
+    for progress in weekly_progress.values()])
 
-                    if total_topics > 0:
-weekly_performance = int((completed_topics / total_topics) * 100)
+    if total_topics > 0:
+        weekly_performance = int((completed_topics / total_topics) * 100)
 else:
-# weekly_progress yoksa varsayılan değerler
-weekly_performance = 65
-completed_topics = 0
-total_topics = 0
+    # weekly_progress yoksa varsayılan değerler
+    weekly_performance = 65
+    completed_topics = 0
+    total_topics = 0
 
 # Çalışma saatleri (varsa gerçek verilerden)
 total_hours = user_data.get('total_study_hours', 0)
-if             # Veri yoksa tahmin et
-total_hours = weekly_performance // 2 + 20
+if total_hours == 0:  # Veri yoksa tahmin et
+    total_hours = weekly_performance // 2 + 20
 
 # Deneme sayısı
 exam_count = user_data.get('exam_count', 0)
-        if exam_count == 0:
-exam_count = max(1, weekly_performance // 20)
+if exam_count == 0:
+    exam_count = max(1, weekly_performance // 20)
 
 # Durum belirleme
 days_since_login = (datetime.now() - last_login).days
@@ -327,12 +327,12 @@ student = {
 }
 students.append(student)
 
-    # Performansa göre sırala (yüksekten düşüğe)
-    students.sort(key=lambda x: x['weekly_performance'], reverse=True)
+# Performansa göre sırala (yüksekten düşüğe)
+students.sort(key=lambda x: x['weekly_performance'], reverse=True)
 
-    return students
+return students
 
-    def generate_mock_student_data():
+def generate_mock_student_data():
     """Örnek öğrenci verileri oluştur"""
     import random
     from datetime import datetime, timedelta
@@ -345,30 +345,30 @@ students.append(student)
 
     students = []
     for i, name in enumerate(names):
-last_login = datetime.now() - timedelta(days=random.randint(0, 7))
-weekly_performance = random.randint(45, 95)
+        last_login = datetime.now() - timedelta(days=random.randint(0, 7))
+        weekly_performance = random.randint(45, 95)
 
-student = {
-"id": i+1,
-"name": name,
-"field": random.choice(fields),
-"last_login": last_login,
-"weekly_performance": weekly_performance,
-"total_hours": random.randint(25, 65),
-"exam_count": random.randint(2, 8),
-"status": "Aktif" if last_login > datetime.now() - timedelta(days=3) else "Pasif"
-}
-students.append(student)
+        student = {
+            "id": i+1,
+            "name": name,
+            "field": random.choice(fields),
+            "last_login": last_login,
+            "weekly_performance": weekly_performance,
+            "total_hours": random.randint(25, 65),
+            "exam_count": random.randint(2, 8),
+            "status": "Aktif" if last_login > datetime.now() - timedelta(days=3) else "Pasif"
+        }
+        students.append(student)
 
     return students
 
-    def show_admin_dashboard():
+def show_admin_dashboard():
     """Admin dashboard ana sayfa"""
     # Çıkış butonu
     col1, col2, col3 = st.columns([6, 1, 1])
     with col3:
         if st.button("🚪 Çıkış", type="secondary"):
-admin_logout()
+            admin_logout()
 
 # Dashboard başlık
 st.markdown("""
@@ -380,7 +380,7 @@ padding: 25px; border-radius: 20px; margin: 20px 0; color: white; text-align: ce
     """, unsafe_allow_html=True)
 
     # GERÇEKFirebase verilerini çek
-    students = get_real_student_data_for_admin()
+students = get_real_student_data_for_admin()
 
     # Genel İstatistikler
     st.markdown("## 📊 Genel Durum")
