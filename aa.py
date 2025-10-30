@@ -248,8 +248,12 @@ def get_real_student_data_for_admin():
     import json
 
     # Firebase'den kullanıcı verilerini al (Cache sistemi ile)
+    refresh_users_cache()
     if 'users_db' not in st.session_state:
         users_db = st.session_state.users_db
+    else:
+        st.warning("⚠️ Firebase'den veri çekilemedi!")
+        return []
     students = []
 
     # DEBUG: Veri durumu kontrolü
@@ -284,38 +288,34 @@ def get_real_student_data_for_admin():
                 last_login = datetime.now() - timedelta(days=30)
 
         # Haftalık performans hesaplama (varsa gerçek verilerden)
-                weekly_progress = user_data.get('weekly_progress', {})
+        weekly_progress = user_data.get('weekly_progress', {})
         if weekly_progress:
-    # Gerçek ilerleme verisi varsa hesapla
+            # Gerçek ilerleme verisi varsa hesapla
             completed_topics = sum([len(progress.get('completed_topics', []))
                             for progress in weekly_progress.values()])
             total_topics = sum([len(progress.get('planned_topics', []))
                         for progress in weekly_progress.values()])
 
-        if total_topics > 0:
+            if total_topics > 0:
                 weekly_performance = int((completed_topics / total_topics) * 100)
             else:
-        if veri_var_mi:  # burada gerçek kontrolünü yaz (örnek: if data_available:)
-            weekly_performance = 0
-            else:
-            # Veri yoksa ortalama değer ver
                 weekly_performance = 65
-            else:
-    # weekly_progress yoksa varsayılan değerler
-                weekly_performance = 65
-                completed_topics = 0
-                total_topics = 0
+        else:
+            # weekly_progress yoksa varsayılan değerler
+            weekly_performance = 65
+            completed_topics = 0
+            total_topics = 0
 
-# Çalışma saatleri (varsa gerçek verilerden)
-total_hours = user_data.get('total_study_hours', 0)
-if total_hours == 0:
-    # Veri yoksa tahmin et
-    total_hours = weekly_performance // 2 + 20
+        # Çalışma saatleri (varsa gerçek verilerden)
+        total_hours = user_data.get('total_study_hours', 0)
+        if total_hours == 0:
+            # Veri yoksa tahmin et
+            total_hours = weekly_performance // 2 + 20
 
-# Deneme sayısı
-exam_count = user_data.get('exam_count', 0)
-if exam_count == 0:
-    exam_count = max(1, weekly_performance // 20)
+        # Deneme sayısı
+        exam_count = user_data.get('exam_count', 0)
+        if exam_count == 0:
+            exam_count = max(1, weekly_performance // 20)
 
         # Durum belirleme
         days_since_login = (datetime.now() - last_login).days
@@ -455,7 +455,7 @@ def show_admin_dashboard():
                 color = "#d4edda"
                 text_color = "#155724"
                 status_emoji = "🚀"
-            elif performance >= 60:
+        elif performance >= 60:
                 color = "#d1ecf1"
                 text_color = "#0c5460"
                 status_emoji = "📈"
@@ -493,7 +493,7 @@ def show_admin_dashboard():
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            else:
+    else:
         st.info("Filtrelere uygun öğrenci bulunamadı.")
 
     # Uyarılar
@@ -508,7 +508,7 @@ def show_admin_dashboard():
         if low_performance:
             for student in low_performance:
                 st.warning(f"🚨 {student['name']}: %{student['weekly_performance']}")
-            else:
+        else:
             st.success("✅ Düşük performanslı öğrenci yok")
 
     with col2:
@@ -517,8 +517,8 @@ def show_admin_dashboard():
         if inactive_students:
             for student in inactive_students:
                 days_ago = (datetime.now() - student['last_login']).days
-        st.error(f"🔴 {student['name']}: {days_ago} gün önce")
-            else:
+                st.error(f"🔴 {student['name']}: {days_ago} gün önce")
+        else:
             st.success("✅ Tüm öğrenciler aktif")
 
 # Ana uygulama akışına admin sekmesi ekle
@@ -532,7 +532,7 @@ def main():
         if not check_admin_access():
             admin_login()
             return
-            else:
+        else:
             show_admin_dashboard()
             return
 
@@ -684,7 +684,7 @@ if FIREBASE_AVAILABLE:
         st.warning(f"⚠️ Firebase bağlantısı kurulamadı: {e}")
         firebase_connected = False
         db_ref = None
-            else:
+else:
     st.info("📦 Firebase modülü yüklenmedi - yerel test modu aktif")
 
 # FALLBACK: Geçici test kullanıcıları
@@ -738,7 +738,7 @@ def load_users_from_firebase():
         if firebase_connected and db_ref:
             users_data = db_ref.get()  # ✅ DÜZELTME: /users yolu zaten tanımlı
             return users_data if users_data else {}
-            else:
+        else:
             # FALLBACK: Local test kullanıcıları
             if hasattr(st.session_state, 'fallback_users'):
                 return st.session_state.fallback_users
@@ -766,7 +766,7 @@ def update_user_in_firebase(username, data):
                 del st.session_state.weekly_plan_cache
 
             return True
-            else:
+        else:
             # FALLBACK: Local test kullanıcıları
             if hasattr(st.session_state, 'fallback_users'):
                 if username not in st.session_state.fallback_users:
@@ -3651,7 +3651,7 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
     # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
     if isinstance(completed_topics, tuple):
         completed_topics_list, completed_topic_names = completed_topics
-            else:
+    else:
         # Eski format ile uyumluluk
         completed_topic_names = set()
         if completed_topics:
@@ -3684,7 +3684,7 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
                 if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
                     if isinstance(value, dict):
                         real_net = int(float(value.get('net', 0)))
-            else:
+                    else:
                         try:
                             real_net = int(float(str(value)))
                         except:
@@ -3726,7 +3726,7 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics, u
     # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
     if isinstance(completed_topics, tuple):
         completed_topics_list, completed_topic_names = completed_topics
-            else:
+    else:
         # Eski format ile uyumluluk
         completed_topic_names = set()
         if completed_topics:
@@ -3758,7 +3758,7 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics, u
                 if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
                     if isinstance(value, dict):
                         real_net = int(float(value.get('net', 0)))
-            else:
+                    else:
                         try:
                             real_net = int(float(str(value)))
                         except:
@@ -3800,7 +3800,7 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
     # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
     if isinstance(completed_topics, tuple):
         completed_topics_list, completed_topic_names = completed_topics
-            else:
+    else:
         # Eski format ile uyumluluk
         completed_topic_names = set()
         if completed_topics:
@@ -3854,7 +3854,7 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
                                 real_net = int(float(str(value)))
                             except:
                                 real_net = 0
-                        break
+                    break
 
                 weekly_topics.append({
                     'subject': subject,
@@ -3923,7 +3923,7 @@ def get_verbal_weekly_topics(week_number, completed_topics, pending_topics, user
     # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
     if isinstance(completed_topics, tuple):
         completed_topics_list, completed_topic_names = completed_topics
-            else:
+    else:
         # Eski format ile uyumluluk
         completed_topic_names = set()
         if completed_topics:
@@ -3955,7 +3955,7 @@ def get_verbal_weekly_topics(week_number, completed_topics, pending_topics, user
                 if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
                     if isinstance(value, dict):
                         real_net = int(float(value.get('net', 0)))
-            else:
+                    else:
                         try:
                             real_net = int(float(str(value)))
                         except:
@@ -8127,7 +8127,7 @@ def calculate_user_subject_performance(subject, user_data):
                 if net_key in exam:
                     total_score += exam[net_key] * 2.5  # 40 soru üzerinden %100'e çevir
                     count += 1
-            elif subject.startswith('AYT'):
+        elif  elif subject.startswith('AYT'):
                 ayt_subject = subject.replace('AYT ', '').lower()
                 net_key = ayt_subject + '_net'
                 if net_key in exam:
@@ -8815,7 +8815,7 @@ def analyze_exam_trends(recent_exams):
 
             if trend > 0.5:  # 0.5+ net artış
                 improving[subject] = {'trend': trend, 'scores': scores}
-            elif trend < -0.5:  # 0.5+ net düşüş
+        elif  elif trend < -0.5:  # 0.5+ net düşüş
                 declining[subject] = {'trend': trend, 'scores': scores}
 
     overall_trend = sum(overall_changes) / len(overall_changes) if overall_changes else 0
@@ -9360,9 +9360,9 @@ def show_yks_journey_cinema(user_data, progress_data):
             # Günlük başarı mesajı oluştur
             if day_data['total_questions'] > 20:
                 day_data['daily_achievement'] = f"🔥 {day_data['total_questions']} soru çözdün!"
-            elif len(day_data['completed_topics']) > 2:
+        elif  elif len(day_data['completed_topics']) > 2:
                 day_data['daily_achievement'] = f"📚 {len(day_data['completed_topics'])} konu tamamladın!"
-            elif day_data['motivation_score'] >= 8:
+        elif  elif day_data['motivation_score'] >= 8:
                 day_data['daily_achievement'] = "⭐ Süper motivasyonla çalıştın!"
             else:
                 day_data['daily_achievement'] = "💪 YKS yolunda bir adım daha!"
@@ -9456,7 +9456,7 @@ def show_yks_journey_cinema(user_data, progress_data):
 
             if speed_choice == "🐌 Yavaş (6sn/gün)":
                 st.session_state.day_duration = 6
-            elif speed_choice == "🚀 Hızlı (2sn/gün)":
+        elif  elif speed_choice == "🚀 Hızlı (2sn/gün)":
                 st.session_state.day_duration = 2
             else:
                 st.session_state.day_duration = 4
@@ -10864,7 +10864,7 @@ def show_pomodoro_interface(user_data):
             if st.session_state.pomodoro_active and not st.session_state.breathing_active:
                 if st.button("💨 Nefes Al", type="primary", use_container_width=True):
                     start_hibrit_breathing()
-            elif st.session_state.breathing_active:
+        elif  elif st.session_state.breathing_active:
                 if st.button("⏭️ Atla", type="secondary", use_container_width=True):
                     complete_breathing_exercise()
             else:
@@ -10894,10 +10894,10 @@ def show_pomodoro_interface(user_data):
             if pom_type == 'Tam Konsantrasyon (90dk+25dk)' and not is_active:
                 # 90 dakika çalışma yapan herkes 25 dk mola alabilir
                 warning_msg = "⚠️ 90dk yoğun çalışma sonrası uzun mola gerekli!"
-            elif pom_type == 'Derin Odak (50dk+15dk)' and not is_active:
+        elif  elif pom_type == 'Derin Odak (50dk+15dk)' and not is_active:
                 # 50dk çalışma yapan 15dk mola alabilir
                 warning_msg = "🧪 50dk derin odaklanma için 15dk mola önerilir!"
-            elif pom_type in ['Standart Odak (35dk+10dk)', 'Kısa Odak (25dk+5dk)'] and not is_active:
+        elif  elif pom_type in ['Standart Odak (35dk+10dk)', 'Kısa Odak (25dk+5dk)'] and not is_active:
                 # 25dk ve 35dk çalışanlar uzun mola alamaz
                 if st.session_state.pomodoro_type in ['Tam Konsantrasyon (90dk+25dk)', 'Derin Odak (50dk+15dk)']:
                     can_select = True  # Daha uzun süreden kısa süreye geçebilir
@@ -11053,7 +11053,7 @@ def show_pomodoro_interface(user_data):
                 # Başlık seçilmişse varsayılana dön
                 st.warning("⚠️ Lütfen bir konu seçin, başlık seçilemez.")
                 st.session_state.current_topic = ""
-            elif selected_topic_option == "📂 Diğer":
+        elif  elif selected_topic_option == "📂 Diğer":
                 # Manuel konu girişi
                 manual_topic_input = st.text_input(
                     "Manuel Konu Girişi:",
@@ -11067,7 +11067,7 @@ def show_pomodoro_interface(user_data):
 
                 if manual_topic_input:
                     st.session_state.current_topic = manual_topic_input
-            elif selected_topic_option == "📝 Deneme Sınavı":
+        elif  elif selected_topic_option == "📝 Deneme Sınavı":
                 # Deneme sınavı için özel alan
                 deneme_input = st.text_input(
                     "Deneme Sınavı Detayı:",
@@ -11079,7 +11079,7 @@ def show_pomodoro_interface(user_data):
 
                 if deneme_input:
                     st.session_state.current_topic = f"Deneme: {deneme_input}"
-            elif selected_topic_option != "🔄 Yeni Konu Seç...":
+        elif  elif selected_topic_option != "🔄 Yeni Konu Seç...":
                 # Konu listelerinden seçim yapıldı
                 if selected_topic_option.startswith("🎯 "):
                     # Haftalık hedef konular - çalışma türü seçimi göster
@@ -11309,10 +11309,10 @@ def show_pomodoro_interface(user_data):
             if topic.get('net', 0) < 5:
                 status_color = "🔴"
                 status_text = "Zayıf"
-            elif topic.get('net', 0) < 10:
+        elif  elif topic.get('net', 0) < 10:
                 status_color = "🟡"
                 status_text = "Orta"
-            elif topic.get('net', 0) < 14:
+        elif  elif topic.get('net', 0) < 14:
                 status_color = "🟠"
                 status_text = "İyi"
             else:
@@ -11877,9 +11877,9 @@ def show_daily_pomodoro_stats(user_data):
 
             if breathing_used_today > 4:
                 st.warning("💡 **Hibrit Analiz:** Bugün nefes sistemini sıkça kullandınız. Bu, odaklanma zorluğu yaşadığınızı gösterebilir. Bu normal ve sağlıklı bir yaklaşım! Belki çalışma ortamınızı kontrol etmek ya da ara verme sıklığını artırmak faydalı olabilir.")
-            elif breathing_used_today > 0 and avg_breathing_per_pomodoro < 1:
+        elif  elif breathing_used_today > 0 and avg_breathing_per_pomodoro < 1:
                 st.info("🎯 **Hibrit Analiz:** Nefes sistemini dengeli şekilde kullanıyorsunuz. Bu, öz-farkındalığınızın yüksek olduğunu gösteriyor!")
-            elif breathing_used_today == 0 and completed_today > 3:
+        elif  elif breathing_used_today == 0 and completed_today > 3:
                 st.success("🏆 **Hibrit Analiz:** Bugün hibrit sistemi kullanmadan harika bir performans sergiledinin! Odaklanma beceriniz gelişiyor.")
 
             else:
@@ -12433,7 +12433,7 @@ def get_sequential_topics(subject, topic_progress, limit=5):
                             })
                             if len(topics) >= limit:
                                 return topics
-            elif isinstance(sub_topics, list):
+        elif  elif isinstance(sub_topics, list):
                 # Alt konular liste
                 for detail in sub_topics:
                     topic_key = f"{subject} | {main_topic} | None | {detail}"
@@ -13246,7 +13246,7 @@ def count_tyt_math_completed_topics(user_data):
                                 completed_count += 1
                         except:
                             continue
-            elif isinstance(sub_topics, list):
+        elif  elif isinstance(sub_topics, list):
                 # Alt konular liste
                 for detail in sub_topics:
                     topic_key = f"TYT Matematik | {main_topic} | None | {detail}"
@@ -13347,7 +13347,7 @@ def count_completed_topics_in_categories(user_data, subject, categories):
                                     completed_count += 1
                             except:
                                 continue
-            elif isinstance(category_content, list):
+        elif  elif isinstance(category_content, list):
                 # Direkt konu listesi
                 for topic in category_content:
                     topic_key = f"{subject} | {category_name} | None | {topic}"
@@ -15414,7 +15414,7 @@ st.rerun()
             else:
                     st.info("📈 Henüz konu çalışmanız bulunmuyor. Konu Takip sayfasından başlayın!")
 
-            elif page == "📚 Konu Takip":
+        elif  elif page == "📚 Konu Takip":
                 st.markdown(f'<div class="main-header"><h1>📚 Konu Takip Sistemi</h1><p>Her konuda ustalaşın</p></div>', unsafe_allow_html=True)
 
                 # Soru istatistikleri açıklaması
@@ -15720,7 +15720,7 @@ st.rerun()
                         except Exception as e:
         st.error(f"Kaydetme hatası: {str(e)}")
 
-            elif page == "🧠 Çalışma Teknikleri":
+        elif  elif page == "🧠 Çalışma Teknikleri":
                 # Basit çalışma teknikleri sayfası
                 st.markdown("""
                 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 20px; color: white;">
@@ -15743,19 +15743,19 @@ st.rerun()
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-            elif page == "🎯 YKS Canlı Takip":
+        elif  elif page == "🎯 YKS Canlı Takip":
                 yks_takip_page(user_data)
 
-            elif page == "🍅 Pomodoro Timer":
+        elif  elif page == "🍅 Pomodoro Timer":
                 pomodoro_timer_page(user_data)
 
-            elif page == "🏆 Rekabet Panosu":
+        elif  elif page == "🏆 Rekabet Panosu":
                 competition_leaderboard_page(user_data)
 
 
-            elif page == "🧠 Psikolojim":
+        elif  elif page == "🧠 Psikolojim":
                 run_psychology_page()
-            elif page == "🔬Detaylı Deneme Analiz Takibi":
+        elif  elif page == "🔬Detaylı Deneme Analiz Takibi":
                 st.markdown(f'<div class="main-header"><h1>🔬Detaylı Deneme Analiz Takibi</h1><p>Sınav performansınızı bilimsel analiz edin</p></div>', unsafe_allow_html=True)
 
                 # Eğer global olarak daha önce tanımlanmadıysa ders soru sayılarını tanımla
@@ -16092,7 +16092,7 @@ st.rerun()
                         st.subheader("🔎 Güvenilir Kaynaklardan Derlenen Kısa Çalışma Önerileri")
                         st.markdown("- Okuduğunu anlama için günlük okuma alışkanlığı (gazete/deneme/uzun paragraflar).")
 
-            elif page == "📊 İstatistikler":
+        elif  elif page == "📊 İstatistikler":
                 st.markdown(f'<div class="main-header"><h1>📊 Detaylı İstatistikler</h1><p>İlerlemenizi analiz edin</p></div>', unsafe_allow_html=True)
 
                 col1, col2, col3 = st.columns(3)
@@ -16127,19 +16127,19 @@ st.rerun()
             else:
                     st.info("📊 Henüz yeterli veri bulunmuyor. Konu takip sayfasından ilerlemenizi kaydedin.")
 
-            elif page == "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum":
+        elif  elif page == "🎬 Filmi Başlat– İlk Günden Bugüne YKS Yolculuğum":
                 show_yks_journey_cinema(user_data, progress_data)
 
-            elif page == "🎨 Öğrenme Stilleri Testi":
+        elif  elif page == "🎨 Öğrenme Stilleri Testi":
                 run_vak_learning_styles_test()
 
-            elif page == "🧠 Bilişsel Profil Testi":
+        elif  elif page == "🧠 Bilişsel Profil Testi":
                 run_cognitive_profile_test()
 
-            elif page == "⚡ Motivasyon & Duygu Testi":
+        elif  elif page == "⚡ Motivasyon & Duygu Testi":
                 run_motivation_emotional_test()
 
-            elif page == "⏰ Zaman Yönetimi Testi":
+        elif  elif page == "⏰ Zaman Yönetimi Testi":
                 run_time_management_test()
 
 # === HİBRİT POMODORO SİSTEMİ FONKSİYONLARI ===
@@ -17738,7 +17738,7 @@ def display_vak_analysis(user_data):
             max_score = max(visual_percent, auditory_percent, kinesthetic_percent)
             if visual_percent == max_score:
                 dominant_style = 'Görsel'
-            elif auditory_percent == max_score:
+        elif  elif auditory_percent == max_score:
                 dominant_style = 'İşitsel'
             else:
                 dominant_style = 'Kinestetik'
@@ -19860,7 +19860,7 @@ def show_dynamic_week_dashboard(weekly_plan, user_data):
                     """,
                     unsafe_allow_html=True
                 )
-            elif day['is_past']:
+        elif  elif day['is_past']:
                 st.markdown(
                     f"""
                     <div style='background: linear-gradient(135deg, #2ed573 0%, #7bed9f 100%);
@@ -21013,9 +21013,9 @@ def show_achievements_section():
         for badge_id in st.session_state.gamification['badges']:
             if badge_id in ACHIEVEMENT_BADGES["topic_milestones"]:
                 topic_badges.append(ACHIEVEMENT_BADGES["topic_milestones"][badge_id])
-            elif badge_id in ACHIEVEMENT_BADGES["subject_expertise"]:
+        elif  elif badge_id in ACHIEVEMENT_BADGES["subject_expertise"]:
                 subject_badges.append(ACHIEVEMENT_BADGES["subject_expertise"][badge_id])
-            elif badge_id in ACHIEVEMENT_BADGES["streak_badges"]:
+        elif  elif badge_id in ACHIEVEMENT_BADGES["streak_badges"]:
                 streak_badges.append(ACHIEVEMENT_BADGES["streak_badges"][badge_id])
 
         # Kategoriler halinde göster
@@ -21752,7 +21752,7 @@ def create_adaptive_monthly_plan(student_field, ay_offset, current_score, tempo_
                     milestone_text = '🎯 DENEMELER BAŞLIYOR! (1 ay erken)'
             else:
                     milestone_text = plan_data['milestone']
-            elif ay_offset == 1:  # Yavaş - milestones geriye alınır
+        elif  elif ay_offset == 1:  # Yavaş - milestones geriye alınır
                 if month == 'Mayıs':
                     milestone_text = '🎯 DENEMELER BAŞLIYOR! (1 ay geç)'
             else:
@@ -21770,7 +21770,7 @@ def create_adaptive_monthly_plan(student_field, ay_offset, current_score, tempo_
             # Tempo bazı öneriler
             if tempo_status == "Hızlı":
                 st.success("🚀 Hızlı ilerliyorsunuz! Bonus konular ekleyebilirsiniz.")
-            elif tempo_status == "Yavaş":
+        elif  elif tempo_status == "Yavaş":
                 st.warning("⚡ Tempo artırmalısınız. Günlük çalışma saatinizi artırın.")
             else:
                 st.info("📈 Planınız yolunda. Bu tempoyu koruyun.")
@@ -22358,12 +22358,12 @@ def show_exam_prediction(monthly_plan, speed_multiplier, student_name):
             tyt_start_month = "Haziran başı"
             ayt_start_month = "Haziran ortası"
             revision_period = "Haziran"
-            else:
+        else:
             curriculum_finish = "Belirsiz"
             tyt_start_month = "Belirsiz"
             ayt_start_month = "Belirsiz"
             revision_period = "Belirsiz"
-            else:
+    else:
         curriculum_finish = "Belirsiz"
         tyt_start_month = "Belirsiz"
         ayt_start_month = "Belirsiz"
@@ -22378,7 +22378,7 @@ def show_exam_prediction(monthly_plan, speed_multiplier, student_name):
         message_type = "info"
         main_icon = "🎯"
         speed_advice = f"Güzel bir tempoda ilerliyorsun {student_name}."
-            else:
+    else:
         message_type = "warning"
         main_icon = "⚠️"
         speed_advice = f"{student_name}, daha hızlı çalışman gerekiyor!"
@@ -22400,7 +22400,7 @@ def show_exam_prediction(monthly_plan, speed_multiplier, student_name):
         st.success(f"{main_icon} {speed_advice}")
     elif message_type == "info":
         st.info(f"{main_icon} {speed_advice}")
-            else:
+    else:
         st.warning(f"{main_icon} {speed_advice}")
 
     # Detaylı deneme planı
@@ -22601,7 +22601,7 @@ def show_enhanced_dynamic_calendar(user_data, weekly_completion_rate, weekly_pla
         speed_multiplier = 1.0
     elif weekly_completion_rate >= 50:
         speed_multiplier = 0.8
-            else:
+    else:
         speed_multiplier = 0.6
 
     # Ay isimlerini Türkçeleştir
@@ -22687,7 +22687,7 @@ def show_enhanced_dynamic_calendar(user_data, weekly_completion_rate, weekly_pla
     elif total_months >= 2:
         exam_start_month = list(monthly_plan.keys())[-1]
         st.info(f"📝 **Bu tempoda {exam_start_month}'de denemelere başlayabilirsin.**")
-            else:
+    else:
         st.warning("⚠️ **Daha hızlı çalışman gerekiyor - müfredat yetiştirme riski var!**")
 
     # Performans önerileri
@@ -22710,7 +22710,7 @@ def show_enhanced_dynamic_calendar(user_data, weekly_completion_rate, weekly_pla
         - Zayıf konular için ekstra zaman ayırabilirsin
         - Tekrar programını genişletebilirsin
         """)
-            else:
+    else:
         st.info(f"""
         📈 **İyi:** Mevcut hızınız (%{weekly_completion_rate:.1f}) normal tempoda ilerliyor.
 
@@ -22759,7 +22759,7 @@ def show_real_topic_completion_timeline(user_data, current_progress, days_to_yks
         speed_multiplier = 0.8  # Yavaş
         emoji = "🐌"
         speed_msg = "Yavaş - hızlandırmalısın!"
-            else:
+    else:
         speed_multiplier = 0.6  # Çok yavaş
         emoji = "🚨"
         speed_msg = "Kritik! Acil hızlanma gerekli!"
@@ -22822,7 +22822,7 @@ def show_real_topic_completion_timeline(user_data, current_progress, days_to_yks
             if data['tyt_percentage'] >= 100:
                 tyt_status = "✅ TYT Tamamlandı!"
                 color = "#28a745"
-            elif data['tyt_percentage'] >= 80:
+        elif  elif data['tyt_percentage'] >= 80:
                 tyt_status = f"🔥 TYT %{data['tyt_percentage']:.0f} - Son sprint!"
                 color = "#fd7e14"
             else:
@@ -22894,7 +22894,7 @@ def show_real_topic_completion_timeline(user_data, current_progress, days_to_yks
         st.session_state.weekly_performances[current_week] = current_progress
         st.balloons()
         st.success("✅ Haftalık performansın kaydedildi! Takvim bir sonraki hafta güncellenecek.")
-                st.rerun()
+        st.rerun()
 
 def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student_field):
     """Haftalık performansa göre güncellenebilen aylık konu planı"""
@@ -22912,7 +22912,7 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
         priority_level = "Temel Seviye"
         focus_areas = ["Temel konular", "Eksikleri kapatma", "Kolay sorular"]
         study_intensity = "8-9 saat/gün (yoğunlaştırılmış)"
-            else:
+    else:
         priority_level = "Kritik Müdahale"
         focus_areas = ["Acil konular", "Temel bilgiler", "Hızlı kapanabilir eksikler"]
         study_intensity = "9-10 saat/gün (yoğun)"
@@ -22942,9 +22942,9 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
             # Performansa göre konu dağılımı hesaplama
             if current_progress >= 80:
                 math_weight, science_weight, lang_weight = 40, 35, 25
-            elif current_progress >= 60:
+        elif  elif current_progress >= 60:
                 math_weight, science_weight, lang_weight = 35, 40, 25
-            elif current_progress >= 40:
+        elif  elif current_progress >= 40:
                 math_weight, science_weight, lang_weight = 45, 30, 25
             else:
                 math_weight, science_weight, lang_weight = 50, 25, 25
@@ -22982,7 +22982,7 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
                         elif weekly_performance < current_progress - 10:
                             st.warning("⚠️ Bu hafta biraz düştün. Planın daha destekleyici hale getiriliyor...")
             else:
-                            st.info("📊 Performansın stabil. Plan aynı şekilde devam ediyor.")
+                st.info("📊 Performansın stabil. Plan aynı şekilde devam ediyor.")
 
                         # Otomatik plan güncelleme simulasyonu
                         st.markdown(f"""
