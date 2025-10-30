@@ -1817,17 +1817,27 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
     if sub_category != 'Belirtilmemiş':
         # Alt kategori için özel CSS yükle
         st.markdown(get_custom_css(sub_category), unsafe_allow_html=True)
-        
+
         # Alt kategoriye özel başlık arka planı
         bg_style = BACKGROUND_STYLES.get(sub_category, BACKGROUND_STYLES["Varsayılan"])
-        
-    if 'image' not in bg_style:
-        bg_style['image'] = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-    if 'gradient' not in bg_style:
-        bg_style['gradient'] = 'linear-gradient(135deg, #f7f7f7 0%, #ffffff 100%)'
-category_icon = bg_style.get('icon', '🎓')
-        
+
+        if 'image' not in bg_style:
+            bg_style['image'] = 'https://images.unsplash.com/...28-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+        if 'gradient' not in bg_style:
+            bg_style['gradient'] = 'linear-gradient(135deg, #f7f7f7 0%, #ffffff 100%)'
+        category_icon = bg_style.get('icon', '🎓')
+
         st.markdown(f"""
+        <div class="main-header">
+            <h1>{category_icon} TYT & MSÜ ÖZEL PLANI</h1>
+            <p style="font-size: 1.2em; margin: 0;">🎯 <strong>{sub_category}</strong></p>
+            <p style="opacity: 0.9; margin: 0.5rem 0 0 0;...>Hafta {current_week}/{total_weeks} • Hedefine Doğru İlerle!</p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Varsayılan başlık
+        st.markdown(f"### 🎓 TYT & MSÜ ÖZEL PLANI")
+"""
         <div class="main-header">
             <h1>{category_icon} TYT & MSÜ ÖZEL PLANI</h1>
             <p style="font-size: 1.2em; margin: 0;">🎯 <strong>{sub_category}</strong></p>
