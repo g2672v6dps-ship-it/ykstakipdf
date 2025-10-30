@@ -602,11 +602,11 @@ class FirebaseCache:
     """Firebase işlemleri için cache sistemi"""
     def __init__(self):
         self.cache = {}
-        self.cache_duration = 300  # 5 dakika cache
+        self.cache_duration = 3600  # 🚀 OPTİMİZE: 1 saat cache (önceden 5 dakika)
     
-    def get_users(self):
-        """Cache'li kullanıcı verisi"""
-        cache_key = "all_users"
+    def get_users(self, limit_to_user=None):
+        """🚀 OPTİMİZE: Cache'li ve lazy loading destekli kullanıcı verisi"""
+        cache_key = "all_users" if not limit_to_user else f"user_{limit_to_user}"
         current_time = time.time()
         
         if (cache_key in self.cache and 
@@ -615,7 +615,13 @@ class FirebaseCache:
             
         # Firebase'den çek
         try:
-            users_data = db_ref.get() if firebase_connected else {}
+            if limit_to_user:
+                # Sadece belirli kullanıcıyı çek (Lazy Loading)
+                users_data = {limit_to_user: db_ref.child(limit_to_user).get()} if firebase_connected else {}
+            else:
+                # Tüm kullanıcıları çek (Admin için)
+                users_data = db_ref.get() if firebase_connected else {}
+            
             self.cache[cache_key] = {
                 'data': users_data,
                 'time': current_time
@@ -768,15 +774,29 @@ if not firebase_connected:
     st.success("✅ Test kullanıcıları hazırlandı!")
 
 # Firebase veritabanı fonksiyonları
-def load_users_from_firebase():
-    """🚀 OPTİMİZE EDİLMİŞ: Cache'li kullanıcı verisi yükleme"""
-    return firebase_cache.get_users()
+def load_users_from_firebase(force_refresh=False):
+    """🚀 OPTİMİZE EDİLMİŞ: Session state ile agresif cache"""
+    # Session state'te varsa ve force refresh yoksa direkt döndür
+    if not force_refresh and 'users_db' in st.session_state and st.session_state.users_db:
+        return st.session_state.users_db
+    
+    # Firebase cache'den çek
+    users_data = firebase_cache.get_users()
+    
+    # Session state'e kaydet
+    st.session_state.users_db = users_data
+    
+    return users_data
 
 def update_user_in_firebase(username, data):
     """🚀 OPTİMİZE EDİLMİŞ: Cache'li kullanıcı verisi güncelleme"""
     # Session state'i güncelle
-    if 'users_db' in st.session_state and username in st.session_state.users_db:
-        st.session_state.users_db[username].update(data)
+    if 'users_db' in st.session_state:
+        if username in st.session_state.users_db:
+            st.session_state.users_db[username].update(data)
+        else:
+            # Yeni kullanıcı - ekle
+            st.session_state.users_db[username] = data
     
     # Haftalık plan cache'ini temizle
     if 'weekly_plan_cache' in st.session_state:
@@ -7313,7 +7333,7 @@ def show_yks_survey(user_data):
             # Kullanıcı verisini güncelle
             update_user_in_firebase(st.session_state.current_user, 
                               {'yks_survey_data': json.dumps(survey_data)})
-            st.session_state.users_db = load_users_from_firebase()
+            # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
             
             # Anket verileri kaydedildi - gereksiz kitap önerisi gösterilmiyor
             
@@ -11592,8 +11612,7 @@ def save_pomodoro_to_user_data(user_data, pomodoro_record):
         update_user_in_firebase(st.session_state.current_user, 
                           {'pomodoro_history': json.dumps(pomodoro_history)})
         
-        # Session state'teki kullanıcı verisini güncelle
-        st.session_state.users_db = load_users_from_firebase()
+        # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
         
     except Exception as e:
         st.error(f"Pomodoro kaydı kaydedilirken hata: {e}")
@@ -13643,10 +13662,10 @@ def backup_user_data_before_changes(username, operation_name):
     return False
 
 def get_user_data():
-    """Mevcut kullanıcının verilerini döndürür - FRESH VERİ HER SEFERINDE!"""
-    # 🔥 KRİTİK FİX: Her çağrıda Firebase'den FRESH veri çek!
-    # Bu sayede tarih bilgileri HER ZAMAN GÜNCEL olur
-    st.session_state.users_db = load_users_from_firebase()
+    """🚀 OPTİMİZE: Session cache ile kullanıcı verisi (artık her seferinde çekmiyor)"""
+    # Session state'te users_db yoksa yükle
+    if 'users_db' not in st.session_state:
+        st.session_state.users_db = load_users_from_firebase()
     
     if 'current_user' not in st.session_state or st.session_state.current_user is None:
         return {}
@@ -13667,9 +13686,9 @@ def main():
     # Veri kalıcılığını garanti altına al
     ensure_data_persistence()
     
-    # 🔥 KRİTİK FİX: Her sayfa yüklemede Firebase'den FRESH veri çek!
-    # Bu sayede tarih bilgileri ANINDA güncellenir
-    st.session_state.users_db = load_users_from_firebase()
+    # 🚀 OPTİMİZE: Sadece users_db yoksa yükle (artık her rerun'da çekmiyor!)
+    if 'users_db' not in st.session_state:
+        st.session_state.users_db = load_users_from_firebase()
     
     if 'current_user' not in st.session_state:
         st.session_state.current_user = None
@@ -13892,7 +13911,8 @@ def main():
                     
                     update_user_in_firebase(st.session_state.current_user, user_data_to_save)
                     
-                    st.session_state.users_db = load_users_from_firebase()
+                    # 🚀 OPTİMİZE: Update sonrası fresh data gerek
+                    st.session_state.users_db = load_users_from_firebase(force_refresh=True)
                     st.session_state.is_profile_complete = True 
                     st.success("🎉 Bilgileriniz başarıyla kaydedildi! Şimdi öğrenme stilinizi belirleyelim.")
                     
@@ -14266,7 +14286,7 @@ def main():
                 
                 # Profili kaydet
                 update_user_in_firebase(st.session_state.current_user, profile_data)
-                st.session_state.users_db = load_users_from_firebase()
+                # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                 
                 st.success("✅ Verileriniz kaydedildi! Sisteme hoş geldiniz!")
                 time.sleep(2)
@@ -14783,7 +14803,7 @@ def main():
                         del st.session_state[f'temp_photo_{today_str}']
                     
                     update_user_in_firebase(st.session_state.current_user, {'daily_motivation': json.dumps(daily_motivation)})
-                    st.session_state.users_db = load_users_from_firebase()
+                    # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                     
                     # Başarı mesajına fotoğraf bilgisini de ekle
                     photo_info = "📸 Fotoğraf da kaydedildi!" if photo_data else ""
@@ -15476,7 +15496,7 @@ def main():
                                             if str(new_net) != current_net:
                                                 topic_progress[topic_key] = str(new_net)
                                                 update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
-                                                st.session_state.users_db = load_users_from_firebase()
+                                                # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                                                 # Haftalık plan cache'ini temizle
                                                 if 'weekly_plan_cache' in st.session_state:
                                                     del st.session_state.weekly_plan_cache
@@ -15555,7 +15575,7 @@ def main():
                                         if str(new_net) != current_net:
                                             topic_progress[topic_key] = str(new_net)
                                             update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
-                                            st.session_state.users_db = load_users_from_firebase()
+                                            # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                                             # Haftalık plan cache'ini temizle
                                             if 'weekly_plan_cache' in st.session_state:
                                                 del st.session_state.weekly_plan_cache
@@ -15635,7 +15655,7 @@ def main():
                                 if str(new_net) != current_net:
                                     topic_progress[topic_key] = str(new_net)
                                     update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
-                                    st.session_state.users_db = load_users_from_firebase()
+                                    # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                                     # Haftalık plan cache'ini temizle
                                     if 'weekly_plan_cache' in st.session_state:
                                         del st.session_state.weekly_plan_cache
@@ -15658,7 +15678,7 @@ def main():
                     if st.button("💾 Tüm Değişiklikleri Kaydet", type="primary", key="save_all_button"):
                         try:
                             update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
-                            st.session_state.users_db = load_users_from_firebase()
+                            # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                             # Cache temizleme
                             if 'weekly_plan_cache' in st.session_state:
                                 del st.session_state.weekly_plan_cache
@@ -17648,8 +17668,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                         # Tüm güncellemeleri Firebase'e kaydet
                         update_user_in_firebase(st.session_state.current_user, updates_to_firebase)
                         
-                        # Firebase'den fresh data çek
-                        st.session_state.users_db = load_users_from_firebase()
+                        # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                         
                         # MEVCUT KULLANICININ USER_DATA'SINI TAMAMEN YENİLE
                         current_user_name = st.session_state.current_user
@@ -20589,7 +20608,7 @@ def run_vak_learning_styles_test():
                 'vak_test_completed': 'True'
             })
             
-            st.session_state.users_db = load_users_from_firebase()
+            # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
             
             # Sonuçları göster
             st.markdown('<div class="result-box">', unsafe_allow_html=True)
@@ -20797,7 +20816,7 @@ def run_cognitive_profile_test():
                 'cognitive_test_completed': 'True'
             })
             
-            st.session_state.users_db = load_users_from_firebase()
+            # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
             
             # Sonuçları göster
             st.markdown('<div class="cognitive-result">', unsafe_allow_html=True)
@@ -21007,7 +21026,7 @@ def run_motivation_emotional_test():
                 'motivation_test_completed': 'True'
             })
             
-            st.session_state.users_db = load_users_from_firebase()
+            # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
             
             # Sonuçları göster
             st.markdown('<div class="motivation-result">', unsafe_allow_html=True)
@@ -21189,7 +21208,7 @@ def run_time_management_test():
                 'time_test_completed': 'True'
             })
             
-            st.session_state.users_db = load_users_from_firebase()
+            # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
             
             # Sonuçları göster
             st.markdown('<div class="time-result">', unsafe_allow_html=True)
