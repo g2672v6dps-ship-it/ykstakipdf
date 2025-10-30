@@ -2614,6 +2614,15 @@ WEEKLY_TOPIC_LIMITS = {
 }
 
 # Modern CSS
+if "BACKGROUND_STYLES" not in globals():
+    BACKGROUND_STYLES = {
+        "Sözel": "background: linear-gradient(135deg, #ffe6e6, #fff5f5);",
+        "Sayısal": "background: linear-gradient(135deg, #e6f0ff, #f5faff);",
+        "Eşit Ağırlık": "background: linear-gradient(135deg, #f0e6ff, #faf5ff);",
+        "Dil": "background: linear-gradient(135deg, #fff0e6, #fffaf5);",
+        "Varsayılan": "background: linear-gradient(135deg, #f7f7f7, #ffffff);"
+    }
+
 def get_custom_css(target_department):
     bg_style = BACKGROUND_STYLES.get(target_department, BACKGROUND_STYLES["Varsayılan"])
     
