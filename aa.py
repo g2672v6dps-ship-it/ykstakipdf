@@ -6,8 +6,6 @@ import csv
 import os
 import json
 import random
-import requests
-from functools import lru_cache
 
 # Paket yükleme durumları
 try:
@@ -69,13 +67,12 @@ def safe_plotly_chart(fig, **kwargs):
     else:
         st.warning("📊 Grafik görüntülenemedi - Plotly yüklü değil")
 
-# 🚀 OPTİMİZE EDİLMİŞ SAYFA YAPILANDIRMASI
+# Sayfa yapılandırması
 st.set_page_config(
-    page_title="YKS Takip Sistemi - Optimize",
+    page_title="YKS Takip Sistemi",
     page_icon="🎯",
     layout="wide",
-    initial_sidebar_state="expanded",
-    menu_items={}  # Menü öğelerini kaldır - download azalması
+    initial_sidebar_state="expanded"
 )
 
 # === BASİT HOŞ GELDİN MESAJI FONKSİYONU ===
@@ -220,81 +217,47 @@ def show_print_button(user_data, weekly_plan):
 
 # === ADMIN DASHBOARD FONKSİYONLARI ===
 
-def get_real_student_data_for_admin():
-    """Gerçek öğrenci verilerini Firebase'den çek ve admin paneli için formatla"""
-    from datetime import datetime, timedelta
-    import json
-    
-    # Firebase'den kullanıcı verilerini al
-    if 'users_db' not in st.session_state:
-        st.session_state.users_db = load_users_from_firebase()
-    
-    users_db = st.session_state.users_db
+
+@st.cache_data(ttl=300)
+def get_real_student_data_for_admin_cached():
+    """Admin paneli için Firebase verilerini optimize edilmiş şekilde çeker (cache'li)."""
+    users_db = load_users_from_firebase()
     students = []
-    
-    # DEBUG: Veri durumu kontrolü
-    st.sidebar.write(f"📊 **Debug Info:**")
-    st.sidebar.write(f"• Toplam user DB kaydı: {len(users_db) if users_db else 0}")
-    if users_db:
-        st.sidebar.write(f"• Kullanıcılar: {list(users_db.keys())}")
-    
+
     if not users_db:
-        st.warning("⚠️ Hiç öğrenci verisi bulunamadı!")
-        st.info("💡 Firebase'den veri çekilemedi veya hiç kayıt yapılmamış.")
         return []
-    
+
+    from datetime import datetime, timedelta
     for username, user_data in users_db.items():
-        # Sadece gerçek öğrenci verilerini al (admin hariç)
         if username in ["admin", "adminYKS2025"]:
             continue
-            
-        # Veri kontrolü
+
         name = user_data.get('name', 'İsimsiz Öğrenci')
         surname = user_data.get('surname', '')
         full_name = f"{name} {surname}".strip()
-        
-        # Son giriş tarihi
+
         last_login_str = user_data.get('last_login')
         if last_login_str:
             try:
                 last_login = datetime.fromisoformat(last_login_str.replace('Z', '+00:00'))
-            except:
+            except Exception:
                 last_login = datetime.now() - timedelta(days=30)
         else:
             last_login = datetime.now() - timedelta(days=30)
-        
-        # Haftalık performans hesaplama (varsa gerçek verilerden)
+
         weekly_progress = user_data.get('weekly_progress', {})
         if weekly_progress:
-            # Gerçek ilerleme verisi varsa hesapla
-            completed_topics = sum([len(progress.get('completed_topics', [])) 
-                                  for progress in weekly_progress.values()])
-            total_topics = sum([len(progress.get('planned_topics', [])) 
-                              for progress in weekly_progress.values()])
-            if total_topics > 0:
-                weekly_performance = int((completed_topics / total_topics) * 100)
-            else:
-                weekly_performance = 0
+            completed_topics = sum(len(p.get('completed_topics', [])) for p in weekly_progress.values())
+            total_topics = sum(len(p.get('planned_topics', [])) for p in weekly_progress.values())
+            weekly_performance = int((completed_topics / total_topics) * 100) if total_topics > 0 else 0
         else:
-            # Veri yoksa ortalama değer ver
             weekly_performance = 65
-            
-        # Çalışma saatleri (varsa gerçek verilerden)
-        total_hours = user_data.get('total_study_hours', 0)
-        if total_hours == 0:
-            # Veri yoksa tahmin et
-            total_hours = weekly_performance // 2 + 20
-            
-        # Deneme sayısı
-        exam_count = user_data.get('exam_count', 0)
-        if exam_count == 0:
-            exam_count = max(1, weekly_performance // 20)
-        
-        # Durum belirleme
-        days_since_login = (datetime.now() - last_login).days
-        status = "Aktif" if days_since_login <= 7 else "Pasif"
-        
-        student = {
+
+        total_hours = user_data.get('total_study_hours', 0) or (weekly_performance // 2 + 20)
+        exam_count = user_data.get('exam_count', 0) or max(1, weekly_performance // 20)
+        status = "Aktif" if (datetime.now() - last_login).days <= 7 else "Pasif"
+
+        students.append({
             "username": username,
             "name": full_name if full_name != "İsimsiz Öğrenci" else username,
             "field": user_data.get('field', 'Belirtilmemiş'),
@@ -305,13 +268,11 @@ def get_real_student_data_for_admin():
             "status": status,
             "grade": user_data.get('grade', '12. Sınıf'),
             "target": user_data.get('target', 'Belirtilmemiş')
-        }
-        students.append(student)
-    
-    # Performansa göre sırala (yüksekten düşüğe)
+        })
+
     students.sort(key=lambda x: x['weekly_performance'], reverse=True)
-    
     return students
+
 
 def generate_mock_student_data():
     """Örnek öğrenci verileri oluştur"""
@@ -361,7 +322,7 @@ def show_admin_dashboard():
     """, unsafe_allow_html=True)
     
     # GERÇEKFirebase verilerini çek
-    students = get_real_student_data_for_admin()
+    students = get_real_student_data_for_admin_cached()
     
     # Genel İstatistikler
     st.markdown("## 📊 Genel Durum")
@@ -510,12 +471,14 @@ def main():
             return
 
 def play_pomodoro_finished_sound():
-    """🚀 OPTİMİZE EDİLMİŞ: Sadece görsel bildirim - Download azalması"""
-    st.markdown("""
-    <script>
-    // Sadece görsel bildirim - Base64 ses dosyası yok
-    const notification = document.createElement('div');
-    notification.style.cssText = `
+    """Pomodoro bittiğinde çalacak ses - mobil uyumlu"""
+    sound_html = """
+    <audio autoplay>
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaAzqWzu7VfSEELojK7taOOQgSYrPp4alZFAxSp+TvwGIcBz2U0euwcSAFNYDE7t6LPAgPVqvl8KdXCwxQpN7uzGQdEE6ky+/EdCIGMoTH8NaOMwgNWK7p6KJTDwdOoOfusmIfCT6Y0O7feysGLIrM7tiDMQQRXLnk7KVXDAhRp+HussUZAT6W0e3ecSAFNYnE7NKLOQcRXLrm7KdXDA1Sp+XwwGIXBT6T0+7ddywGI4PD79iTQAgPW7jp7qVXDAhRpu7yvWEaAz2X0O3acSAFNY3E7NGLOQgRXLPp66VTFApGqODyvmEXADic0e3fdCEGLYDL8d6RTwgPWLbp7apbDQZGouXxtmMZDjyRzvDXeSkGKoTO8deK" type="audio/wav">
+    </audio>
+    
+    <style>
+    .pomodoro-notification {
         position: fixed;
         top: 20px;
         right: 20px;
@@ -526,137 +489,103 @@ def play_pomodoro_finished_sound():
         box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
         z-index: 9999;
         animation: slideIn 0.5s ease-out;
-    `;
-    notification.innerHTML = '🎉 Pomodoro Tamamlandı! Mola zamanı! 🔔';
-    document.body.appendChild(notification);
+    }
     
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    </style>
+    
+    <script>
+    // Mobil uyumlu ses çalma
+    function playPomodoroBeep() {
+        try {
+            // Basit beep sesi oluştur - mobil uyumlu
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Yüksek frekanslı bip sesi
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.1);
+            oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.2);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.1);
+            gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
+            
+            oscillator.type = 'square';
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+            
+            // Görsel bildirim
+            const notification = document.createElement('div');
+            notification.className = 'pomodoro-notification';
+            notification.innerHTML = '🎉 Pomodoro Tamamlandı! Mola zamanı! 🔔';
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+            
+        } catch (e) {
+            console.log('Ses çalınamadı:', e);
+            // Ses çalmasa bile görsel bildirim ver
+            alert('🎉 Pomodoro Tamamlandı! Mola zamanı! 🔔');
         }
-    }, 3000);
+    }
+    
+    // Ses çal
+    playPomodoroBeep();
     </script>
-    """, unsafe_allow_html=True)
+    """
+    
+    st.components.v1.html(sound_html, height=0)
 
 def play_break_start_sound():
-    """🚀 OPTİMİZE EDİLMİŞ: Mola bildirimı - Download azalması"""
-    st.markdown("""
+    """Mola başladığında çalacak ses"""
+    sound_html = """
     <script>
-    // Sadece görsel bildirim - Base64 ses dosyası yok
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #28a745;
-        color: white;
-        padding: 15px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-        z-index: 9999;
-    `;
-    notification.innerHTML = '⏰ Mola Başladı! Rahatlamaya zaman! 😌';
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
+    // Mola başlangıç sesi - daha yumuşak
+    function playBreakStartBeep() {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Yumuşak, rahatlatıcı ton
+            oscillator.frequency.setValueAtTime(500, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(400, audioContext.currentTime + 0.15);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.02);
+            gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.13);
+            gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.15);
+            
+            oscillator.type = 'sine';
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.15);
+            
+        } catch (e) {
+            console.log('Mola sesi çalınamadı:', e);
         }
-    }, 3000);
+    }
+    
+    playBreakStartBeep();
     </script>
-    """, unsafe_allow_html=True)
-
-# 🚀 FIREBASE CACHE SİSTEMİ (Download Optimizasyonu)
-class FirebaseCache:
-    """Firebase işlemleri için cache sistemi"""
-    def __init__(self):
-        self.cache = {}
-        self.cache_duration = 300  # 5 dakika cache
+    """
     
-    def get_users(self):
-        """Cache'li kullanıcı verisi"""
-        cache_key = "all_users"
-        current_time = time.time()
-        
-        if (cache_key in self.cache and 
-            current_time - self.cache[cache_key]['time'] < self.cache_duration):
-            return self.cache[cache_key]['data']
-            
-        # Firebase'den çek
-        try:
-            users_data = db_ref.get() if firebase_connected else {}
-            self.cache[cache_key] = {
-                'data': users_data,
-                'time': current_time
-            }
-            return users_data
-        except:
-            return {}
-    
-    def get_user_data(self, username):
-        """Cache'li tek kullanıcı verisi"""
-        cache_key = f"user_{username}"
-        current_time = time.time()
-        
-        if (cache_key in self.cache and 
-            current_time - self.cache[cache_key]['time'] < self.cache_duration):
-            return self.cache[cache_key]['data']
-        
-        # Firebase'den çek
-        try:
-            if firebase_connected and db_ref:
-                data = db_ref.child(username).get()
-                if data:
-                    self.cache[cache_key] = {
-                        'data': data,
-                        'time': current_time
-                    }
-                    return data
-        except:
-            pass
-        
-        return self.cache.get(cache_key, {}).get('data', {})
-    
-    def update_user_data(self, username, data):
-        """Kullanıcı verisini güncelle + cache'i temizle"""
-        try:
-            if firebase_connected and db_ref:
-                db_ref.child(username).update(data)
-            
-            # Cache'i güncelle
-            cache_key = f"user_{username}"
-            if cache_key in self.cache:
-                self.cache[cache_key]['data'].update(data)
-                self.cache[cache_key]['time'] = time.time()
-            
-            return True
-        except:
-            return False
-    
-    def clear_cache(self, pattern=None):
-        """Cache'i temizle"""
-        if pattern:
-            # Belirli pattern'a uyan cache'i temizle
-            keys_to_remove = [k for k in self.cache.keys() if pattern in k]
-            for key in keys_to_remove:
-                del self.cache[key]
-        else:
-            # Tüm cache'i temizle
-            self.cache.clear()
-
-# Global cache objesi
-firebase_cache = FirebaseCache()
-
-# 🚀 OPTİMİZE EDİLMİŞ GRAFİK CACHE SİSTEMİ
-@lru_cache(maxsize=32)
-def create_cached_chart(chart_type, *args, **kwargs):
-    """Grafik oluşturma cache'i"""
-    if chart_type == "performance":
-        return {"type": "performance_chart", "data": args, "kwargs": kwargs}
-    elif chart_type == "progress":
-        return {"type": "progress_chart", "data": args, "kwargs": kwargs}
-    else:
-        return {"type": "default_chart", "data": args, "kwargs": kwargs}
+    st.components.v1.html(sound_html, height=0)
 
 # Firebase başlatma
 firebase_connected = False
@@ -664,27 +593,23 @@ db_ref = None
 
 if FIREBASE_AVAILABLE:
     try:
-        # Firebase'in zaten başlatılıp başlatılmadığını kontrol et
+        # Tek seferlik başlatma kontrolü
         if not firebase_admin._apps:
-            # Firebase Admin SDK'yı başlat
-            # GitHub/Streamlit Cloud deployment için environment variable kontrolü
             if 'FIREBASE_KEY' in os.environ:
-                # Production: Environment variable'dan JSON key'i al
                 firebase_json = os.environ["FIREBASE_KEY"]
                 firebase_config = json.loads(firebase_json)
                 cred = credentials.Certificate(firebase_config)
             else:
-                # Local development: JSON dosyasından al
+                # Local geliştirme için JSON dosyası fallback'i
                 cred = credentials.Certificate("firebase_key.json")
-            
             firebase_admin.initialize_app(cred, {
-                'databaseURL':'https://yeniseninalanin-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
+                'databaseURL':'https://yeniseninalanin-default-rtdb.firebaseio.com/'
             })
-        
+
+        # Root reference (kullanıcılar) - dikkat: tüm veriyi çekmeden child() ile kullan
         db_ref = db.reference('users')
         firebase_connected = True
         st.success("🔥 Firebase bağlantısı başarılı!")
-        
     except Exception as e:
         st.warning(f"⚠️ Firebase bağlantısı kurulamadı: {e}")
         firebase_connected = False
@@ -737,2669 +662,80 @@ if not firebase_connected:
     st.success("✅ Test kullanıcıları hazırlandı!")
 
 # Firebase veritabanı fonksiyonları
+
+@st.cache_data(ttl=300)
 def load_users_from_firebase():
-    """🚀 OPTİMİZE EDİLMİŞ: Cache'li kullanıcı verisi yükleme"""
-    return firebase_cache.get_users()
+    """Firebase'den kullanıcı verilerini 5 dakikada bir çeker (cache'li)."""
+    try:
+        if firebase_connected and db_ref:
+            data = db_ref.get()
+            return data if data else {}
+        # FALLBACK: local test kullanıcıları
+        if hasattr(st.session_state, 'fallback_users'):
+            return st.session_state.fallback_users
+        return {}
+    except Exception as e:
+        st.error(f"Firebase veri yükleme hatası: {e}")
+        # FALLBACK
+        if hasattr(st.session_state, 'fallback_users'):
+            return st.session_state.fallback_users
+        return {}
+
+@st.cache_data(ttl=120)
+def load_single_user(username):
+    """Sadece belirli bir kullanıcının verisini çeker (kısa cache)."""
+    try:
+        if firebase_connected and db_ref:
+            return db_ref.child(username).get() or {}
+        # FALLBACK
+        if hasattr(st.session_state, 'fallback_users') and username in st.session_state.fallback_users:
+            return st.session_state.fallback_users.get(username, {})
+        return {}
+    except Exception as e:
+        # Sessiz fallback
+        return {}
 
 def update_user_in_firebase(username, data):
-    """🚀 OPTİMİZE EDİLMİŞ: Cache'li kullanıcı verisi güncelleme"""
-    # Session state'i güncelle
-    if 'users_db' in st.session_state and username in st.session_state.users_db:
-        st.session_state.users_db[username].update(data)
-    
-    # Haftalık plan cache'ini temizle
-    if 'weekly_plan_cache' in st.session_state:
-        del st.session_state.weekly_plan_cache
-    
-    # Cache'li güncelleme
-    return firebase_cache.update_user_data(username, data)
+    """Firebase'de kullanıcı verilerini günceller (cache temizleme dahil)."""
+    try:
+        if firebase_connected and db_ref:
+            db_ref.child(username).update(data)
+            # Cache'leri temizle ki yeni veri görünür olsun
+            try:
+                load_users_from_firebase.clear()
+                load_single_user.clear()
+            except Exception:
+                pass
+            # Session-state senkronizasyonu (hata toleranslı)
+            if 'users_db' in st.session_state and username in st.session_state.users_db:
+                st.session_state.users_db[username].update(data)
+            if 'weekly_plan_cache' in st.session_state:
+                del st.session_state['weekly_plan_cache']
+            return True
+        else:
+            # FALLBACK: local users üzerinde güncelle
+            if hasattr(st.session_state, 'fallback_users'):
+                if username not in st.session_state.fallback_users:
+                    st.session_state.fallback_users[username] = {}
+                st.session_state.fallback_users[username].update(data)
+            if 'users_db' in st.session_state and username in st.session_state.users_db:
+                st.session_state.users_db[username].update(data)
+            if 'weekly_plan_cache' in st.session_state:
+                del st.session_state['weekly_plan_cache']
+            return True
+    except Exception as e:
+        st.error(f"Firebase veri güncelleme hatası: {e}")
+        # Hata durumunda fallback davranışı
+        if hasattr(st.session_state, 'fallback_users'):
+            if username not in st.session_state.fallback_users:
+                st.session_state.fallback_users[username] = {}
+            st.session_state.fallback_users[username].update(data)
+        if 'users_db' in st.session_state and username in st.session_state.users_db:
+            st.session_state.users_db[username].update(data)
+        if 'weekly_plan_cache' in st.session_state:
+            del st.session_state['weekly_plan_cache']
+        return True
 
-# === HİBRİT POMODORO SİSTEMİ SABİTLERİ ===
-
-# YKS Odaklı Motivasyon Sözleri - Hibrit Sistem için
-MOTIVATION_QUOTES = [
-    "Her 50 dakikalık emek, seni rakiplerinden ayırıyor! 💪",
-    "Şu anda çözdüğün her soru, YKS'de seni zirveye taşıyacak! 🎯",
-    "Büyük hedefler küçük adımlarla başlar - sen doğru yoldasın! ⭐",
-    "Her nefes alışın, YKS başarına bir adım daha yaklaştırıyor! 🌬️",
-    "Zorluklara direnmek seni güçlendiriyor - YKS'de fark yaratacaksın! 🚀",
-    "Bugün kazandığın her kavram, sınavda seni öne çıkaracak! 📚",
-    "Konsantrasyon kasların güçleniyor - şampiyonlar böyle yetişir! 🧠",
-    "Hedefine odaklan! Her dakika YKS başarın için değerli! 🏆",
-    "Mola hakkını akıllıca kullanıyorsun - bu seni daha güçlü yapıyor! 💨",
-    "Başarı sabır ister, sen sabırlı bir savaşçısın! ⚔️",
-    "Her yeni konu öğrenişin, gelecekteki mesleğinin temeli! 🏗️",
-    "Rüyalarının peşinde koşuyorsun - asla vazgeçme! 🌟",
-    "YKS sadece bir sınav, sen ise sınırsız potansiyelin! 🌈",
-    "Her pomodoro seansı, hedefine bir adım daha yaklaştırıyor! 🎯",
-    "Dün yapamadığını bugün yapabiliyorsun - bu gelişim! 📈",
-    "Zorlu soruları çözerken beynin güçleniyor! 🧩",
-    "Her mola sonrası daha güçlü dönüyorsun! 💪",
-    "Bilim insanları da böyle çalıştı - sen de başaracaksın! 🔬",
-    "Her nefes, yeni bir başlangıç fırsatı! 🌱",
-    "Hayal ettiğin üniversite seni bekliyor! 🏛️"
-]
-
-# Mikro ipuçları (ders bazında)
-MICRO_TIPS = {
-    "TYT Matematik": [
-        "📐 Türev sorularında genellikle önce fonksiyonun köklerini bulmak saldırıları hızlandırır.",
-        "🔢 İntegral hesaplarken substitüsyon methodunu akılda tut.",
-        "📊 Geometri problemlerinde çizim yapmayı unutma.",
-        "⚡ Limit sorularında l'hopital kuralını hatırla."
-    ],
-    "TYT Fizik": [
-        "⚡ Newton yasalarını uygularken kuvvet vektörlerini doğru çiz.",
-        "🌊 Dalga problemlerinde frekans-dalga boyu ilişkisini unutma.",
-        "🔥 Termodinamik sorularında sistem sınırlarını net belirle.",
-        "🔬 Elektrik alanı hesaplamalarında işaret dikkatli kontrol et."
-    ],
-    "TYT Kimya": [
-        "🧪 Mol kavramı tüm hesaplamaların temeli - ezberleme!",
-        "⚛️ Periyodik cetveldeki eğilimleri görselleştir.",
-        "🔄 Denge tepkimelerinde Le Chatelier prensibini uygula.",
-        "💧 Asit-baz titrasyonlarında eşdeğer nokta kavramını unutma."
-    ],
-    "TYT Türkçe": [
-        "📖 Paragraf sorularında ana fikri ilk ve son cümlelerde ara.",
-        "✍️ Anlam bilgisi sorularında bağlamı dikkate al.",
-        "📝 Yazım kurallarında 'de/da' ayrım kuralını hatırla.",
-        "🎭 Edebi türlerde karakterizasyon önemli."
-    ],
-    "TYT Tarih": [
-        "📅 Olayları kronolojik sırayla öğren, sebep-sonuç bağla.",
-        "🏛️ Siyasi yapılar sosyal yapılarla ilişkisini kur.",
-        "🗺️ Haritalarla coğrafi konumları pekiştir.",
-        "👑 Dönem özelliklerini başlıca olaylarla örnekle."
-    ],
-    "TYT Coğrafya": [
-        "🌍 İklim türlerini sebepleriyle birlikte öğren.",
-        "🏔️ Jeomorfoloji'de süreç-şekil ilişkisini kur.",
-        "📊 İstatistiksel veriler harita okuma becerisini geliştir.",
-        "🌱 Bitki örtüsü-iklim ilişkisini unutma."
-    ],
-    "AYT Matematik": [
-        "📐 Türev sorularında genellikle önce fonksiyonun köklerini bulmak saldırıları hızlandırır.",
-        "🔢 İntegral hesaplarken substitüsyon methodunu akılda tut.",
-        "📊 Geometri problemlerinde çizim yapmayı unutma.",
-        "⚡ Limit sorularında l'hopital kuralını hatırla."
-    ],
-    "AYT Fizik": [
-        "⚡ Newton yasalarını uygularken kuvvet vektörlerini doğru çiz.",
-        "🌊 Dalga problemlerinde frekans-dalga boyu ilişkisini unutma.",
-        "🔥 Termodinamik sorularında sistem sınırlarını net belirle.",
-        "🔬 Elektrik alanı hesaplamalarında işaret dikkatli kontrol et."
-    ],
-    "AYT Kimya": [
-        "🧪 Mol kavramı tüm hesaplamaların temeli - ezberleme!",
-        "⚛️ Periyodik cetveldeki eğilimleri görselleştir.",
-        "🔄 Denge tepkimelerinde Le Chatelier prensibini uygula.",
-        "💧 Asit-baz titrasyonlarında eşdeğer nokta kavramını unutma."
-    ],
-    "Genel": [
-        "🎯 Zor sorularla karşılaştığında derin nefes al ve sistematik düşün.",
-        "⏰ Zaman yönetimini ihmal etme - her dakika değerli.",
-        "📚 Kavramları sadece ezberlemek yerine anlayarak öğren.",
-        "🔄 Düzenli tekrar yapmak kalıcılığı artırır."
-    ]
-}
-
-# YKS Odaklı Nefes Egzersizi Talimatları
-BREATHING_EXERCISES = [
-    {
-        "name": "4-4-4-4 Tekniği (Kare Nefes)",
-        "instruction": "4 saniye nefes al → 4 saniye tut → 4 saniye ver → 4 saniye bekle",
-        "benefit": "Stresi azaltır, odaklanmayı artırır, sınav kaygısını azaltır"
-    },
-    {
-        "name": "Karın Nefesi (Diyafragma Nefesi)",
-        "instruction": "Elinizi karnınıza koyun. Nefes alırken karın şişsin, verirken insin",
-        "benefit": "Gevşemeyi sağlar, kaygıyı azaltır, zihinsel netliği artırır"
-    },
-    {
-        "name": "4-7-8 Sakinleştirici Nefes",
-        "instruction": "4 saniye burun ile nefes al → 7 saniye tut → 8 saniye ağız ile ver",
-        "benefit": "Derin rahatlama sağlar, uykuya yardım eder, sınav öncesi sakinleştirir"
-    },
-    {
-        "name": "Yavaş Derin Nefes",
-        "instruction": "6 saniye nefes al → 2 saniye tut → 6 saniye yavaşça ver",
-        "benefit": "Kalp ritmi düzenlenir, sakinleşir, zihinsel berraklık artar"
-    },
-    {
-        "name": "Alternatif Burun Nefesi",
-        "instruction": "Sağ burun deliği ile nefes al, sol ile ver. Sonra tersini yap",
-        "benefit": "Beynin her iki yarım küresini dengeler, konsantrasyonu artırır"
-    },
-    {
-        "name": "5-5 Basit Ritim",
-        "instruction": "5 saniye nefes al → 5 saniye nefes ver (hiç tutmadan)",
-        "benefit": "Basit ve etkili, hızlı sakinleşme, odaklanma öncesi ideal"
-    }
-]
-
-# Tüm kullanıcı alanlarını tutarlılık için tanımlıyoruz.
-FIELDNAMES = ['username', 'password', 'name', 'surname', 'grade', 'field', 'target_department', 'tyt_last_net', 'tyt_avg_net', 'ayt_last_net', 'ayt_avg_net', 
-              # Net aralık ve seviye bilgileri
-              'tyt_last_range', 'tyt_avg_range', 'ayt_last_range', 'ayt_avg_range',
-              'tyt_last_level', 'tyt_avg_level', 'ayt_last_level', 'ayt_avg_level',
-              # Diğer alanlar
-              'learning_style', 'learning_style_scores', 'created_at',  'detailed_nets', 'deneme_analizleri','study_program', 'topic_progress', 'topic_completion_dates', 'yks_survey_data', 'pomodoro_history'
-              ,'is_profile_complete', 
-              'is_learning_style_set', 
-              'learning_style',
-              
-              # YENİ ALANLAR - Kalıcı Öğrenme Sistemi
-              'topic_repetition_history',  # Her konunun tekrar geçmişi
-              'topic_mastery_status',      # Konunun kalıcılık durumu
-              'pending_review_topics',     # Tekrar değerlendirmesi bekleyen konular
-              
-              # YENİ ALAN - Günlük Motivasyon Sistemi
-              'daily_motivation'           # Günlük motivasyon puanları ve notları
-              ]
-
-# Bölümlere göre arka plan resimleri
-# 🚀 OPTİMİZE EDİLMİŞ ARKA PLAN SİSTEMİ (Download Azaltma)
-BACKGROUND_STYLES = {
-    "Tıp": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)",
-        "icon": "🩺"
-    },
-    "Mühendislik": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)",
-        "icon": "⚙️"
-    },
-    "Hukuk": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #556270 0%, #4ecdc4 100%)",
-        "icon": "⚖️"
-    },
-    "Öğretmenlik": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #ffd89b 0%, #19547b 100%)",
-        "icon": "👨‍🏫"
-    },
-    "İktisat": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)",
-        "icon": "📈"
-    },
-    "Mimarlık": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #5614b0 0%, #dbd65c 100%)",
-        "icon": "🏛️"
-    },
-    "Psikoloji": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #654ea3 0%, #eaafc8 100%)",
-        "icon": "🧠"
-    },
-    "Diş Hekimliği": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #ff5e62 0%, #ff9966 100%)",
-        "icon": "🦷"
-    },
-    # 🎖️ MSÜ (Askeri) Alt Kategorileri - Resim yok, gradient var
-    "MSÜ - Kara Astsubay Meslek Yüksekokulu": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #2d5016 0%, #4a7c59 50%, #5e8b3a 100%)",
-        "icon": "🎖️"
-    },
-    "MSÜ - Deniz Astsubay Yüksekokulu": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #0c4a6e 0%, #0ea5e9 50%, #075985 100%)",
-        "icon": "⚓"
-    },
-    "MSÜ - Hava Astsubay Yüksekokulu": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #1e40af 0%, #60a5fa 50%, #2563eb 100%)",
-        "icon": "✈️"
-    },
-    
-    # 🎓 TYT (Meslek Yüksekokulu) Alt Kategorileri - Resim yok, gradient var
-    "TYT - Bilgisayar Programcılığı": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #1e1b4b 0%, #5b21b6 50%, #7c3aed 100%)",
-        "icon": "💻"
-    },
-    "TYT - Anestezi Teknisyenliği": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%)",
-        "icon": "🏥"
-    },
-    "TYT - Acil Tıp Teknisyenliği (ATT)": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #991b1b 0%, #dc2626 50%, #ef4444 100%)",
-        "icon": "🚑"
-    },
-    "TYT - Çocuk Gelişimi": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #fbbf24 100%)",
-        "icon": "👶"
-    },
-    "TYT - Ebe": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #be185d 0%, #ec4899 50%, #f9a8d4 100%)",
-        "icon": "🤱"
-    },
-    "TYT - Hemato terapilişi": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #fecaca 100%)",
-        "icon": "🩸"
-    },
-    "TYT - Tıbbi Laboratuvar Teknikleri": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #065f46 0%, #059669 50%, #a7f3d0 100%)",
-        "icon": "🔬"
-    },
-    "TYT - Tıbbi Görüntüleme Teknikleri": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #374151 0%, #6b7280 50%, #d1d5db 100%)",
-        "icon": "📱"
-    },
-    "TYT - Radyoterapi": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #c4b5fd 100%)",
-        "icon": "⚡"
-    },
-    "TYT - Diyaliz": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #99f6e4 100%)",
-        "icon": "💧"
-    },
-    "TYT - Diş Protés Teknisyenliği": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #0369a1 0%, #0ea5e9 50%, #bae6fd 100%)",
-        "icon": "🦷"
-    },
-    "TYT - Otomotiv Teknolojisi": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #374151 0%, #4b5563 50%, #9ca3af 100%)",
-        "icon": "🚗"
-    },
-    "TYT - Elektrik-Elektronik Teknolojisi": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
-        "icon": "⚡"
-    },
-    "TYT - Makine Teknolojisi": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #1f2937 0%, #374151 50%, #6b7280 100%)",
-        "icon": "⚙️"
-    },
-    "TYT - İnşaat Teknolojisi": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #a16207 0%, #d97706 50%, #fbbf24 100%)",
-        "icon": "🏗️"
-    },
-    "TYT - Diğer Meslek Yüksekokulu": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #a5b4fc 100%)",
-        "icon": "🎓"
-    },
-    
-    "Varsayılan": {
-        "image": None,  # Cache'den alınacak - Download azalması
-        "gradient": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        "icon": "🎯"
-    }
-}
-
-# 🎯 Hedef Bölüm Zorluk Sistemi (Net Aralığına Göre)
-TARGET_DEPARTMENT_DIFFICULTY = {
-    "Tıp": {
-        "difficulty_level": 5,  # En zor
-        "required_nets": {"TYT": 115, "AYT": 75},
-        "study_intensity": "maksimum",
-        "weekly_topic_multiplier": 1.5
-    },
-    "Diş Hekimliği": {
-        "difficulty_level": 5,
-        "required_nets": {"TYT": 110, "AYT": 70},
-        "study_intensity": "maksimum", 
-        "weekly_topic_multiplier": 1.4
-    },
-    "Mühendislik": {
-        "difficulty_level": 4,
-        "required_nets": {"TYT": 105, "AYT": 65},
-        "study_intensity": "yüksek",
-        "weekly_topic_multiplier": 1.3
-    },
-    "Hukuk": {
-        "difficulty_level": 4,
-        "required_nets": {"TYT": 100, "AYT": 60},
-        "study_intensity": "yüksek",
-        "weekly_topic_multiplier": 1.2
-    },
-    "Mimarlık": {
-        "difficulty_level": 3,
-        "required_nets": {"TYT": 95, "AYT": 55},
-        "study_intensity": "orta-yüksek",
-        "weekly_topic_multiplier": 1.1
-    },
-    "Psikoloji": {
-        "difficulty_level": 3,
-        "required_nets": {"TYT": 90, "AYT": 50},
-        "study_intensity": "orta-yüksek",
-        "weekly_topic_multiplier": 1.1
-    },
-    "İktisat": {
-        "difficulty_level": 2,
-        "required_nets": {"TYT": 85, "AYT": 45},
-        "study_intensity": "orta",
-        "weekly_topic_multiplier": 1.0
-    },
-    "Öğretmenlik": {
-        "difficulty_level": 2,
-        "required_nets": {"TYT": 80, "AYT": 40},
-        "study_intensity": "orta",
-        "weekly_topic_multiplier": 1.0
-    },
-    "Varsayılan": {
-        "difficulty_level": 1,
-        "required_nets": {"TYT": 75, "AYT": 35},
-        "study_intensity": "normal",
-        "weekly_topic_multiplier": 0.9
-    }
-}
-
-# 📚 Sınıf Bazlı Program Sistemi
-GRADE_BASED_PROGRAMS = {
-    "11. Sınıf": {
-        "focus": "temel_kavramlar_ve_konu_ogrenme",
-        "study_pace": "normal",
-        "weekly_topic_base": 12,  # 11. sınıf için daha fazla konu
-        "review_ratio": 0.2,  # %20 tekrar, %80 yeni konu
-        "exam_frequency": "ayda_1",
-        "special_notes": "Temel kavramları sağlam öğrenme dönemi"
-    },
-    "12. Sınıf": {
-        "focus": "konu_tamamlama_ve_deneme_odak",
-        "study_pace": "hızlandırılmış", 
-        "weekly_topic_base": 10,  # Standart
-        "review_ratio": 0.3,  # %30 tekrar, %70 yeni konu
-        "exam_frequency": "2_haftada_1",
-        "special_notes": "Konu tamamlama ve deneme stratejileri dönemi"
-    },
-    "Mezun": {
-        "focus": "eksik_kapama_ve_performans_artırma",
-        "study_pace": "maksimum",
-        "weekly_topic_base": 8,  # Daha az yeni konu, daha fazla tekrar
-        "review_ratio": 0.4,  # %40 tekrar, %60 yeni konu  
-        "exam_frequency": "haftada_1",
-        "special_notes": "Eksikleri kapatma ve performans maksimizasyonu dönemi"
-    }
-}
-
-# 🎯 Konu Zorluk Puanlama Sistemi (1-5 arası)
-TOPIC_DIFFICULTY_SYSTEM = {
-    1: {"name": "Çok Kolay", "color": "#27ae60", "icon": "😊", "study_time": "15-20 dk"},
-    2: {"name": "Kolay", "color": "#2ecc71", "icon": "🙂", "study_time": "20-30 dk"},
-    3: {"name": "Orta", "color": "#f39c12", "icon": "😐", "study_time": "30-45 dk"},
-    4: {"name": "Zor", "color": "#e67e22", "icon": "😰", "study_time": "45-60 dk"},
-    5: {"name": "Çok Zor", "color": "#e74c3c", "icon": "😱", "study_time": "60+ dk"}
-}
-
-# 📚 16 Haftalık Eşit Ağırlık Detay Planı
-EQUAL_WEIGHT_WEEKLY_PLAN = {
-    1: {
-        "week": 1,
-        "focus": "Temel kavramlar ve başlangıç",
-        "topics": {
-            "TYT Türkçe": [
-                "Sözcükte Anlam - Gerçek Anlam",
-                "Sözcükte Anlam - Mecaz Anlam", 
-                "Sözcükte Anlam - Terim Anlam",
-                "Cümlede Anlam - Cümle Yorumlama",
-                "Cümlede Anlam - Kesin Yargı",
-                "Cümlede Anlam - Anlatım Biçimleri",
-                "Cümlede Anlam - Neden-Sonuç",
-                "Paragraf - Ana Fikir",
-                "Paragraf - Yardımcı Fikir",
-                "Paragraf - Paragraf Yapısı",
-                "Paragraf - Anlatım Teknikleri",
-                "Paragraf - Düşünceyi Geliştirme"
-            ],
-            "TYT Matematik": [
-                "Temel Kavramlar",
-                "Sayı Basamakları"
-            ],
-            "TYT Tarih": [
-                "Tarih ve Zaman"
-            ],
-            "TYT Geometri": [
-                "Açılar - Doğruda Açılar",
-                "Açılar - Üçgende Açılar"
-            ],
-            "TYT Coğrafya": [
-                "Dünya Haritaları"
-            ]
-        }
-    },
-    2: {
-        "week": 2,
-        "focus": "Temel işlemler ve kavramlar",
-        "topics": {
-            "TYT Türkçe": [
-                "Ses Bilgisi"
-            ],
-            "TYT Matematik": [
-                "Bölme ve Bölünebilme",
-                "EBOB-EKOK",
-                "Rasyonel Sayılar"
-            ],
-            "TYT Geometri": [
-                "Özel Üçgenler - Dik Üçgen",
-                "Özel Üçgenler - Eşkenar Üçgen", 
-                "Özel Üçgenler - İkizkenar Üçgen"
-            ],
-            "TYT Coğrafya": [
-                "Doğa ve İnsan",
-                "Dünya'nın Şekli ve Hareketleri (Günlük ve Yıllık Hareketler, Sonuçları)"
-            ],
-            "TYT Tarih": [
-                "İnsanlığın İlk Dönemleri",
-                "Ortaçağda Dünya"
-            ]
-        }
-    },
-    3: {
-        "week": 3,
-        "focus": "Yazım kuralları ve problem çözme",
-        "topics": {
-            "TYT Türkçe": [
-                "Yazım Kuralları"
-            ],
-            "TYT Matematik": [
-                "Ondalıklı Sayılar",
-                "Oran Orantı",
-                "Denklem Çözme",
-                "Problemler - Sayı Problemleri",
-                "Problemler - Kesir Problemleri"
-            ],
-            "TYT Geometri": [
-                "Açıortay",
-                "Kenarortay"
-            ],
-            "TYT Coğrafya": [
-                "Coğrafi Konum",
-                "Harita Bilgisi", 
-                "Atmosfer ve Sıcaklık"
-            ],
-            "TYT Tarih": [
-                "İlk ve Orta Çağlarda Türk Dünyası",
-                "İslam Medeniyetinin Doğuşu"
-            ]
-        }
-    },
-    4: {
-        "week": 4,
-        "focus": "Noktalama ve problem çeşitleri",
-        "topics": {
-            "TYT Türkçe": [
-                "Noktalama İşaretleri",
-                "Sözcükte Yapı"
-            ],
-            "TYT Matematik": [
-                "Basit Eşitsizlikler",
-                "Mutlak Değer",
-                "Problemler - Yaş Problemleri",
-                "Problemler - Yüzde Problemleri", 
-                "Problemler - Kar-Zarar Problemleri"
-            ],
-            "TYT Geometri": [
-                "Eşlik ve Benzerlik",
-                "Üçgende Alan"
-            ],
-            "TYT Coğrafya": [
-                "İklim",
-                "Basınç ve Rüzgarlar",
-                "Nem, Yağış ve Buharlaşma"
-            ],
-            "TYT Tarih": [
-                "İlk Türk İslam Devletleri",
-                "Yerleşme ve Devletleşme Sürecinde Selçuklu Türkiyesi",
-                "Beylikten Devlete Osmanlı Siyaseti (1300-1453)"
-            ]
-        }
-    },
-    5: {
-        "week": 5,
-        "focus": "Sözcük türleri ve üslü sayılar",
-        "topics": {
-            "TYT Türkçe": [
-                "Sözcük Türleri - İsimler",
-                "Sözcük Türleri - Zamirler", 
-                "Sözcük Türleri - Sıfatlar",
-                "Sözcük Türleri - Zarf",
-                "Sözcük Türleri - Edat"
-            ],
-            "TYT Matematik": [
-                "Üslü Sayılar",
-                "Köklü Sayılar",
-                "Problemler - Karışım Problemleri"
-            ],
-            "TYT Geometri": [
-                "Açı Kenar Bağıntıları",
-                "Çokgenler"
-            ],
-            "TYT Coğrafya": [
-                "İç Kuvvetler/Dış Kuvvetler",
-                "Su-Toprak ve Bitkiler",
-                "Nüfus"
-            ],
-            "TYT Tarih": [
-                "Dünya Gücü Osmanlı (1453-1600)",
-                "Yeni Çağ Avrupa Tarihi"
-            ]
-        }
-    },
-    6: {
-        "week": 6,
-        "focus": "Fiil anlam ve çarpanlar",
-        "topics": {
-            "TYT Türkçe": [
-                "Fiilde Anlam",
-                "Ek Fiil"
-            ],
-            "TYT Matematik": [
-                "Çarpanlara Ayırma",
-                "Problemler - Hareket Problemleri",
-                "Problemler - İşçi Problemleri"
-            ],
-            "TYT Geometri": [
-                "Özel Dörtgenler - Deltoid",
-                "Özel Dörtgenler - Paralelkenar"
-            ],
-            "TYT Coğrafya": [
-                "Göç",
-                "Yerleşme",
-                "Türkiye'nin Yer Şekilleri"
-            ],
-            "TYT Tarih": [
-                "Osmanlı Devletinde Arayış Yılları",
-                "Osmanlı Avrupa İlişkileri",
-                "18. YY Değişim ve Diplomasi",
-                "En Uzun Yüzyıl",
-                "Osmanlı Kültür ve Medeniyeti"
-            ]
-        }
-    },
-    7: {
-        "week": 7,
-        "focus": "Fiilimsi ve fonksiyonlar",
-        "topics": {
-            "TYT Türkçe": [
-                "Fiilimsi",
-                "Fiilde Çatı"
-            ],
-            "AYT Matematik": [
-                "Fonksiyonlar"
-            ],
-            "TYT Matematik": [
-                "Problemler - Tablo-Grafik Problemleri",
-                "Problemler - Rutin Olmayan Problemler"
-            ],
-            "TYT Geometri": [
-                "Eşkenar Dörtgen",
-                "Dikdörtgen"
-            ],
-            "TYT Coğrafya": [
-                "Ekonomik Faaliyetler",
-                "Bölgeler Uluslararası Ulaşım Hatları, Çevre ve Toplum",
-                "Doğal Afetler"
-            ],
-            "TYT Tarih": [
-                "20. YY Osmanlı Devleti",
-                "1. Dünya Savaşı"
-            ]
-        }
-    },
-    8: {
-        "week": 8,
-        "focus": "Cümle öğeleri ve mantık",
-        "topics": {
-            "TYT Türkçe": [
-                "Cümlenin Öğeleri",
-                "Cümle Türleri",
-                "Anlatım Bozukluğu"
-            ],
-            "TYT Matematik": [
-                "Mantık",
-                "Kümeler"
-            ],
-            "AYT Matematik": [
-                "Polinom"
-            ],
-            "TYT Geometri": [
-                "Kare",
-                "Yamuk"
-            ],
-            "TYT Tarih": [
-                "Mondros Ateşkesi, İşgaller ve Cemiyetler",
-                "Kurtuluş Savaşına Hazırlık Dönemi",
-                "1. TBMM Dönemi",
-                "Kurtuluş Savaşı ve Anlaşmalar"
-            ]
-        }
-    },
-    9: {
-        "week": 9,
-        "focus": "Olasılık ve 2. derece denklemler",
-        "topics": {
-            "TYT Matematik": [
-                "Olasılık"
-            ],
-            "AYT Matematik": [
-                "2. Derece Denklemler"
-            ],
-            "TYT Geometri": [
-                "Çemberde Açı",
-                "Çemberde Uzunluk"
-            ],
-            "TYT Tarih": [
-                "II. TBMM Dönemi ve Çok Partili Hayata Geçiş",
-                "Türk İnkılabı"
-            ],
-            "AYT Edebiyat": [
-                "Güzel Sanatlar ve Edebiyat ile İlişkisi",
-                "Metinlerin Sınıflandırılması"
-            ],
-            "AYT Coğrafya": [
-                "Ekosistem"
-            ]
-        }
-    },
-    10: {
-        "week": 10,
-        "focus": "Edebiyat başlangıç ve biyoçeşitlilik",
-        "topics": {
-            "AYT Edebiyat": [
-                "Edebi Sanatlar",
-                "Edebiyat Akımları"
-            ],
-            "AYT Coğrafya": [
-                "Biyoçeşitlilik",
-                "Biyomlar",
-                "Ekosistem Unsurları"
-            ],
-            "AYT Matematik": [
-                "Karmaşık Sayılar",
-                "2. Derece Denklem ve Eşitsizlikler"
-            ],
-            "TYT Tarih": [
-                "Atatürk İlkeleri",
-                "Atatürk Dönemi Türk Dış Politikası"
-            ],
-            "TYT Geometri": [
-                "Dairede Çevre ve Alan",
-                "Noktanın Analitiği"
-            ]
-        }
-    },
-    11: {
-        "week": 11,
-        "focus": "Dünya edebiyatı ve logaritma",
-        "topics": {
-            "AYT Edebiyat": [
-                "Dünya Edebiyatı",
-                "Anlam Bilgisi (Tekrar)",
-                "Dil Bilgisi (Tekrar)",
-                "Şiir Bilgisi"
-            ],
-            "AYT Matematik": [
-                "Parabol",
-                "Logaritma"
-            ],
-            "TYT Geometri": [
-                "Doğrunun Analitiği",
-                "Prizmalar"
-            ],
-            "AYT Coğrafya": [
-                "Enerji Akışı ve Madde Döngüsü",
-                "Nüfus Politikaları",
-                "Türkiye'de Nüfus ve Yerleşme",
-                "Göç ve Şehirleşme"
-            ],
-            "AYT Tarih": [
-                "Tarih ve Zaman (Temel Kavramlar)",
-                "İnsanlığın İlk Dönemleri",
-                "Ortaçağda Dünya"
-            ]
-        }
-    },
-    12: {
-        "week": 12,
-        "focus": "Türk edebiyatı dönemleri ve geometrik cisimler",
-        "topics": {
-            "AYT Edebiyat": [
-                "Türk Edebiyatı Dönemleri (Genel Özellikler)",
-                "İslamiyet Öncesi Türk Edebiyatı (Sözlü ve Yazılı)",
-                "İslamiyet Etkisindeki Geçiş Dönemi Edebiyatı"
-            ],
-            "AYT Matematik": [
-                "Diziler",
-                "Limit"
-            ],
-            "TYT Geometri": [
-                "Küp",
-                "Silindir"
-            ],
-            "AYT Coğrafya": [
-                "Ekonomik Faaliyetler ve Doğal Kaynaklar",
-                "Türkiye Ekonomisi",
-                "Türkiye'nin Ekonomik Politikaları",
-                "Türkiye Ekonomisinin Sektörel Dağılımı"
-            ],
-            "AYT Tarih": [
-                "İlk ve Orta Çağlarda Türk Dünyası",
-                "İslam Medeniyetinin Doğuşu",
-                "Türklerin İslamiyeti Kabulü ve İlk Türk İslam Devletleri",
-                "Yerleşme ve Devletleşme Sürecindeki Selçuklu Türkiyesi"
-            ]
-        }
-    },
-    13: {
-        "week": 13,
-        "focus": "Halk ve divan edebiyatı",
-        "topics": {
-            "AYT Edebiyat": [
-                "Halk Edebiyatı",
-                "Divan Edebiyatı"
-            ],
-            "AYT Matematik": [
-                "Türev"
-            ],
-            "AYT Coğrafya": [
-                "Türkiye'de Tarım",
-                "Türkiye'de Ulaşım",
-                "Türkiye'de Ticaret ve Turizm",
-                "Geçmişten Geleceğe Şehir ve Ekonomi",
-                "Türkiye'nin İşlevsel Bölgeleri ve Kalkınma Projeleri",
-                "Hizmet Sektörünün Ekonomideki Yeri"
-            ],
-            "AYT Tarih": [
-                "Beylikten Devlete Osmanlı Siyaseti",
-                "Devletleşme Sürecindeki Savaşçılar ve Askerler",
-                "Beylikten Devlete Osmanlı Medeniyeti",
-                "Dünya Gücü Osmanlı",
-                "Sultan ve Osmanlı ve Merkez Teşkilatı",
-                "Klasik Çağda Osmanlı Toplum Düzeni"
-            ],
-            "TYT Geometri": [
-                "Piramit",
-                "Koni",
-                "Küre"
-            ]
-        }
-    },
-    14: {
-        "week": 14,
-        "focus": "Tanzimat dönemi ve küresel ticaret",
-        "topics": {
-            "AYT Edebiyat": [
-                "Tanzimat Dönemi Edebiyatı (1. ve 2. Kuşak)",
-                "Servet-i Fünun Edebiyatı (Edebiyat-ı Cedide)",
-                "Fecr-i Ati Edebiyatı"
-            ],
-            "AYT Coğrafya": [
-                "Küresel Ticaret",
-                "Bölgeler ve Ülkeler",
-                "İlk Uygarlıklar",
-                "Kültür Bölgeleri ve Türk Kültürü",
-                "Sanayileşme Süreci: Almanya",
-                "Tarih ve Ekonomi İlişkisi Fransa-Somali",
-                "Ülkeler Arası Etkileşim",
-                "Jeopolitik Konum",
-                "Çatışma Bölgeleri",
-                "Küresel ve Bölgesel Örgütler"
-            ],
-            "AYT Tarih": [
-                "Değişen Dünya Dengeleri Karşısında Osmanlı Siyaseti",
-                "Değişim Çağında Avrupa ve Osmanlı",
-                "Uluslararası İlişkilerde Denge Stratejisi",
-                "Devrimler Çağında ve Değişen Devlet Toplum İlişkileri",
-                "Sermaye ve Emek",
-                "XIX. ve XX. YY Değişen Gündelik Hayat"
-            ]
-        }
-    },
-    15: {
-        "week": 15,
-        "focus": "Milli edebiyat ve çevre sorunları",
-        "topics": {
-            "AYT Edebiyat": [
-                "Milli Edebiyat"
-            ],
-            "AYT Coğrafya": [
-                "Ekstrem Doğa Olayları",
-                "Küresel İklim Değişimi",
-                "Çevre ve Toplum",
-                "Çevre Sorunları ve Türleri",
-                "Madenler ve Enerji Kaynaklarının Çevreye Etkisi",
-                "Doğal Kaynakların Sürdürülebilir Kullanımı",
-                "Ekolojik Ayak İzi",
-                "Doğal Çevrenin Sınırlılığı",
-                "Çevre Politikaları",
-                "Çevresel Örgütler",
-                "Çevre Anlaşmaları",
-                "Doğal Afetler"
-            ],
-            "AYT Tarih": [
-                "XX. YY Başlarında Osmanlı Devleti ve Dünya",
-                "Milli Mücadele",
-                "Atatürkçülük ve Türk İnkılabı"
-            ]
-        }
-    },
-    16: {
-        "week": 16,
-        "focus": "Cumhuriyet dönemi ve integral",
-        "topics": {
-            "AYT Edebiyat": [
-                "Cumhuriyet Dönemi Edebiyatı",
-                "Edebi Akımlar"
-            ],
-            "AYT Tarih": [
-                "İlk Savaş Arasındaki Dönemde Türkiye ve Dünya",
-                "II. Dünya Savaşı Sürecinde Türkiye ve Dünya",
-                "II. Dünya Savaşı Sonrasında Türkiye ve Dünya",
-                "Toplumsal Devrim Çağında Dünya ve Türkiye",
-                "XXI. YY Eşiğinde Türkiye ve Dünya"
-            ],
-            "AYT Matematik": [
-                "İntegral",
-                "Olasılık, Binom, Permütasyon, Kombinasyon"
-            ]
-        }
-    },
-    6: {
-        "week": 6,
-        "focus": "Fiil konuları ve çarpanlara ayırma",
-        "topics": {
-            "TYT Türkçe": [
-                "Fiilde Anlam",
-                "Ek Fiil"
-            ],
-            "TYT Matematik": [
-                "Çarpanlara Ayırma",
-                "Problemler - Hareket Problemleri",
-                "Problemler - İşçi Problemleri"
-            ],
-            "TYT Geometri": [
-                "Özel Dörtgenler - Deltoid",
-                "Özel Dörtgenler - Paralelkenar"
-            ],
-            "TYT Coğrafya": [
-                "Göç",
-                "Yerleşme",
-                "Türkiye'nin Yer Şekilleri"
-            ],
-            "TYT Tarih": [
-                "Osmanlı Devletinde Arayış Yılları",
-                "Osmanlı Avrupa İlişkileri",
-                "18. YY Değişim ve Diplomasi",
-                "En Uzun Yüzyıl",
-                "Osmanlı Kültür ve Medeniyeti"
-            ],
-            "TYT Felsefe": [
-                "Din Felsefesi",
-                "Siyaset Felsefesi"
-            ],
-            "TYT Din Kültürü": [
-                "Dinler Tarihi",
-                "İslam Tarihi"
-            ]
-        }
-    },
-    7: {
-        "week": 7,
-        "focus": "Fiilimsi ve AYT başlangıç",
-        "topics": {
-            "TYT Türkçe": [
-                "Fiilimsi",
-                "Fiilde Çatı"
-            ],
-            "AYT Matematik": [
-                "Fonksiyonlar",
-                "Problemler - Tablo-Grafik Problemleri",
-                "Problemler - Rutin Olmayan Problemler"
-            ],
-            "TYT Geometri": [
-                "Eşkenar Dörtgen",
-                "Dikdörtgen"
-            ],
-            "TYT Coğrafya": [
-                "Ekonomik Faaliyetler",
-                "Bölgeler, Uluslararası Ulaşım Hatları, Çevre ve Toplum",
-                "Doğal Afetler"
-            ],
-            "TYT Tarih": [
-                "20. YY Osmanlı Devleti",
-                "1. Dünya Savaşı"
-            ]
-        }
-    },
-    8: {
-        "week": 8,
-        "focus": "Cümle bilgisi ve mantık",
-        "topics": {
-            "TYT Türkçe": [
-                "Cümlenin Öğeleri",
-                "Cümle Türleri",
-                "Anlatım Bozukluğu"
-            ],
-            "TYT Matematik": [
-                "Mantık",
-                "Kümeler"
-            ],
-            "AYT Matematik": [
-                "Polinom"
-            ],
-            "TYT Geometri": [
-                "Kare",
-                "Yamuk"
-            ],
-            "TYT Tarih": [
-                "Mondros Ateşkesi, İşgaller ve Cemiyetler",
-                "Kurtuluş Savaşına Hazırlık Dönemi",
-                "1. TBMM Dönemi",
-                "Kurtuluş Savaşı ve Anlaşmalar"
-            ]
-        }
-    },
-    9: {
-        "week": 9,
-        "focus": "Olasılık ve 2. derece denklemler",
-        "topics": {
-            "TYT Matematik": [
-                "Olasılık"
-            ],
-            "AYT Matematik": [
-                "2. Derece Denklemler"
-            ],
-            "TYT Geometri": [
-                "Çemberde Açı",
-                "Çemberde Uzunluk"
-            ],
-            "TYT Tarih": [
-                "II. TBMM Dönemi ve Çok Partili Hayata Geçiş",
-                "Türk İnkılabı"
-            ],
-            "AYT Edebiyat": [
-                "Güzel Sanatlar ve Edebiyat ile İlişkisi",
-                "Metinlerin Sınıflandırılması"
-            ],
-            "AYT Coğrafya": [
-                "Ekosistem"
-            ]
-        }
-    },
-    10: {
-        "week": 10,
-        "focus": "Edebiyat sanatları ve karmaşık sayılar",
-        "topics": {
-            "AYT Edebiyat": [
-                "Edebi Sanatlar",
-                "Edebiyat Akımları"
-            ],
-            "AYT Coğrafya": [
-                "Biyoçeşitlilik",
-                "Biyomlar",
-                "Ekosistem Unsurları"
-            ],
-            "AYT Matematik": [
-                "Karmaşık Sayılar",
-                "2. Derece Denklem ve Eşitsizlikler"
-            ],
-            "TYT Tarih": [
-                "Atatürk İlkeleri",
-                "Atatürk Dönemi Türk Dış Politikası"
-            ],
-            "TYT Geometri": [
-                "Dairede Çevre ve Alan",
-                "Noktanın Analitiği"
-            ]
-        }
-    },
-    11: {
-        "week": 11,
-        "focus": "Dünya edebiyatı ve logaritma",
-        "topics": {
-            "AYT Edebiyat": [
-                "Dünya Edebiyatı",
-                "Anlam Bilgisi (Tekrar)",
-                "Dil Bilgisi (Tekrar)",
-                "Şiir Bilgisi"
-            ],
-            "AYT Matematik": [
-                "Parabol",
-                "Logaritma"
-            ],
-            "TYT Geometri": [
-                "Doğrunun Analitiği",
-                "Prizmalar"
-            ],
-            "AYT Coğrafya": [
-                "Enerji Akışı ve Madde Döngüsü",
-                "Nüfus Politikaları",
-                "Türkiye'de Nüfus ve Yerleşme",
-                "Göç ve Şehirleşme"
-            ],
-            "AYT Tarih": [
-                "Tarih ve Zaman (Temel Kavramlar)",
-                "İnsanlığın İlk Dönemleri",
-                "Ortaçağda Dünya"
-            ]
-        }
-    },
-    12: {
-        "week": 12,
-        "focus": "Türk edebiyatı dönemleri ve diziler",
-        "topics": {
-            "AYT Edebiyat": [
-                "Türk Edebiyatı Dönemleri (Genel Özellikler)",
-                "İslamiyet Öncesi Türk Edebiyatı (Sözlü ve Yazılı)",
-                "İslamiyet Etkisindeki Geçiş Dönemi Edebiyatı"
-            ],
-            "AYT Matematik": [
-                "Diziler",
-                "Limit"
-            ],
-            "TYT Geometri": [
-                "Küp",
-                "Silindir"
-            ],
-            "AYT Coğrafya": [
-                "Ekonomik Faaliyetler ve Doğal Kaynaklar",
-                "Türkiye Ekonomisi",
-                "Türkiye'nin Ekonomik Politikaları",
-                "Türkiye Ekonomisinin Sektörel Dağılımı"
-            ],
-            "AYT Tarih": [
-                "İlk ve Orta Çağlarda Türk Dünyası",
-                "İslam Medeniyetinin Doğuşu",
-                "Türklerin İslamiyeti Kabulü ve İlk Türk İslam Devletleri",
-                "Yerleşme ve Devletleşme Sürecindeki Selçuklu Türkiyesi"
-            ]
-        }
-    },
-    13: {
-        "week": 13,
-        "focus": "Halk ve divan edebiyatı, türev",
-        "topics": {
-            "AYT Edebiyat": [
-                "Halk Edebiyatı",
-                "Divan Edebiyatı"
-            ],
-            "AYT Matematik": [
-                "Türev"
-            ],
-            "AYT Coğrafya": [
-                "Türkiye'de Tarım",
-                "Türkiye'de Ulaşım",
-                "Türkiye'de Ticaret ve Turizm",
-                "Geçmişten Geleceğe Şehir ve Ekonomi",
-                "Türkiye'nin İşlevsel Bölgeleri ve Kalkınma Projeleri",
-                "Hizmet Sektörünün Ekonomideki Yeri"
-            ],
-            "AYT Tarih": [
-                "Beylikten Devlete Osmanlı Siyaseti",
-                "Devletleşme Sürecindeki Savaşçılar ve Askerler",
-                "Beylikten Devlete Osmanlı Medeniyeti", 
-                "Dünya Gücü Osmanlı",
-                "Sultan ve Osmanlı ve Merkez Teşkilatı",
-                "Klasik Çağda Osmanlı Toplum Düzeni"
-            ],
-            "TYT Geometri": [
-                "Piramit",
-                "Koni",
-                "Küre"
-            ]
-        }
-    },
-    14: {
-        "week": 14,
-        "focus": "Tanzimat dönemi ve küresel coğrafya",
-        "topics": {
-            "AYT Edebiyat": [
-                "Tanzimat Dönemi Edebiyatı (1. ve 2. Kuşak)",
-                "Servet-i Fünun Edebiyatı (Edebiyat-ı Cedide)",
-                "Fecr-i Ati Edebiyatı"
-            ],
-            "AYT Coğrafya": [
-                "Küresel Ticaret",
-                "Bölgeler ve Ülkeler",
-                "İlk Uygarlıklar",
-                "Kültür Bölgeleri ve Türk Kültürü",
-                "Sanayileşme Süreci: Almanya",
-                "Tarih ve Ekonomi İlişkisi Fransa-Somali",
-                "Ülkeler Arası Etkileşim",
-                "Jeopolitik Konum",
-                "Çatışma Bölgeleri",
-                "Küresel ve Bölgesel Örgütler"
-            ],
-            "AYT Tarih": [
-                "Değişen Dünya Dengeleri Karşısında Osmanlı Siyaseti",
-                "Değişim Çağında Avrupa ve Osmanlı",
-                "Uluslararası İlişkilerde Denge Stratejisi",
-                "Devrimler Çağında ve Değişen Devlet Toplum İlişkileri",
-                "Sermaye ve Emek",
-                "XIX. ve XX. YY Değişen Gündelik Hayat"
-            ]
-        }
-    },
-    15: {
-        "week": 15,
-        "focus": "Milli edebiyat ve çevre konuları",
-        "topics": {
-            "AYT Edebiyat": [
-                "Milli Edebiyat"
-            ],
-            "AYT Coğrafya": [
-                "Ekstrem Doğa Olayları",
-                "Küresel İklim Değişimi",
-                "Çevre ve Toplum",
-                "Çevre Sorunları ve Türleri",
-                "Madenler ve Enerji Kaynaklarının Çevreye Etkisi",
-                "Doğal Kaynakların Sürdürülebilir Kullanımı",
-                "Ekolojik Ayak İzi",
-                "Doğal Çevrenin Sınırlılığı",
-                "Çevre Politikaları",
-                "Çevresel Örgütler",
-                "Çevre Anlaşmaları",
-                "Doğal Afetler"
-            ],
-            "AYT Tarih": [
-                "XX. YY Başlarında Osmanlı Devleti ve Dünya",
-                "Milli Mücadele",
-                "Atatürkçülük ve Türk İnkılabı"
-            ]
-        }
-    },
-    16: {
-        "week": 16,
-        "focus": "Cumhuriyet dönemi ve integral",
-        "topics": {
-            "AYT Edebiyat": [
-                "Cumhuriyet Dönemi Edebiyatı",
-                "Edebi Akımlar"
-            ],
-            "AYT Tarih": [
-                "İlk Savaş Arasındaki Dönemde Türkiye ve Dünya",
-                "II. Dünya Savaşı Sürecinde Türkiye ve Dünya",
-                "II. Dünya Savaşı Sonrasında Türkiye ve Dünya",
-                "Toplumsal Devrim Çağında Dünya ve Türkiye",
-                "XXI. YY Eşiğinde Türkiye ve Dünya"
-            ],
-            "AYT Matematik": [
-                "İntegral",
-                "Olasılık, Binom, Permütasyon, Kombinasyon"
-            ]
-        }
-    }
-}
-
-# 📚 18 Haftalık Sayısal Detay Planı
-NUMERICAL_WEEKLY_PLAN = {
-    1: {
-        "week": 1,
-        "focus": "Temel kavramlar ve başlangıç",
-        "topics": {
-            "TYT Türkçe": [
-                "Sözcükte Anlam",
-                "Cümlede Anlam", 
-                "Paragraf"
-            ],
-            "TYT Matematik": [
-                "Temel Kavramlar",
-                "Sayılar"
-            ],
-            "TYT Geometri": [
-                "Açılar - Doğruda Açılar",
-                "Açılar - Üçgende Açılar"
-            ],
-            "TYT Fizik": [
-                "Fizik Bilimine Giriş"
-            ],
-            "TYT Kimya": [
-                "Kimya Bilimine Giriş",
-                "Atom ve Periyodik Sistem"
-            ]
-        }
-    },
-    2: {
-        "week": 2,
-        "focus": "Ses bilgisi ve temel matemtik",
-        "topics": {
-            "TYT Türkçe": [
-                "Ses Bilgisi"
-            ],
-            "TYT Matematik": [
-                "Bölme ve Bölünebilme",
-                "EBOB-EKOK",
-                "Rasyonel Sayılar"
-            ],
-            "TYT Geometri": [
-                "Özel Üçgenler - Dik Üçgen",
-                "Özel Üçgenler - Eşkenar Üçgen",
-                "Özel Üçgenler - İkizkenar Üçgen"
-            ],
-            "TYT Kimya": [
-                "Kimyasal Türler Arası Etkileşimler"
-            ],
-            "TYT Fizik": [
-                "Madde ve Özellikleri"
-            ],
-            "TYT Biyoloji": [
-                "Canlıların Ortak Özellikleri"
-            ]
-        }
-    },
-    3: {
-        "week": 3,
-        "focus": "Yazım kuralları ve oranlar",
-        "topics": {
-            "TYT Türkçe": [
-                "Yazım Kuralları"
-            ],
-            "TYT Matematik": [
-                "Ondalıklı Sayılar",
-                "Oran Orantı",
-                "Denklem Çözme",
-                "Problemler - Sayı Problemleri",
-                "Problemler - Kesir Problemleri"
-            ],
-            "TYT Geometri": [
-                "Açıortay",
-                "Kenarortay"
-            ],
-            "TYT Fizik": [
-                "Hareket ve Kuvvet"
-            ],
-            "TYT Kimya": [
-                "Maddenin Halleri ve Çevre Kimyası"
-            ],
-            "TYT Biyoloji": [
-                "Canlıların Yapısında Bulunan İnorganik Bileşikler",
-                "Canlıların Yapısında Bulunan Organik Bileşikler"
-            ]
-        }
-    },
-    4: {
-        "week": 4,
-        "focus": "Noktalama ve eşitsizlikler",
-        "topics": {
-            "TYT Türkçe": [
-                "Noktalama İşaretleri",
-                "Sözcükte Yapı"
-            ],
-            "TYT Matematik": [
-                "Basit Eşitsizlikler",
-                "Mutlak Değer",
-                "Problemler - Yaş Problemleri",
-                "Problemler - Yüzde Problemleri",
-                "Problemler - Kar-Zarar Problemleri"
-            ],
-            "TYT Geometri": [
-                "Eşlik ve Benzerlik",
-                "Üçgende Alan"
-            ],
-            "TYT Fizik": [
-                "İş Güç ve Enerji"
-            ],
-            "TYT Kimya": [
-                "Kimyanın Temel Kanunları ve Hesaplamalar"
-            ],
-            "TYT Biyoloji": [
-                "Hücresel Yapılar ve Görevleri",
-                "Hücre Zarından Madde Geçişleri"
-            ]
-        }
-    },
-    5: {
-        "week": 5,
-        "focus": "Sözcük türleri ve üslü sayılar",
-        "topics": {
-            "TYT Türkçe": [
-                "Sözcük Türleri - İsimler",
-                "Sözcük Türleri - Zamirler",
-                "Sözcük Türleri - Sıfatlar",
-                "Sözcük Türleri - Zarf",
-                "Sözcük Türleri - Edat"
-            ],
-            "TYT Matematik": [
-                "Üslü Sayılar",
-                "Köklü Sayılar",
-                "Problemler - Karışım Problemleri"
-            ],
-            "TYT Geometri": [
-                "Açı Kenar Bağıntıları",
-                "Çokgenler"
-            ],
-            "TYT Fizik": [
-                "Isı ve Sıcaklık"
-            ],
-            "TYT Kimya": [
-                "Karışımlar"
-            ],
-            "TYT Biyoloji": [
-                "Canlıların Sınıflandırılması",
-                "Canlı Âlemleri"
-            ]
-        }
-    },
-    6: {
-        "week": 6,
-        "focus": "Fiilde anlam ve çarpanlara ayırma",
-        "topics": {
-            "TYT Türkçe": [
-                "Fiilde Anlam",
-                "Ek Fiil"
-            ],
-            "TYT Matematik": [
-                "Çarpanlara Ayırma",
-                "Problemler - Hareket Problemleri",
-                "Problemler - İşçi Problemleri"
-            ],
-            "TYT Geometri": [
-                "Özel Dörtgenler - Deltoid",
-                "Özel Dörtgenler - Paralelkenar"
-            ],
-            "TYT Fizik": [
-                "Basınç ve Kaldırma Kuvveti"
-            ],
-            "TYT Kimya": [
-                "Asitler Bazlar ve Tuzlar"
-            ],
-            "TYT Biyoloji": [
-                "Hücre Döngüsü ve Mitoz",
-                "Eşeysiz Üreme"
-            ]
-        }
-    },
-    7: {
-        "week": 7,
-        "focus": "Fiilimsi ve AYT başlangıç",
-        "topics": {
-            "TYT Türkçe": [
-                "Fiilimsi",
-                "Fiilde Çatı"
-            ],
-            "AYT Matematik": [
-                "Fonksiyonlar",
-                "Problemler - Tablo-Grafik Problemleri",
-                "Problemler - Rutin Olmayan Problemler"
-            ],
-            "TYT Geometri": [
-                "Eşkenar Dörtgen",
-                "Diktortgen"
-            ],
-            "TYT Fizik": [
-                "Dalgalar",
-                "Optik"
-            ],
-            "TYT Kimya": [
-                "Kimya Her Yerde"
-            ],
-            "TYT Biyoloji": [
-                "Mayoz",
-                "Eşeyli Üreme"
-            ]
-        }
-    },
-    8: {
-        "week": 8,
-        "focus": "Cümle öğeleri ve mantık",
-        "topics": {
-            "TYT Türkçe": [
-                "Cümlenin Öğeleri",
-                "Cümle Türleri",
-                "Anlatım Bozukluğu"
-            ],
-            "TYT Matematik": [
-                "Mantık",
-                "Kümeler"
-            ],
-            "AYT Matematik": [
-                "Polinom"
-            ],
-            "TYT Geometri": [
-                "Kare",
-                "Yamuk"
-            ],
-            "TYT Fizik": [
-                "Elektrik ve Manyetizma"
-            ],
-            "TYT Biyoloji": [
-                "Kalıtım Konusu",
-                "Genetik Varyasyonlar"
-            ]
-        }
-    },
-    9: {
-        "week": 9,
-        "focus": "Olasılık ve AYT başlangıç",
-        "topics": {
-            "TYT Matematik": [
-                "Olasılık"
-            ],
-            "AYT Matematik": [
-                "2. Derece Denklemler"
-            ],
-            "TYT Geometri": [
-                "Çemberde Açı",
-                "Çemberde Uzunluk"
-            ],
-            "AYT Kimya": [
-                "Modern Atom Teorisi"
-            ],
-            "AYT Fizik": [
-                "Kuvvet ve Hareket - Vektörler",
-                "Kuvvet ve Hareket - Bağıl",
-                "Kuvvet ve Hareket - Newton Yasaları",
-                "İş - Güç - Enerji - Korunum",
-                "İş - Güç - Enerji - Verim",
-                "Atışlar - Yatay",
-                "Atışlar - Eğik",
-                "Atışlar - Düşey"
-            ],
-            "TYT Biyoloji": [
-                "Ekosistem Ekolojisi",
-                "Güncel Çevre Sorunları",
-                "Doğal Kaynakların Sürdürülebilirliği",
-                "Biyolojik Çeşitliliğin Korunması"
-            ]
-        }
-    },
-    10: {
-        "week": 10,
-        "focus": "Karmaşık sayılar ve AYT yoğunlaşma",
-        "topics": {
-            "AYT Matematik": [
-                "Karmaşık Sayılar",
-                "2. Derece Denklem ve Eşitsizlikler"
-            ],
-            "TYT Geometri": [
-                "Dairede Çevre ve Alan",
-                "Noktanın Analitiği"
-            ],
-            "AYT Fizik": [
-                "Basit Makineler",
-                "Kütle Merkezi - Tork - Denge"
-            ],
-            "AYT Kimya": [
-                "Gazlar"
-            ],
-            "AYT Biyoloji": [
-                "Sinir Sistemi",
-                "Endokrin Sistem ve Hormonlar"
-            ]
-        }
-    },
-    11: {
-        "week": 11,
-        "focus": "Parabol ve logaritma",
-        "topics": {
-            "AYT Matematik": [
-                "Parabol",
-                "Logaritma"
-            ],
-            "TYT Geometri": [
-                "Doğrunun Analitiği",
-                "Prizmalar"
-            ],
-            "AYT Kimya": [
-                "Sıvı Çözeltiler ve Çözünürlük"
-            ],
-            "AYT Fizik": [
-                "Elektrostatik - Alan",
-                "Elektrostatik - Potansiyel",
-                "Elektrik ve Manyetizma - Akım",
-                "Elektrik ve Manyetizma - Direnç",
-                "Elektrik ve Manyetizma - Manyetik Alan",
-                "Elektrik ve Manyetizma - Kuvvet",
-                "Elektrik ve Manyetizma - İndüksiyon"
-            ],
-            "AYT Biyoloji": [
-                "Duyu Organları",
-                "Destek ve Hareket Sistemi"
-            ]
-        }
-    },
-    12: {
-        "week": 12,
-        "focus": "Diziler ve limit",
-        "topics": {
-            "AYT Matematik": [
-                "Diziler",
-                "Limit"
-            ],
-            "TYT Geometri": [
-                "Küp",
-                "Silindir"
-            ],
-            "AYT Fizik": [
-                "Madde ve Özellikleri - Katı",
-                "Madde ve Özellikleri - Sıvı",
-                "Madde ve Özellikleri - Gaz",
-                "Basınç - Kaldırma Kuvveti",
-                "Isı - Sıcaklık - Genleşme",
-                "Termodinamik Yasaları Temelleri"
-            ],
-            "AYT Kimya": [
-                "Kimyasal Tepkimelerde Enerji",
-                "Kimyasal Tepkimelerde Hız"
-            ],
-            "AYT Biyoloji": [
-                "Sindirim Sistemi",
-                "Dolaşım ve Bağışıklık Sistemi"
-            ]
-        }
-    },
-    13: {
-        "week": 13,
-        "focus": "Türev ve dalga optiği",
-        "topics": {
-            "AYT Matematik": [
-                "Türev"
-            ],
-            "TYT Geometri": [
-                "Piramit",
-                "Koni",
-                "Küre"
-            ],
-            "AYT Fizik": [
-                "Dalgalar - Yay",
-                "Dalgalar - Su",
-                "Dalgalar - Ses",
-                "Dalgalar - Deprem",
-                "Optik - Yansıma",
-                "Optik - Kırılma",
-                "Optik - Ayna",
-                "Optik - Mercek"
-            ],
-            "AYT Kimya": [
-                "Kimyasal Tepkimelerde Denge"
-            ],
-            "AYT Biyoloji": [
-                "Solunum Sistemi",
-                "Üriner Sistem - Boşaltım Sistemi"
-            ]
-        }
-    },
-    14: {
-        "week": 14,
-        "focus": "Çembersel hareket ve elektrik",
-        "topics": {
-            "AYT Fizik": [
-                "Düzgün Çembersel Hareket",
-                "Basit Harmonik Hareket"
-            ],
-            "AYT Kimya": [
-                "Kimya ve Elektrik"
-            ]
-        }
-    },
-    15: {
-        "week": 15,
-        "focus": "İntegral ve organik kimya",
-        "topics": {
-            "AYT Matematik": [
-                "İntegral"
-            ],
-            "AYT Kimya": [
-                "Organik Kimya"
-            ],
-            "AYT Fizik": [
-                "Modern Fizik ve Uygulamaları",
-                "Fizik Bilimine Giriş - Temeller",
-                "Atom Fiziğine Giriş ve Radyoaktivite",
-                "Modern Fizik - Özel Görelilik",
-                "Modern Fizik - Kuantum",
-                "Modern Fizik - Fotoelektrik Olay"
-            ],
-            "AYT Biyoloji": [
-                "Üreme Sistemi ve Embriyonik Gelişim",
-                "Nükleik Asitler",
-                "Genden Proteine"
-            ]
-        }
-    },
-    16: {
-        "week": 16,
-        "focus": "Protein sentezi ve enerji",
-        "topics": {
-            "AYT Biyoloji": [
-                "Genetik Şifre ve Protein Sentezi",
-                "Canlılık ve Enerji",
-                "Canlılarda Enerji Dönüşümleri - ATP",
-                "Canlılarda Enerji Dönüşümleri - Enzim"
-            ]
-        }
-    },
-    17: {
-        "week": 17,
-        "focus": "Olasılık ve fotosentez",
-        "topics": {
-            "AYT Matematik": [
-                "Olasılık",
-                "Binom",
-                "Permütasyon",
-                "Kombinasyon"
-            ],
-            "AYT Biyoloji": [
-                "Fotosentez",
-                "Kemosentez",
-                "Hücresel Solunum"
-            ]
-        }
-    },
-    18: {
-        "week": 18,
-        "focus": "Bitki biyolojisi ve ekoloji",
-        "topics": {
-            "AYT Biyoloji": [
-                "Bitki Biyolojisi - Yapı",
-                "Bitki Biyolojisi - Taşıma",
-                "Bitki Biyolojisi - Beslenme",
-                "Bitkisel Hormonlar ve Hareketler",
-                "Ekoloji ve Çevre"
-            ]
-        }
-    }
-}
-
-# 🎨 TYT & MSÜ HAFTALIK PLAN - 9 HAFTALIK DETAY PLAN
-
-TYT_MSU_WEEKLY_PLAN = {
-    1: {
-        "week": 1,
-        "focus": "Temel kavramlar ve giriş konuları",
-        "topics": {
-            "TYT Türkçe": [
-                "Sözcükte anlam",
-                "Cümlede anlam",
-                "Paragraf"
-            ],
-            "TYT Matematik": [
-                "Temel kavramlar, sayılar"
-            ],
-            "TYT Geometri": [
-                "Açılar - Doğruda açılar",
-                "Açılar - Üçgende açılar"
-            ],
-            "TYT Fizik": [
-                "Fizik bilimine giriş"
-            ],
-            "TYT Kimya": [
-                "Kimya bilimine giriş"
-            ],
-            "TYT Biyoloji": [
-                "Canlıların Ortak Özellikleri"
-            ],
-            "TYT Coğrafya": [
-                "Dünya haritalırı-1"
-            ]
-        }
-    },
-    2: {
-        "week": 2,
-        "focus": "Temel matematik ve bilim konuları",
-        "topics": {
-            "TYT Türkçe": [
-                "Ses Bilgisi"
-            ],
-            "TYT Matematik": [
-                "Bölme ve Bölünebilme",
-                "EBOB-EKOK",
-                "Rasyonel Sayılar"
-            ],
-            "TYT Geometri": [
-                "Dik üçgen",
-                "Eşkenar üçgen",
-                "İkizkenar üçgen"
-            ],
-            "TYT Coğrafya": [
-                "Doğa ve insan"
-            ],
-            "TYT Tarih": [
-                "İnsanlığın ilk dönemleri",
-                "Ortaçağda dünya"
-            ],
-            "TYT Biyoloji": [
-                "Canlıların Yapısında Bulunan İnorganik Bileşikler",
-                "Canlıların Yapısında Bulunan Organik Bileşikler"
-            ],
-            "TYT Kimya": [
-                "Atom ve periyodik sistem"
-            ],
-            "TYT Fizik": [
-                "Madde ve özellikleri"
-            ]
-        }
-    },
-    3: {
-        "week": 3,
-        "focus": "Yazım kuralları ve matematik problemleri",
-        "topics": {
-            "TYT Türkçe": [
-                "Yazım Kuralları"
-            ],
-            "TYT Matematik": [
-                "Ondalıklı Sayılar",
-                "Oran Oranti",
-                "Denklem çözme",
-                "Sayı Problemleri",
-                "Kesir Problemleri"
-            ],
-            "TYT Geometri": [
-                "Açıortay",
-                "Kenarortay"
-            ],
-            "TYT Coğrafya": [
-                "Dünyanın şekli ve hareketleri",
-                "Çoğrafi konum"
-            ],
-            "TYT Tarih": [
-                "ilk ve orta çağlarda türk dünyası",
-                "İslam medeniyetinin doğuşu"
-            ],
-            "TYT Fizik": [
-                "Hareket ve Kuvvet"
-            ],
-            "TYT Kimya": [
-                "Kimyasal türler arası etkileşimler"
-            ],
-            "TYT Biyoloji": [
-                "Hücresel Yapılar ve Görevleri",
-                "Hücre Zarından Madde Geçişleri"
-            ]
-        }
-    },
-    4: {
-        "week": 4,
-        "focus": "Noktalama işaretleri ve matematik problemleri",
-        "topics": {
-            "TYT Türkçe": [
-                "Noktalama İşaretleri"
-            ],
-            "TYT Matematik": [
-                "Basit eşitsizlikler",
-                "Mutlak Değer",
-                "Yaş problemleri",
-                "Yüzde problemleri",
-                "Kar-zarar problemleri"
-            ],
-            "TYT Geometri": [
-                "Eşlik ve benzerlik"
-            ],
-            "TYT Fizik": [
-                "İş güç ve enerji"
-            ],
-            "TYT Biyoloji": [
-                "Canlıların Sınıflandırılması",
-                "Canlı Âlemleri"
-            ],
-            "TYT Tarih": [
-                "ilk türk İslam devletleri",
-                "Yerleşme ve devletleşme sürecinde Selçuklu Türkiyesi",
-                "Beylikten devlete Osmanlı Siyaseti(1300-1453)"
-            ],
-            "TYT Coğrafya": [
-                "Harita bilgisi",
-                "Atmosfer ve sıcaklık"
-            ]
-        }
-    },
-    5: {
-        "week": 5,
-        "focus": "Sözcük yapısı ve üslü sayılar",
-        "topics": {
-            "TYT Türkçe": [
-                "Sözcükte Yapı",
-                "Sözcük Türleri"
-            ],
-            "TYT Matematik": [
-                "Üslü sayılar",
-                "Köklü Sayılar",
-                "Karışım Problemleri"
-            ],
-            "TYT Geometri": [
-                "Üçgende alan"
-            ],
-            "TYT Tarih": [
-                "Dünya gücü Osmanlı (1453-1600)",
-                "Yeni Çağ Avrupa Tarihi"
-            ],
-            "TYT Coğrafya": [
-                "iklim",
-                "basınç ve rüzgarlar"
-            ],
-            "TYT Fizik": [
-                "ısı ve sıcaklık"
-            ],
-            "TYT Kimya": [
-                "maddenin halleri"
-            ],
-            "TYT Biyoloji": [
-                "Hücre Döngüsü ve Mitoz",
-                "Eşeysiz Üreme"
-            ]
-        }
-    },
-    6: {
-        "week": 6,
-        "focus": "Fiilimsi ve çarpanlara ayırma",
-        "topics": {
-            "TYT Türkçe": [
-                "Fiilimsi",
-                "Fiilde Çati"
-            ],
-            "TYT Matematik": [
-                "Çarpanlara Ayırma",
-                "Hareket Problemleri",
-                "İşçi problemleri"
-            ],
-            "TYT Geometri": [
-                "Açı kenar bağlantıları",
-                "Çokgenler"
-            ],
-            "TYT Tarih": [
-                "Osmanlı devletine arayış yılları",
-                "Osmanlı Avrupa ilişkileri",
-                "18.YY değişim ve diplomasi",
-                "En uzun yüzyıl",
-                "Osmanlı kültür ve medeniyeti"
-            ],
-            "TYT Coğrafya": [
-                "Nem yağış ve Buharlaşma",
-                "İç kuvvetler/dış kuvvetler",
-                "Su-Toprak ve Bitkiler"
-            ],
-            "TYT Fizik": [
-                "Basınç ve Kaldırma Kuvveti"
-            ],
-            "TYT Kimya": [
-                "Kimyanın Temel Kanunları ve Hesaplamalar"
-            ],
-            "TYT Biyoloji": [
-                "Mayoz",
-                "Eşeyli Üreme"
-            ]
-        }
-    },
-    7: {
-        "week": 7,
-        "focus": "Cümle analizi ve grafik problemleri",
-        "topics": {
-            "TYT Türkçe": [
-                "Cümlenin öğeleri",
-                "Cümle türleri"
-            ],
-            "TYT Matematik": [
-                "Tablo-Grafik problemleri",
-                "Rutin olmayan problemler"
-            ],
-            "TYT Geometri": [
-                "Özel dörtgenler",
-                "Deltoid",
-                "Paralelkenar"
-            ],
-            "TYT Tarih": [
-                "20.YY Osmanlı devleti",
-                "1.Dünya savaşı"
-            ],
-            "TYT Coğrafya": [
-                "Nüfus",
-                "Ekonomik faaliyetler"
-            ],
-            "TYT Fizik": [
-                "Dalgalar",
-                "Optik"
-            ],
-            "TYT Kimya": [
-                "Karışımlar"
-            ],
-            "TYT Biyoloji": [
-                "Kalıtım Konusu",
-                "Genetik Varyasyonlar"
-            ]
-        }
-    },
-    8: {
-        "week": 8,
-        "focus": "Anlatım bozukluğu ve mantık",
-        "topics": {
-            "TYT Türkçe": [
-                "Anlatım bozukluğu"
-            ],
-            "TYT Matematik": [
-                "Mantık",
-                "Kümeler"
-            ],
-            "TYT Tarih": [
-                "Mondros ateşkesi, işgaller ve cemiyetler",
-                "Kurtuluş savaşına hazırlık dönemi",
-                "1.Tbmm dönemi",
-                "Kurtuluş savaşı ve anlaşmalar"
-            ],
-            "TYT Coğrafya": [
-                "Bölgeler Uluslararası Ulaşım Hatları, Çevre ve toplum",
-                "Doğal Afetler"
-            ],
-            "TYT Fizik": [
-                "Elektrik ve Manyetizma"
-            ],
-            "TYT Kimya": [
-                "Asitler bazlar ve tuzlar"
-            ],
-            "TYT Geometri": [
-                "Eşkenar dörtgen",
-                "Diktortgen",
-                "Kare"
-            ],
-            "TYT Biyoloji": [
-                "Ekosistem Ekolojisi",
-                "Güncel Çevre Sorunları",
-                "Doğal Kaynakların Sürdürülebilirliği",
-                "Biyolojik Çeşitliliğin Korunması"
-            ]
-        }
-    },
-    9: {
-        "week": 9,
-        "focus": "Kombinasyon-permütasyon ve geometri tamamlama",
-        "topics": {
-            "TYT Matematik": [
-                "Kombinasyon-Permütasyon",
-                "Olasilik"
-            ],
-            "TYT Tarih": [
-                "II.TBMM Dönemi ve çok partili hayata geçiş",
-                "Türk İnkılabı",
-                "Atatürk ilkeleri",
-                "Atatürk dönemi türk dış politikası"
-            ],
-            "TYT Kimya": [
-                "Kimya her yerde"
-            ],
-            "TYT Geometri": [
-                "Yamuk",
-                "Çemberde açı",
-                "Çemberde uzunluk",
-                "Dairede çevre ve alan",
-                "Noktanın Analitiği",
-                "Doğrunun Analitiği",
-                "Prizmalar",
-                "Küp-silindir",
-                "Piramit-koni-küre"
-            ]
-        }
-    }
-}
-
-# 📚 SÖZEL HAFTALIK PLAN - 14 HAFTALIK DETAY PLAN
-
-VERBAL_WEEKLY_PLAN = {
-    1: {
-        "week": 1,
-        "focus": "Felsefe ve Din giriş - Temel Türkçe",
-        "topics": {
-            "TYT Felsefe": [
-                "Felsefenin Konusu",
-                "Bilgi Felsefesi - Epistemoloji",
-                "Varlık Felsefesi (Ontoloji)"
-            ],
-            "TYT Din": [
-                "İnsan ve Din (İnanç)"
-            ],
-            "TYT Türkçe": [
-                "Sözcükte Anlam - Gerçek Anlam",
-                "Sözcükte Anlam - Mecaz Anlam", 
-                "Sözcükte Anlam - Terim Anlam",
-                "Cümlede Anlam - Cümle Yorumlama",
-                "Paragraf - Ana Fikir"
-            ],
-            "TYT Matematik": [
-                "Temel Kavramlar",
-                "Sayı Basamakları"
-            ],
-            "TYT Tarih": [
-                "Tarih ve Zaman"
-            ],
-            "TYT Coğrafya": [
-                "Dünya Haritaları"
-            ]
-        }
-    },
-    2: {
-        "week": 2,
-        "focus": "Felsefe dalları ve Din konuları",
-        "topics": {
-            "TYT Felsefe": [
-                "Din, Kültür ve Medeniyet",
-                "Ahlak felsefesi",
-                "Sanat Felsefesi",
-                "Din Felsefesi"
-            ],
-            "TYT Din": [
-                "Vahiy ve akıl",
-                "İbadet"
-            ],
-            "TYT Türkçe": [
-                "Ses Bilgisi",
-                "Cümlede Anlam - Kesin Yargı",
-                "Cümlede Anlam - Anlatım Biçimleri"
-            ],
-            "TYT Matematik": [
-                "Bölme ve Bölünebilme",
-                "EBOB-EKOK",
-                "Rasyonel Sayılar"
-            ],
-            "TYT Coğrafya": [
-                "Doğa ve İnsan",
-                "Dünya'nın Şekli ve Hareketleri"
-            ],
-            "TYT Tarih": [
-                "İnsanlığın İlk Dönemleri",
-                "Ortaçağda Dünya"
-            ]
-        }
-    },
-    3: {
-        "week": 3,
-        "focus": "Siyaset ve Bilim Felsefesi",
-        "topics": {
-            "TYT Felsefe": [
-                "Siyaset Felsefesi",
-                "Bilim Felsefesi"
-            ],
-            "TYT Din": [
-                "Hz. Muhammed'in Hayatı ve Örnekliği",
-                "Allah'ın varlığı ve birliği (Tevhid)"
-            ],
-            "TYT Türkçe": [
-                "Yazım Kuralları",
-                "Cümlede Anlam - Neden-Sonuç",
-                "Paragraf - Yardımcı Fikir"
-            ],
-            "TYT Matematik": [
-                "Ondalıklı Sayılar",
-                "Oran Orantı",
-                "Denklem Çözme"
-            ],
-            "TYT Coğrafya": [
-                "Coğrafi Konum",
-                "Harita Bilgisi", 
-                "Atmosfer ve Sıcaklık"
-            ],
-            "TYT Tarih": [
-                "İlk ve Orta Çağlarda Türk Dünyası",
-                "İslam Medeniyetinin Doğuşu"
-            ]
-        }
-    },
-    4: {
-        "week": 4,
-        "focus": "İlkçağ Felsefesi ve Allah'ın Sıfatları",
-        "topics": {
-            "TYT Felsefe": [
-                "İlk çağ felsefesi",
-                "Sokrates ve felsefesi",
-                "Platon ve felsefesi"
-            ],
-            "TYT Din": [
-                "Allah'ın İsim ve Sıfatları (Esma-ül Hüsna)",
-                "Kur'an-ı Kerim'de İnsan ve Özellikleri"
-            ],
-            "TYT Türkçe": [
-                "Noktalama İşaretleri",
-                "Sözcükte Yapı",
-                "Paragraf - Paragraf Yapısı"
-            ],
-            "TYT Matematik": [
-                "Basit Eşitsizlikler",
-                "Problemler - Sayı Problemleri"
-            ],
-            "TYT Coğrafya": [
-                "Basınç ve Rüzgarlar",
-                "Nem, Yağış ve Buharlaşma"
-            ],
-            "TYT Tarih": [
-                "Türk-İslam Devletleri",
-                "Anadolu'da İlk Türk Beylikleri"
-            ]
-        }
-    },
-    5: {
-        "week": 5,
-        "focus": "Aristoteles ve İnsan-Allah ilişkisi",
-        "topics": {
-            "TYT Felsefe": [
-                "Aristoteles ve felsefesi",
-                "Orta çağ felsefesi"
-            ],
-            "TYT Din": [
-                "İnsanın Allah İle İrtibatı (Dua, Tövbe, İbadet)",
-                "Kur'an-ı Kerim'de Gençler"
-            ],
-            "TYT Türkçe": [
-                "Sözcük Yapısı - Ek Bilgisi",
-                "Paragraf - Anlatım Teknikleri",
-                "Edebiyat - Edebi Türler"
-            ],
-            "TYT Matematik": [
-                "Problemler - Kesir Problemleri",
-                "Problemler - Yüzde Problemleri"
-            ],
-            "TYT Coğrafya": [
-                "İklim Elemanları ve İklim Tipleri",
-                "Türkiye'nin İklimi"
-            ],
-            "TYT Tarih": [
-                "Osmanlı Devleti'nin Kuruluşu",
-                "Osmanlı Klasik Çağı"
-            ]
-        }
-    },
-    6: {
-        "week": 6,
-        "focus": "İslam ve Hristiyan Felsefesi",
-        "topics": {
-            "TYT Felsefe": [
-                "İslam Felsefesi (Farabi, İbn Sina)",
-                "Hristiyan Felsefesi (Augustinus, Aquinalı Thomas)"
-            ],
-            "TYT Din": [
-                "Bir genç olarak Hz.Muhammed",
-                "Hz.Muhammed ve gençler"
-            ],
-            "TYT Türkçe": [
-                "Edebiyat - Nazım-Nesir",
-                "Edebiyat - Masal, Fabl",
-                "Cümle Bilgisi - Öge Bilgisi"
-            ],
-            "TYT Matematik": [
-                "Problemler - Yaş Problemleri",
-                "Problemler - Karışım Problemleri"
-            ],
-            "TYT Coğrafya": [
-                "Bitki Örtüsü",
-                "Toprak Oluşumu ve Türleri"
-            ],
-            "TYT Tarih": [
-                "Osmanlı Duraklama Dönemi",
-                "Osmanlı Gerileme Dönemi"
-            ]
-        }
-    },
-    7: {
-        "week": 7,
-        "focus": "AYT Felsefe başlangıç ve genç sahabiler",
-        "topics": {
-            "AYT Felsefe": [
-                "Bilgi felsefesi",
-                "Varlık felsefesi",
-                "Ahlak felsefesi"
-            ],
-            "TYT Din": [
-                "Bazı genç sahabiler",
-                "Din ve aile",
-                "Din, Kültür ve Sanat"
-            ],
-            "TYT Türkçe": [
-                "Cümle Bilgisi - Cümle Türleri",
-                "Edebiyat - Hikaye, Roman",
-                "Paragraf - Düşünceyi Geliştirme"
-            ],
-            "TYT Matematik": [
-                "Problemler - Hareket Problemleri",
-                "Problemler - İşçi Problemleri"
-            ],
-            "TYT Coğrafya": [
-                "Hidrografya",
-                "Göller, Akarsular"
-            ],
-            "TYT Tarih": [
-                "Osmanlı Islahat Hareketleri",
-                "Tanzimat Dönemi"
-            ]
-        }
-    },
-    8: {
-        "week": 8,
-        "focus": "AYT Felsefe dalları ve Din-Toplum",
-        "topics": {
-            "TYT Din": [
-                "Din ve çevre",
-                "Din ve sosyal değişim",
-                "Din ve ekonomi"
-            ],
-            "AYT Felsefe": [
-                "Sanat Felsefesi",
-                "Din Felsefesi",
-                "Siyaset felsefesi",
-                "Bilim Felsefesi"
-            ],
-            "TYT Türkçe": [
-                "Edebiyat - Tiyatro",
-                "Edebiyat - Şiir Türleri",
-                "Anlam Bilgisi - Eş Anlam"
-            ],
-            "TYT Matematik": [
-                "Problemler - Faiz Problemleri",
-                "Üslü Sayılar"
-            ],
-            "AYT Coğrafya": [
-                "Nüfus Coğrafyası",
-                "Nüfusun Yapısı ve Özellikleri"
-            ],
-            "AYT Tarih": [
-                "1. Meşrutiyet",
-                "2. Abdülhamit Dönemi"
-            ]
-        }
-    },
-    9: {
-        "week": 9,
-        "focus": "İslam ahlakı ve İlkçağ AYT Felsefe",
-        "topics": {
-            "TYT Din": [
-                "Din ve sosyal adalet",
-                "İslam ahlakının temel ilkeleri, iyi ve kötü davranışlar",
-                "İslam Düşüncesinde İtikadi, Siyasi ve Fıkhi Yorumlar (Mezhepler)"
-            ],
-            "AYT Felsefe": [
-                "İlk çağ felsefesi",
-                "MÖ 6. Yüzyıl – MS 2. Yüzyıl Felsefesi",
-                "MS 2. Yüzyıl – MS 15. Yüzyıl Felsefesi"
-            ],
-            "TYT Türkçe": [
-                "Anlam Bilgisi - Zıt Anlam",
-                "Anlam Bilgisi - Eş Sesli Kelimeler",
-                "Edebiyat - Mektup, Anı"
-            ],
-            "TYT Matematik": [
-                "Köklü Sayılar",
-                "Çarpanlara Ayırma"
-            ],
-            "AYT Coğrafya": [
-                "Yerleşme Coğrafyası",
-                "Kırsal ve Kentsel Yerleşmeler"
-            ],
-            "AYT Tarih": [
-                "2. Meşrutiyet Dönemi",
-                "Balkan Savaşları"
-            ]
-        }
-    },
-    10: {
-        "week": 10,
-        "focus": "AYT Din başlangıç ve Yeniçağ Felsefe",
-        "topics": {
-            "AYT Din": [
-                "Dünya ve ahiret",
-                "Kurana göre Hz Muhammed",
-                "Kuran'da bazı kavramlar"
-            ],
-            "AYT Felsefe": [
-                "15. Yüzyıl – 17. Yüzyıl Felsefesi",
-                "18. Yüzyıl – 19. Yüzyıl Felsefesi"
-            ],
-            "TYT Türkçe": [
-                "Edebiyat - Deneme, Fıkra",
-                "Dil Bilgisi - Fiil Çatısı",
-                "Dil Bilgisi - Fiil Zamanları"
-            ],
-            "TYT Matematik": [
-                "Birinci Dereceden Denklemler",
-                "Birinci Dereceden Eşitsizlikler"
-            ],
-            "AYT Coğrafya": [
-                "Ekonomik Faaliyetler",
-                "Tarım ve Hayvancılık"
-            ],
-            "AYT Tarih": [
-                "1. Dünya Savaşı",
-                "Mondros Ateşkes Antlaşması"
-            ]
-        }
-    },
-    11: {
-        "week": 11,
-        "focus": "İslam bilim tarihi ve 20.YY Felsefe",
-        "topics": {
-            "AYT Din": [
-                "Kurandan mesajlar",
-                "İnançla ilgili meseleler",
-                "İslam ve Bilim",
-                "Anadolu'da İslam"
-            ],
-            "AYT Felsefe": [
-                "20.YY felsefesi",
-                "Mantığa giriş",
-                "Klasik mantık",
-                "Mantık ve dil"
-            ],
-            "TYT Türkçe": [
-                "Dil Bilgisi - Fiil Kipleri",
-                "Edebiyat - Köşe Yazısı",
-                "Edebiyat - Eleştiri"
-            ],
-            "TYT Matematik": [
-                "İkinci Dereceden Denklemler",
-                "Fonksiyonlar - Kavram"
-            ],
-            "AYT Coğrafya": [
-                "Sanayi",
-                "Ulaştırma ve Ticaret"
-            ],
-            "AYT Tarih": [
-                "İşgal ve Direnişin Başlaması",
-                "Kuva-yı Milliye"
-            ]
-        }
-    },
-    12: {
-        "week": 12,
-        "focus": "Tasavvuf ve Sembolik mantık",
-        "topics": {
-            "AYT Din": [
-                "İslam Düşüncesinde Tasavvufi Yorumlar ve Mezhepler",
-                "Güncel dini meseleler",
-                "Yaşayan dinler"
-            ],
-            "AYT Felsefe": [
-                "Sembolik mantık",
-                "Psikojinin temel süreçleri",
-                "Öğrenme bellek düşünme"
-            ],
-            "TYT Türkçe": [
-                "Edebiyat - Biyografi",
-                "Edebiyat - Söylev",
-                "Dil Bilgisi - Sıfat Türleri"
-            ],
-            "TYT Matematik": [
-                "Fonksiyonlar - Grafik",
-                "Fonksiyonlar - İşlemler"
-            ],
-            "AYT Coğrafya": [
-                "Çevre Sorunları",
-                "Doğal Afetler"
-            ],
-            "AYT Tarih": [
-                "TBMM'nin Açılması",
-                "Milli Mücadele Dönemi"
-            ]
-        }
-    },
-    13: {
-        "week": 13,
-        "focus": "Ruh sağlığı ve Toplum yapısı",
-        "topics": {
-            "AYT Felsefe": [
-                "Ruh sağlığının temelleri",
-                "Birey ve toplum",
-                "Toplumsal yapı"
-            ],
-            "TYT Türkçe": [
-                "Dil Bilgisi - Zarf Türleri",
-                "Edebiyat - Gezi Yazısı",
-                "Anlam Bilgisi - Kelime Türetme"
-            ],
-            "TYT Matematik": [
-                "Logaritma",
-                "Diziler - Aritmetik"
-            ],
-            "AYT Coğrafya": [
-                "Türkiye'nin Coğrafi Bölgeleri",
-                "Marmara Bölgesi"
-            ],
-            "AYT Tarih": [
-                "Lozan Barış Antlaşması",
-                "Atatürk İlkeleri"
-            ]
-        }
-    },
-    14: {
-        "week": 14,
-        "focus": "Toplumsal değişim ve Son konular",
-        "topics": {
-            "AYT Felsefe": [
-                "Toplumsal değişme ve gelişme",
-                "Toplum ve kültür",
-                "Toplumsal kurumlar"
-            ],
-            "TYT Türkçe": [
-                "Edebiyat - Röportaj",
-                "Dil Bilgisi - Edat ve Bağlaç",
-                "Anlam Bilgisi - Deyimler ve Atasözleri"
-            ],
-            "TYT Matematik": [
-                "Diziler - Geometrik",
-                "Polinomlar"
-            ],
-            "AYT Coğrafya": [
-                "Ege Bölgesi",
-                "Akdeniz Bölgesi",
-                "İç Anadolu Bölgesi"
-            ],
-            "AYT Tarih": [
-                "Atatürk Dönemi İç Politika",
-                "Atatürk Dönemi Dış Politika"
-            ]
-        }
-    }
-}
-
-# 🎮 GAMİFİCATİON SİSTEMİ - BAŞARILAR VE ROZET SİSTEMİ
-
-# 🏆 Rozet Sistemi - Başarı Rozetleri
-ACHIEVEMENT_BADGES = {
-    "topic_milestones": {
-        "first_topic": {
-            "name": "İlk Adım", 
-            "icon": "🚀", 
-            "description": "İlk konunu tamamladın! Yolculuğa başladın!",
-            "points": 25,
-            "requirement": 1
-        },
-        "topic_10": {
-            "name": "Başlangıç", 
-            "icon": "⭐", 
-            "description": "10 konu tamamlandı - İyi bir başlangıç!",
-            "points": 50,
-            "requirement": 10
-        },
-        "topic_25": {
-            "name": "Momentum", 
-            "icon": "🌟", 
-            "description": "25 konu tamamlandı - Momentum kazandın!",
-            "points": 100,
-            "requirement": 25
-        },
-        "topic_50": {
-            "name": "İlerliyor", 
-            "icon": "🌟", 
-            "description": "50 konu tamamlandı - Harika ilerleme!",
-            "points": 200,
-            "requirement": 50
-        },
-        "topic_100": {
-            "name": "Yüzlük Kulüp", 
-            "icon": "💯", 
-            "description": "100 konu tamamlandı - Sen bir şampiyonsun!",
-            "points": 500,
-            "requirement": 100
-        },
-        "topic_250": {
-            "name": "Konuların Efendisi", 
-            "icon": "👑", 
-            "description": "250 konu tamamlandı - Artık bir uzmanısın!",
-            "points": 1000,
-            "requirement": 250
-        },
-        "topic_500": {
-            "name": "Konu Makinesi", 
-            "icon": "🔥", 
-            "description": "500 konu tamamlandı - İnanılmaz bir başarı!",
-            "points": 2000,
-            "requirement": 500
-        }
-    },
-    "subject_expertise": {
-        "math_expert": {
-            "name": "Matematik Uzmanı", 
-            "icon": "📐", 
-            "description": "Matematik konularında uzmanlaştın!",
-            "points": 300,
-            "criteria": {"TYT Matematik": 30, "AYT Matematik": 20}
-        },
-        "turkish_expert": {
-            "name": "Türkçe Uzmanı", 
-            "icon": "📝", 
-            "description": "Türkçe konularında uzmanlaştın!",
-            "points": 250,
-            "criteria": {"TYT Türkçe": 40}
-        },
-        "science_expert": {
-            "name": "Fen Uzmanı", 
-            "icon": "🔬", 
-            "description": "Fen konularında uzmanlaştın!",
-            "points": 400,
-            "criteria": {"TYT Fizik": 15, "TYT Kimya": 15, "TYT Biyoloji": 15}
-        },
-        "social_expert": {
-            "name": "Sosyal Uzmanı", 
-            "icon": "🏛️", 
-            "description": "Sosyal bilimler uzmanısın!",
-            "points": 300,
-            "criteria": {"TYT Tarih": 20, "TYT Coğrafya": 15}
-        }
-    },
-    "streak_badges": {
-        "week_streak": {
-            "name": "Haftalık Kahraman", 
-            "icon": "⚡", 
-            "description": "1 hafta boyunca her gün çalıştın!",
-            "points": 150,
-            "requirement": 7
-        },
-        "month_streak": {
-            "name": "Aylık Şampiyon", 
-            "icon": "🏅", 
-            "description": "1 ay boyunca düzenli çalıştın!",
-            "points": 500,
-            "requirement": 30
-        },
-        "perfect_week": {
-            "name": "Mükemmel Hafta", 
-            "icon": "💎", 
-            "description": "Haftalık hedefini %100 tamamladın!",
-            "points": 200,
-            "requirement": 100
-        }
-    }
-}
-
-# ⭐ Puan Sistemi
-POINT_SYSTEM = {
-    "topic_completion": {
-        "easy": 10,      # Zorluk 1-2
-        "medium": 15,    # Zorluk 3
-        "hard": 20,      # Zorluk 4
-        "very_hard": 25  # Zorluk 5
-    },
-    "topic_review": 5,
-    "exam_analysis": 30,
-    "daily_goal_complete": 20,
-    "weekly_goal_complete": 100,
-    "streak_bonus": {
-        "daily": 5,
-        "weekly": 50
-    },
-    "milestone_bonus": {
-        "net_improvement": 10  # Net artışı başına bonus
-    }
-}
-
-# 🎯 Challenge Sistemi
-DAILY_CHALLENGES = [
-    {
-        "id": "daily_3_topics", 
-        "name": "Günlük Üçlü", 
-        "description": "Bugün 3 konu tamamla", 
-        "points": 30, 
-        "target": 3,
-        "type": "topic_count"
-    },
-    {
-        "id": "daily_math_focus", 
-        "name": "Matematik Odağı", 
-        "description": "Bugün sadece matematik çalış", 
-        "points": 25,
-        "type": "subject_focus",
-        "target_subject": "Matematik"
-    },
-    {
-        "id": "daily_review", 
-        "name": "Tekrar Günü", 
-        "description": "Bugün 5 konu tekrarı yap", 
-        "points": 20, 
-        "target": 5,
-        "type": "review_count"
-    },
-    {
-        "id": "daily_streak", 
-        "name": "Süreklilik", 
-        "description": "Günlük hedefini tamamla", 
-        "points": 15,
-        "type": "daily_goal"
-    }
-]
-
-WEEKLY_CHALLENGES = [
-    {
-        "id": "weekly_exam", 
-        "name": "Haftalık Deneme", 
-        "description": "Bu hafta 1 deneme çöz", 
-        "points": 100, 
-        "target": 1,
-        "type": "exam_count"
-    },
-    {
-        "id": "weekly_15_topics", 
-        "name": "Haftalık Maraton", 
-        "description": "Bu hafta 15 konu tamamla", 
-        "points": 150, 
-        "target": 15,
-        "type": "topic_count"
-    },
-    {
-        "id": "weekly_perfect", 
-        "name": "Mükemmel Hafta", 
-        "description": "Haftalık hedefini %100 tamamla", 
-        "points": 200,
-        "target": 100,
-        "type": "weekly_goal_percentage"
-    }
-]
-
-# 🏆 Seviye Sistemi
-LEVEL_SYSTEM = {
-    "level_thresholds": [0, 100, 300, 600, 1000, 1500, 2200, 3000, 4000, 5200, 6600, 8200, 10000, 12000, 14500, 17500, 21000, 25000, 30000, 36000],
-    "level_rewards": {
-        5: {"name": "YKS Yolcusu", "icon": "🎒", "reward": "Özel tema açıldı"},
-        10: {"name": "Kararlı Öğrenci", "icon": "💪", "reward": "İlerleme grafiği açıldı"},
-        15: {"name": "YKS Uzmanı", "icon": "🎓", "reward": "Detaylı analiz açıldı"},
-        20: {"name": "Çalışma Makinesi", "icon": "🤖", "reward": "Tüm özellikler açıldı"}
-    }
-}
-
-# 🎮 GAMİFİCATİON SİSTEMİ FONKSİYONLARI
 
 def init_gamification_system():
     """Kullanıcı için gamification verilerini başlat"""
@@ -4481,12 +1817,27 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
     if sub_category != 'Belirtilmemiş':
         # Alt kategori için özel CSS yükle
         st.markdown(get_custom_css(sub_category), unsafe_allow_html=True)
-        
+
         # Alt kategoriye özel başlık arka planı
         bg_style = BACKGROUND_STYLES.get(sub_category, BACKGROUND_STYLES["Varsayılan"])
+
+        if 'image' not in bg_style:
+            bg_style['image'] = 'https://images.unsplash.com/...28-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+        if 'gradient' not in bg_style:
+            bg_style['gradient'] = 'linear-gradient(135deg, #f7f7f7 0%, #ffffff 100%)'
         category_icon = bg_style.get('icon', '🎓')
-        
+
         st.markdown(f"""
+        <div class="main-header">
+            <h1>{category_icon} TYT & MSÜ ÖZEL PLANI</h1>
+            <p style="font-size: 1.2em; margin: 0;">🎯 <strong>{sub_category}</strong></p>
+            <p style="opacity: 0.9; margin: 0.5rem 0 0 0;...>Hafta {current_week}/{total_weeks} • Hedefine Doğru İlerle!</p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Varsayılan başlık
+        st.markdown(f"### 🎓 TYT & MSÜ ÖZEL PLANI")
+"""
         <div class="main-header">
             <h1>{category_icon} TYT & MSÜ ÖZEL PLANI</h1>
             <p style="font-size: 1.2em; margin: 0;">🎯 <strong>{sub_category}</strong></p>
@@ -5278,10 +2629,24 @@ WEEKLY_TOPIC_LIMITS = {
 }
 
 # Modern CSS
+if "BACKGROUND_STYLES" not in globals():
+    BACKGROUND_STYLES = {
+        "Sözel": "background: linear-gradient(135deg, #ffe6e6, #fff5f5);",
+        "Sayısal": "background: linear-gradient(135deg, #e6f0ff, #f5faff);",
+        "Eşit Ağırlık": "background: linear-gradient(135deg, #f0e6ff, #faf5ff);",
+        "Dil": "background: linear-gradient(135deg, #fff0e6, #fffaf5);",
+        "Varsayılan": "background: linear-gradient(135deg, #f7f7f7, #ffffff);"
+    }
+
 def get_custom_css(target_department):
     bg_style = BACKGROUND_STYLES.get(target_department, BACKGROUND_STYLES["Varsayılan"])
     
-    return f"""
+    
+    if 'image' not in bg_style:
+        bg_style['image'] = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+    if 'gradient' not in bg_style:
+        bg_style['gradient'] = 'linear-gradient(135deg, #f7f7f7 0%, #ffffff 100%)'
+return f"""
 <style>
     .main-header {{
         background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('{bg_style['image']}');
@@ -13657,10 +11022,6 @@ def get_user_data():
         return {}
 
 def main():
-    # 🚀 OPTİMİZE EDİLMİŞ: Cache sistemi başlat
-    if 'firebase_cache' not in st.session_state:
-        st.session_state.firebase_cache = FirebaseCache()
-    
     # Veri kalıcılığını garanti altına al
     ensure_data_persistence()
     
@@ -14312,7 +11673,12 @@ def main():
                 st.markdown("---")
                 
                 bg_style = BACKGROUND_STYLES.get(target_dept, BACKGROUND_STYLES["Varsayılan"])
-                st.markdown(f"### {bg_style['icon']} Hoş geldin, {user_data.get('name', 'Öğrenci')}!")
+                
+    if 'image' not in bg_style:
+        bg_style['image'] = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+    if 'gradient' not in bg_style:
+        bg_style['gradient'] = 'linear-gradient(135deg, #f7f7f7 0%, #ffffff 100%)'
+st.markdown(f"### {bg_style['icon']} Hoş geldin, {user_data.get('name', 'Öğrenci')}!")
                 st.markdown(f"**🎯 Hedef:** {user_data.get('target_department', 'Belirlenmedi')}")
                 st.markdown(f"**📊 Alan:** {user_data.get('field', 'Belirlenmedi')}")
                 st.markdown(f"**🏫 Sınıf:** {user_data.get('grade', 'Belirlenmedi')}")
@@ -14416,7 +11782,12 @@ def main():
                 days_to_yks = week_info['days_to_yks']
                 
                 bg_style = BACKGROUND_STYLES.get(target_dept, BACKGROUND_STYLES["Varsayılan"])
-                st.markdown(f'<div class="main-header"><h1>{bg_style["icon"]} {user_data["target_department"]} Yolculuğunuz</h1><p>Hedefinize doğru emin adımlarla ilerleyin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
+                
+    if 'image' not in bg_style:
+        bg_style['image'] = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+    if 'gradient' not in bg_style:
+        bg_style['gradient'] = 'linear-gradient(135deg, #f7f7f7 0%, #ffffff 100%)'
+st.markdown(f'<div class="main-header"><h1>{bg_style["icon"]} {user_data["target_department"]} Yolculuğunuz</h1><p>Hedefinize doğru emin adımlarla ilerleyin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
                 
                 # İlerleme özeti - kartlar (motivasyondan önce)
                 overall_progress = calculate_subject_progress(user_data)
@@ -18640,7 +16011,12 @@ def run_psychology_page():
     target_department = user_data.get('target_department', 'Varsayılan')
     bg_style = BACKGROUND_STYLES.get(target_department, BACKGROUND_STYLES["Varsayılan"])
     
-    st.markdown(f'''
+    
+    if 'image' not in bg_style:
+        bg_style['image'] = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+    if 'gradient' not in bg_style:
+        bg_style['gradient'] = 'linear-gradient(135deg, #f7f7f7 0%, #ffffff 100%)'
+st.markdown(f'''
     <div class="main-header psychology-header" style="background-image: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('{bg_style["image"]}'); background-size: cover; background-position: center; background-attachment: fixed;">
         <h1>🧭 GENEL PSİKOLOJİK ANALİZ SİSTEMİ</h1>
         <p>"Kendini Tanı & Doğru Çalış" Sistemi</p>
