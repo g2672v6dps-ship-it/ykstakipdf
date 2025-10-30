@@ -1820,7 +1820,12 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
         
         # Alt kategoriye özel başlık arka planı
         bg_style = BACKGROUND_STYLES.get(sub_category, BACKGROUND_STYLES["Varsayılan"])
-        category_icon = bg_style.get('icon', '🎓')
+        
+    if 'image' not in bg_style:
+        bg_style['image'] = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+    if 'gradient' not in bg_style:
+        bg_style['gradient'] = 'linear-gradient(135deg, #f7f7f7 0%, #ffffff 100%)'
+category_icon = bg_style.get('icon', '🎓')
         
         st.markdown(f"""
         <div class="main-header">
@@ -2626,7 +2631,12 @@ if "BACKGROUND_STYLES" not in globals():
 def get_custom_css(target_department):
     bg_style = BACKGROUND_STYLES.get(target_department, BACKGROUND_STYLES["Varsayılan"])
     
-    return f"""
+    
+    if 'image' not in bg_style:
+        bg_style['image'] = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+    if 'gradient' not in bg_style:
+        bg_style['gradient'] = 'linear-gradient(135deg, #f7f7f7 0%, #ffffff 100%)'
+return f"""
 <style>
     .main-header {{
         background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('{bg_style['image']}');
@@ -11653,7 +11663,12 @@ def main():
                 st.markdown("---")
                 
                 bg_style = BACKGROUND_STYLES.get(target_dept, BACKGROUND_STYLES["Varsayılan"])
-                st.markdown(f"### {bg_style['icon']} Hoş geldin, {user_data.get('name', 'Öğrenci')}!")
+                
+    if 'image' not in bg_style:
+        bg_style['image'] = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+    if 'gradient' not in bg_style:
+        bg_style['gradient'] = 'linear-gradient(135deg, #f7f7f7 0%, #ffffff 100%)'
+st.markdown(f"### {bg_style['icon']} Hoş geldin, {user_data.get('name', 'Öğrenci')}!")
                 st.markdown(f"**🎯 Hedef:** {user_data.get('target_department', 'Belirlenmedi')}")
                 st.markdown(f"**📊 Alan:** {user_data.get('field', 'Belirlenmedi')}")
                 st.markdown(f"**🏫 Sınıf:** {user_data.get('grade', 'Belirlenmedi')}")
@@ -11757,7 +11772,12 @@ def main():
                 days_to_yks = week_info['days_to_yks']
                 
                 bg_style = BACKGROUND_STYLES.get(target_dept, BACKGROUND_STYLES["Varsayılan"])
-                st.markdown(f'<div class="main-header"><h1>{bg_style["icon"]} {user_data["target_department"]} Yolculuğunuz</h1><p>Hedefinize doğru emin adımlarla ilerleyin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
+                
+    if 'image' not in bg_style:
+        bg_style['image'] = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+    if 'gradient' not in bg_style:
+        bg_style['gradient'] = 'linear-gradient(135deg, #f7f7f7 0%, #ffffff 100%)'
+st.markdown(f'<div class="main-header"><h1>{bg_style["icon"]} {user_data["target_department"]} Yolculuğunuz</h1><p>Hedefinize doğru emin adımlarla ilerleyin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
                 
                 # İlerleme özeti - kartlar (motivasyondan önce)
                 overall_progress = calculate_subject_progress(user_data)
@@ -15981,7 +16001,12 @@ def run_psychology_page():
     target_department = user_data.get('target_department', 'Varsayılan')
     bg_style = BACKGROUND_STYLES.get(target_department, BACKGROUND_STYLES["Varsayılan"])
     
-    st.markdown(f'''
+    
+    if 'image' not in bg_style:
+        bg_style['image'] = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+    if 'gradient' not in bg_style:
+        bg_style['gradient'] = 'linear-gradient(135deg, #f7f7f7 0%, #ffffff 100%)'
+st.markdown(f'''
     <div class="main-header psychology-header" style="background-image: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('{bg_style["image"]}'); background-size: cover; background-position: center; background-attachment: fixed;">
         <h1>🧭 GENEL PSİKOLOJİK ANALİZ SİSTEMİ</h1>
         <p>"Kendini Tanı & Doğru Çalış" Sistemi</p>
