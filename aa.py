@@ -61,9 +61,40 @@ except ImportError:
     go = MockPlotly()
     # st.plotly_chart yerine st.warning kullanılacak
 
-# Güvenli plotly_chart fonksiyonu
-def safe_plotly_chart(fig, **kwargs):
-    """Plotly yoksa uyarı gösterir, varsa grafiği çizer"""
+# === GRAFİK CACHE SİSTEMİ ===
+# Plotly grafikleri için cache sistemi
+class PlotlyCache:
+    def __init__(self):
+        self.cache = {}
+        self.cache_duration = 300  # 5 dakika cache
+    
+    def get_chart(self, cache_key, generator_func):
+        """Cache'li grafik oluşturma"""
+        current_time = time.time()
+        
+        if (cache_key in self.cache and 
+            current_time - self.cache[cache_key]['time'] < self.cache_duration):
+            return self.cache[cache_key]['data']
+        
+        # Grafik oluştur ve cache'le
+        chart_data = generator_func()
+        self.cache[cache_key] = {
+            'data': chart_data,
+            'time': current_time
+        }
+        return chart_data
+
+# Global plotly cache instance
+plotly_cache = PlotlyCache()
+
+# Güvenli plotly_chart fonksiyonu - CACHE'Lİ
+def safe_plotly_chart(fig, cache_key=None, **kwargs):
+    """Cache'li güvenli plotly chart"""
+    if cache_key and PLOTLY_AVAILABLE:
+        chart_data = plotly_cache.get_chart(cache_key, lambda: fig)
+        if chart_data:
+            fig = chart_data
+    
     if PLOTLY_AVAILABLE:
         st.plotly_chart(fig, **kwargs)
     else:
@@ -902,146 +933,118 @@ FIELDNAMES = ['username', 'password', 'name', 'surname', 'grade', 'field', 'targ
 # 🚀 OPTİMİZE EDİLMİŞ ARKA PLAN SİSTEMİ (Download Azaltma)
 BACKGROUND_STYLES = {
     "Tıp": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)",
         "icon": "🩺"
     },
     "Mühendislik": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)",
         "icon": "⚙️"
     },
     "Hukuk": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #556270 0%, #4ecdc4 100%)",
         "icon": "⚖️"
     },
     "Öğretmenlik": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #ffd89b 0%, #19547b 100%)",
         "icon": "👨‍🏫"
     },
     "İktisat": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)",
         "icon": "📈"
     },
     "Mimarlık": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #5614b0 0%, #dbd65c 100%)",
         "icon": "🏛️"
     },
     "Psikoloji": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #654ea3 0%, #eaafc8 100%)",
         "icon": "🧠"
     },
     "Diş Hekimliği": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #ff5e62 0%, #ff9966 100%)",
         "icon": "🦷"
     },
     # 🎖️ MSÜ (Askeri) Alt Kategorileri - Resim yok, gradient var
     "MSÜ - Kara Astsubay Meslek Yüksekokulu": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #2d5016 0%, #4a7c59 50%, #5e8b3a 100%)",
         "icon": "🎖️"
     },
     "MSÜ - Deniz Astsubay Yüksekokulu": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #0c4a6e 0%, #0ea5e9 50%, #075985 100%)",
         "icon": "⚓"
     },
     "MSÜ - Hava Astsubay Yüksekokulu": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #1e40af 0%, #60a5fa 50%, #2563eb 100%)",
         "icon": "✈️"
     },
     
     # 🎓 TYT (Meslek Yüksekokulu) Alt Kategorileri - Resim yok, gradient var
     "TYT - Bilgisayar Programcılığı": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #1e1b4b 0%, #5b21b6 50%, #7c3aed 100%)",
         "icon": "💻"
     },
     "TYT - Anestezi Teknisyenliği": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%)",
         "icon": "🏥"
     },
     "TYT - Acil Tıp Teknisyenliği (ATT)": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #991b1b 0%, #dc2626 50%, #ef4444 100%)",
         "icon": "🚑"
     },
     "TYT - Çocuk Gelişimi": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #fbbf24 100%)",
         "icon": "👶"
     },
     "TYT - Ebe": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #be185d 0%, #ec4899 50%, #f9a8d4 100%)",
         "icon": "🤱"
     },
     "TYT - Hemato terapilişi": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #fecaca 100%)",
         "icon": "🩸"
     },
     "TYT - Tıbbi Laboratuvar Teknikleri": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #065f46 0%, #059669 50%, #a7f3d0 100%)",
         "icon": "🔬"
     },
     "TYT - Tıbbi Görüntüleme Teknikleri": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #374151 0%, #6b7280 50%, #d1d5db 100%)",
         "icon": "📱"
     },
     "TYT - Radyoterapi": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #c4b5fd 100%)",
         "icon": "⚡"
     },
     "TYT - Diyaliz": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #99f6e4 100%)",
         "icon": "💧"
     },
     "TYT - Diş Protés Teknisyenliği": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #0369a1 0%, #0ea5e9 50%, #bae6fd 100%)",
         "icon": "🦷"
     },
     "TYT - Otomotiv Teknolojisi": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #374151 0%, #4b5563 50%, #9ca3af 100%)",
         "icon": "🚗"
     },
     "TYT - Elektrik-Elektronik Teknolojisi": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
         "icon": "⚡"
     },
     "TYT - Makine Teknolojisi": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #1f2937 0%, #374151 50%, #6b7280 100%)",
         "icon": "⚙️"
     },
     "TYT - İnşaat Teknolojisi": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #a16207 0%, #d97706 50%, #fbbf24 100%)",
         "icon": "🏗️"
     },
     "TYT - Diğer Meslek Yüksekokulu": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #a5b4fc 100%)",
         "icon": "🎓"
     },
     
     "Varsayılan": {
-        "image": None,  # Cache'den alınacak - Download azalması
         "gradient": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         "icon": "🎯"
     }
@@ -10112,7 +10115,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                 <div style="text-align: center; margin-top: 25px; padding: 20px; background: rgba(255, 215, 0, 0.08); border-radius: 15px; border: 2px solid rgba(255, 215, 0, 0.3);">
                     <h4 style="color: #ffd700; margin-bottom: 20px; font-size: 1.4rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">📷 Günün Fotoğrafı</h4>
                     <div class="cinema-photo-container" style="display: flex; justify-content: center; align-items: center; height: 450px; width: 100%; overflow: hidden; border-radius: 15px; background: rgba(0,0,0,0.3); margin: 20px 0; padding: 10px; box-sizing: border-box; border: 2px solid #ffd700;">
-                        <img src="data:image/jpeg;base64,{current_day['photo_data']}" 
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f0f0f0'/%3E%3Ctext x='100' y='120' font-size='24' text-anchor='middle' fill='%23666'%3E📸 Fotoğraf%3C/text%3E%3C/svg%3E" 
                              style="max-width: 100%; max-height: 420px; width: auto; height: auto; object-fit: contain; border-radius: 12px; border: 3px solid #ffd700; box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4); transition: all 0.3s ease;"
                              alt="Günün Fotoğrafı"
                              onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 12px 35px rgba(255, 215, 0, 0.6)';"
@@ -15973,7 +15976,7 @@ def main():
                                         const audio = new Audio();
                                         
                                         // Çok basit tik sesi - WAV formatında
-                                        audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgbBSuB0fPNfTAEInjEAAAAAA=';
+                                        audio.src = '';
                                         
                                         // Ses ayarları
                                         audio.volume = 0.3;  // Yumuşak ses
