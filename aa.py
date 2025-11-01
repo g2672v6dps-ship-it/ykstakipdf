@@ -720,7 +720,7 @@ if FIREBASE_AVAILABLE:
         
         db_ref = db.reference('users')
         firebase_connected = True
-        st.success("")
+   
         
     except Exception as e:
         st.warning(f"⚠️ Firebase bağlantısı kurulamadı: {e}")
