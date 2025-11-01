@@ -7228,7 +7228,8 @@ def yks_takip_page(user_data):
         show_progress_analytics(user_data)
     
     with tab4:
-        show_scientific_life_coaching(user_data)
+        st.info("📊 Performans analizi ve ileri seviye stratejiler için bu sekme geliştirilmektedir.")
+        st.write("Detaylı analizler yakında eklenecektir!")
 
 def has_completed_yks_survey(user_data):
     """Kullanıcının YKS anketini tamamlayıp tamamlamadığını kontrol eder"""
@@ -12124,7 +12125,7 @@ def show_breathing_exercise():
             💡 İçerik her 5 saniyede değişir
         </div>
         <div style="font-size: 14px; opacity: 0.9; margin-top: 15px;">
-            🍅 Pomodoro timer duraklatıldı • Kaldığı yerden devam edecek
+            🧘‍♂️ Nefes molası aktif • Timer durduruldu
         </div>
     </div>
     
@@ -17932,7 +17933,7 @@ def show_breathing_exercise():
             {st.session_state.current_motivation_content}
         </div>
         <div style="font-size: 14px; opacity: 0.9; margin-top: 15px;">
-            🍅 Pomodoro timer duraklatıldı • Kaldığı yerden devam edecek
+            🧘‍♂️ Nefes molası aktif • Timer durduruldu
         </div>
     </div>
     
