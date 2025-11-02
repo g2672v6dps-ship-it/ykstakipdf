@@ -15241,7 +15241,7 @@ def main():
                 
                 # İlerleme özeti kartları yukarda taşındı - bu bölümü kaldır
                 
-st.subheader("🌸 Çiçek Bahçesi - İlerleme Takibi")
+                st.subheader("🌸 Çiçek Bahçesi - İlerleme Takibi")
                 
                 # Öğrencinin alanına göre dersler
                 user_field = user_data.get('field', 'Belirlenmedi')
