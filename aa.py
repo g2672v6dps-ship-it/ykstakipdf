@@ -15391,14 +15391,18 @@ def main():
                             
                             flower_state = get_flower_state(percent, days_since)
                             
-                            # Warning HTML'i hazırla
-                            warning_html = ''
-                            if flower_state['warning']:
-                                warning_html = f'<div style="font-size: 12px; color: #fff; margin-top: 5px;">{flower_state["warning"]}</div>'
-                            
                             with cols[i % 3]:
-                                # Çiçek kartı
-                                st.markdown(f"""
+                                # Warning kısmını oluştur
+                                warning_section = ""
+                                if flower_state.get('warning'):
+                                    warning_section = f"""
+                                        <div style="font-size: 12px; color: #fff; margin-top: 5px;">
+                                            {flower_state['warning']}
+                                        </div>
+                                    """
+                                
+                                # Tüm HTML'i birleştir
+                                card_html = f"""
                                 <div style="background: {flower_state['bg']}; 
                                            padding: 20px; border-radius: 15px; 
                                            text-align: center; 
@@ -15424,10 +15428,12 @@ def main():
                                         <div style="font-size: 13px; color: white;">
                                             📊 {completed}/{total} konu tamamlandı
                                         </div>
-                                        {warning_html}
+                                        {warning_section}
                                     </div>
                                 </div>
-                                """, unsafe_allow_html=True)
+                                """
+                                
+                                st.markdown(card_html, unsafe_allow_html=True)
                     
                     # Bahçe bakım önerileri
                     st.markdown("---")
