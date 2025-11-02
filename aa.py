@@ -15377,7 +15377,6 @@ def main():
                     for i, subject in enumerate(display_subjects):
                         if subject in progress_data:
                             percent = progress_data[subject]["percent"]
-                            subject_name_short = subject.replace("TYT ", "").replace("AYT ", "")
                             completed = progress_data[subject]['completed']
                             total = progress_data[subject]['total']
                             
@@ -15391,6 +15390,11 @@ def main():
                                     pass
                             
                             flower_state = get_flower_state(percent, days_since)
+                            
+                            # Warning HTML'i hazırla
+                            warning_html = ''
+                            if flower_state['warning']:
+                                warning_html = f'<div style="font-size: 12px; color: #fff; margin-top: 5px;">{flower_state["warning"]}</div>'
                             
                             with cols[i % 3]:
                                 # Çiçek kartı
@@ -15406,7 +15410,7 @@ def main():
                                         {flower_state['emoji']}
                                     </div>
                                     <div style="font-size: 18px; color: white; font-weight: bold; margin: 10px 0;">
-                                        {subject_icons.get(subject, '📖')} {subject_name_short}
+                                        {subject_icons.get(subject, '📖')} {subject}
                                     </div>
                                     <div style="font-size: 32px; color: white; font-weight: bold; 
                                                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
@@ -15420,7 +15424,7 @@ def main():
                                         <div style="font-size: 13px; color: white;">
                                             📊 {completed}/{total} konu tamamlandı
                                         </div>
-                                        {f'<div style="font-size: 12px; color: #fff; margin-top: 5px;">{flower_state["warning"]}</div>' if flower_state['warning'] else ''}
+                                        {warning_html}
                                     </div>
                                 </div>
                                 """, unsafe_allow_html=True)
