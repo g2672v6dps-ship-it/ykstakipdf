@@ -3766,15 +3766,23 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
         topic_progress_str = user_data.get('topic_progress', '{}')
         topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
     
-    # TÜM HAFTALARDAKİ KALAN KONULARI TOPLA (bu haftadan itibaren)
+    # 🎯 ADIM 1: O HAFTANIN STRATEJİSİNDEKİ DERSLERİ TESPIT ET
+    current_week_plan = EQUAL_WEIGHT_WEEKLY_PLAN.get(week_number, {})
+    current_week_subjects = set(current_week_plan.get('topics', {}).keys())
+    
+    # 🔥 ADIM 2: SADECE BU DERSLERİN KALAN KONULARINI TOPLA (TÜM HAFTALARDAN)
     all_remaining_topics = []
     
-    for wk in range(week_number, 17):  # Bu haftadan 16. haftaya kadar
+    for wk in range(1, 17):  # Tüm 16 haftayı tara
         week_plan = EQUAL_WEIGHT_WEEKLY_PLAN.get(wk, {})
         planned_topics = week_plan.get('topics', {})
         
-        # Konuları birleştir
         for subject, topic_list in planned_topics.items():
+            # ✅ SADECE BU HAFTANIN STRATEJİSİNDEKİ DERSLERİ AL
+            # Örnek: Hafta 1 → Sadece TYT dersleri, AYT dersleri dahil değil
+            if subject not in current_week_subjects:
+                continue  # Bu ders bu haftanın stratejisinde yok, atla
+            
             for topic in topic_list:
                 # Tamamlanmış konuları ATLA
                 if topic in completed_topic_names:
@@ -3844,14 +3852,22 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics, u
         topic_progress_str = user_data.get('topic_progress', '{}')
         topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
     
-    # TÜM HAFTALARDAKİ KALAN KONULARI TOPLA
+    # 🎯 ADIM 1: O HAFTANIN STRATEJİSİNDEKİ DERSLERİ TESPIT ET
+    current_week_plan = NUMERICAL_WEEKLY_PLAN.get(week_number, {})
+    current_week_subjects = set(current_week_plan.get('topics', {}).keys())
+    
+    # 🔥 ADIM 2: SADECE BU DERSLERİN KALAN KONULARINI TOPLA (TÜM HAFTALARDAN)
     all_remaining_topics = []
     
-    for wk in range(week_number, 19):  # Bu haftadan 18. haftaya kadar
+    for wk in range(1, 19):  # Tüm 18 haftayı tara
         week_plan = NUMERICAL_WEEKLY_PLAN.get(wk, {})
         planned_topics = week_plan.get('topics', {})
         
         for subject, topic_list in planned_topics.items():
+            # ✅ SADECE BU HAFTANIN STRATEJİSİNDEKİ DERSLERİ AL
+            if subject not in current_week_subjects:
+                continue  # Bu ders bu haftanın stratejisinde yok, atla
+            
             for topic in topic_list:
                 if topic in completed_topic_names:
                     continue
@@ -15225,50 +15241,40 @@ def main():
                 
                 # İlerleme özeti kartları yukarda taşındı - bu bölümü kaldır
                 
-                st.subheader("📈 Hız Göstergesi İlerleme")
+st.subheader("🌸 Çiçek Bahçesi - İlerleme Takibi")
                 
                 # Öğrencinin alanına göre dersler
                 user_field = user_data.get('field', 'Belirlenmedi')
                 important_subjects = []
                 
                 if user_field == "Sayısal":
-                    important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "TYT Tarih (isteğe bağlı)", "TYT Coğrafya (isteğe bağlı)", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
+                    important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji", "TYT Din Kültürü", "TYT Felsefe", "AYT Matematik", "AYT Fizik", "AYT Kimya", "AYT Biyoloji"]
                 elif user_field == "Eşit Ağırlık":
-                    important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Tarih", "TYT Coğrafya", "TYT Din Kültürü", "TYT Felsefe", "TYT Fizik (isteğe bağlı)", "TYT Kimya (isteğe bağlı)", "TYT Biyoloji (isteğe bağlı)", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
+                    important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Tarih", "TYT Coğrafya", "TYT Din Kültürü", "TYT Felsefe", "AYT Matematik", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
                 elif user_field == "Sözel":
                     important_subjects = ["TYT Türkçe", "TYT Tarih", "TYT Coğrafya", "TYT Felsefe", "AYT Edebiyat", "AYT Tarih", "AYT Coğrafya"]
                 else:
-                    # Alan belirlenmemişse genel dersler göster
                     important_subjects = ["TYT Türkçe", "TYT Matematik", "TYT Geometri", "TYT Fizik", "TYT Kimya", "TYT Biyoloji"]
-                    st.info("⚠️ Profilinizden alanınızı seçerek size özel hız göstergelerini görebilirsiniz!")
+                    st.info("⚠️ Profilinizden alanınızı seçerek Çiçek Bahçenizi özelleştirebilirsiniz!")
                 
                 # Mevcut progress_data'da bulunan dersleri filtrele
                 display_subjects = [s for s in important_subjects if s in progress_data and progress_data[s]['total'] > 0]
                 
                 # Eğer hiç ders bulunamazsa bilgilendirme göster
                 if not display_subjects:
-                    st.warning("📊 Henüz konu takip veriniz yok. Konu Takip sayfasından çalışma verilerinizi girin!")
-                    st.info(f"🎯 **{user_field} alanı** için takip edilecek dersler: {', '.join(important_subjects)}")
+                    st.warning("🌱 Henüz çiçek bahçeniz boş! Konu Takip sayfasından çalışma verilerinizi girin ve çiçeklerinizi yetiştirmeye başlayın!")
+                    st.info(f"🎯 **{user_field} alanı** için yetiştireceğiniz çiçekler: {', '.join(important_subjects)}")
                     
-                    # Konu takip sayfasına yönlendirme
                     st.markdown("""
-                    **🚀 Hızlı Başlangıç:**
+                    **🌺 Çiçek Bahçesi Nasıl Çalışır?**
                     1. 📚 Sol menüden **"Konu Takip"** sayfasına gidin
                     2. 🎯 Bir ders seçin ve konu net skorlarınızı girin
-                    3. 📈 15+ net aldığınız konular hız göstergesinde görünecek
+                    3. 🌸 Çalıştıkça çiçekleriniz büyüyüp renklenecek
+                    4. 🥀 Uzun süre tekrar etmezseniz çiçekler solmaya başlar
                     """)
-
-                subject_icons = {
-                    "TYT Türkçe": "📚", "TYT Matematik": "🔢", "TYT Geometri": "📐",
-                    "TYT Tarih": "🏛️", "TYT Coğrafya": "🌍", "TYT Felsefe": "💭", "TYT Din Kültürü": "🕌",
-                    "TYT Fizik": "⚡", "TYT Kimya": "🧪", "TYT Biyoloji": "🧬",
-                    "AYT Matematik": "🧮", "AYT Fizik": "⚛️", "AYT Kimya": "🔬", "AYT Biyoloji": "🔭",
-                    "AYT Edebiyat": "📜", "AYT Tarih": "📖", "AYT Coğrafya": "🗺️"
-                }
-                
-                if display_subjects:
+                else:
                     # Alan bazında ilerleme özeti
-                    st.markdown(f"**🎯 {user_field} Alanı İlerleme Özeti:**")
+                    st.markdown(f"**🎯 {user_field} Alanı - Bahçe Durumu:**")
                     
                     total_all_subjects = sum(progress_data[s]['total'] for s in display_subjects)
                     completed_all_subjects = sum(progress_data[s]['completed'] for s in display_subjects)
@@ -15276,19 +15282,98 @@ def main():
                     
                     col_summary1, col_summary2, col_summary3, col_summary4 = st.columns(4)
                     with col_summary1:
-                        st.metric("📚 Toplam Konu", total_all_subjects)
+                        st.metric("🌱 Toplam Çiçek", len(display_subjects))
                     with col_summary2:
-                        st.metric("✅ Tamamlanan", completed_all_subjects)
+                        blooming = sum(1 for s in display_subjects if progress_data[s]['percent'] >= 70)
+                        st.metric("🌸 Çiçek Açan", blooming)
                     with col_summary3:
-                        st.metric("🏁 Ortalama", f"%{avg_percent:.1f}")
+                        st.metric("🌿 Bahçe Sağlığı", f"%{avg_percent:.0f}")
                     with col_summary4:
-                        # Net 15+ kriteriyle ilgili bilgi
-                        st.info("🎯 15+ net = Tamamlandı")
+                        wilted = sum(1 for s in display_subjects if progress_data[s]['percent'] < 30)
+                        st.metric("🥀 Solmuş", wilted)
                     
                     st.markdown("---")
-                    # 🚗 Gerçek Araba Hız Göstergesi - Plotly ile
-                    cols = st.columns(3)  # Sabit 3 sütun
                     
+                    # Çiçek emoji ve renk mapping
+                    def get_flower_state(percent, days_since_study=0):
+                        """Çiçek durumunu belirle"""
+                        # İlerleme bazlı base state
+                        if percent >= 85:
+                            base_emoji = "🌸"
+                            base_color = "#2ecc71"
+                            base_status = "Canlı"
+                            base_bg = "linear-gradient(135deg, #2ecc71, #27ae60)"
+                        elif percent >= 70:
+                            base_emoji = "🌺"
+                            base_color = "#3498db"
+                            base_status = "İyi"
+                            base_bg = "linear-gradient(135deg, #3498db, #2980b9)"
+                        elif percent >= 50:
+                            base_emoji = "🏵️"
+                            base_color = "#f39c12"
+                            base_status = "Orta"
+                            base_bg = "linear-gradient(135deg, #f39c12, #e67e22)"
+                        elif percent >= 30:
+                            base_emoji = "🥀"
+                            base_color = "#e67e22"
+                            base_status = "Solmaya Başladı"
+                            base_bg = "linear-gradient(135deg, #e67e22, #d35400)"
+                        else:
+                            base_emoji = "🍂"
+                            base_color = "#e74c3c"
+                            base_status = "Solmuş"
+                            base_bg = "linear-gradient(135deg, #e74c3c, #c0392b)"
+                        
+                        # Tekrar zamanı geldi mi? (Spaced repetition etkisi)
+                        if days_since_study >= 7:
+                            # 1 haftadan fazla çalışılmamış - solmaya başlasın
+                            warning = f"⏰ {days_since_study} gün önce çalışıldı"
+                            if percent >= 70:
+                                base_emoji = "🥀"
+                                base_status = "Tekrar Gerek"
+                                base_bg = "linear-gradient(135deg, #e67e22, #d35400)"
+                        elif days_since_study >= 3:
+                            warning = f"⚠️ {days_since_study} gün önce çalışıldı"
+                        else:
+                            warning = ""
+                        
+                        return {
+                            'emoji': base_emoji,
+                            'color': base_color,
+                            'status': base_status,
+                            'bg': base_bg,
+                            'warning': warning
+                        }
+                    
+                    subject_icons = {
+                        "TYT Türkçe": "📚", "TYT Matematik": "🔢", "TYT Geometri": "📐",
+                        "TYT Tarih": "🏛️", "TYT Coğrafya": "🌍", "TYT Felsefe": "💭", "TYT Din Kültürü": "🕌",
+                        "TYT Fizik": "⚡", "TYT Kimya": "🧪", "TYT Biyoloji": "🧬",
+                        "AYT Matematik": "🧮", "AYT Fizik": "⚛️", "AYT Kimya": "🔬", "AYT Biyoloji": "🔭",
+                        "AYT Edebiyat": "📜", "AYT Tarih": "📖", "AYT Coğrafya": "🗺️"
+                    }
+                    
+                    # Son çalışma tarihlerini al
+                    from datetime import datetime
+                    topic_progress_str = user_data.get('topic_progress', '{}')
+                    try:
+                        topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str
+                    except:
+                        topic_progress = {}
+                    
+                    # Her ders için son çalışma tarihini bul
+                    subject_last_study = {}
+                    for topic_key, topic_value in topic_progress.items():
+                        for subject in display_subjects:
+                            subject_clean = subject.replace("TYT ", "").replace("AYT ", "")
+                            if subject_clean.lower() in topic_key.lower():
+                                if isinstance(topic_value, dict) and 'last_updated' in topic_value:
+                                    last_date = topic_value['last_updated']
+                                    if subject not in subject_last_study or last_date > subject_last_study[subject]:
+                                        subject_last_study[subject] = last_date
+                    
+                    # 🌸 ÇİÇEK KARTLARI
+                    cols = st.columns(3)
                     for i, subject in enumerate(display_subjects):
                         if subject in progress_data:
                             percent = progress_data[subject]["percent"]
@@ -15296,214 +15381,78 @@ def main():
                             completed = progress_data[subject]['completed']
                             total = progress_data[subject]['total']
                             
-                            # Renk belirleme - Araba teması
-                            if percent >= 80:
-                                color = "#00ff00"  # Yeşil bölge
-                                status = "🚀 Turbo"
-                                gauge_color = "green"
-                            elif percent >= 60:
-                                color = "#ffff00"  # Sarı bölge  
-                                status = "😊 Normal"
-                                gauge_color = "yellow"
-                            elif percent >= 40:
-                                color = "#ff8800"  # Turuncu bölge
-                                status = "😐 Yavaş"
-                                gauge_color = "orange"
-                            else:
-                                color = "#ff0000"  # Kırmızı bölge
-                                status = "🐌 Dur"
-                                gauge_color = "red"
+                            # Son çalışma tarihinden bu yana geçen gün
+                            days_since = 0
+                            if subject in subject_last_study:
+                                try:
+                                    last_date = datetime.fromisoformat(subject_last_study[subject])
+                                    days_since = (datetime.now() - last_date).days
+                                except:
+                                    pass
                             
-                            # İbre rengi dinamik belirleme
-                            if percent >= 80:
-                                needle_color = "#00ff00"  # Yeşil ibre
-                                status_color = "#2ecc71"
-                                glow_color = "rgba(46, 204, 113, 0.8)"
-                            elif percent >= 60:
-                                needle_color = "#ffd700"  # Altın sarısı ibre
-                                status_color = "#f39c12"
-                                glow_color = "rgba(243, 156, 18, 0.8)"
-                            else:
-                                needle_color = "#ff3838"  # Parlak kırmızı ibre
-                                status_color = "#e74c3c"
-                                glow_color = "rgba(231, 76, 60, 0.8)"
-
+                            flower_state = get_flower_state(percent, days_since)
+                            
                             with cols[i % 3]:
-                                # 🚗 GERÇEK ARABA HIZ GÖSTERGESİ - İbreli Tasarım
-                                import numpy as np
-                                
-                                fig = go.Figure()
-                                
-                                # 1. Speedometer Arka Plan (Yarım Daire)
-                                angles = np.linspace(0, 180, 100)
-                                x_bg = 0.5 + 0.45 * np.cos(np.radians(angles))
-                                y_bg = 0.5 + 0.45 * np.sin(np.radians(angles))
-                                
-                                # Ana speedometer dairesi
-                                fig.add_trace(go.Scatter(
-                                    x=x_bg, y=y_bg,
-                                    mode='lines',
-                                    line=dict(color='#34495e', width=8),
-                                    fill='tonexty',
-                                    fillcolor='rgba(52, 73, 94, 0.1)',
-                                    showlegend=False,
-                                    hoverinfo='skip'
-                                ))
-                                
-                                # 2. Renkli Bölgeler (Performans Alanları)
-                                zones = [
-                                    {'range': [0, 40], 'color': 'rgba(231, 76, 60, 0.6)', 'label': 'Yavaş'},
-                                    {'range': [40, 70], 'color': 'rgba(243, 156, 18, 0.6)', 'label': 'Orta'},
-                                    {'range': [70, 100], 'color': 'rgba(46, 204, 113, 0.6)', 'label': 'Hızlı'}
-                                ]
-                                
-                                for zone in zones:
-                                    start_angle = 180 - (zone['range'][1] * 1.8)
-                                    end_angle = 180 - (zone['range'][0] * 1.8)
-                                    zone_angles = np.linspace(start_angle, end_angle, 30)
-                                    
-                                    x_zone = 0.5 + 0.4 * np.cos(np.radians(zone_angles))
-                                    y_zone = 0.5 + 0.4 * np.sin(np.radians(zone_angles))
-                                    
-                                    fig.add_trace(go.Scatter(
-                                        x=x_zone, y=y_zone,
-                                        mode='lines',
-                                        line=dict(color=zone['color'], width=15),
-                                        showlegend=False,
-                                        hoverinfo='skip'
-                                    ))
-                                
-                                # 3. Tick Marks (Ölçek Çizgileri)
-                                for i_tick in range(0, 101, 10):
-                                    angle = 180 - (i_tick * 1.8)
-                                    
-                                    # Dış tick
-                                    x_outer = 0.5 + 0.42 * np.cos(np.radians(angle))
-                                    y_outer = 0.5 + 0.42 * np.sin(np.radians(angle))
-                                    
-                                    # İç tick
-                                    x_inner = 0.5 + 0.38 * np.cos(np.radians(angle))
-                                    y_inner = 0.5 + 0.38 * np.sin(np.radians(angle))
-                                    
-                                    fig.add_trace(go.Scatter(
-                                        x=[x_inner, x_outer], y=[y_inner, y_outer],
-                                        mode='lines',
-                                        line=dict(color='white', width=3),
-                                        showlegend=False,
-                                        hoverinfo='skip'
-                                    ))
-                                    
-                                    # Sayılar
-                                    x_num = 0.5 + 0.32 * np.cos(np.radians(angle))
-                                    y_num = 0.5 + 0.32 * np.sin(np.radians(angle))
-                                    
-                                    fig.add_annotation(
-                                        x=x_num, y=y_num,
-                                        text=str(i_tick),
-                                        showarrow=False,
-                                        font=dict(size=12, color='white', family='Arial Black'),
-                                        bgcolor='rgba(0,0,0,0.7)',
-                                        bordercolor='white',
-                                        borderwidth=1
-                                    )
-                                
-                                # 4. GERÇEK İBRE! 🎯
-                                needle_angle = 180 - (percent * 1.8)
-                                
-                                # İbre gövdesi
-                                needle_length = 0.35
-                                needle_x = 0.5 + needle_length * np.cos(np.radians(needle_angle))
-                                needle_y = 0.5 + needle_length * np.sin(np.radians(needle_angle))
-                                
-                                # İbre çizgisi (kalın)
-                                fig.add_trace(go.Scatter(
-                                    x=[0.5, needle_x], y=[0.5, needle_y],
-                                    mode='lines',
-                                    line=dict(color=needle_color, width=6),
-                                    showlegend=False,
-                                    hoverinfo='skip'
-                                ))
-                                
-                                # İbre ucu (daha parlak)
-                                fig.add_trace(go.Scatter(
-                                    x=[needle_x], y=[needle_y],
-                                    mode='markers',
-                                    marker=dict(color=needle_color, size=12, 
-                                               line=dict(color='white', width=2)),
-                                    showlegend=False,
-                                    hoverinfo='skip'
-                                ))
-                                
-                                # 5. Merkez nokta (pivot)
-                                fig.add_trace(go.Scatter(
-                                    x=[0.5], y=[0.5],
-                                    mode='markers',
-                                    marker=dict(color='#2c3e50', size=20,
-                                               line=dict(color=needle_color, width=3)),
-                                    showlegend=False,
-                                    hoverinfo='skip'
-                                ))
-                                
-                                # 6. Digital Display (Alt Merkez)
-                                fig.add_annotation(
-                                    x=0.5, y=0.25,
-                                    text=f"<b>{percent:.1f}%</b>",
-                                    showarrow=False,
-                                    font=dict(size=16, color=needle_color, family='Arial Black'),
-                                    bgcolor='rgba(0,0,0,0.8)',
-                                    bordercolor=needle_color,
-                                    borderwidth=2,
-                                    borderpad=8
-                                )
-                                
-                                # Layout düzenlemesi
-                                fig.update_layout(
-                                    title=dict(
-                                        text=f"{subject_icons.get(subject, '📖')} <b>{subject_name_short}</b>",
-                                        x=0.5,
-                                        font=dict(size=14, color='white', family='Arial Black')
-                                    ),
-                                    xaxis=dict(
-                                        range=[-0.1, 1.1],
-                                        showgrid=False,
-                                        zeroline=False,
-                                        showticklabels=False
-                                    ),
-                                    yaxis=dict(
-                                        range=[-0.1, 1.1],
-                                        showgrid=False,
-                                        zeroline=False,
-                                        showticklabels=False,
-                                        scaleanchor="x",
-                                        scaleratio=1
-                                    ),
-                                    paper_bgcolor='rgba(44, 62, 80, 0.95)',
-                                    plot_bgcolor='rgba(44, 62, 80, 0.95)',
-                                    showlegend=False,
-                                    height=300,
-                                    margin=dict(l=10, r=10, t=40, b=10)
-                                )
-                                
-                                # Speedometer chart göster
-                                safe_plotly_chart(fig, use_container_width=True, key=f"car_speed_{subject}_{i}")
-                                
-                                # Alt bilgi - Modern araba konsolu
+                                # Çiçek kartı
                                 st.markdown(f"""
-                                <div style="text-align: center; 
-                                           background: linear-gradient(135deg, {status_color}, #2c3e50); 
-                                           color: white; padding: 12px; border-radius: 12px; 
-                                           margin-top: -10px; border: 2px solid {needle_color};
-                                           box-shadow: 0 0 15px {glow_color};">
-                                    <div style="font-size: 14px; color: {needle_color}; font-weight: bold; 
-                                               text-shadow: 0 0 5px {glow_color};">{status} ⚡</div>
-                                    <div style="font-size: 11px; color: #ecf0f1; margin: 5px 0;">
-                                        📊 {completed}/{total} konu tamamlandı
+                                <div style="background: {flower_state['bg']}; 
+                                           padding: 20px; border-radius: 15px; 
+                                           text-align: center; 
+                                           box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                                           margin-bottom: 20px;
+                                           border: 3px solid {flower_state['color']};
+                                           transition: transform 0.3s;">
+                                    <div style="font-size: 60px; margin: 10px 0;">
+                                        {flower_state['emoji']}
                                     </div>
-                                    <div style="font-size: 10px; color: #bdc3c7; font-style: italic;">
-                                        🏎️ YKS Speedometer System
+                                    <div style="font-size: 18px; color: white; font-weight: bold; margin: 10px 0;">
+                                        {subject_icons.get(subject, '📖')} {subject_name_short}
+                                    </div>
+                                    <div style="font-size: 32px; color: white; font-weight: bold; 
+                                               text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                                        %{percent:.0f}
+                                    </div>
+                                    <div style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 8px 0;">
+                                        {flower_state['status']}
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.2); 
+                                               padding: 8px; border-radius: 8px; margin-top: 10px;">
+                                        <div style="font-size: 13px; color: white;">
+                                            📊 {completed}/{total} konu tamamlandı
+                                        </div>
+                                        {f'<div style="font-size: 12px; color: #fff; margin-top: 5px;">{flower_state["warning"]}</div>' if flower_state['warning'] else ''}
                                     </div>
                                 </div>
                                 """, unsafe_allow_html=True)
+                    
+                    # Bahçe bakım önerileri
+                    st.markdown("---")
+                    st.subheader("🌿 Bahçe Bakım Önerileri")
+                    
+                    # Solmuş çiçekler
+                    wilted_subjects = [s for s in display_subjects if progress_data[s]['percent'] < 50]
+                    if wilted_subjects:
+                        st.warning(f"🥀 **Acil ilgi gereken çiçekler:** {', '.join([s.replace('TYT ', '').replace('AYT ', '') for s in wilted_subjects])}")
+                    
+                    # Tekrar zamanı gelen konular
+                    needs_review = []
+                    for subject in display_subjects:
+                        if subject in subject_last_study:
+                            try:
+                                last_date = datetime.fromisoformat(subject_last_study[subject])
+                                days = (datetime.now() - last_date).days
+                                if days >= 7:
+                                    needs_review.append(subject.replace('TYT ', '').replace('AYT ', ''))
+                            except:
+                                pass
+                    
+                    if needs_review:
+                        st.info(f"⏰ **Tekrar zamanı gelen dersler:** {', '.join(needs_review)}")
+                    
+                    # İyi durumdaki çiçekler
+                    healthy_subjects = [s for s in display_subjects if progress_data[s]['percent'] >= 70]
+                    if healthy_subjects:
+                        st.success(f"🌸 **Harika giden dersler:** {', '.join([s.replace('TYT ', '').replace('AYT ', '') for s in healthy_subjects])}")
                 
                 st.markdown("---")
                 st.subheader("📋 Son Aktivite Özeti")
