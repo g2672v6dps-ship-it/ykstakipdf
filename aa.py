@@ -546,25 +546,27 @@ def play_pomodoro_finished_sound():
     <script>
     // Sadece görsel bildirim - Base64 ses dosyası yok
     const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #ff6b6b;
-        color: white;
-        padding: 15px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-        z-index: 9999;
-        animation: slideIn 0.5s ease-out;
-    `;
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.background = '#ff6b6b';
+    notification.style.color = 'white';
+    notification.style.padding = '15px 20px';
+    notification.style.borderRadius = '8px';
+    notification.style.boxShadow = '0 4px 12px rgba(255, 107, 107, 0.3)';
+    notification.style.zIndex = '9999';
+    notification.style.transform = 'translateX(0)';
+    notification.style.transition = 'transform 0.5s ease-out';
     notification.innerHTML = '🎉 Pomodoro Tamamlandı! Mola zamanı! 🔔';
     document.body.appendChild(notification);
     
     setTimeout(() => {
-        if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
-        }
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 500);
     }, 3000);
     </script>
     """, unsafe_allow_html=True)
@@ -575,17 +577,15 @@ def play_break_start_sound():
     <script>
     // Sadece görsel bildirim - Base64 ses dosyası yok
     const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #28a745;
-        color: white;
-        padding: 15px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-        z-index: 9999;
-    `;
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.background = '#28a745';
+    notification.style.color = 'white';
+    notification.style.padding = '15px 20px';
+    notification.style.borderRadius = '8px';
+    notification.style.boxShadow = '0 4px 12px rgba(40, 167, 69, 0.3)';
+    notification.style.zIndex = '9999';
     notification.innerHTML = '⏰ Mola Başladı! Rahatlamaya zaman! 😌';
     document.body.appendChild(notification);
     
@@ -10240,97 +10240,83 @@ def show_yks_journey_cinema(user_data, progress_data):
                     setTimeout(() => {
                         if (newState) {
                             // TAM EKRAN AKTIF - HER ŞEYİ GİZLE!
-                            document.body.style.cssText = `
-                                margin: 0 !important;
-                                padding: 0 !important;
-                                background: #000 !important;
-                                overflow: auto !important;
-                                width: 100vw !important;
-                                height: 100vh !important;
-                            `;
+                            document.body.style.margin = '0';
+                            document.body.style.padding = '0';
+                            document.body.style.background = '#000';
+                            document.body.style.overflow = 'auto';
+                            document.body.style.width = '100vw';
+                            document.body.style.height = '100vh';
                             
                             // Ana Streamlit konteynerini tam ekran yap
                             const stApp = document.querySelector('.stApp');
                             if (stApp) {
-                                stApp.style.cssText = `
-                                    background: #000 !important;
-                                    margin: 0 !important;
-                                    padding: 0 !important;
-                                    width: 100vw !important;
-                                    height: 100vh !important;
-                                `;
+                                stApp.style.background = '#000';
+                                stApp.style.margin = '0';
+                                stApp.style.padding = '0';
+                                stApp.style.width = '100vw';
+                                stApp.style.height = '100vh';
                             }
                             
                             // Main bloğu tam ekran yap
                             const mainBlock = document.querySelector('.main');
                             if (mainBlock) {
-                                mainBlock.style.cssText = `
-                                    padding: 0 !important;
-                                    margin: 0 !important;
-                                    width: 100vw !important;
-                                    height: 100vh !important;
-                                    background: #000 !important;
-                                    overflow-y: auto !important;
-                                `;
+                                mainBlock.style.padding = '0';
+                                mainBlock.style.margin = '0';
+                                mainBlock.style.width = '100vw';
+                                mainBlock.style.height = '100vh';
+                                mainBlock.style.background = '#000';
+                                mainBlock.style.overflowY = 'auto';
                             }
                             
                             // Block container'ı tam ekran yap
                             const blockContainer = document.querySelector('.main .block-container');
                             if (blockContainer) {
-                                blockContainer.style.cssText = `
-                                    max-width: 100% !important;
-                                    width: 100% !important;
-                                    padding: 10px !important;
-                                    margin: 0 !important;
-                                    height: 100vh !important;
-                                    box-sizing: border-box !important;
-                                `;
+                                blockContainer.style.maxWidth = '100%';
+                                blockContainer.style.width = '100%';
+                                blockContainer.style.padding = '10px';
+                                blockContainer.style.margin = '0';
+                                blockContainer.style.height = '100vh';
+                                blockContainer.style.boxSizing = 'border-box';
                             }
                             
                             // Sinema kartlarını tam ekran optimize et
                             const cinemaDayCards = document.querySelectorAll('.cinema-day-card');
                             cinemaDayCards.forEach(card => {
-                                card.style.cssText = `
-                                    height: 95vh !important;
-                                    max-height: 95vh !important;
-                                    overflow-y: auto !important;
-                                    margin: 2.5vh 1vw !important;
-                                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
-                                    border: 3px solid #ffd700 !important;
-                                    border-radius: 10px !important;
-                                    padding: 15px !important;
-                                    box-sizing: border-box !important;
-                                `;
+                                card.style.height = '95vh';
+                                card.style.maxHeight = '95vh';
+                                card.style.overflowY = 'auto';
+                                card.style.margin = '2.5vh 1vw';
+                                card.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
+                                card.style.border = '3px solid #ffd700';
+                                card.style.borderRadius = '10px';
+                                card.style.padding = '15px';
+                                card.style.boxSizing = 'border-box';
                             });
                             
                             // Fotoğraf konteynerlerini optimize et
                             const photoContainers = document.querySelectorAll('.cinema-photo-container');
                             photoContainers.forEach(container => {
-                                container.style.cssText = `
-                                    height: 500px !important;
-                                    max-height: 500px !important;
-                                    display: flex !important;
-                                    justify-content: center !important;
-                                    align-items: center !important;
-                                    background: #000 !important;
-                                    border-radius: 8px !important;
-                                    overflow: hidden !important;
-                                    margin: 15px 0 !important;
-                                `;
+                                container.style.height = '500px';
+                                container.style.maxHeight = '500px';
+                                container.style.display = 'flex';
+                                container.style.justifyContent = 'center';
+                                container.style.alignItems = 'center';
+                                container.style.background = '#000';
+                                container.style.borderRadius = '8px';
+                                container.style.overflow = 'hidden';
+                                container.style.margin = '15px 0';
                             });
                             
                             // Fotoğrafları optimize et
                             const photos = document.querySelectorAll('.cinema-photo-container img');
                             photos.forEach(img => {
-                                img.style.cssText = `
-                                    max-width: 100% !important;
-                                    max-height: 480px !important;
-                                    width: auto !important;
-                                    height: auto !important;
-                                    object-fit: contain !important;
-                                    border-radius: 6px !important;
-                                    border: 2px solid #ffd700 !important;
-                                `;
+                                img.style.maxWidth = '100%';
+                                img.style.maxHeight = '480px';
+                                img.style.width = 'auto';
+                                img.style.height = 'auto';
+                                img.style.objectFit = 'contain';
+                                img.style.borderRadius = '6px';
+                                img.style.border = '2px solid #ffd700';
                             });
                             
                             // Streamlit UI elementlerini tamamen gizle
@@ -10368,21 +10354,21 @@ def show_yks_journey_cinema(user_data, progress_data):
                             
                         } else {
                             // NORMAL MOD - HER ŞEYİ GERİ GETİR
-                            document.body.style.cssText = '';
+                            document.body.removeAttribute('style');
                             
                             const stApp = document.querySelector('.stApp');
                             if (stApp) {
-                                stApp.style.cssText = '';
+                                stApp.removeAttribute('style');
                             }
                             
                             const mainBlock = document.querySelector('.main');
                             if (mainBlock) {
-                                mainBlock.style.cssText = '';
+                                mainBlock.removeAttribute('style');
                             }
                             
                             const blockContainer = document.querySelector('.main .block-container');
                             if (blockContainer) {
-                                blockContainer.style.cssText = '';
+                                blockContainer.removeAttribute('style');
                             }
                             
                             // Gizlenen elementleri geri göster
@@ -10421,15 +10407,21 @@ def show_yks_journey_cinema(user_data, progress_data):
                 function showFullscreenNotification(message) {
                     const notification = document.createElement('div');
                     notification.innerHTML = message;
-                    notification.style.cssText = `
-                        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-                        background: linear-gradient(45deg, #4CAF50, #45a049); 
-                        color: white; padding: 15px 30px;
-                        border-radius: 25px; z-index: 999999; font-size: 16px;
-                        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-                        font-family: Arial, sans-serif; font-weight: bold;
-                        border: 2px solid #ffd700;
-                        animation: notification-pulse 2s ease-in-out;
+                    notification.style.position = 'fixed';
+                    notification.style.top = '20px';
+                    notification.style.left = '50%';
+                    notification.style.transform = 'translateX(-50%)';
+                    notification.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+                    notification.style.color = 'white';
+                    notification.style.padding = '15px 30px';
+                    notification.style.borderRadius = '25px';
+                    notification.style.zIndex = '999999';
+                    notification.style.fontSize = '16px';
+                    notification.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
+                    notification.style.fontFamily = 'Arial, sans-serif';
+                    notification.style.fontWeight = 'bold';
+                    notification.style.border = '2px solid #ffd700';
+                    notification.style.animation = 'notification-pulse 2s ease-in-out';
                     `;
                     document.body.appendChild(notification);
                     setTimeout(() => notification.remove(), 3000);
@@ -10471,7 +10463,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                     exit_fullscreen_script = """
                     <script>
                     window.sessionStorage.removeItem('cinema_fullscreen');
-                    document.body.style.cssText = '';
+                    document.body.removeAttribute('style');
                     </script>
                     """
                     st.components.v1.html(exit_fullscreen_script, height=0)
