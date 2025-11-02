@@ -10000,6 +10000,146 @@ def show_yks_journey_cinema(user_data, progress_data):
         if st.session_state.current_day_index < len(journey_data):
             current_day = journey_data[st.session_state.current_day_index]
             
+            # Tam ekran JavaScript (ayrı değişken - escape gerekmez)
+            fullscreen_script = """
+                <script>
+                // DÜZELTME: Cinema içeriğini tam ekrana al (aynı iframe içinde)
+                let isFullscreenActive = false;
+                
+                function toggleFullscreenMode() {
+                    const cinemaWrapper = document.getElementById('cinema-content-wrapper');
+                    const btn = document.getElementById('fullscreen-btn');
+                    
+                    if (!cinemaWrapper) {
+                        console.error('Cinema wrapper bulunamadı!');
+                        return;
+                    }
+                    
+                    if (!isFullscreenActive) {
+                        // TAM EKRANA GEÇ
+                        // Orijinal stilleri kaydet
+                        if (!cinemaWrapper.hasAttribute('data-original-style')) {
+                            cinemaWrapper.setAttribute('data-original-style', cinemaWrapper.getAttribute('style') || '');
+                        }
+                        
+                        // Cinema wrapper'ı tam ekran yap
+                        cinemaWrapper.style.position = 'fixed';
+                        cinemaWrapper.style.top = '0';
+                        cinemaWrapper.style.left = '0';
+                        cinemaWrapper.style.width = '100vw';
+                        cinemaWrapper.style.height = '100vh';
+                        cinemaWrapper.style.zIndex = '999999';
+                        cinemaWrapper.style.margin = '0';
+                        cinemaWrapper.style.borderRadius = '0';
+                        cinemaWrapper.style.border = 'none';
+                        cinemaWrapper.style.maxWidth = '100vw';
+                        cinemaWrapper.style.maxHeight = '100vh';
+                        cinemaWrapper.style.overflowY = 'auto';
+                        cinemaWrapper.style.overflowX = 'hidden';
+                        
+                        // Native fullscreen API'yi de dene
+                        if (cinemaWrapper.requestFullscreen) {
+                            cinemaWrapper.requestFullscreen().catch(err => {
+                                console.log('Native fullscreen desteklenmiyor:', err);
+                            });
+                        } else if (cinemaWrapper.webkitRequestFullscreen) {
+                            cinemaWrapper.webkitRequestFullscreen();
+                        } else if (cinemaWrapper.mozRequestFullScreen) {
+                            cinemaWrapper.mozRequestFullScreen();
+                        } else if (cinemaWrapper.msRequestFullscreen) {
+                            cinemaWrapper.msRequestFullscreen();
+                        }
+                        
+                        isFullscreenActive = true;
+                        if (btn) {
+                            btn.innerHTML = '🪟 Normal Mod (ESC)';
+                            btn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+                        }
+                        
+                        showNotification('🎬 TAM EKRAN AKTIF! (ESC ile çıkabilirsiniz)');
+                    } else {
+                        // NORMAL MODA DÖN
+                        exitFullscreen();
+                    }
+                }
+                
+                function exitFullscreen() {
+                    const cinemaWrapper = document.getElementById('cinema-content-wrapper');
+                    const btn = document.getElementById('fullscreen-btn');
+                    
+                    // Native fullscreen'den çık
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                    
+                    // Orijinal stilleri geri yükle
+                    if (cinemaWrapper) {
+                        const originalStyle = cinemaWrapper.getAttribute('data-original-style');
+                        if (originalStyle !== null) {
+                            cinemaWrapper.setAttribute('style', originalStyle);
+                        }
+                    }
+                    
+                    isFullscreenActive = false;
+                    if (btn) {
+                        btn.innerHTML = '🖼️ Tam Ekran';
+                        btn.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a24)';
+                    }
+                    
+                    showNotification('🪟 Normal moda döndü');
+                }
+                
+                // ESC tuşu veya native fullscreen çıkışını dinle
+                document.addEventListener('fullscreenchange', function() {
+                    if (!document.fullscreenElement && isFullscreenActive) {
+                        exitFullscreen();
+                    }
+                });
+                document.addEventListener('webkitfullscreenchange', function() {
+                    if (!document.webkitFullscreenElement && isFullscreenActive) {
+                        exitFullscreen();
+                    }
+                });
+                document.addEventListener('mozfullscreenchange', function() {
+                    if (!document.mozFullScreenElement && isFullscreenActive) {
+                        exitFullscreen();
+                    }
+                });
+                document.addEventListener('MSFullscreenChange', function() {
+                    if (!document.msFullscreenElement && isFullscreenActive) {
+                        exitFullscreen();
+                    }
+                });
+                
+                function showNotification(message) {
+                    const notification = document.createElement('div');
+                    notification.innerHTML = message;
+                    notification.style.position = 'fixed';
+                    notification.style.top = '20px';
+                    notification.style.left = '50%';
+                    notification.style.transform = 'translateX(-50%)';
+                    notification.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+                    notification.style.color = 'white';
+                    notification.style.padding = '15px 30px';
+                    notification.style.borderRadius = '25px';
+                    notification.style.zIndex = '9999999';
+                    notification.style.fontSize = '16px';
+                    notification.style.fontFamily = 'Arial, sans-serif';
+                    notification.style.fontWeight = 'bold';
+                    notification.style.border = '2px solid #ffd700';
+                    notification.style.boxShadow = '0 8px 25px rgba(0,0,0,0.5)';
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), 3000);
+                }
+                </script>
+            """
+            
             # Film karesi stili (Mobil responsive)
             day_frame = f"""
             <div id="cinema-content-wrapper" class="cinema-day-card" style="
@@ -10170,142 +10310,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                     </button>
                 </div>
                 
-                <script>
-                // DÜZELTME: Cinema içeriğini tam ekrana al (aynı iframe içinde)
-                let isFullscreenActive = false;
-                
-                function toggleFullscreenMode() {
-                    const cinemaWrapper = document.getElementById('cinema-content-wrapper');
-                    const btn = document.getElementById('fullscreen-btn');
-                    
-                    if (!cinemaWrapper) {
-                        console.error('Cinema wrapper bulunamadı!');
-                        return;
-                    }
-                    
-                    if (!isFullscreenActive) {
-                        // TAM EKRANA GEÇ
-                        // Orijinal stilleri kaydet
-                        if (!cinemaWrapper.hasAttribute('data-original-style')) {
-                            cinemaWrapper.setAttribute('data-original-style', cinemaWrapper.getAttribute('style') || '');
-                        }
-                        
-                        // Cinema wrapper'ı tam ekran yap
-                        cinemaWrapper.style.position = 'fixed';
-                        cinemaWrapper.style.top = '0';
-                        cinemaWrapper.style.left = '0';
-                        cinemaWrapper.style.width = '100vw';
-                        cinemaWrapper.style.height = '100vh';
-                        cinemaWrapper.style.zIndex = '999999';
-                        cinemaWrapper.style.margin = '0';
-                        cinemaWrapper.style.borderRadius = '0';
-                        cinemaWrapper.style.border = 'none';
-                        cinemaWrapper.style.maxWidth = '100vw';
-                        cinemaWrapper.style.maxHeight = '100vh';
-                        cinemaWrapper.style.overflowY = 'auto';
-                        cinemaWrapper.style.overflowX = 'hidden';
-                        
-                        // Native fullscreen API'yi de dene
-                        if (cinemaWrapper.requestFullscreen) {
-                            cinemaWrapper.requestFullscreen().catch(err => {
-                                console.log('Native fullscreen desteklenmiyor:', err);
-                            });
-                        } else if (cinemaWrapper.webkitRequestFullscreen) {
-                            cinemaWrapper.webkitRequestFullscreen();
-                        } else if (cinemaWrapper.mozRequestFullScreen) {
-                            cinemaWrapper.mozRequestFullScreen();
-                        } else if (cinemaWrapper.msRequestFullscreen) {
-                            cinemaWrapper.msRequestFullscreen();
-                        }
-                        
-                        isFullscreenActive = true;
-                        if (btn) {
-                            btn.innerHTML = '🪟 Normal Mod (ESC)';
-                            btn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
-                        }
-                        
-                        showNotification('🎬 TAM EKRAN AKTIF! (ESC ile çıkabilirsiniz)');
-                    } else {
-                        // NORMAL MODA DÖN
-                        exitFullscreen();
-                    }
-                }
-                
-                function exitFullscreen() {
-                    const cinemaWrapper = document.getElementById('cinema-content-wrapper');
-                    const btn = document.getElementById('fullscreen-btn');
-                    
-                    // Native fullscreen'den çık
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                    } else if (document.mozCancelFullScreen) {
-                        document.mozCancelFullScreen();
-                    } else if (document.msExitFullscreen) {
-                        document.msExitFullscreen();
-                    }
-                    
-                    // Orijinal stilleri geri yükle
-                    if (cinemaWrapper) {
-                        const originalStyle = cinemaWrapper.getAttribute('data-original-style');
-                        if (originalStyle !== null) {
-                            cinemaWrapper.setAttribute('style', originalStyle);
-                        }
-                    }
-                    
-                    isFullscreenActive = false;
-                    if (btn) {
-                        btn.innerHTML = '🖼️ Tam Ekran';
-                        btn.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a24)';
-                    }
-                    
-                    showNotification('🪟 Normal moda döndü');
-                }
-                
-                // ESC tuşu veya native fullscreen çıkışını dinle
-                document.addEventListener('fullscreenchange', function() {
-                    if (!document.fullscreenElement && isFullscreenActive) {
-                        exitFullscreen();
-                    }
-                });
-                document.addEventListener('webkitfullscreenchange', function() {
-                    if (!document.webkitFullscreenElement && isFullscreenActive) {
-                        exitFullscreen();
-                    }
-                });
-                document.addEventListener('mozfullscreenchange', function() {
-                    if (!document.mozFullScreenElement && isFullscreenActive) {
-                        exitFullscreen();
-                    }
-                });
-                document.addEventListener('MSFullscreenChange', function() {
-                    if (!document.msFullscreenElement && isFullscreenActive) {
-                        exitFullscreen();
-                    }
-                });
-                
-                function showNotification(message) {
-                    const notification = document.createElement('div');
-                    notification.innerHTML = message;
-                    notification.style.position = 'fixed';
-                    notification.style.top = '20px';
-                    notification.style.left = '50%';
-                    notification.style.transform = 'translateX(-50%)';
-                    notification.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
-                    notification.style.color = 'white';
-                    notification.style.padding = '15px 30px';
-                    notification.style.borderRadius = '25px';
-                    notification.style.zIndex = '9999999';
-                    notification.style.fontSize = '16px';
-                    notification.style.fontFamily = 'Arial, sans-serif';
-                    notification.style.fontWeight = 'bold';
-                    notification.style.border = '2px solid #ffd700';
-                    notification.style.boxShadow = '0 8px 25px rgba(0,0,0,0.5)';
-                    document.body.appendChild(notification);
-                    setTimeout(() => notification.remove(), 3000);
-                }
-                </script>
+                {fullscreen_script}
             </div>
             """
             
