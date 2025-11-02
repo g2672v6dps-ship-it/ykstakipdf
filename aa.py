@@ -3617,14 +3617,136 @@ def get_grade_based_strategy(grade, target_department):
     
     return adjusted_strategy
 
+def analyze_student_subject_performance(user_data):
+    """Öğrencinin ders bazlı performansını analiz eder"""
+    import json
+    topic_progress_str = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
+    
+    # Ders bazlı net ortalamaları
+    subject_stats = {}
+    
+    for key, value in topic_progress.items():
+        # "TYT Türkçe | ... | Konu" formatından ders adını çıkar
+        if ' | ' in key:
+            parts = key.split(' | ')
+            if len(parts) >= 2:
+                subject = parts[0].strip()  # "TYT Türkçe" gibi
+                
+                # Net değerini al
+                net_value = 0
+                if isinstance(value, dict):
+                    net_value = int(float(value.get('net', 0)))
+                else:
+                    try:
+                        net_value = int(float(str(value)))
+                    except:
+                        net_value = 0
+                
+                # İstatistikleri topla
+                if subject not in subject_stats:
+                    subject_stats[subject] = {'nets': [], 'total_net': 0, 'count': 0}
+                
+                subject_stats[subject]['nets'].append(net_value)
+                subject_stats[subject]['total_net'] += net_value
+                subject_stats[subject]['count'] += 1
+    
+    # Ortalamaları hesapla ve zorlanılan dersleri belirle
+    for subject, stats in subject_stats.items():
+        stats['avg_net'] = stats['total_net'] / stats['count'] if stats['count'] > 0 else 0
+        # Düşük net = zorluk
+        if stats['avg_net'] < 3:
+            stats['difficulty_level'] = 'high'  # Çok zorlanıyor
+            stats['priority'] = 1
+        elif stats['avg_net'] < 5:
+            stats['difficulty_level'] = 'medium'  # Orta zorluk
+            stats['priority'] = 2
+        else:
+            stats['difficulty_level'] = 'low'  # İyi gidiyor
+            stats['priority'] = 3
+    
+    return subject_stats
+
+def get_smart_balanced_topics(all_remaining_topics, user_data, weekly_limit=18):
+    """Akıllı ve dengeli konu seçimi - Her dersten orantılı dağılım + zorlanılan derslere öncelik"""
+    
+    # Öğrencinin ders performansını analiz et
+    subject_performance = analyze_student_subject_performance(user_data)
+    
+    # Konuları ders bazında grupla
+    topics_by_subject = {}
+    for topic in all_remaining_topics:
+        subject = topic.get('subject', 'Diğer')
+        if subject not in topics_by_subject:
+            topics_by_subject[subject] = []
+        topics_by_subject[subject].append(topic)
+    
+    # Her dersten kaç konu alınacağını hesapla
+    total_subjects = len(topics_by_subject)
+    if total_subjects == 0:
+        return []
+    
+    # Öncelikli derslere daha fazla konu
+    priority_subjects = []
+    normal_subjects = []
+    
+    for subject, topics in topics_by_subject.items():
+        subject_info = subject_performance.get(subject, {'priority': 2, 'difficulty_level': 'medium'})
+        
+        if subject_info['priority'] == 1:  # Zorlanılan ders
+            priority_subjects.append((subject, topics, subject_info))
+        else:
+            normal_subjects.append((subject, topics, subject_info))
+    
+    # Dengeli dağılım stratejisi
+    selected_topics = []
+    
+    # Önce zorlanılan derslerden daha fazla konu al
+    priority_quota = int(weekly_limit * 0.6) if priority_subjects else 0
+    normal_quota = weekly_limit - priority_quota
+    
+    # Zorlanılan derslerden konular ekle
+    if priority_subjects:
+        topics_per_priority_subject = max(1, priority_quota // len(priority_subjects))
+        for subject, topics, info in priority_subjects:
+            # Kolay konulardan başla (düşük difficulty)
+            sorted_topics = sorted(topics, key=lambda x: (
+                0 if x.get('difficulty', 'orta') == 'kolay' else 1 if x.get('difficulty') == 'orta' else 2,
+                -x.get('net', 0)  # Düşük net'li konulara öncelik
+            ))
+            
+            for topic in sorted_topics[:topics_per_priority_subject]:
+                topic['priority'] = 'high'
+                topic['color'] = '🔴'  # Zorlanılan ders
+                topic['reason'] = f"Öncelikli: {subject} dersinde ortalama netiniz düşük ({info.get('avg_net', 0):.1f})"
+                selected_topics.append(topic)
+    
+    # Normal derslerden dengeli şekilde ekle
+    if normal_subjects:
+        topics_per_normal_subject = max(1, normal_quota // len(normal_subjects))
+        for subject, topics, info in normal_subjects:
+            # Kolay → orta → zor sıralaması
+            sorted_topics = sorted(topics, key=lambda x: (
+                0 if x.get('difficulty', 'orta') == 'kolay' else 1 if x.get('difficulty') == 'orta' else 2,
+                -x.get('net', 0)
+            ))
+            
+            for topic in sorted_topics[:topics_per_normal_subject]:
+                topic['priority'] = 'normal'
+                topic['color'] = '🟢' if info.get('avg_net', 0) >= 5 else '🟡'
+                topic['reason'] = f"{subject} - Dengeli dağılım"
+                selected_topics.append(topic)
+    
+    # Öncelikli konuları başa al
+    selected_topics.sort(key=lambda x: (0 if x.get('priority') == 'high' else 1, x.get('subject', '')))
+    
+    return selected_topics[:weekly_limit]
+
 def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics, user_data=None):
-    """Eşit Ağırlık için haftalık konuları getirir - SON DÜZELTİLDİ"""
+    """🎯 AKILLI Eşit Ağırlık Haftalık Konu Seçici - Dengeli Dağılım + Zorlanılan Derslere Öncelik"""
     if week_number > 16:
         week_number = 16  # Max 16 hafta
     
-    week_plan = EQUAL_WEIGHT_WEEKLY_PLAN.get(week_number, {})
-    weekly_topics = []
-    
     # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
     if isinstance(completed_topics, tuple):
         completed_topics_list, completed_topic_names = completed_topics
@@ -3644,67 +3766,70 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
         topic_progress_str = user_data.get('topic_progress', '{}')
         topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
     
-    # Bu haftanın planlanmış konularını al
-    planned_topics = week_plan.get('topics', {})
+    # TÜM HAFTALARDAKİ KALAN KONULARI TOPLA (bu haftadan itibaren)
+    all_remaining_topics = []
     
-    # Konuları birleştir
-    for subject, topic_list in planned_topics.items():
-        for topic in topic_list:
-            # 🆕 DÜZELTİLDİ: Tamamlanmış konuları ATLA
-            if topic in completed_topic_names:
-                continue  # Bu konu zaten tamamlanmış, ekleme
-            
-            # 🔥 KRİTİK: Gerçek net değerini bul (tüm olası key formatlarını dene)
-            real_net = 0
-            for key, value in topic_progress.items():
-                # "TYT Türkçe | ... | Cümlede Anlam - Neden-Sonuç" veya "Cümlede Anlam - Neden-Sonuç" formatlarını kontrol et
-                if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
-                    if isinstance(value, dict):
-                        real_net = int(float(value.get('net', 0)))
-                    else:
-                        try:
-                            real_net = int(float(str(value)))
-                        except:
-                            real_net = 0
-                    break
-            
-            weekly_topics.append({
-                'subject': subject,
-                'topic': topic,
-                'week': week_number,
-                'priority': 'normal',
-                'difficulty': get_topic_difficulty_by_name(topic),
-                'status': 'planned',
-                'net': real_net,  # 🔥 Gerçek net değeri!
-                'detail': ''  # Varsayılan detay
-            })
+    for wk in range(week_number, 17):  # Bu haftadan 16. haftaya kadar
+        week_plan = EQUAL_WEIGHT_WEEKLY_PLAN.get(wk, {})
+        planned_topics = week_plan.get('topics', {})
+        
+        # Konuları birleştir
+        for subject, topic_list in planned_topics.items():
+            for topic in topic_list:
+                # Tamamlanmış konuları ATLA
+                if topic in completed_topic_names:
+                    continue
+                
+                # Gerçek net değerini bul
+                real_net = 0
+                for key, value in topic_progress.items():
+                    if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
+                        if isinstance(value, dict):
+                            real_net = int(float(value.get('net', 0)))
+                        else:
+                            try:
+                                real_net = int(float(str(value)))
+                            except:
+                                real_net = 0
+                        break
+                
+                all_remaining_topics.append({
+                    'subject': subject,
+                    'topic': topic,
+                    'week': wk,
+                    'priority': 'normal',
+                    'difficulty': get_topic_difficulty_by_name(topic),
+                    'status': 'planned',
+                    'net': real_net,
+                    'detail': ''
+                })
     
-    # Sadece 2. hafta ve sonrasında önceki haftalardan kalan konuları ekle
+    # ÖNCEKİ HAFTALARDAKİ KALAN ÖNCELİKLİ KONULARI EKLE
     if week_number > 1:
         priority_topics = get_priority_topics_from_previous_weeks(pending_topics)
         
-        # 🆕 DÜZELTİLDİ: Öncelikli konuları da kontrol et
         for topic in priority_topics:
             topic_name = topic.get('topic', '')
             if topic_name not in completed_topic_names:
-                topic['priority'] = 'high'
-                weekly_topics.insert(0, topic)
+                all_remaining_topics.insert(0, topic)
     
-    return weekly_topics
+    # 🎯 AKILLI DENGELI SEÇİM: Zorlanılan derslere öncelik + Her dersten dengeli dağılım
+    if not user_data:
+        # user_data yoksa basit limit
+        return all_remaining_topics[:18]
+    
+    smart_topics = get_smart_balanced_topics(all_remaining_topics, user_data, weekly_limit=18)
+    return smart_topics
 
 def get_numerical_weekly_topics(week_number, completed_topics, pending_topics, user_data=None):
-    """Sayısal için haftalık konuları getirir - SON DÜZELTİLDİ"""
+    """🎯 AKILLI Sayısal Haftalık Konu Seçici - Dengeli Dağılım + Zorlanılan Derslere Öncelik"""
     if week_number > 18:
         week_number = 18  # Max 18 hafta
     
-    week_plan = NUMERICAL_WEEKLY_PLAN.get(week_number, {})
-    weekly_topics = []
-    
-    # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al (completed_topics artık tuple döndürüyor)
+    # 🆕 DÜZELTİLDİ: Tamamlanmış konu isimlerini al
     if isinstance(completed_topics, tuple):
         completed_topics_list, completed_topic_names = completed_topics
     else:
-        # Eski format ile uyumluluk
         completed_topic_names = set()
         if completed_topics:
             for topic in completed_topics:
@@ -3719,52 +3844,56 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics, u
         topic_progress_str = user_data.get('topic_progress', '{}')
         topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
     
-    # Bu haftanın planlanmış konularını al
-    planned_topics = week_plan.get('topics', {})
+    # TÜM HAFTALARDAKİ KALAN KONULARI TOPLA
+    all_remaining_topics = []
     
-    # Konuları birleştir
-    for subject, topic_list in planned_topics.items():
-        for topic in topic_list:
-            # 🆕 DÜZELTİLDİ: Tamamlanmış konuları ATLA
-            if topic in completed_topic_names:
-                continue
-            
-            # 🔥 KRİTİK: Gerçek net değerini bul
-            real_net = 0
-            for key, value in topic_progress.items():
-                if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
-                    if isinstance(value, dict):
-                        real_net = int(float(value.get('net', 0)))
-                    else:
-                        try:
-                            real_net = int(float(str(value)))
-                        except:
-                            real_net = 0
-                    break
-            
-            weekly_topics.append({
-                'subject': subject,
-                'topic': topic,
-                'week': week_number,
-                'priority': 'normal',
-                'difficulty': get_topic_difficulty_by_name(topic),
-                'status': 'planned',
-                'net': real_net,  # 🔥 Gerçek net değeri!
-                'detail': ''  # Varsayılan detay
-            })
+    for wk in range(week_number, 19):  # Bu haftadan 18. haftaya kadar
+        week_plan = NUMERICAL_WEEKLY_PLAN.get(wk, {})
+        planned_topics = week_plan.get('topics', {})
+        
+        for subject, topic_list in planned_topics.items():
+            for topic in topic_list:
+                if topic in completed_topic_names:
+                    continue
+                
+                real_net = 0
+                for key, value in topic_progress.items():
+                    if topic in key or (" - " in topic and topic.split(" - ")[1] in key):
+                        if isinstance(value, dict):
+                            real_net = int(float(value.get('net', 0)))
+                        else:
+                            try:
+                                real_net = int(float(str(value)))
+                            except:
+                                real_net = 0
+                        break
+                
+                all_remaining_topics.append({
+                    'subject': subject,
+                    'topic': topic,
+                    'week': wk,
+                    'priority': 'normal',
+                    'difficulty': get_topic_difficulty_by_name(topic),
+                    'status': 'planned',
+                    'net': real_net,
+                    'detail': ''
+                })
     
-    # Sadece 2. hafta ve sonrasında önceki haftalardan kalan konuları ekle
+    # ÖNCEKİ HAFTALARDAKİ KALAN ÖNCELİKLİ KONULARI EKLE
     if week_number > 1:
         priority_topics = get_priority_topics_from_previous_weeks(pending_topics)
         
-        # 🆕 DÜZELTİLDİ: Öncelikli konuları da kontrol et
         for topic in priority_topics:
             topic_name = topic.get('topic', '')
             if topic_name not in completed_topic_names:
-                topic['priority'] = 'high'
-                weekly_topics.insert(0, topic)
+                all_remaining_topics.insert(0, topic)
     
-    return weekly_topics
+    # 🎯 AKILLI DENGELI SEÇİM
+    if not user_data:
+        return all_remaining_topics[:20]  # Sayısal için 20 konu
+    
+    smart_topics = get_smart_balanced_topics(all_remaining_topics, user_data, weekly_limit=20)
+    return smart_topics
 
 def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, user_data=None):
     """TYT & MSÜ için haftalık konuları getirir - SON DÜZELTİLDİ"""
@@ -10003,7 +10132,12 @@ def show_yks_journey_cinema(user_data, progress_data):
             # Tam ekran JavaScript (ayrı değişken - escape gerekmez)
             fullscreen_script = """
                 <script>
-                // DÜZELTME: localStorage ile state persistence + mobil optimizasyonu
+                // DÜZELTME: Mobil + PC tam ekran (yanıp sönme yok!)
+                
+                // Mobil cihaz tespiti
+                function isMobileDevice() {
+                    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                }
                 
                 // localStorage'dan tam ekran durumunu oku
                 function getFullscreenState() {
@@ -10041,40 +10175,89 @@ def show_yks_journey_cinema(user_data, progress_data):
                         cinemaWrapper.setAttribute('data-original-style', cinemaWrapper.getAttribute('style') || '');
                     }
                     
-                    // MOBİL VE PC İÇİN AGRESIF TAM EKRAN CSS
-                    cinemaWrapper.style.position = 'fixed';
-                    cinemaWrapper.style.top = '0';
-                    cinemaWrapper.style.bottom = '0';
-                    cinemaWrapper.style.left = '0';
-                    cinemaWrapper.style.right = '0';
-                    cinemaWrapper.style.width = '100vw';
-                    cinemaWrapper.style.height = '100vh';
-                    cinemaWrapper.style.maxWidth = '100vw';
-                    cinemaWrapper.style.maxHeight = '100vh';
-                    cinemaWrapper.style.zIndex = '999999';
-                    cinemaWrapper.style.margin = '0';
-                    cinemaWrapper.style.padding = '20px';
-                    cinemaWrapper.style.borderRadius = '0';
-                    cinemaWrapper.style.border = 'none';
-                    cinemaWrapper.style.overflowY = 'auto';
-                    cinemaWrapper.style.overflowX = 'hidden';
-                    cinemaWrapper.style.WebkitOverflowScrolling = 'touch'; // Mobil smooth scroll
-                    cinemaWrapper.style.transform = 'translate3d(0, 0, 0)'; // GPU acceleration
+                    // Restore flag ekle (duplicate restore engellemek için)
+                    cinemaWrapper.setAttribute('data-fullscreen-restored', 'true');
                     
-                    // Body scroll'u kilitle
-                    document.body.style.overflow = 'hidden';
+                    if (isMobileDevice()) {
+                        // MOBİL İÇİN ÖZEL TAM EKRAN
+                        cinemaWrapper.style.position = 'fixed';
+                        cinemaWrapper.style.top = '0';
+                        cinemaWrapper.style.bottom = '0';
+                        cinemaWrapper.style.left = '0';
+                        cinemaWrapper.style.right = '0';
+                        cinemaWrapper.style.width = '100vw';
+                        cinemaWrapper.style.height = '100vh';
+                        cinemaWrapper.style.maxWidth = 'none';
+                        cinemaWrapper.style.maxHeight = 'none';
+                        cinemaWrapper.style.zIndex = '2147483647'; // Max z-index
+                        cinemaWrapper.style.margin = '0';
+                        cinemaWrapper.style.padding = '10px';
+                        cinemaWrapper.style.borderRadius = '0';
+                        cinemaWrapper.style.border = 'none';
+                        cinemaWrapper.style.overflowY = 'auto';
+                        cinemaWrapper.style.overflowX = 'hidden';
+                        cinemaWrapper.style.WebkitOverflowScrolling = 'touch';
+                        cinemaWrapper.style.transform = 'translate3d(0, 0, 0)';
+                        
+                        // iOS Safari için özel viewport fix
+                        const viewport = document.querySelector('meta[name=viewport]');
+                        if (viewport) {
+                            viewport.setAttribute('data-original-content', viewport.getAttribute('content'));
+                            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+                        }
+                        
+                        // Mobil'de scroll lock
+                        document.body.style.overflow = 'hidden';
+                        document.body.style.position = 'fixed';
+                        document.body.style.width = '100%';
+                        document.body.style.height = '100vh';
+                        
+                        // iOS Safari minimal-ui
+                        if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                            cinemaWrapper.style.height = window.innerHeight + 'px';
+                            // Orientation değişikliğini dinle
+                            window.addEventListener('orientationchange', function() {
+                                setTimeout(() => {
+                                    cinemaWrapper.style.height = window.innerHeight + 'px';
+                                }, 100);
+                            });
+                        }
+                    } else {
+                        // PC İÇİN TAM EKRAN
+                        cinemaWrapper.style.position = 'fixed';
+                        cinemaWrapper.style.top = '0';
+                        cinemaWrapper.style.bottom = '0';
+                        cinemaWrapper.style.left = '0';
+                        cinemaWrapper.style.right = '0';
+                        cinemaWrapper.style.width = '100vw';
+                        cinemaWrapper.style.height = '100vh';
+                        cinemaWrapper.style.maxWidth = '100vw';
+                        cinemaWrapper.style.maxHeight = '100vh';
+                        cinemaWrapper.style.zIndex = '999999';
+                        cinemaWrapper.style.margin = '0';
+                        cinemaWrapper.style.padding = '20px';
+                        cinemaWrapper.style.borderRadius = '0';
+                        cinemaWrapper.style.border = 'none';
+                        cinemaWrapper.style.overflowY = 'auto';
+                        cinemaWrapper.style.overflowX = 'hidden';
+                        
+                        // PC'de body scroll kilidi
+                        document.body.style.overflow = 'hidden';
+                    }
                     
-                    // Native fullscreen API'yi de dene (özellikle mobil için)
-                    if (cinemaWrapper.requestFullscreen) {
-                        cinemaWrapper.requestFullscreen().catch(err => {
-                            console.log('Native fullscreen desteklenmiyor:', err);
-                        });
-                    } else if (cinemaWrapper.webkitRequestFullscreen) {
-                        cinemaWrapper.webkitRequestFullscreen();
-                    } else if (cinemaWrapper.mozRequestFullScreen) {
-                        cinemaWrapper.mozRequestFullScreen();
-                    } else if (cinemaWrapper.msRequestFullscreen) {
-                        cinemaWrapper.msRequestFullscreen();
+                    // Native fullscreen API (PC ve Android için)
+                    if (!isMobileDevice() || /Android/.test(navigator.userAgent)) {
+                        if (cinemaWrapper.requestFullscreen) {
+                            cinemaWrapper.requestFullscreen().catch(err => {
+                                console.log('Native fullscreen desteklenmiyor:', err);
+                            });
+                        } else if (cinemaWrapper.webkitRequestFullscreen) {
+                            cinemaWrapper.webkitRequestFullscreen();
+                        } else if (cinemaWrapper.mozRequestFullScreen) {
+                            cinemaWrapper.mozRequestFullScreen();
+                        } else if (cinemaWrapper.msRequestFullscreen) {
+                            cinemaWrapper.msRequestFullscreen();
+                        }
                     }
                     
                     setFullscreenState(true);
@@ -10084,7 +10267,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                         btn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
                     }
                     
-                    showNotification('🎬 TAM EKRAN AKTIF! (ESC ile çıkabilirsiniz)');
+                    showNotification(isMobileDevice() ? '📱 Mobil Tam Ekran Aktif!' : '🎬 PC Tam Ekran Aktif!');
                 }
                 
                 function exitFullscreen(cinemaWrapper, btn) {
@@ -10105,10 +10288,25 @@ def show_yks_journey_cinema(user_data, progress_data):
                         if (originalStyle !== null) {
                             cinemaWrapper.setAttribute('style', originalStyle);
                         }
+                        cinemaWrapper.removeAttribute('data-fullscreen-restored');
                     }
                     
-                    // Body scroll'u geri aç
+                    // Body stilleri geri yükle
                     document.body.style.overflow = '';
+                    document.body.style.position = '';
+                    document.body.style.width = '';
+                    document.body.style.height = '';
+                    
+                    // Mobil viewport restore
+                    if (isMobileDevice()) {
+                        const viewport = document.querySelector('meta[name=viewport]');
+                        if (viewport) {
+                            const originalContent = viewport.getAttribute('data-original-content');
+                            if (originalContent) {
+                                viewport.setAttribute('content', originalContent);
+                            }
+                        }
+                    }
                     
                     setFullscreenState(false);
                     
@@ -10139,40 +10337,25 @@ def show_yks_journey_cinema(user_data, progress_data):
                         }
                     }
                 });
-                document.addEventListener('mozfullscreenchange', function() {
-                    if (!document.mozFullScreenElement) {
-                        const cinemaWrapper = document.getElementById('cinema-content-wrapper');
-                        const btn = document.getElementById('fullscreen-btn');
-                        if (getFullscreenState()) {
-                            exitFullscreen(cinemaWrapper, btn);
-                        }
-                    }
-                });
-                document.addEventListener('MSFullscreenChange', function() {
-                    if (!document.msFullscreenElement) {
-                        const cinemaWrapper = document.getElementById('cinema-content-wrapper');
-                        const btn = document.getElementById('fullscreen-btn');
-                        if (getFullscreenState()) {
-                            exitFullscreen(cinemaWrapper, btn);
-                        }
-                    }
-                });
                 
-                // SAYFA YÜKLENDIĞINDE TAM EKRAN DURUMUNU RESTORE ET
-                window.addEventListener('DOMContentLoaded', function() {
+                // DOĞRUDAN RESTORE (yanıp sönme yok!)
+                (function immediateRestore() {
                     const cinemaWrapper = document.getElementById('cinema-content-wrapper');
                     const btn = document.getElementById('fullscreen-btn');
                     
-                    if (getFullscreenState() && cinemaWrapper && btn) {
-                        // State aktifse otomatik tam ekrana geç
-                        setTimeout(() => {
-                            enterFullscreen(cinemaWrapper, btn);
-                        }, 300); // DOM hazır olana kadar bekle
+                    // Sadece restore edilmemişse ve state aktifse restore et
+                    if (getFullscreenState() && cinemaWrapper && btn && !cinemaWrapper.hasAttribute('data-fullscreen-restored')) {
+                        enterFullscreen(cinemaWrapper, btn);
                     }
-                });
+                })();
                 
                 function showNotification(message) {
+                    // Duplicate notification engelle
+                    const existing = document.querySelector('.fullscreen-notification');
+                    if (existing) existing.remove();
+                    
                     const notification = document.createElement('div');
+                    notification.className = 'fullscreen-notification';
                     notification.innerHTML = message;
                     notification.style.position = 'fixed';
                     notification.style.top = '20px';
@@ -10189,7 +10372,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                     notification.style.border = '2px solid #ffd700';
                     notification.style.boxShadow = '0 8px 25px rgba(0,0,0,0.5)';
                     document.body.appendChild(notification);
-                    setTimeout(() => notification.remove(), 3000);
+                    setTimeout(() => notification.remove(), 2500);
                 }
                 </script>
             """
