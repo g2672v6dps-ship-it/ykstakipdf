@@ -10003,8 +10003,17 @@ def show_yks_journey_cinema(user_data, progress_data):
             # Tam ekran JavaScript (ayrı değişken - escape gerekmez)
             fullscreen_script = """
                 <script>
-                // DÜZELTME: Cinema içeriğini tam ekrana al (aynı iframe içinde)
-                let isFullscreenActive = false;
+                // DÜZELTME: localStorage ile state persistence + mobil optimizasyonu
+                
+                // localStorage'dan tam ekran durumunu oku
+                function getFullscreenState() {
+                    return localStorage.getItem('cinema_fullscreen') === 'true';
+                }
+                
+                // localStorage'a tam ekran durumunu kaydet
+                function setFullscreenState(state) {
+                    localStorage.setItem('cinema_fullscreen', state);
+                }
                 
                 function toggleFullscreenMode() {
                     const cinemaWrapper = document.getElementById('cinema-content-wrapper');
@@ -10015,58 +10024,70 @@ def show_yks_journey_cinema(user_data, progress_data):
                         return;
                     }
                     
-                    if (!isFullscreenActive) {
+                    const isFullscreen = getFullscreenState();
+                    
+                    if (!isFullscreen) {
                         // TAM EKRANA GEÇ
-                        // Orijinal stilleri kaydet
-                        if (!cinemaWrapper.hasAttribute('data-original-style')) {
-                            cinemaWrapper.setAttribute('data-original-style', cinemaWrapper.getAttribute('style') || '');
-                        }
-                        
-                        // Cinema wrapper'ı tam ekran yap
-                        cinemaWrapper.style.position = 'fixed';
-                        cinemaWrapper.style.top = '0';
-                        cinemaWrapper.style.left = '0';
-                        cinemaWrapper.style.width = '100vw';
-                        cinemaWrapper.style.height = '100vh';
-                        cinemaWrapper.style.zIndex = '999999';
-                        cinemaWrapper.style.margin = '0';
-                        cinemaWrapper.style.borderRadius = '0';
-                        cinemaWrapper.style.border = 'none';
-                        cinemaWrapper.style.maxWidth = '100vw';
-                        cinemaWrapper.style.maxHeight = '100vh';
-                        cinemaWrapper.style.overflowY = 'auto';
-                        cinemaWrapper.style.overflowX = 'hidden';
-                        
-                        // Native fullscreen API'yi de dene
-                        if (cinemaWrapper.requestFullscreen) {
-                            cinemaWrapper.requestFullscreen().catch(err => {
-                                console.log('Native fullscreen desteklenmiyor:', err);
-                            });
-                        } else if (cinemaWrapper.webkitRequestFullscreen) {
-                            cinemaWrapper.webkitRequestFullscreen();
-                        } else if (cinemaWrapper.mozRequestFullScreen) {
-                            cinemaWrapper.mozRequestFullScreen();
-                        } else if (cinemaWrapper.msRequestFullscreen) {
-                            cinemaWrapper.msRequestFullscreen();
-                        }
-                        
-                        isFullscreenActive = true;
-                        if (btn) {
-                            btn.innerHTML = '🪟 Normal Mod (ESC)';
-                            btn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
-                        }
-                        
-                        showNotification('🎬 TAM EKRAN AKTIF! (ESC ile çıkabilirsiniz)');
+                        enterFullscreen(cinemaWrapper, btn);
                     } else {
                         // NORMAL MODA DÖN
-                        exitFullscreen();
+                        exitFullscreen(cinemaWrapper, btn);
                     }
                 }
                 
-                function exitFullscreen() {
-                    const cinemaWrapper = document.getElementById('cinema-content-wrapper');
-                    const btn = document.getElementById('fullscreen-btn');
+                function enterFullscreen(cinemaWrapper, btn) {
+                    // Orijinal stilleri kaydet
+                    if (!cinemaWrapper.hasAttribute('data-original-style')) {
+                        cinemaWrapper.setAttribute('data-original-style', cinemaWrapper.getAttribute('style') || '');
+                    }
                     
+                    // MOBİL VE PC İÇİN AGRESIF TAM EKRAN CSS
+                    cinemaWrapper.style.position = 'fixed';
+                    cinemaWrapper.style.top = '0';
+                    cinemaWrapper.style.bottom = '0';
+                    cinemaWrapper.style.left = '0';
+                    cinemaWrapper.style.right = '0';
+                    cinemaWrapper.style.width = '100vw';
+                    cinemaWrapper.style.height = '100vh';
+                    cinemaWrapper.style.maxWidth = '100vw';
+                    cinemaWrapper.style.maxHeight = '100vh';
+                    cinemaWrapper.style.zIndex = '999999';
+                    cinemaWrapper.style.margin = '0';
+                    cinemaWrapper.style.padding = '20px';
+                    cinemaWrapper.style.borderRadius = '0';
+                    cinemaWrapper.style.border = 'none';
+                    cinemaWrapper.style.overflowY = 'auto';
+                    cinemaWrapper.style.overflowX = 'hidden';
+                    cinemaWrapper.style.WebkitOverflowScrolling = 'touch'; // Mobil smooth scroll
+                    cinemaWrapper.style.transform = 'translate3d(0, 0, 0)'; // GPU acceleration
+                    
+                    // Body scroll'u kilitle
+                    document.body.style.overflow = 'hidden';
+                    
+                    // Native fullscreen API'yi de dene (özellikle mobil için)
+                    if (cinemaWrapper.requestFullscreen) {
+                        cinemaWrapper.requestFullscreen().catch(err => {
+                            console.log('Native fullscreen desteklenmiyor:', err);
+                        });
+                    } else if (cinemaWrapper.webkitRequestFullscreen) {
+                        cinemaWrapper.webkitRequestFullscreen();
+                    } else if (cinemaWrapper.mozRequestFullScreen) {
+                        cinemaWrapper.mozRequestFullScreen();
+                    } else if (cinemaWrapper.msRequestFullscreen) {
+                        cinemaWrapper.msRequestFullscreen();
+                    }
+                    
+                    setFullscreenState(true);
+                    
+                    if (btn) {
+                        btn.innerHTML = '🪟 Normal Mod (ESC)';
+                        btn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+                    }
+                    
+                    showNotification('🎬 TAM EKRAN AKTIF! (ESC ile çıkabilirsiniz)');
+                }
+                
+                function exitFullscreen(cinemaWrapper, btn) {
                     // Native fullscreen'den çık
                     if (document.exitFullscreen) {
                         document.exitFullscreen();
@@ -10086,7 +10107,11 @@ def show_yks_journey_cinema(user_data, progress_data):
                         }
                     }
                     
-                    isFullscreenActive = false;
+                    // Body scroll'u geri aç
+                    document.body.style.overflow = '';
+                    
+                    setFullscreenState(false);
+                    
                     if (btn) {
                         btn.innerHTML = '🖼️ Tam Ekran';
                         btn.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a24)';
@@ -10097,23 +10122,52 @@ def show_yks_journey_cinema(user_data, progress_data):
                 
                 // ESC tuşu veya native fullscreen çıkışını dinle
                 document.addEventListener('fullscreenchange', function() {
-                    if (!document.fullscreenElement && isFullscreenActive) {
-                        exitFullscreen();
+                    if (!document.fullscreenElement) {
+                        const cinemaWrapper = document.getElementById('cinema-content-wrapper');
+                        const btn = document.getElementById('fullscreen-btn');
+                        if (getFullscreenState()) {
+                            exitFullscreen(cinemaWrapper, btn);
+                        }
                     }
                 });
                 document.addEventListener('webkitfullscreenchange', function() {
-                    if (!document.webkitFullscreenElement && isFullscreenActive) {
-                        exitFullscreen();
+                    if (!document.webkitFullscreenElement) {
+                        const cinemaWrapper = document.getElementById('cinema-content-wrapper');
+                        const btn = document.getElementById('fullscreen-btn');
+                        if (getFullscreenState()) {
+                            exitFullscreen(cinemaWrapper, btn);
+                        }
                     }
                 });
                 document.addEventListener('mozfullscreenchange', function() {
-                    if (!document.mozFullScreenElement && isFullscreenActive) {
-                        exitFullscreen();
+                    if (!document.mozFullScreenElement) {
+                        const cinemaWrapper = document.getElementById('cinema-content-wrapper');
+                        const btn = document.getElementById('fullscreen-btn');
+                        if (getFullscreenState()) {
+                            exitFullscreen(cinemaWrapper, btn);
+                        }
                     }
                 });
                 document.addEventListener('MSFullscreenChange', function() {
-                    if (!document.msFullscreenElement && isFullscreenActive) {
-                        exitFullscreen();
+                    if (!document.msFullscreenElement) {
+                        const cinemaWrapper = document.getElementById('cinema-content-wrapper');
+                        const btn = document.getElementById('fullscreen-btn');
+                        if (getFullscreenState()) {
+                            exitFullscreen(cinemaWrapper, btn);
+                        }
+                    }
+                });
+                
+                // SAYFA YÜKLENDIĞINDE TAM EKRAN DURUMUNU RESTORE ET
+                window.addEventListener('DOMContentLoaded', function() {
+                    const cinemaWrapper = document.getElementById('cinema-content-wrapper');
+                    const btn = document.getElementById('fullscreen-btn');
+                    
+                    if (getFullscreenState() && cinemaWrapper && btn) {
+                        // State aktifse otomatik tam ekrana geç
+                        setTimeout(() => {
+                            enterFullscreen(cinemaWrapper, btn);
+                        }, 300); // DOM hazır olana kadar bekle
                     }
                 });
                 
@@ -10375,9 +10429,12 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.session_state.cinema_active = False
                     st.session_state.current_day_index = 0
                     st.session_state.fullscreen_mode = False
-                    # Tam ekran modundan çık
+                    # Tam ekran modundan çık ve localStorage temizle
                     exit_fullscreen_script = """
                     <script>
+                    // localStorage state'ini temizle
+                    localStorage.removeItem('cinema_fullscreen');
+                    
                     // Tam ekrandan çık
                     const doc = document;
                     if (doc.exitFullscreen) {
@@ -10390,6 +10447,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                         doc.msExitFullscreen();
                     }
                     document.body.removeAttribute('style');
+                    document.body.style.overflow = '';
                     </script>
                     """
                     st.components.v1.html(exit_fullscreen_script, height=0)
