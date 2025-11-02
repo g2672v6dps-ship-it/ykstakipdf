@@ -14325,7 +14325,7 @@ def main():
     </div>
     """,
     unsafe_allow_html=True
-""")
+)
 
                 
                 # Sayfa seçimi - Logo'dan sonra!
