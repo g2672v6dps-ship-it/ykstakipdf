@@ -15392,48 +15392,53 @@ def main():
                             flower_state = get_flower_state(percent, days_since)
                             
                             with cols[i % 3]:
-                                # Warning kısmını oluştur
-                                warning_section = ""
+                                # HTML parçalarını oluştur
+                                html_parts = []
+                                
+                                # Ana kart başlangıcı
+                                html_parts.append('<div style="background: ' + flower_state['bg'] + '; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 20px; border: 3px solid ' + flower_state['color'] + '; transition: transform 0.3s;">')
+                                
+                                # Çiçek emoji
+                                html_parts.append('<div style="font-size: 60px; margin: 10px 0;">')
+                                html_parts.append(flower_state['emoji'])
+                                html_parts.append('</div>')
+                                
+                                # Ders adı
+                                html_parts.append('<div style="font-size: 18px; color: white; font-weight: bold; margin: 10px 0;">')
+                                html_parts.append(subject_icons.get(subject, '📖') + ' ' + subject)
+                                html_parts.append('</div>')
+                                
+                                # Yüzde
+                                html_parts.append('<div style="font-size: 32px; color: white; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">')
+                                html_parts.append('%' + str(int(percent)))
+                                html_parts.append('</div>')
+                                
+                                # Durum
+                                html_parts.append('<div style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 8px 0;">')
+                                html_parts.append(flower_state['status'])
+                                html_parts.append('</div>')
+                                
+                                # İstatistik kutusu
+                                html_parts.append('<div style="background: rgba(255,255,255,0.2); padding: 8px; border-radius: 8px; margin-top: 10px;">')
+                                html_parts.append('<div style="font-size: 13px; color: white;">')
+                                html_parts.append('📊 ' + str(completed) + '/' + str(total) + ' konu tamamlandı')
+                                html_parts.append('</div>')
+                                
+                                # Warning varsa ekle
                                 if flower_state.get('warning'):
-                                    warning_section = f"""
-                                        <div style="font-size: 12px; color: #fff; margin-top: 5px;">
-                                            {flower_state['warning']}
-                                        </div>
-                                    """
+                                    html_parts.append('<div style="font-size: 12px; color: #fff; margin-top: 5px;">')
+                                    html_parts.append(flower_state['warning'])
+                                    html_parts.append('</div>')
                                 
-                                # Tüm HTML'i birleştir
-                                card_html = f"""
-                                <div style="background: {flower_state['bg']}; 
-                                           padding: 20px; border-radius: 15px; 
-                                           text-align: center; 
-                                           box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                                           margin-bottom: 20px;
-                                           border: 3px solid {flower_state['color']};
-                                           transition: transform 0.3s;">
-                                    <div style="font-size: 60px; margin: 10px 0;">
-                                        {flower_state['emoji']}
-                                    </div>
-                                    <div style="font-size: 18px; color: white; font-weight: bold; margin: 10px 0;">
-                                        {subject_icons.get(subject, '📖')} {subject}
-                                    </div>
-                                    <div style="font-size: 32px; color: white; font-weight: bold; 
-                                               text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                                        %{percent:.0f}
-                                    </div>
-                                    <div style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 8px 0;">
-                                        {flower_state['status']}
-                                    </div>
-                                    <div style="background: rgba(255,255,255,0.2); 
-                                               padding: 8px; border-radius: 8px; margin-top: 10px;">
-                                        <div style="font-size: 13px; color: white;">
-                                            📊 {completed}/{total} konu tamamlandı
-                                        </div>
-                                        {warning_section}
-                                    </div>
-                                </div>
-                                """
+                                # İstatistik kutusunu kapat
+                                html_parts.append('</div>')
                                 
-                                st.markdown(card_html, unsafe_allow_html=True)
+                                # Ana kartı kapat
+                                html_parts.append('</div>')
+                                
+                                # HTML'i birleştir ve render et
+                                final_html = ''.join(html_parts)
+                                st.markdown(final_html, unsafe_allow_html=True)
                     
                     # Bahçe bakım önerileri
                     st.markdown("---")
