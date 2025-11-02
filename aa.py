@@ -9385,7 +9385,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             margin: 0 0 20px 0;
             text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
             letter-spacing: 2px;
-        🎬 {student_name}'nin YKS Hikayesi</h1>
+        🎬 {student_name}'nin YKS Serüveni</h1>
         
         <p style="
             color: #ffffff;
@@ -10135,11 +10135,12 @@ def show_yks_journey_cinema(user_data, progress_data):
                 <div style="text-align: center; margin-top: 25px; padding: 20px; background: rgba(255, 215, 0, 0.08); border-radius: 15px; border: 2px solid rgba(255, 215, 0, 0.3);">
                     <h4 style="color: #ffd700; margin-bottom: 20px; font-size: 1.4rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">📷 Günün Fotoğrafı</h4>
                     <div class="cinema-photo-container" style="display: flex; justify-content: center; align-items: center; height: 450px; width: 100%; overflow: hidden; border-radius: 15px; background: rgba(0,0,0,0.3); margin: 20px 0; padding: 10px; box-sizing: border-box; border: 2px solid #ffd700;">
-                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f0f0f0'/%3E%3Ctext x='100' y='120' font-size='24' text-anchor='middle' fill='%23666'%3E📸 Fotoğraf%3C/text%3E%3C/svg%3E" 
+                        <img src="{current_day['photo_data']}" 
                              style="max-width: 100%; max-height: 420px; width: auto; height: auto; object-fit: contain; border-radius: 12px; border: 3px solid #ffd700; box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4); transition: all 0.3s ease;"
                              alt="Günün Fotoğrafı"
                              onmouseover="this.style.setProperty('transform', 'scale(1.02)'); this.style.setProperty('box-shadow', '0 12px 35px rgba(255, 215, 0, 0.6)');"
-                             onmouseout="this.style.setProperty('transform', 'scale(1)'); this.style.setProperty('box-shadow', '0 8px 25px rgba(255, 215, 0, 0.4)');">
+                             onmouseout="this.style.setProperty('transform', 'scale(1)'); this.style.setProperty('box-shadow', '0 8px 25px rgba(255, 215, 0, 0.4)');"
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f0f0f0\'/%3E%3Ctext x=\'100\' y=\'120\' font-size=\'24\' text-anchor=\'middle\' fill=\'%23666\'%3E📸 Fotoğraf%3C/text%3E%3C/svg%3E';">
                     </div>
                     <p style="color: #e0e0e0; font-size: 1rem; margin-top: 15px; font-style: italic; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">"{current_day['photo_caption'] or 'Fotoğraf açıklaması eklenmemiş'}"</p>
                 </div>
