@@ -7201,7 +7201,7 @@ def yks_takip_page(user_data):
     learning_style = user_data.get('learning_style', '')
     
     # YKS Takip sistemi sekmeleri
-    tab1, tab2, tab3, tab4 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi", "🧠 Bilimsel Yaşam Koçluğu"])
+    tab1, tab2, tab3 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi"])
     
     with tab1:
         show_target_department_roadmap(user_data)
@@ -7227,9 +7227,7 @@ def yks_takip_page(user_data):
     with tab3:
         show_progress_analytics(user_data)
     
-    with tab4:
-        st.info("📊 Performans analizi ve ileri seviye stratejiler için bu sekme geliştirilmektedir.")
-        st.write("Detaylı analizler yakında eklenecektir!")
+
 
 def has_completed_yks_survey(user_data):
     """Kullanıcının YKS anketini tamamlayıp tamamlamadığını kontrol eder"""
@@ -9387,7 +9385,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             margin: 0 0 20px 0;
             text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
             letter-spacing: 2px;
-        ">🎬 {student_name}'nin YKS Hikayesi</h1>
+        🎬 {student_name}'nin YKS Hikayesi</h1>
         
         <p style="
             color: #ffffff;
@@ -9396,7 +9394,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             margin: 0;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             font-style: italic;
-        ">İlk Günden Bugüne Başarı Yolculuğu</p>
+        İlk Günden Bugüne Başarı Yolculuğu</p>
         
         <div style="
             margin-top: 30px;
@@ -10817,12 +10815,12 @@ def show_pomodoro_interface(user_data):
                     font-weight: bold;
                     color: {timer_color};
                     margin-bottom: 10px;
-                ">{minutes:02d}:{seconds:02d}</div>
+                {minutes:02d}:{seconds:02d}</div>
                 <div style="
                     font-size: 16px;
                     color: {timer_color};
                     opacity: 0.8;
-                ">{st.session_state.pomodoro_type.split('(')[0].strip()}</div>
+                {st.session_state.pomodoro_type.split('(')[0].strip()}</div>
             </div>
             """, unsafe_allow_html=True)
         
