@@ -9298,7 +9298,9 @@ def show_yks_journey_cinema(user_data, progress_data):
                 # Fotoğraf verilerini doğru şekilde al
                 photo_info = day_motivation.get('photo_data', None)
                 if photo_info and isinstance(photo_info, dict) and 'data' in photo_info:
-                    day_data['photo_data'] = photo_info['data']  # Sadece base64 string'i al
+                    # Base64 datasını data URI formatına çevir
+                    photo_type = photo_info.get('type', 'image/jpeg')
+                    day_data['photo_data'] = f"data:{photo_type};base64,{photo_info['data']}"
                     day_data['photo_filename'] = photo_info.get('filename', 'Fotoğraf')
                 else:
                     day_data['photo_data'] = None
@@ -10424,7 +10426,6 @@ def show_yks_journey_cinema(user_data, progress_data):
                     notification.style.fontWeight = 'bold';
                     notification.style.border = '2px solid #ffd700';
                     notification.style.animation = 'notification-pulse 2s ease-in-out';
-                    `;
                     document.body.appendChild(notification);
                     setTimeout(() => notification.remove(), 3000);
                 }
