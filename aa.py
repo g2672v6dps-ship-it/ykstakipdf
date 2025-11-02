@@ -10002,7 +10002,7 @@ def show_yks_journey_cinema(user_data, progress_data):
             
             # Film karesi stili (Mobil responsive)
             day_frame = f"""
-            <div class="cinema-day-card" style="
+            <div id="cinema-content-wrapper" class="cinema-day-card" style="
                 background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
                 border: 6px solid #ffd700;
                 border-radius: 15px;
@@ -10223,7 +10223,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                 </button>
                 
                 <script>
-                // YouTube Tarzı Native Fullscreen API
+                // YouTube Tarzı Native Fullscreen API + CSS Güçlendirme
                 function toggleFullscreenMode() {
                     const doc = window.document;
                     const docEl = doc.documentElement;
@@ -10238,75 +10238,115 @@ def show_yks_journey_cinema(user_data, progress_data):
                                         doc.webkitFullscreenElement || doc.msFullscreenElement;
                     
                     if (!isFullscreen) {
-                        // Tam ekrana geç
+                        // Önce stilleri uygla
+                        applyFullscreenStyles();
+                        
+                        // Sonra tam ekrana geç
                         if (requestFullScreen) {
                             requestFullScreen.call(docEl).then(() => {
-                                applyFullscreenStyles();
-                                showFullscreenNotification('🎬 TAM EKRAN AKTIF! (ESC ile çıkabilirsiniz)');
+                                // Tam ekran başarılı, stilleri yeniden uygula
+                                setTimeout(() => {
+                                    applyFullscreenStyles();
+                                    showFullscreenNotification('🎬 TAM EKRAN AKTIF! (ESC ile çıkabilirsiniz)');
+                                }, 100);
                             }).catch(err => {
                                 console.log('Fullscreen hatası:', err);
-                                showFullscreenNotification('⚠️ Tam ekran başarısız. Tarayıcınız desteklemiyor olabilir.');
+                                // API başarısız olsa da CSS tam ekran çalışır
+                                showFullscreenNotification('🎬 Tam Ekran Modu Aktif!');
                             });
                         } else {
-                            showFullscreenNotification('⚠️ Tarayıcınız tam ekran desteklemiyor');
+                            // API desteklenmiyor, sadece CSS kullan
+                            showFullscreenNotification('🎬 Tam Ekran Modu Aktif!');
                         }
                     } else {
                         // Normal moda dön
                         if (cancelFullScreen) {
                             cancelFullScreen.call(doc);
+                        } else {
+                            // API yoksa sadece stilleri kaldır
+                            removeFullscreenStyles();
                         }
                     }
                 }
                 
-                // Tam ekran stilleri uygula
+                // Tam ekran stilleri uygula - ÇOK GÜÇLENDİRİLDİ!
                 function applyFullscreenStyles() {
-                    // Body stilleri
-                    document.body.style.margin = '0';
-                    document.body.style.padding = '0';
-                    document.body.style.background = '#000';
-                    document.body.style.overflow = 'auto';
+                    // Body
+                    document.body.style.setProperty('margin', '0', 'important');
+                    document.body.style.setProperty('padding', '0', 'important');
+                    document.body.style.setProperty('background', '#000', 'important');
+                    document.body.style.setProperty('overflow', 'hidden', 'important');
                     
                     // Streamlit ana container
                     const stApp = document.querySelector('.stApp');
                     if (stApp) {
-                        stApp.style.background = '#000';
-                        stApp.style.padding = '0';
-                        stApp.style.margin = '0';
+                        stApp.style.setProperty('background', '#000', 'important');
+                        stApp.style.setProperty('padding', '0', 'important');
+                        stApp.style.setProperty('margin', '0', 'important');
+                        stApp.style.setProperty('overflow', 'hidden', 'important');
                     }
                     
                     // Main container
                     const mainBlock = document.querySelector('.main');
                     if (mainBlock) {
-                        mainBlock.style.padding = '0';
-                        mainBlock.style.background = '#000';
+                        mainBlock.style.setProperty('padding', '0', 'important');
+                        mainBlock.style.setProperty('background', '#000', 'important');
+                        mainBlock.style.setProperty('overflow', 'auto', 'important');
+                        mainBlock.style.setProperty('height', '100vh', 'important');
                     }
                     
                     // Block container
                     const blockContainer = document.querySelector('.main .block-container');
                     if (blockContainer) {
-                        blockContainer.style.maxWidth = '100%';
-                        blockContainer.style.padding = '20px';
+                        blockContainer.style.setProperty('max-width', '100%', 'important');
+                        blockContainer.style.setProperty('padding', '0', 'important');
+                        blockContainer.style.setProperty('margin', '0', 'important');
                     }
                     
-                    // Sinema kartları
-                    const cinemaDayCards = document.querySelectorAll('.cinema-day-card');
-                    cinemaDayCards.forEach(card => {
-                        card.style.height = 'auto';
-                        card.style.minHeight = '90vh';
-                        card.style.margin = '2vh auto';
+                    // Cinema içeriği - BURADA KRİTİK DEĞİŞİKLİK!
+                    const cinemaContent = document.getElementById('cinema-content-wrapper');
+                    if (cinemaContent) {
+                        cinemaContent.style.setProperty('position', 'fixed', 'important');
+                        cinemaContent.style.setProperty('top', '0', 'important');
+                        cinemaContent.style.setProperty('left', '0', 'important');
+                        cinemaContent.style.setProperty('width', '100vw', 'important');
+                        cinemaContent.style.setProperty('height', '100vh', 'important');
+                        cinemaContent.style.setProperty('z-index', '999999', 'important');
+                        cinemaContent.style.setProperty('overflow-y', 'auto', 'important');
+                        cinemaContent.style.setProperty('overflow-x', 'hidden', 'important');
+                        cinemaContent.style.setProperty('max-width', '100vw', 'important');
+                        cinemaContent.style.setProperty('max-height', '100vh', 'important');
+                        cinemaContent.style.setProperty('margin', '0', 'important');
+                        cinemaContent.style.setProperty('border-radius', '0', 'important');
+                        cinemaContent.style.setProperty('padding', '20px', 'important');
+                    }
+                    
+                    // Tüm iframe'leri kontrol et (Streamlit components için)
+                    const iframes = document.querySelectorAll('iframe');
+                    iframes.forEach(iframe => {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        if (iframeDoc) {
+                            const iframeCinema = iframeDoc.getElementById('cinema-content-wrapper');
+                            if (iframeCinema) {
+                                iframeCinema.style.setProperty('position', 'fixed', 'important');
+                                iframeCinema.style.setProperty('z-index', '999999', 'important');
+                                iframeCinema.style.setProperty('width', '100vw', 'important');
+                                iframeCinema.style.setProperty('height', '100vh', 'important');
+                            }
+                        }
                     });
                     
                     // Fotoğraf konteynerleri
                     const photoContainers = document.querySelectorAll('.cinema-photo-container');
                     photoContainers.forEach(container => {
-                        container.style.height = '70vh';
-                        container.style.maxHeight = '70vh';
+                        container.style.setProperty('height', '60vh', 'important');
+                        container.style.setProperty('max-height', '60vh', 'important');
                     });
                     
                     // Fotoğraflar
                     const photos = document.querySelectorAll('.cinema-photo-container img');
                     photos.forEach(img => {
-                        img.style.maxHeight = '65vh';
+                        img.style.setProperty('max-height', '55vh', 'important');
                     });
                     
                     // Streamlit sidebar ve header'ı gizle
@@ -10317,7 +10357,8 @@ def show_yks_journey_cinema(user_data, progress_data):
                         'header[data-testid="stHeader"]',
                         '[data-testid="stToolbar"]',
                         '[data-testid="stDecoration"]',
-                        '[data-testid="stStatusWidget"]'
+                        '[data-testid="stStatusWidget"]',
+                        'footer'
                     ];
                     
                     elementsToHide.forEach(selector => {
@@ -10325,6 +10366,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                         elements.forEach(el => {
                             if (el) {
                                 el.style.setProperty('display', 'none', 'important');
+                                el.style.setProperty('visibility', 'hidden', 'important');
                             }
                         });
                     });
@@ -10344,17 +10386,21 @@ def show_yks_journey_cinema(user_data, progress_data):
                     const blockContainer = document.querySelector('.main .block-container');
                     if (blockContainer) blockContainer.removeAttribute('style');
                     
-                    // Kartları sıfırla
-                    document.querySelectorAll('.cinema-day-card').forEach(card => {
-                        card.removeAttribute('style');
-                    });
+                    // Cinema content
+                    const cinemaContent = document.getElementById('cinema-content-wrapper');
+                    if (cinemaContent) {
+                        cinemaContent.removeAttribute('style');
+                        // Orijinal stilleri geri yükle
+                        cinemaContent.style.cssText = cinemaContent.getAttribute('data-original-style') || '';
+                    }
                     
                     // Fotoğrafları sıfırla
                     document.querySelectorAll('.cinema-photo-container').forEach(container => {
-                        container.removeAttribute('style');
+                        container.style.removeProperty('height');
+                        container.style.removeProperty('max-height');
                     });
                     document.querySelectorAll('.cinema-photo-container img').forEach(img => {
-                        img.removeAttribute('style');
+                        img.style.removeProperty('max-height');
                     });
                     
                     // Gizlenen elementleri göster
@@ -10365,7 +10411,8 @@ def show_yks_journey_cinema(user_data, progress_data):
                         'header[data-testid="stHeader"]',
                         '[data-testid="stToolbar"]',
                         '[data-testid="stDecoration"]',
-                        '[data-testid="stStatusWidget"]'
+                        '[data-testid="stStatusWidget"]',
+                        'footer'
                     ];
                     
                     elementsToShow.forEach(selector => {
@@ -10373,6 +10420,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                         elements.forEach(el => {
                             if (el) {
                                 el.style.removeProperty('display');
+                                el.style.removeProperty('visibility');
                             }
                         });
                     });
@@ -10409,6 +10457,14 @@ def show_yks_journey_cinema(user_data, progress_data):
                 document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
                 document.addEventListener('mozfullscreenchange', handleFullscreenChange);
                 document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+                
+                // Sayfa yüklendiğinde orijinal stilleri kaydet
+                window.addEventListener('load', function() {
+                    const cinemaContent = document.getElementById('cinema-content-wrapper');
+                    if (cinemaContent) {
+                        cinemaContent.setAttribute('data-original-style', cinemaContent.style.cssText);
+                    }
+                });
                 
                 function showFullscreenNotification(message) {
                     const notification = document.createElement('div');
