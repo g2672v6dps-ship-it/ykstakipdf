@@ -9826,7 +9826,8 @@ def show_yks_journey_cinema(user_data, progress_data):
         const curtainSoundEffect = setInterval(() => {
             curtainEffect++;
             if (curtainEffect <= 60) {
-                document.body.style.filter = `brightness(${0.2 + (curtainEffect / 100)})`;
+                const brightnessValue = 0.2 + (curtainEffect / 100);
+                document.body.style.setProperty('filter', 'brightness(' + brightnessValue + ')');
             }
             if (curtainEffect >= 65) {
                 clearInterval(curtainSoundEffect);
@@ -10137,8 +10138,8 @@ def show_yks_journey_cinema(user_data, progress_data):
                         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f0f0f0'/%3E%3Ctext x='100' y='120' font-size='24' text-anchor='middle' fill='%23666'%3E📸 Fotoğraf%3C/text%3E%3C/svg%3E" 
                              style="max-width: 100%; max-height: 420px; width: auto; height: auto; object-fit: contain; border-radius: 12px; border: 3px solid #ffd700; box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4); transition: all 0.3s ease;"
                              alt="Günün Fotoğrafı"
-                             onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 12px 35px rgba(255, 215, 0, 0.6)';"
-                             onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 25px rgba(255, 215, 0, 0.4)';">
+                             onmouseover="this.style.setProperty('transform', 'scale(1.02)'); this.style.setProperty('box-shadow', '0 12px 35px rgba(255, 215, 0, 0.6)');"
+                             onmouseout="this.style.setProperty('transform', 'scale(1)'); this.style.setProperty('box-shadow', '0 8px 25px rgba(255, 215, 0, 0.4)');">
                     </div>
                     <p style="color: #e0e0e0; font-size: 1rem; margin-top: 15px; font-style: italic; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">"{current_day['photo_caption'] or 'Fotoğraf açıklaması eklenmemiş'}"</p>
                 </div>
@@ -10340,14 +10341,14 @@ def show_yks_journey_cinema(user_data, progress_data):
                                 const elements = document.querySelectorAll(selector);
                                 elements.forEach(el => {
                                     if (el) {
-                                        el.style.display = 'none !important';
-                                        el.style.visibility = 'hidden !important';
-                                        el.style.opacity = '0 !important';
-                                        el.style.position = 'absolute !important';
-                                        el.style.left = '-9999px !important';
-                                        el.style.top = '-9999px !important';
-                                        el.style.width = '0 !important';
-                                        el.style.height = '0 !important';
+                                        el.style.setProperty('display', 'none', 'important');
+                                        el.style.setProperty('visibility', 'hidden', 'important');
+                                        el.style.setProperty('opacity', '0', 'important');
+                                        el.style.setProperty('position', 'absolute', 'important');
+                                        el.style.setProperty('left', '-9999px', 'important');
+                                        el.style.setProperty('top', '-9999px', 'important');
+                                        el.style.setProperty('width', '0', 'important');
+                                        el.style.setProperty('height', '0', 'important');
                                     }
                                 });
                             });
@@ -10386,14 +10387,14 @@ def show_yks_journey_cinema(user_data, progress_data):
                                 const elements = document.querySelectorAll(selector);
                                 elements.forEach(el => {
                                     if (el) {
-                                        el.style.display = '';
-                                        el.style.visibility = '';
-                                        el.style.opacity = '';
-                                        el.style.position = '';
-                                        el.style.left = '';
-                                        el.style.top = '';
-                                        el.style.width = '';
-                                        el.style.height = '';
+                                        el.style.removeProperty('display');
+                                        el.style.removeProperty('visibility');
+                                        el.style.removeProperty('opacity');
+                                        el.style.removeProperty('position');
+                                        el.style.removeProperty('left');
+                                        el.style.removeProperty('top');
+                                        el.style.removeProperty('width');
+                                        el.style.removeProperty('height');
                                     }
                                 });
                             });
@@ -10417,7 +10418,7 @@ def show_yks_journey_cinema(user_data, progress_data):
                     notification.style.borderRadius = '25px';
                     notification.style.zIndex = '999999';
                     notification.style.fontSize = '16px';
-                    notification.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
+                    notification.style.setProperty('box-shadow', '0 8px 25px rgba(0,0,0,0.3)');
                     notification.style.fontFamily = 'Arial, sans-serif';
                     notification.style.fontWeight = 'bold';
                     notification.style.border = '2px solid #ffd700';
