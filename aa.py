@@ -10154,6 +10154,158 @@ def show_yks_journey_cinema(user_data, progress_data):
                     <p style="color: #888888; font-size: 0.9rem;">Gelecekte hatırlamak için fotoğraf eklemeyi unutma!</p>
                 </div>
                 '''}
+                
+                <!-- TAM EKRAN BUTONU - Cinema içeriğiyle aynı iframe içinde -->
+                <div style="text-align: center; margin-top: 25px; padding: 15px;">
+                    <button onclick="toggleFullscreenMode()" 
+                            style="padding: 15px 40px; 
+                                   background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+                                   color: white; border: none; border-radius: 12px; cursor: pointer;
+                                   font-size: 16px; font-weight: bold; transition: all 0.3s ease;
+                                   box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);"
+                            onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(255, 107, 107, 0.6)';"
+                            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(255, 107, 107, 0.4)';"
+                            id="fullscreen-btn">
+                        🖼️ Tam Ekran
+                    </button>
+                </div>
+                
+                <script>
+                // DÜZELTME: Cinema içeriğini tam ekrana al (aynı iframe içinde)
+                let isFullscreenActive = false;
+                
+                function toggleFullscreenMode() {
+                    const cinemaWrapper = document.getElementById('cinema-content-wrapper');
+                    const btn = document.getElementById('fullscreen-btn');
+                    
+                    if (!cinemaWrapper) {
+                        console.error('Cinema wrapper bulunamadı!');
+                        return;
+                    }
+                    
+                    if (!isFullscreenActive) {
+                        // TAM EKRANA GEÇ
+                        // Orijinal stilleri kaydet
+                        if (!cinemaWrapper.hasAttribute('data-original-style')) {
+                            cinemaWrapper.setAttribute('data-original-style', cinemaWrapper.getAttribute('style') || '');
+                        }
+                        
+                        // Cinema wrapper'ı tam ekran yap
+                        cinemaWrapper.style.position = 'fixed';
+                        cinemaWrapper.style.top = '0';
+                        cinemaWrapper.style.left = '0';
+                        cinemaWrapper.style.width = '100vw';
+                        cinemaWrapper.style.height = '100vh';
+                        cinemaWrapper.style.zIndex = '999999';
+                        cinemaWrapper.style.margin = '0';
+                        cinemaWrapper.style.borderRadius = '0';
+                        cinemaWrapper.style.border = 'none';
+                        cinemaWrapper.style.maxWidth = '100vw';
+                        cinemaWrapper.style.maxHeight = '100vh';
+                        cinemaWrapper.style.overflowY = 'auto';
+                        cinemaWrapper.style.overflowX = 'hidden';
+                        
+                        // Native fullscreen API'yi de dene
+                        if (cinemaWrapper.requestFullscreen) {
+                            cinemaWrapper.requestFullscreen().catch(err => {
+                                console.log('Native fullscreen desteklenmiyor:', err);
+                            });
+                        } else if (cinemaWrapper.webkitRequestFullscreen) {
+                            cinemaWrapper.webkitRequestFullscreen();
+                        } else if (cinemaWrapper.mozRequestFullScreen) {
+                            cinemaWrapper.mozRequestFullScreen();
+                        } else if (cinemaWrapper.msRequestFullscreen) {
+                            cinemaWrapper.msRequestFullscreen();
+                        }
+                        
+                        isFullscreenActive = true;
+                        if (btn) {
+                            btn.innerHTML = '🪟 Normal Mod (ESC)';
+                            btn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+                        }
+                        
+                        showNotification('🎬 TAM EKRAN AKTIF! (ESC ile çıkabilirsiniz)');
+                    } else {
+                        // NORMAL MODA DÖN
+                        exitFullscreen();
+                    }
+                }
+                
+                function exitFullscreen() {
+                    const cinemaWrapper = document.getElementById('cinema-content-wrapper');
+                    const btn = document.getElementById('fullscreen-btn');
+                    
+                    // Native fullscreen'den çık
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                    
+                    // Orijinal stilleri geri yükle
+                    if (cinemaWrapper) {
+                        const originalStyle = cinemaWrapper.getAttribute('data-original-style');
+                        if (originalStyle !== null) {
+                            cinemaWrapper.setAttribute('style', originalStyle);
+                        }
+                    }
+                    
+                    isFullscreenActive = false;
+                    if (btn) {
+                        btn.innerHTML = '🖼️ Tam Ekran';
+                        btn.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a24)';
+                    }
+                    
+                    showNotification('🪟 Normal moda döndü');
+                }
+                
+                // ESC tuşu veya native fullscreen çıkışını dinle
+                document.addEventListener('fullscreenchange', function() {
+                    if (!document.fullscreenElement && isFullscreenActive) {
+                        exitFullscreen();
+                    }
+                });
+                document.addEventListener('webkitfullscreenchange', function() {
+                    if (!document.webkitFullscreenElement && isFullscreenActive) {
+                        exitFullscreen();
+                    }
+                });
+                document.addEventListener('mozfullscreenchange', function() {
+                    if (!document.mozFullScreenElement && isFullscreenActive) {
+                        exitFullscreen();
+                    }
+                });
+                document.addEventListener('MSFullscreenChange', function() {
+                    if (!document.msFullscreenElement && isFullscreenActive) {
+                        exitFullscreen();
+                    }
+                });
+                
+                function showNotification(message) {
+                    const notification = document.createElement('div');
+                    notification.innerHTML = message;
+                    notification.style.position = 'fixed';
+                    notification.style.top = '20px';
+                    notification.style.left = '50%';
+                    notification.style.transform = 'translateX(-50%)';
+                    notification.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+                    notification.style.color = 'white';
+                    notification.style.padding = '15px 30px';
+                    notification.style.borderRadius = '25px';
+                    notification.style.zIndex = '9999999';
+                    notification.style.fontSize = '16px';
+                    notification.style.fontFamily = 'Arial, sans-serif';
+                    notification.style.fontWeight = 'bold';
+                    notification.style.border = '2px solid #ffd700';
+                    notification.style.boxShadow = '0 8px 25px rgba(0,0,0,0.5)';
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), 3000);
+                }
+                </script>
             </div>
             """
             
@@ -10210,297 +10362,8 @@ def show_yks_journey_cinema(user_data, progress_data):
                     st.rerun()
             
             with col5:
-                # KÖKLÜ TAM EKRAN ÇÖZÜMÜ - TAMAMEN YENİDEN YAZILDI!
-                tam_ekran_buton = """
-                <button onclick="toggleFullscreenMode()" 
-                        style="width: 100%; height: 38px; 
-                               background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-                               color: white; border: none; border-radius: 8px; cursor: pointer;
-                               font-size: 14px; font-weight: bold; transition: all 0.3s ease;
-                               box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);"
-                        id="fullscreen-btn">
-                    🖼️ Tam Ekran
-                </button>
-                
-                <script>
-                // YouTube Tarzı Native Fullscreen API + CSS Güçlendirme
-                function toggleFullscreenMode() {
-                    const doc = window.document;
-                    const docEl = doc.documentElement;
-                    
-                    const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || 
-                                            docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-                    const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || 
-                                           doc.webkitExitFullscreen || doc.msExitFullscreen;
-                    
-                    // Tam ekran durumunu kontrol et
-                    const isFullscreen = doc.fullscreenElement || doc.mozFullScreenElement || 
-                                        doc.webkitFullscreenElement || doc.msFullscreenElement;
-                    
-                    if (!isFullscreen) {
-                        // Önce stilleri uygla
-                        applyFullscreenStyles();
-                        
-                        // Sonra tam ekrana geç
-                        if (requestFullScreen) {
-                            requestFullScreen.call(docEl).then(() => {
-                                // Tam ekran başarılı, stilleri yeniden uygula
-                                setTimeout(() => {
-                                    applyFullscreenStyles();
-                                    showFullscreenNotification('🎬 TAM EKRAN AKTIF! (ESC ile çıkabilirsiniz)');
-                                }, 100);
-                            }).catch(err => {
-                                console.log('Fullscreen hatası:', err);
-                                // API başarısız olsa da CSS tam ekran çalışır
-                                showFullscreenNotification('🎬 Tam Ekran Modu Aktif!');
-                            });
-                        } else {
-                            // API desteklenmiyor, sadece CSS kullan
-                            showFullscreenNotification('🎬 Tam Ekran Modu Aktif!');
-                        }
-                    } else {
-                        // Normal moda dön
-                        if (cancelFullScreen) {
-                            cancelFullScreen.call(doc);
-                        } else {
-                            // API yoksa sadece stilleri kaldır
-                            removeFullscreenStyles();
-                        }
-                    }
-                }
-                
-                // Tam ekran stilleri uygula - ÇOK GÜÇLENDİRİLDİ!
-                function applyFullscreenStyles() {
-                    // Body
-                    document.body.style.setProperty('margin', '0', 'important');
-                    document.body.style.setProperty('padding', '0', 'important');
-                    document.body.style.setProperty('background', '#000', 'important');
-                    document.body.style.setProperty('overflow', 'hidden', 'important');
-                    
-                    // Streamlit ana container
-                    const stApp = document.querySelector('.stApp');
-                    if (stApp) {
-                        stApp.style.setProperty('background', '#000', 'important');
-                        stApp.style.setProperty('padding', '0', 'important');
-                        stApp.style.setProperty('margin', '0', 'important');
-                        stApp.style.setProperty('overflow', 'hidden', 'important');
-                    }
-                    
-                    // Main container
-                    const mainBlock = document.querySelector('.main');
-                    if (mainBlock) {
-                        mainBlock.style.setProperty('padding', '0', 'important');
-                        mainBlock.style.setProperty('background', '#000', 'important');
-                        mainBlock.style.setProperty('overflow', 'auto', 'important');
-                        mainBlock.style.setProperty('height', '100vh', 'important');
-                    }
-                    
-                    // Block container
-                    const blockContainer = document.querySelector('.main .block-container');
-                    if (blockContainer) {
-                        blockContainer.style.setProperty('max-width', '100%', 'important');
-                        blockContainer.style.setProperty('padding', '0', 'important');
-                        blockContainer.style.setProperty('margin', '0', 'important');
-                    }
-                    
-                    // Cinema içeriği - BURADA KRİTİK DEĞİŞİKLİK!
-                    const cinemaContent = document.getElementById('cinema-content-wrapper');
-                    if (cinemaContent) {
-                        cinemaContent.style.setProperty('position', 'fixed', 'important');
-                        cinemaContent.style.setProperty('top', '0', 'important');
-                        cinemaContent.style.setProperty('left', '0', 'important');
-                        cinemaContent.style.setProperty('width', '100vw', 'important');
-                        cinemaContent.style.setProperty('height', '100vh', 'important');
-                        cinemaContent.style.setProperty('z-index', '999999', 'important');
-                        cinemaContent.style.setProperty('overflow-y', 'auto', 'important');
-                        cinemaContent.style.setProperty('overflow-x', 'hidden', 'important');
-                        cinemaContent.style.setProperty('max-width', '100vw', 'important');
-                        cinemaContent.style.setProperty('max-height', '100vh', 'important');
-                        cinemaContent.style.setProperty('margin', '0', 'important');
-                        cinemaContent.style.setProperty('border-radius', '0', 'important');
-                        cinemaContent.style.setProperty('padding', '20px', 'important');
-                    }
-                    
-                    // Tüm iframe'leri kontrol et (Streamlit components için)
-                    const iframes = document.querySelectorAll('iframe');
-                    iframes.forEach(iframe => {
-                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                        if (iframeDoc) {
-                            const iframeCinema = iframeDoc.getElementById('cinema-content-wrapper');
-                            if (iframeCinema) {
-                                iframeCinema.style.setProperty('position', 'fixed', 'important');
-                                iframeCinema.style.setProperty('z-index', '999999', 'important');
-                                iframeCinema.style.setProperty('width', '100vw', 'important');
-                                iframeCinema.style.setProperty('height', '100vh', 'important');
-                            }
-                        }
-                    });
-                    
-                    // Fotoğraf konteynerleri
-                    const photoContainers = document.querySelectorAll('.cinema-photo-container');
-                    photoContainers.forEach(container => {
-                        container.style.setProperty('height', '60vh', 'important');
-                        container.style.setProperty('max-height', '60vh', 'important');
-                    });
-                    
-                    // Fotoğraflar
-                    const photos = document.querySelectorAll('.cinema-photo-container img');
-                    photos.forEach(img => {
-                        img.style.setProperty('max-height', '55vh', 'important');
-                    });
-                    
-                    // Streamlit sidebar ve header'ı gizle
-                    const elementsToHide = [
-                        '[data-testid="stSidebar"]',
-                        'section[data-testid="stSidebar"]',
-                        '[data-testid="stHeader"]',
-                        'header[data-testid="stHeader"]',
-                        '[data-testid="stToolbar"]',
-                        '[data-testid="stDecoration"]',
-                        '[data-testid="stStatusWidget"]',
-                        'footer'
-                    ];
-                    
-                    elementsToHide.forEach(selector => {
-                        const elements = document.querySelectorAll(selector);
-                        elements.forEach(el => {
-                            if (el) {
-                                el.style.setProperty('display', 'none', 'important');
-                                el.style.setProperty('visibility', 'hidden', 'important');
-                            }
-                        });
-                    });
-                }
-                
-                // Normal mod stilleri
-                function removeFullscreenStyles() {
-                    // Style attribute'larını temizle
-                    document.body.removeAttribute('style');
-                    
-                    const stApp = document.querySelector('.stApp');
-                    if (stApp) stApp.removeAttribute('style');
-                    
-                    const mainBlock = document.querySelector('.main');
-                    if (mainBlock) mainBlock.removeAttribute('style');
-                    
-                    const blockContainer = document.querySelector('.main .block-container');
-                    if (blockContainer) blockContainer.removeAttribute('style');
-                    
-                    // Cinema content
-                    const cinemaContent = document.getElementById('cinema-content-wrapper');
-                    if (cinemaContent) {
-                        cinemaContent.removeAttribute('style');
-                        // Orijinal stilleri geri yükle
-                        cinemaContent.style.cssText = cinemaContent.getAttribute('data-original-style') || '';
-                    }
-                    
-                    // Fotoğrafları sıfırla
-                    document.querySelectorAll('.cinema-photo-container').forEach(container => {
-                        container.style.removeProperty('height');
-                        container.style.removeProperty('max-height');
-                    });
-                    document.querySelectorAll('.cinema-photo-container img').forEach(img => {
-                        img.style.removeProperty('max-height');
-                    });
-                    
-                    // Gizlenen elementleri göster
-                    const elementsToShow = [
-                        '[data-testid="stSidebar"]',
-                        'section[data-testid="stSidebar"]',
-                        '[data-testid="stHeader"]',
-                        'header[data-testid="stHeader"]',
-                        '[data-testid="stToolbar"]',
-                        '[data-testid="stDecoration"]',
-                        '[data-testid="stStatusWidget"]',
-                        'footer'
-                    ];
-                    
-                    elementsToShow.forEach(selector => {
-                        const elements = document.querySelectorAll(selector);
-                        elements.forEach(el => {
-                            if (el) {
-                                el.style.removeProperty('display');
-                                el.style.removeProperty('visibility');
-                            }
-                        });
-                    });
-                }
-                
-                // Fullscreen değişikliklerini dinle (ESC tuşu için)
-                function handleFullscreenChange() {
-                    const doc = window.document;
-                    const isFullscreen = doc.fullscreenElement || doc.mozFullScreenElement || 
-                                        doc.webkitFullscreenElement || doc.msFullscreenElement;
-                    
-                    const btn = document.getElementById('fullscreen-btn');
-                    
-                    if (isFullscreen) {
-                        // Tam ekran aktif
-                        if (btn) {
-                            btn.innerHTML = '🪟 Normal Mod (ESC)';
-                            btn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
-                        }
-                        applyFullscreenStyles();
-                    } else {
-                        // Normal mod
-                        if (btn) {
-                            btn.innerHTML = '🖼️ Tam Ekran';
-                            btn.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a24)';
-                        }
-                        removeFullscreenStyles();
-                        showFullscreenNotification('🪟 Normal moda döndü');
-                    }
-                }
-                
-                // Event listener'ları ekle
-                document.addEventListener('fullscreenchange', handleFullscreenChange);
-                document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-                document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-                document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-                
-                // Sayfa yüklendiğinde orijinal stilleri kaydet
-                window.addEventListener('load', function() {
-                    const cinemaContent = document.getElementById('cinema-content-wrapper');
-                    if (cinemaContent) {
-                        cinemaContent.setAttribute('data-original-style', cinemaContent.style.cssText);
-                    }
-                });
-                
-                function showFullscreenNotification(message) {
-                    const notification = document.createElement('div');
-                    notification.innerHTML = message;
-                    notification.style.position = 'fixed';
-                    notification.style.top = '20px';
-                    notification.style.left = '50%';
-                    notification.style.transform = 'translateX(-50%)';
-                    notification.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
-                    notification.style.color = 'white';
-                    notification.style.padding = '15px 30px';
-                    notification.style.borderRadius = '25px';
-                    notification.style.zIndex = '999999';
-                    notification.style.fontSize = '16px';
-                    notification.style.setProperty('box-shadow', '0 8px 25px rgba(0,0,0,0.3)');
-                    notification.style.fontFamily = 'Arial, sans-serif';
-                    notification.style.fontWeight = 'bold';
-                    notification.style.border = '2px solid #ffd700';
-                    notification.style.animation = 'notification-pulse 2s ease-in-out';
-                    document.body.appendChild(notification);
-                    setTimeout(() => notification.remove(), 3000);
-                }
-                
-                // CSS animasyonu ekle
-                const style = document.createElement('style');
-                style.textContent = `
-                    @keyframes notification-pulse {
-                        0% { transform: translateX(-50%) scale(0.8); opacity: 0; }
-                        50% { transform: translateX(-50%) scale(1.1); opacity: 1; }
-                        100% { transform: translateX(-50%) scale(1); opacity: 1; }
-                    }
-                `;
-                document.head.appendChild(style);
-                </script>
-                """
-                st.components.v1.html(tam_ekran_buton, height=50)
+                # TAM EKRAN BUTONU ARTIK CİNEMA İÇERİĞİNİN İÇİNDE (yukarıda day_frame içinde)
+                st.write("")  # Boş kolon - tam ekran butonu cinema içinde
             
             with col6:
                 if st.button("🚪 Çıkış"):
