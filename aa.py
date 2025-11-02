@@ -10790,9 +10790,10 @@ def show_pomodoro_interface(user_data):
             timer_color = pomodoro_types[st.session_state.pomodoro_type]['color']
             
             st.markdown(f"""
-            <div style="
-                background: linear-gradient(135deg, {timer_color}22 0%, {timer_color}44 100%);
-                border: 4px solid {timer_color};
+            <style>
+            .pomodoro-timer-container {{
+                background: linear-gradient(135deg, var(--timer-color-light) 0%, var(--timer-color-medium) 100%);
+                border: 4px solid var(--timer-color);
                 border-radius: 50%;
                 width: 250px;
                 height: 250px;
@@ -10802,18 +10803,22 @@ def show_pomodoro_interface(user_data):
                 justify-content: center;
                 margin: 20px auto;
                 box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            ">
-                <div style="
-                    font-size: 48px;
-                    font-weight: bold;
-                    color: {timer_color};
-                    margin-bottom: 10px;
-                {minutes:02d}:{seconds:02d}</div>
-                <div style="
-                    font-size: 16px;
-                    color: {timer_color};
-                    opacity: 0.8;
-                {st.session_state.pomodoro_type.split('(')[0].strip()}</div>
+            }}
+            .pomodoro-time-display {{
+                font-size: 48px;
+                font-weight: bold;
+                color: var(--timer-color);
+                margin-bottom: 10px;
+            }}
+            .pomodoro-type-label {{
+                font-size: 16px;
+                color: var(--timer-color);
+                opacity: 0.8;
+            }}
+            </style>
+            <div class="pomodoro-timer-container" style="--timer-color: {timer_color}; --timer-color-light: {timer_color}22; --timer-color-medium: {timer_color}44;">
+                <div class="pomodoro-time-display">{minutes:02d}:{seconds:02d}</div>
+                <div class="pomodoro-type-label">{st.session_state.pomodoro_type.split('(')[0].strip()}</div>
             </div>
             """, unsafe_allow_html=True)
         
@@ -12085,7 +12090,8 @@ def show_breathing_exercise():
             st.session_state.current_motivation_content = f"🫁 **{exercise['name']}**\n\n📋 {exercise['instruction']}\n\n✨ **Faydası:** {exercise['benefit']}"
     
     st.markdown(f"""
-    <div style="
+    <style>
+    .breathing-container {{
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 20px;
         padding: 30px;
@@ -12094,39 +12100,58 @@ def show_breathing_exercise():
         color: white;
         box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         animation: pulse 2s infinite;
-    ">
-        <h2 style="color: white; margin-bottom: 20px;">🌬️ Hibrit Nefes Molası</h2>
-        <div style="font-size: 72px; font-weight: bold; margin: 20px 0;">
-            {breath_seconds}s
-        </div>
-        <div style="
-            font-size: 18px; 
-            font-style: italic; 
-            margin: 20px 0; 
-            min-height: 120px;
-            padding: 20px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            border-left: 4px solid #ffd700;
-            transition: all 0.5s ease-in-out;
-        ">
-            {st.session_state.current_motivation_content}
-        </div>
-        <div style="font-size: 12px; opacity: 0.8; margin-top: 10px;">
-            💡 İçerik her 5 saniyede değişir
-        </div>
-        <div style="font-size: 14px; opacity: 0.9; margin-top: 15px;">
-            🧘‍♂️ Nefes molası aktif • Timer durduruldu
-        </div>
-    </div>
-    
-    <style>
+    }}
+    .breathing-title {{
+        color: white;
+        margin-bottom: 20px;
+    }}
+    .breathing-countdown {{
+        font-size: 72px;
+        font-weight: bold;
+        margin: 20px 0;
+    }}
+    .breathing-motivation {{
+        font-size: 18px;
+        font-style: italic;
+        margin: 20px 0;
+        min-height: 120px;
+        padding: 20px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 15px;
+        border-left: 4px solid #ffd700;
+        transition: all 0.5s ease-in-out;
+    }}
+    .breathing-hint {{
+        font-size: 12px;
+        opacity: 0.8;
+        margin-top: 10px;
+    }}
+    .breathing-status {{
+        font-size: 14px;
+        opacity: 0.9;
+        margin-top: 15px;
+    }}
     @keyframes pulse {{
         0% {{ transform: scale(1); }}
         50% {{ transform: scale(1.02); }}
         100% {{ transform: scale(1); }}
     }}
     </style>
+    <div class="breathing-container">
+        <h2 class="breathing-title">🌬️ Hibrit Nefes Molası</h2>
+        <div class="breathing-countdown">
+            {breath_seconds}s
+        </div>
+        <div class="breathing-motivation">
+            {st.session_state.current_motivation_content}
+        </div>
+        <div class="breathing-hint">
+            💡 İçerik her 5 saniyede değişir
+        </div>
+        <div class="breathing-status">
+            🧘‍♂️ Nefes molası aktif • Timer durduruldu
+        </div>
+    </div>
     """, unsafe_allow_html=True)
 
 
