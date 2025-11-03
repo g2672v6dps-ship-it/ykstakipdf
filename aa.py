@@ -231,6 +231,9 @@ def save_weekly_targets_approval(user_data, weekly_targets, coach_notes=''):
             'corrected_targets': None
         }
         
+        # Tüm new_target_approval objesini JSON serialize edilebilir hale getir
+        new_target_approval = make_json_serializable(new_target_approval)
+        
         # Mevcut hedefe ekle veya yeni başlat
         targets_data[approval_id] = new_target_approval
         user_data['weekly_targets_approvals'] = json.dumps(targets_data, ensure_ascii=False)
@@ -1853,17 +1856,25 @@ class FirebaseCache:
     def update_user_data(self, username, data):
         """Kullanıcı verisini güncelle + cache'i temizle"""
         try:
+            # Firebase'e gönderilecek veriyi JSON serialize edilebilir hale getir
+            firebase_safe_data = make_json_serializable(data)
+            
             if firebase_connected and db_ref:
-                db_ref.child(username).update(data)
+                db_ref.child(username).update(firebase_safe_data)
             
             # Cache'i güncelle
             cache_key = f"user_{username}"
             if cache_key in self.cache:
-                self.cache[cache_key]['data'].update(data)
+                self.cache[cache_key]['data'].update(firebase_safe_data)
                 self.cache[cache_key]['time'] = time.time()
             
             return True
-        except:
+        except Exception as e:
+            # Detaylı hata mesajı
+            error_msg = f"Firebase güncelleme hatası: {e}"
+            if "Object of type datetime is not JSON serializable" in str(e):
+                error_msg += " - JSON serialization hatası detected. Tüm datetime objeleri string'e çevrilecek."
+            st.error(error_msg)
             return False
     
     def clear_cache(self, pattern=None):
@@ -1986,20 +1997,27 @@ def load_users_from_firebase(force_refresh=False):
 
 def update_user_in_firebase(username, data):
     """🚀 OPTİMİZE EDİLMİŞ: Cache'li kullanıcı verisi güncelleme"""
-    # Session state'i güncelle
-    if 'users_db' in st.session_state:
-        if username in st.session_state.users_db:
-            st.session_state.users_db[username].update(data)
-        else:
-            # Yeni kullanıcı - ekle
-            st.session_state.users_db[username] = data
-    
-    # Haftalık plan cache'ini temizle
-    if 'weekly_plan_cache' in st.session_state:
-        del st.session_state.weekly_plan_cache
-    
-    # Cache'li güncelleme
-    return firebase_cache.update_user_data(username, data)
+    try:
+        # Firebase'e gönderilecek verileri JSON serialize edilebilir hale getir
+        firebase_safe_data = make_json_serializable(data)
+        
+        # Session state'i güncelle
+        if 'users_db' in st.session_state:
+            if username in st.session_state.users_db:
+                st.session_state.users_db[username].update(firebase_safe_data)
+            else:
+                # Yeni kullanıcı - ekle
+                st.session_state.users_db[username] = firebase_safe_data
+        
+        # Haftalık plan cache'ini temizle
+        if 'weekly_plan_cache' in st.session_state:
+            del st.session_state.weekly_plan_cache
+        
+        # Cache'li güncelleme
+        return firebase_cache.update_user_data(username, firebase_safe_data)
+    except Exception as e:
+        st.error(f"Firebase güncelleme hatası: {e}")
+        return False
 
 # === HİBRİT POMODORO SİSTEMİ SABİTLERİ ===
 
