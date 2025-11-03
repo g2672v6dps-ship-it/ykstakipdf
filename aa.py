@@ -25444,24 +25444,82 @@ def admin_coach_approval_panel():
                     if 0 <= index < len(approved_topics):
                         approved_topics.pop(index)
                 
-                st.markdown("**➕ Yeni konu ekleyin:**")
+                st.markdown("**➕ Konu Takip'ten yeni konu ekleyin:**")
                 with st.form(f"add_topic_form_{i}"):
-                    new_subject = st.text_input("Ders Adı:", placeholder="TYT Matematik")
-                    new_topic = st.text_input("Konu Adı:", placeholder="Türev")
-                    new_detail = st.text_input("Detay (isteğe bağlı):", placeholder="Türev kuralları ve uygulamaları")
-                    new_priority = st.selectbox("Öncelik:", ["DÜŞÜK", "NORMAL", "YÜKSEK", "KRİTİK"])
+                    # Mevcut dersleri al
+                    available_subjects = list(YKS_TOPICS.keys())
                     
-                    if st.form_submit_button("➕ Konu Ekle"):
-                        if new_subject and new_topic:
-                            new_topic_obj = {
-                                'subject': new_subject,
-                                'topic': new_topic,
-                                'detail': new_detail,
-                                'priority': new_priority,
+                    # Ders seçimi
+                    selected_subject = st.selectbox(
+                        "📚 Ders Seçin:",
+                        options=["-- Ders Seçin --"] + available_subjects,
+                        index=0,
+                        key=f"subject_select_{i}"
+                    )
+                    
+                    if selected_subject != "-- Ders Seçin --":
+                        # Seçilen dersin konularını getir
+                        subject_topics = get_topic_list(selected_subject)
+                        
+                        if subject_topics:
+                            # Konu seçimi
+                            selected_topic_option = st.selectbox(
+                                "📖 Konu Seçin:",
+                                options=["-- Konu Seçin --"] + subject_topics,
+                                index=0,
+                                key=f"topic_select_{i}"
+                            )
+                            
+                            if selected_topic_option != "-- Konu Seçin --":
+                                # Seçilen konuyu parse et
+                                topic_parts = selected_topic_option.split(" | ")
+                                topic_subject = topic_parts[0]  # Ders
+                                category = topic_parts[1]  # Ana kategori
+                                sub_category = topic_parts[2] if topic_parts[2] != "None" else None  # Alt kategori
+                                topic_name = topic_parts[3] if len(topic_parts) > 3 else topic_parts[2] if topic_parts[2] != "None" else topic_parts[1]  # Konu
+                                detail = topic_parts[3] if len(topic_parts) > 3 and sub_category else topic_parts[3]  # Detay
+                                
+                                # Detay alanını manuel olarak değiştirebilme seçeneği
+                                new_detail = st.text_input(
+                                    "Detay (isteğe bağlı, düzenlenebilir):", 
+                                    value=detail,
+                                    placeholder="Konu detayları"
+                                )
+                                
+                                new_priority = st.selectbox("Öncelik:", ["DÜŞÜK", "NORMAL", "YÜKSEK", "KRİTİK"])
+                                
+                                if st.form_submit_button("➕ Konu Ekle"):
+                                    new_topic_obj = {
+                                        'subject': topic_subject,
+                                        'topic': topic_name,
+                                        'detail': new_detail,
+                                        'priority': new_priority,
+                                        'net': 0
+                                    }
+                                    approved_topics.append(new_topic_obj)
+                                    st.success(f"✅ {topic_subject} - {topic_name} konusu eklendi!")
+                                    st.rerun()
+                        else:
+                            st.warning(f"⚠️ {selected_subject} dersi için konu bulunamadı.")
+                    
+                    # Manuel konu ekleme seçeneği de kalsın
+                    st.markdown("**Veya manuel olarak ekleyin:**")
+                    manual_subject = st.text_input("Manuel Ders Adı:", placeholder="TYT Matematik")
+                    manual_topic = st.text_input("Manuel Konu Adı:", placeholder="Türev")
+                    manual_detail = st.text_input("Manuel Detay:", placeholder="Türev kuralları")
+                    manual_priority = st.selectbox("Manuel Öncelik:", ["DÜŞÜK", "NORMAL", "YÜKSEK", "KRİTİK"])
+                    
+                    if st.form_submit_button("➕ Manuel Konu Ekle"):
+                        if manual_subject and manual_topic:
+                            manual_topic_obj = {
+                                'subject': manual_subject,
+                                'topic': manual_topic,
+                                'detail': manual_detail,
+                                'priority': manual_priority,
                                 'net': 0
                             }
-                            approved_topics.append(new_topic_obj)
-                            st.success("✅ Konu eklendi!")
+                            approved_topics.append(manual_topic_obj)
+                            st.success(f"✅ Manuel: {manual_subject} - {manual_topic} eklendi!")
                             st.rerun()
             
             # Koç notu ve onay
