@@ -9,134 +9,6 @@ import random
 import requests
 from functools import lru_cache
 
-def make_json_serializable(obj):
-    """JSON'a serialize edilemeyen objeleri (datetime, vs.) string'e çevirir"""
-    if obj is None:
-        return None
-    elif isinstance(obj, datetime):
-        return obj.isoformat()
-    elif isinstance(obj, timedelta):
-        return str(obj)
-    elif isinstance(obj, dict):
-        return {key: make_json_serializable(value) for key, value in obj.items()}
-    elif isinstance(obj, list):
-        return [make_json_serializable(item) for item in obj]
-    elif isinstance(obj, tuple):
-        return tuple(make_json_serializable(item) for item in obj)
-    elif isinstance(obj, set):
-        return list(obj)
-    elif hasattr(obj, '__dict__'):
-        # Custom object - string'e çevir
-        return str(obj)
-    else:
-        # Basit tip için olduğu gibi döndür
-        return obj
-
-def generate_weekly_plan(user_goals=None, subjects=None):
-    """Kullanıcının hedeflerine göre haftalık çalışma planı oluşturur"""
-    try:
-        # Mevcut hafta bilgilerini al
-        week_info = get_current_week_info()
-        
-        # Kullanıcı hedefleri yoksa varsayılan değerler kullan
-        if user_goals is None:
-            user_goals = {
-                'target_university': 'İyi bir üniversite',
-                'target_department': 'Mühendislik',
-                'study_hours_daily': 6,
-                'weak_subjects': ['Matematik', 'Fizik'],
-                'strong_subjects': ['Türkçe', 'Tarih']
-            }
-        
-        # Konular yoksa varsayılan konular kullan
-        if subjects is None:
-            subjects = ['Matematik', 'Fizik', 'Kimya', 'Biyoloji', 'Türkçe', 'Edebiyat', 'Tarih', 'Coğrafya']
-        
-        # Haftalık plan oluştur
-        weekly_plan = {
-            'week_start': week_info['monday'],
-            'week_end': week_info['sunday'],
-            'days_to_yks': week_info['days_to_yks'],
-            'daily_plans': {}
-        }
-        
-        # Her gün için plan oluştur
-        days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar']
-        
-        for i, day in enumerate(days):
-            # Tarihi hesapla (ISO format string'ten datetime'a çevir)
-            current_date = datetime.fromisoformat(week_info['today'])
-            day_date = current_date + timedelta(days=i)
-            
-            # Günlük plan
-            daily_plan = {
-                'date': day_date.strftime('%Y-%m-%d'),
-                'day_name': day,
-                'study_hours': user_goals.get('study_hours_daily', 6),
-                'subjects': {},
-                'total_questions': 0,
-                'break_times': ['12:00-13:00', '18:00-19:00']
-            }
-            
-            # Zayıf konulara daha fazla zaman ayır
-            weak_subjects = user_goals.get('weak_subjects', [])
-            strong_subjects = user_goals.get('strong_subjects', [])
-            
-            if i < 5:  # Hafta içi
-                # Zayıf konulara 2-3 saat, güçlü konulara 1-2 saat
-                daily_plan['subjects']['Matematik'] = {
-                    'hours': 2.5 if 'Matematik' in weak_subjects else 1.5,
-                    'questions': 50 if 'Matematik' in weak_subjects else 30
-                }
-                daily_plan['subjects']['Türkçe'] = {
-                    'hours': 1.5 if 'Türkçe' in weak_subjects else 2.0,
-                    'questions': 40 if 'Türkçe' in weak_subjects else 35
-                }
-                daily_plan['subjects']['Fen'] = {
-                    'hours': 2.0 if any(subj in ['Fizik', 'Kimya', 'Biyoloji'] for subj in weak_subjects) else 1.5,
-                    'questions': 35 if any(subj in ['Fizik', 'Kimya', 'Biyoloji'] for subj in weak_subjects) else 25
-                }
-            else:  # Hafta sonu
-                # Deneme sınavları ve genel tekrar
-                daily_plan['subjects']['Deneme Sınavı'] = {
-                    'hours': 3.0,
-                    'questions': 80
-                }
-                daily_plan['subjects']['Genel Tekrar'] = {
-                    'hours': 2.0,
-                    'questions': 50
-                }
-                daily_plan['subjects']['Zayıf Konular'] = {
-                    'hours': 1.0,
-                    'questions': 20
-                }
-            
-            # Toplam soru sayısını hesapla
-            daily_plan['total_questions'] = sum(
-                subj_data['questions'] for subj_data in daily_plan['subjects'].values()
-            )
-            
-            weekly_plan['daily_plans'][day] = daily_plan
-        
-        # Hedefler ve önerileri ekle
-        weekly_plan['goals'] = {
-            'weekly_study_hours': sum(day_plan['study_hours'] for day_plan in weekly_plan['daily_plans'].values()),
-            'weekly_questions': sum(day_plan['total_questions'] for day_plan in weekly_plan['daily_plans'].values()),
-            'recommendations': [
-                'Her gün en az 6 saat çalışmaya odaklan',
-                'Zayıf konulara daha fazla zaman ayır',
-                'Düzenli olarak deneme sınavı çöz',
-                'Yeterli miktarda ara ver ve dinlen',
-                'Günlük hedeflerini takip et'
-            ]
-        }
-        
-        return weekly_plan
-        
-    except Exception as e:
-        st.error(f"Haftalık plan oluşturulurken hata: {str(e)}")
-        return None
-
 # Paket yükleme durumları
 try:
     import pandas as pd
@@ -260,715 +132,6 @@ def check_and_show_welcome_message(username):
             st.success(f"Hoşgeldin {username}! Sisteme başarıyla giriş yaptın.", icon="🎉")
             st.session_state.welcome_message_shown = True
 
-# === PROGRAM ONAY SİSTEMİ FONKSİYONLARI ===
-
-def submit_program_for_coach_approval(user_data, program_data, description):
-    """Öğrencinin haftalık programını koç onayına gönder"""
-    try:
-        # Mevcut program onay durumlarını al
-        programs_data_str = user_data.get('program_approvals', '{}')
-        programs_data = json.loads(programs_data_str) if programs_data_str else {}
-        
-        # Yeni program kaydı oluştur
-        program_id = f"prog_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{st.session_state.get('current_user', 'unknown')}"
-        
-        new_program = {
-            'program_id': program_id,
-            'student_name': user_data.get('name', 'Bilinmeyen'),
-            'student_username': st.session_state.get('current_user', ''),
-            'student_field': user_data.get('field', 'Bilinmiyor'),
-            'program_data': make_json_serializable(program_data),  # 🔥 FİX: JSON serialize edilebilir hale getir
-            'description': description,
-            'status': 'beklemede',  # beklemede, onaylandı, reddedildi
-            'submission_date': datetime.now().isoformat(),
-            'coach_review_date': None,
-            'coach_feedback': ''
-        }
-        
-        # Mevcut programa ekle veya yeni başlat
-        programs_data[program_id] = new_program
-        user_data['program_approvals'] = json.dumps(make_json_serializable(programs_data), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
-        
-        # Firebase'e kaydet
-        username = st.session_state.get('current_user', '')
-        if username:
-            update_user_in_firebase(username, {'program_approvals': user_data['program_approvals']})
-            return True, program_id
-        
-        return False, program_id
-    except Exception as e:
-        st.error(f"Program gönderme hatası: {e}")
-        return False, None
-
-# === HAFTALİK HEDEF ONAY SİSTEMİ FONKSİYONLARI ===
-
-def save_weekly_targets_approval(user_data, weekly_targets, coach_notes=''):
-    """Öğrencinin haftalık hedef konular listesini koça gönderir"""
-    try:
-        # Mevcut haftalık hedef onay durumlarını al
-        targets_data_str = user_data.get('weekly_targets_approvals', '{}')
-        targets_data = json.loads(targets_data_str) if targets_data_str else {}
-        
-        # Yeni haftalık hedef kaydı oluştur
-        approval_id = f"wt_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{st.session_state.get('current_user', 'unknown')}"
-        
-        # weekly_targets içindeki datetime objelerini string'e çevir
-        targets_json_serializable = make_json_serializable(weekly_targets)
-        
-        # JSON serialize edilebilirliğini test et
-        try:
-            json.dumps(targets_json_serializable, ensure_ascii=False)
-        except (TypeError, ValueError) as serialize_error:
-            st.error(f"❌ JSON Serialize Hatası: {serialize_error}")
-            return False, None
-        
-        new_target_approval = {
-            'approval_id': approval_id,
-            'student_name': user_data.get('name', 'Bilinmeyen'),
-            'student_username': st.session_state.get('current_user', ''),
-            'student_field': user_data.get('field', 'Bilinmiyor'),
-            'weekly_targets': targets_json_serializable,
-            'coach_notes': coach_notes,
-            'status': 'beklemede',  # beklemede, onaylandı, reddedildi
-            'submission_date': datetime.now().isoformat(),
-            'coach_review_date': None,
-            'coach_feedback': '',
-            'corrected_targets': None
-        }
-        
-        # Tüm new_target_approval objesini JSON serialize edilebilir hale getir
-        new_target_approval = make_json_serializable(new_target_approval)
-        
-        # Mevcut hedefe ekle veya yeni başlat
-        targets_data[approval_id] = new_target_approval
-        user_data['weekly_targets_approvals'] = json.dumps(targets_data, ensure_ascii=False)
-        
-        # Firebase'e kaydet
-        username = st.session_state.get('current_user', '')
-        if username:
-            update_user_in_firebase(username, {'weekly_targets_approvals': user_data['weekly_targets_approvals']})
-            return True, approval_id
-        
-        return False, approval_id
-    except Exception as e:
-        st.error(f"Haftalık hedef gönderme hatası: {e}")
-        return False, None
-
-def show_weekly_targets_approval_system(user_data, weekly_plan):
-    """🎯 Haftalık hedef onay sistemi - Öğrenci arayüzü"""
-    try:
-        # Onaylanmış hedefleri kontrol et ve göster
-        show_coach_approved_targets_section(user_data)
-        
-        # Mevcut onay durumunu getir
-        status_info = get_latest_weekly_targets_status(user_data)
-        
-        st.markdown("### 📝 Haftalık Hedef Onay Sistemi")
-        
-        # Durum göstergesi
-        if status_info['status'] == 'beklemede':
-            st.warning(f"{status_info['icon']} **{status_info['message']}**")
-        elif status_info['status'] == 'onaylandı':
-            st.success(f"{status_info['icon']} **{status_info['message']}**")
-        elif status_info['status'] == 'reddedildi':
-            st.error(f"{status_info['icon']} **{status_info['message']}**")
-            if status_info.get('coach_feedback'):
-                st.info(f"💬 **Koç Geri Bildirimi:** {status_info['coach_feedback']}")
-        else:
-            st.info("💡 Henüz haftalık hedef göndermediniz")
-        
-        st.markdown("---")
-        
-        # Yeni hedef gönderme alanı (sadece beklemede değilse)
-        if status_info['status'] != 'beklemede':
-            with st.expander("📤 Yeni Haftalık Hedef Gönder", expanded=False):
-                show_weekly_targets_form(user_data, weekly_plan)
-        else:
-            if status_info['status'] == 'beklemede':
-                st.info("⏳ **Koçunuz haftalık hedeflerinizi inceliyor.** Yeni hedef göndermek için mevcut onayın sonucunu bekleyin.")
-            elif status_info['status'] == 'onaylandı':
-                st.markdown("#### ✅ **Hedefleriniz Onaylandı!**")
-                st.success("🎉 **Koçunuz tarafından haftalık hedefleriniz onaylandı!**")
-                
-                # Onaylanmış hedeflerle çalışma seçenekleri
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.button("🚀 Hedeflerle Çalışmaya Başla", type="primary", use_container_width=True):
-                        st.success("🚀 Hedeflerinizle çalışmaya başladınız! Başarılar dileriz!")
-                        st.rerun()
-                with col2:
-                    if st.button("📊 Hedef İlerlemesi Takip Et", use_container_width=True):
-                        st.info("📊 Hedef ilerleme takibine geçiliyor...")
-                        st.rerun()
-
-    except Exception as e:
-        st.error(f"Haftalık hedef onay sistemi hatası: {e}")
-
-def show_weekly_targets_form(user_data, weekly_plan):
-    """Haftalık hedef gönderme formu"""
-    
-    # Hata kontrolü ve güvenlik katmanı
-    try:
-        if not weekly_plan:
-            weekly_plan = {}
-        # weekly_plan içindeki tüm verileri güvenli hale getir
-        if 'new_topics' in weekly_plan:
-            weekly_plan['new_topics'] = make_json_serializable(weekly_plan['new_topics'])
-    except Exception as e:
-        st.error(f"❌ Form hazırlama hatası: {e}")
-        weekly_plan = {'new_topics': []}
-    
-    with st.form("weekly_targets_form"):
-        st.markdown("#### 🎯 Haftalık Hedeflerinizi Oluşturun")
-        
-        # Mevcut haftalık plandan konuları al ve güvenli hale getir
-        default_topics = []
-        if weekly_plan and 'new_topics' in weekly_plan:
-            raw_topics = weekly_plan['new_topics']
-            # JSON serialize edilemeyen objeleri güvenli hale getir
-            default_topics = make_json_serializable(raw_topics)
-        
-        # Konu ekleme alanı
-        col1, col2 = st.columns([3, 1])
-        
-        with col1:
-            new_topic = st.text_input("📚 Yeni Hedef Ekle", placeholder="Örn: TYT Matematik - Türev konusunu tamamla")
-        
-        with col2:
-            subject = st.selectbox("📖 Ders", 
-                                 ["Matematik", "Türkçe", "Tarih", "Coğrafya", "Fizik", "Kimya", "Biyoloji", "Edebiyat", "Felsefe", "Din Kültürü"])
-        
-        # Mevcut hedefleri göster
-        if 'weekly_targets_list' not in st.session_state:
-            st.session_state.weekly_targets_list = []
-        
-        # Form submit
-        submitted = st.form_submit_button("📤 Hedeflerimi Koçuma Gönder", type="primary", use_container_width=True)
-        
-        if submitted:
-            if not st.session_state.weekly_targets_list:
-                st.error("❌ Lütfen en az bir hedef ekleyin!")
-            else:
-                # Hedefleri hazırla ve JSON serialize edilebilir hale getir
-                targets_for_approval = []
-                for target_item in st.session_state.weekly_targets_list:
-                    if isinstance(target_item, dict):
-                        # JSON serialize edilemeyen objeleri güvenli hale getir
-                        safe_target = make_json_serializable(target_item)
-                        targets_for_approval.append(safe_target)
-                    else:
-                        targets_for_approval.append({
-                            'subject': 'Genel',
-                            'topic': str(target_item),
-                            'priority': 'normal'
-                        })
-                
-                # JSON serialize edilebilir hale getir
-                targets_for_approval = make_json_serializable(targets_for_approval)
-                
-                # Koça gönder
-                success, approval_id = save_weekly_targets_approval(user_data, targets_for_approval)
-                
-                if success:
-                    st.success("🎉 Haftalık hedefleriniz başarıyla koçunuza gönderildi!")
-                    st.balloons()
-                    st.info("⏳ Koçunuz hedeflerinizi inceleyip en kısa sürede geri bildirim verecektir.")
-                    st.session_state.weekly_targets_list = []
-                    st.rerun()
-                else:
-                    st.error("❌ Hedef gönderilirken hata oluştu. Lütfen tekrar deneyin.")
-        
-        # Hedef listesi yönetimi
-        st.markdown("#### 📋 Hedef Listeniz")
-        if st.session_state.weekly_targets_list:
-            for i, target in enumerate(st.session_state.weekly_targets_list):
-                if isinstance(target, dict):
-                    topic_name = target.get('topic', str(target))
-                    subject_name = target.get('subject', 'Genel')
-                    priority = target.get('priority', 'normal')
-                    priority_emoji = "🔴" if priority == "yüksek" else "🟡" if priority == "orta" else "🟢"
-                    
-                    col1, col2 = st.columns([4, 1])
-                    with col1:
-                        st.write(f"{priority_emoji} **{subject_name}:** {topic_name}")
-                    with col2:
-                        if st.button("🗑️", key=f"remove_{i}"):
-                            st.session_state.weekly_targets_list.pop(i)
-                            st.rerun()
-                else:
-                    col1, col2 = st.columns([4, 1])
-                    with col1:
-                        st.write(f"🎯 {target}")
-                    with col2:
-                        if st.button("🗑️", key=f"remove_{i}"):
-                            st.session_state.weekly_targets_list.pop(i)
-                            st.rerun()
-        else:
-            st.info("Henüz hedef eklenmedi. Yukarıdaki formu kullanarak hedef ekleyebilirsiniz.")
-
-def get_all_pending_weekly_targets():
-    """Admin panel için tüm bekleyen haftalık hedefleri getir"""
-    try:
-        pending_targets = []
-        
-        if 'users_db' in st.session_state:
-            for username, user_data in st.session_state.users_db.items():
-                targets_data_str = user_data.get('weekly_targets_approvals', '{}')
-                if targets_data_str:
-                    try:
-                        targets_data = json.loads(targets_data_str)
-                        for approval_id, target_data in targets_data.items():
-                            if target_data.get('status') == 'beklemede':
-                                pending_targets.append(target_data)
-                    except json.JSONDecodeError:
-                        continue
-        
-        # Tarihe göre sırala (en yeniler önce)
-        pending_targets.sort(key=lambda x: x.get('submission_date', ''), reverse=True)
-        return pending_targets
-    except Exception as e:
-        st.error(f"Bekleyen haftalık hedefler getirilemedi: {e}")
-        return []
-
-def approve_weekly_target(target_id, username, feedback=""):
-    """Koç tarafından haftalık hedefi onayla"""
-    return update_weekly_targets_approval_status(target_id, 'onaylandı', feedback)
-
-def request_target_correction(target_id, username, correction_note):
-    """Koç tarafından haftalık hedef için düzeltme talep et"""
-    return update_weekly_targets_approval_status(target_id, 'reddedildi', correction_note)
-
-def show_target_details(target):
-    """Haftalık hedef detaylarını modal olarak göster"""
-    with st.expander("👁️ Hedef Detayları", expanded=True):
-        st.markdown("#### 📋 Hedef Bilgileri")
-        st.write(f"**Öğrenci:** {target.get('student_name', 'Bilinmiyor')}")
-        st.write(f"**Alan:** {target.get('student_field', 'Bilinmiyor')}")
-        st.write(f"**Gönderim Tarihi:** {format_submission_date(target.get('submission_date', ''))}")
-        
-        # Hedef listesi
-        targets = target.get('weekly_targets', [])
-        if targets:
-            st.markdown("#### 🎯 Hedef Listesi")
-            for i, target_item in enumerate(targets, 1):
-                if isinstance(target_item, dict):
-                    st.write(f"{i}. **{target_item.get('subject', 'Genel')}:** {target_item.get('topic', 'Konu belirtilmemiş')}")
-                else:
-                    st.write(f"{i}. {target_item}")
-        
-        # Koç notları
-        coach_notes = target.get('coach_notes', '')
-        if coach_notes:
-            st.markdown("#### 💬 Koç Notları")
-            st.write(coach_notes)
-
-def format_submission_date(date_str):
-    """Tarih formatını düzenle"""
-    if not date_str:
-        return "Bilinmiyor"
-    try:
-        date_obj = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
-        return date_obj.strftime('%d.%m.%Y %H:%M')
-    except:
-        return "Geçersiz tarih"
-
-def is_recent_submission(date_str):
-    """Son 24 saat içinde gönderildi mi kontrol et"""
-    if not date_str:
-        return False
-    try:
-        submit_date = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
-        return (datetime.now() - submit_date).total_seconds() < 24 * 3600
-    except:
-        return False
-
-def load_weekly_targets_approvals():
-    """Tüm haftalık hedef onaylarını getirir"""
-    try:
-        approvals_data = []
-        
-        if 'users_db' in st.session_state:
-            for username, user_data in st.session_state.users_db.items():
-                targets_data_str = user_data.get('weekly_targets_approvals', '{}')
-                if targets_data_str:
-                    try:
-                        targets_data = json.loads(targets_data_str)
-                        for approval_id, approval_data in targets_data.items():
-                            # Sadece bekleyen onayları dahil et
-                            if approval_data.get('status') == 'beklemede':
-                                approvals_data.append(approval_data)
-                    except json.JSONDecodeError:
-                        continue
-        
-        # Tarihe göre sırala (en yeniler önce)
-        approvals_data.sort(key=lambda x: x.get('submission_date', ''), reverse=True)
-        return approvals_data
-    except Exception as e:
-        st.error(f"Haftalık hedef onayları getirilemedi: {e}")
-        return []
-
-def update_weekly_targets_approval_status(approval_id, status, coach_feedback='', corrected_targets=None):
-    """Koç onay/reddetme ve düzeltmeleri - ONAY SONRASI OTOMATİK HEDEF GÜNCELLEMELİ"""
-    try:
-        if status not in ['onaylandı', 'reddedildi']:
-            return False, "Geçersiz durum"
-        
-        found = False
-        target_username = None
-        
-        if 'users_db' in st.session_state:
-            for username, user_data in st.session_state.users_db.items():
-                targets_data_str = user_data.get('weekly_targets_approvals', '{}')
-                if targets_data_str:
-                    try:
-                        targets_data = json.loads(targets_data_str)
-                        if approval_id in targets_data:
-                            # Onay durumunu güncelle
-                            targets_data[approval_id]['status'] = status
-                            targets_data[approval_id]['coach_feedback'] = coach_feedback
-                            targets_data[approval_id]['coach_review_date'] = datetime.now().isoformat()
-                            
-                            # Düzeltilmiş hedefler varsa ekle (JSON serialize edilebilir hale getir)
-                            if corrected_targets:
-                                targets_data[approval_id]['corrected_targets'] = make_json_serializable(corrected_targets)
-                            
-                            # ONAY SONRASI GÜNCELLEME: Koç onayladığında öğrencinin haftalık hedeflerini güncelle
-                            if status == 'onaylandı':
-                                approved_targets = targets_data[approval_id].get('weekly_targets', [])
-                                corrected_targets_data = targets_data[approval_id].get('corrected_targets', approved_targets)
-                                
-                                # JSON serialize edilebilir hale getir
-                                corrected_targets_data = make_json_serializable(corrected_targets_data)
-                                
-                                # Öğrencinin user_data'sına onaylanmış hedefleri kaydet
-                                user_data['approved_weekly_targets'] = json.dumps({
-                                    'approval_id': approval_id,
-                                    'targets': corrected_targets_data,
-                                    'coach_feedback': coach_feedback,
-                                    'approval_date': datetime.now().isoformat(),
-                                    'is_active': True
-                                }, ensure_ascii=False)
-                                
-                                # Haftalık plandaki hedefler de güncelle (varsa)
-                                if 'weekly_plan' in user_data:
-                                    weekly_plan = json.loads(user_data['weekly_plan']) if isinstance(user_data['weekly_plan'], str) else user_data['weekly_plan']
-                                    if 'new_topics' in weekly_plan:
-                                        weekly_plan['coach_approved_targets'] = make_json_serializable(corrected_targets_data)
-                                        user_data['weekly_plan'] = json.dumps(weekly_plan, ensure_ascii=False)
-                            
-                            # Firebase'e güncelle
-                            user_data['weekly_targets_approvals'] = json.dumps(targets_data, ensure_ascii=False)
-                            update_user_in_firebase(username, {
-                                'weekly_targets_approvals': user_data['weekly_targets_approvals'],
-                                'approved_weekly_targets': user_data.get('approved_weekly_targets', '{}'),
-                                'weekly_plan': user_data.get('weekly_plan', '{}')
-                            })
-                            
-                            found = True
-                            target_username = username
-                            break
-                    except json.JSONDecodeError:
-                        continue
-        
-        if found:
-            return True, f"Haftalık hedef başarıyla {status}"
-        else:
-            return False, "Haftalık hedef bulunamadı"
-            
-    except Exception as e:
-        return False, f"Haftalık hedef güncelleme hatası: {e}"
-
-def get_latest_weekly_targets_status(user_data):
-    """Öğrencinin son haftalık hedef durumunu getir"""
-    try:
-        targets_data_str = user_data.get('weekly_targets_approvals', '{}')
-        if not targets_data_str:
-            return {'status': 'yok', 'message': 'Henüz haftalık hedef gönderilmedi'}
-        
-        targets_data = json.loads(targets_data_str)
-        if not targets_data:
-            return {'status': 'yok', 'message': 'Henüz haftalık hedef gönderilmedi'}
-        
-        # En son hedefi bul
-        latest_target = max(targets_data.values(), key=lambda x: x.get('submission_date', ''))
-        
-        status_mapping = {
-            'beklemede': {'status': 'beklemede', 'icon': '⏳', 'message': 'Koç onayı bekleniyor'},
-            'onaylandı': {'status': 'onaylandı', 'icon': '✅', 'message': 'Haftalık hedefleriniz onaylandı'},
-            'reddedildi': {'status': 'reddedildi', 'icon': '❌', 'message': 'Haftalık hedefleriniz reddedildi'}
-        }
-        
-        base_status = status_mapping.get(latest_target.get('status', 'beklemede'), status_mapping['beklemede'])
-        base_status.update({
-            'approval_id': latest_target.get('approval_id', ''),
-            'submission_date': latest_target.get('submission_date', ''),
-            'coach_feedback': latest_target.get('coach_feedback', ''),
-            'corrected_targets': latest_target.get('corrected_targets', ''),
-            'coach_notes': latest_target.get('coach_notes', '')
-        })
-        
-        return base_status
-    except Exception as e:
-        return {'status': 'hata', 'message': f'Haftalık hedef durumu alınamadı: {e}'}
-
-def get_approved_weekly_targets(user_data):
-    """Öğrencinin onaylanmış haftalık hedeflerini getir"""
-    try:
-        approved_data_str = user_data.get('approved_weekly_targets', '{}')
-        if not approved_data_str:
-            return None
-        
-        approved_data = json.loads(approved_data_str)
-        if not approved_data.get('is_active', False):
-            return None
-        
-        return approved_data
-    except Exception as e:
-        return None
-
-def show_coach_approved_targets_section(user_data):
-    """Öğrencinin koç tarafından onaylanmış hedeflerini göster"""
-    approved_targets = get_approved_weekly_targets(user_data)
-    
-    if not approved_targets:
-        return
-    
-    st.markdown("---")
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); 
-                padding: 20px; border-radius: 15px; margin: 15px 0; color: white;">
-        <h3 style="margin: 0; color: white;">✅ Koçunuzun Onayladığı Haftalık Hedefler</h3>
-        <p style="margin: 5px 0 0 0; opacity: 0.9;">Bu hedefler koçunuz tarafından onaylanmış ve aktif olarak çalışabilirsiniz</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Onaylanmış hedefler
-    targets = approved_targets.get('targets', [])
-    if targets:
-        st.markdown("#### 🎯 Onaylanmış Hedefleriniz:")
-        
-        for i, target in enumerate(targets, 1):
-            if isinstance(target, dict):
-                # Eğer target bir dict ise (yapılandırılmış)
-                subject = target.get('subject', 'Genel')
-                topic = target.get('topic', 'Konu belirtilmemiş')
-                priority = target.get('priority', 'normal')
-                
-                priority_emoji = "🔴" if priority == "yüksek" else "🟡" if priority == "orta" else "🟢"
-                
-                st.markdown(f"""
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 8px 0; 
-                            border-left: 4px solid #28a745;">
-                    <div style="display: flex; align-items: center;">
-                        <span style="font-size: 20px; margin-right: 10px;">{priority_emoji}</span>
-                        <div>
-                            <strong style="color: #28a745;">{i}. {subject}</strong>
-                            <div style="color: #6c757d; font-size: 14px;">{topic}</div>
-                        </div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                # Eğer target basit string ise
-                st.markdown(f"""
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 8px 0; 
-                            border-left: 4px solid #28a745;">
-                    <strong style="color: #28a745;">{i}. {target}</strong>
-                </div>
-                """, unsafe_allow_html=True)
-    
-    # Koç geri bildirimi
-    coach_feedback = approved_targets.get('coach_feedback', '')
-    if coach_feedback:
-        st.markdown("#### 💬 Koçunuzdan Mesaj:")
-        st.info(f"💬 **{coach_feedback}**")
-    
-    # Onay tarihi
-    approval_date = approved_targets.get('approval_date', '')
-    if approval_date:
-        try:
-            date_obj = datetime.fromisoformat(approval_date.replace('Z', '+00:00'))
-            formatted_date = date_obj.strftime('%d.%m.%Y %H:%M')
-            st.caption(f"📅 Onaylanma Tarihi: {formatted_date}")
-        except:
-            pass
-    
-    # Onaylanmış hedefler ile çalışma seçenekleri
-    st.markdown("#### 🚀 Hedeflerle Çalışmaya Başla")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if st.button("📝 Hedefleri Düzenle", use_container_width=True):
-            st.session_state.edit_approved_targets = True
-            st.rerun()
-    
-    with col2:
-        if st.button("📊 İlerleme Takip Et", use_container_width=True):
-            st.session_state.track_approved_targets = True
-            st.rerun()
-    
-    with col3:
-        if st.button("🎯 Yeni Hedef Ekle", use_container_width=True):
-            st.session_state.add_new_target = True
-            st.rerun()
-
-def integrate_approved_targets_with_weekly_plan(user_data, weekly_plan):
-    """Onaylanmış haftalık hedefleri haftalık plana entegre et"""
-    approved_targets = get_approved_weekly_targets(user_data)
-    
-    if not approved_targets or not weekly_plan:
-        return weekly_plan
-    
-    try:
-        # Plan zaten dict ise direkt kullan, string ise parse et
-        if isinstance(weekly_plan, str):
-            weekly_plan = json.loads(weekly_plan)
-        
-        # Onaylanmış hedefleri plana ekle
-        targets = approved_targets.get('targets', [])
-        if targets:
-            # Eğer planın new_topics kısmı varsa onaylanmış hedefleri ekle
-            if 'new_topics' not in weekly_plan:
-                weekly_plan['new_topics'] = []
-            
-            # Onaylanmış hedefleri new_topics'e ekle (duplikasyon kontrolü ile)
-            for target in targets:
-                if isinstance(target, dict):
-                    topic_info = {
-                        'subject': target.get('subject', 'Genel'),
-                        'topic': target.get('topic', 'Konu belirtilmemiş'),
-                        'is_approved': True,
-                        'approved_date': approved_targets.get('approval_date', ''),
-                        'source': 'coach_approved'
-                    }
-                else:
-                    topic_info = {
-                        'subject': 'Genel',
-                        'topic': str(target),
-                        'is_approved': True,
-                        'approved_date': approved_targets.get('approval_date', ''),
-                        'source': 'coach_approved'
-                    }
-                
-                # Aynı konu var mı kontrol et
-                existing_topics = weekly_plan.get('new_topics', [])
-                topic_exists = any(
-                    existing.get('topic', '') == topic_info.get('topic', '') 
-                    for existing in existing_topics
-                )
-                
-                if not topic_exists:
-                    weekly_plan['new_topics'].append(topic_info)
-            
-            # Plan güncellendi işareti
-            weekly_plan['last_updated_with_approved_targets'] = datetime.now().isoformat()
-        
-        return weekly_plan
-    
-    except Exception as e:
-        return weekly_plan
-
-def get_latest_program_status(user_data):
-    """Öğrencinin son program durumunu getir"""
-    try:
-        programs_data_str = user_data.get('program_approvals', '{}')
-        if not programs_data_str:
-            return {'status': 'yok', 'message': 'Henüz program gönderilmedi'}
-        
-        programs_data = json.loads(programs_data_str)
-        if not programs_data:
-            return {'status': 'yok', 'message': 'Henüz program gönderilmedi'}
-        
-        # En son programı bul
-        latest_program = max(programs_data.values(), key=lambda x: x.get('submission_date', ''))
-        
-        status_mapping = {
-            'beklemede': {'status': 'beklemede', 'icon': '⏳', 'message': 'Koç onayı bekleniyor'},
-            'onaylandı': {'status': 'onaylandı', 'icon': '✅', 'message': 'Koçunuz tarafından programınız onaylandı'},
-            'reddedildi': {'status': 'reddedildi', 'icon': '❌', 'message': 'Programınız koç tarafından reddedildi'}
-        }
-        
-        base_status = status_mapping.get(latest_program.get('status', 'beklemede'), status_mapping['beklemede'])
-        base_status.update({
-            'program_id': latest_program.get('program_id', ''),
-            'submission_date': latest_program.get('submission_date', ''),
-            'coach_feedback': latest_program.get('coach_feedback', ''),
-            'description': latest_program.get('description', '')
-        })
-        
-        return base_status
-    except Exception as e:
-        return {'status': 'hata', 'message': f'Program durumu alınamadı: {e}'}
-
-def get_all_pending_programs():
-    """Admin panel için tüm bekleyen programları getir"""
-    try:
-        pending_programs = []
-        
-        if 'users_db' in st.session_state:
-            for username, user_data in st.session_state.users_db.items():
-                programs_data_str = user_data.get('program_approvals', '{}')
-                if programs_data_str:
-                    try:
-                        programs_data = json.loads(programs_data_str)
-                        for program_id, program_data in programs_data.items():
-                            if program_data.get('status') == 'beklemede':
-                                pending_programs.append(program_data)
-                    except json.JSONDecodeError:
-                        continue
-        
-        # Tarihe göre sırala (en yeniler önce)
-        pending_programs.sort(key=lambda x: x.get('submission_date', ''), reverse=True)
-        return pending_programs
-    except Exception as e:
-        st.error(f"Bekleyen programlar getirilemedi: {e}")
-        return []
-
-def approve_program(program_id, username, feedback=""):
-    """Koç tarafından programı onayla"""
-    try:
-        if username in st.session_state.users_db:
-            user_data = st.session_state.users_db[username]
-            programs_data_str = user_data.get('program_approvals', '{}')
-            if programs_data_str:
-                programs_data = json.loads(programs_data_str)
-                if program_id in programs_data:
-                    programs_data[program_id]['status'] = 'onaylandı'
-                    programs_data[program_id]['coach_feedback'] = feedback
-                    programs_data[program_id]['coach_review_date'] = datetime.now().isoformat()
-                    
-                    # Firebase'e güncelle
-                    user_data['program_approvals'] = json.dumps(programs_data, ensure_ascii=False)
-                    update_user_in_firebase(username, {'program_approvals': user_data['program_approvals']})
-                    return True
-        return False
-    except Exception as e:
-        st.error(f"Program onaylama hatası: {e}")
-        return False
-
-def reject_program(program_id, username, feedback):
-    """Koç tarafından programı reddet"""
-    try:
-        if username in st.session_state.users_db:
-            user_data = st.session_state.users_db[username]
-            programs_data_str = user_data.get('program_approvals', '{}')
-            if programs_data_str:
-                programs_data = json.loads(programs_data_str)
-                if program_id in programs_data:
-                    programs_data[program_id]['status'] = 'reddedildi'
-                    programs_data[program_id]['coach_feedback'] = feedback
-                    programs_data[program_id]['coach_review_date'] = datetime.now().isoformat()
-                    
-                    # Firebase'e güncelle
-                    user_data['program_approvals'] = json.dumps(programs_data, ensure_ascii=False)
-                    update_user_in_firebase(username, {'program_approvals': user_data['program_approvals']})
-                    return True
-        return False
-    except Exception as e:
-        st.error(f"Program reddetme hatası: {e}")
-        return False
-
 # === ADMIN PANELİ KONTROLÜ ===
 def check_admin_access():
     """Admin panel erişim kontrolü"""
@@ -1052,104 +215,6 @@ Tarih: {datetime.now().strftime('%d.%m.%Y')}
         pdf_content += "\nBu hafta için henüz konu planı oluşturulmamış.\n"
     
     return pdf_content
-
-def show_program_approval_system(user_data, weekly_plan):
-    """🎯 Öğrenci tarafı program onay sistemi"""
-    st.markdown("### 📝 Program Onay Sistemi")
-    
-    # Mevcut program durumunu kontrol et
-    status_info = get_latest_program_status(user_data)
-    
-    # Program durum kartı
-    col1, col2 = st.columns([3, 1])
-    
-    with col1:
-        # Durum göstergesi
-        if status_info['status'] == 'beklemede':
-            st.warning(f"{status_info['icon']} **{status_info['message']}**")
-        elif status_info['status'] == 'onaylandı':
-            st.success(f"{status_info['icon']} **{status_info['message']}**")
-        elif status_info['status'] == 'reddedildi':
-            st.error(f"{status_info['icon']} **{status_info['message']}**")
-            if status_info.get('coach_feedback'):
-                st.info(f"💬 **Koç Geri Bildirimi:** {status_info['coach_feedback']}")
-        else:
-            st.info("💡 Henüz program göndermediniz")
-    
-    with col2:
-        # Gönderim tarihi göster
-        if status_info.get('submission_date'):
-            from datetime import datetime
-            try:
-                submit_date = datetime.fromisoformat(status_info['submission_date']).strftime('%d/%m %H:%M')
-                st.caption(f"📅 Son Gönderim: {submit_date}")
-            except:
-                st.caption("📅 Tarih bilinmiyor")
-    
-    st.markdown("---")
-    
-    # Program gönderme alanı
-    if status_info['status'] != 'beklemede':  # Sadece beklemede değilse yeni program gönderebilir
-        with st.expander("📤 Yeni Program Gönder", expanded=False):
-            # Form ile program gönderme
-            with st.form("program_submit_form"):
-                st.markdown("#### 📋 Haftalık Programınız")
-                
-                # Program açıklaması
-                program_description = st.text_area(
-                    "📝 Program açıklaması ve hedeflerinizi yazın:",
-                    placeholder="Bu hafta hangi konuları çalışmayı planlıyorsunuz? Hangi derslere ne kadar zaman ayıracaksınız? Hedefleriniz nelerdir?",
-                    height=150
-                )
-                
-                # Ek notlar
-                additional_notes = st.text_area(
-                    "💬 Ek notlar (opsiyonel):",
-                    placeholder="Koçunuzla paylaşmak istediğiniz ek bilgiler, sorularınız veya özel durumlar...",
-                    height=100
-                )
-                
-                # Önemli bilgileri kontrol et
-                has_review_topics = weekly_plan.get('review_topics', [])
-                current_completion = calculate_weekly_completion_percentage(user_data, weekly_plan)
-                
-                if st.form_submit_button("📤 Programımı Koçuma Onaya Gönder", type="primary", use_container_width=True):
-                    if not program_description.strip():
-                        st.error("❌ Lütfen program açıklamasını doldurun!")
-                    else:
-                        # Program verilerini hazırla
-                        program_data = {
-                            'weekly_plan': weekly_plan,
-                            'review_topics_count': len(has_review_topics),
-                            'current_completion': current_completion,
-                            'week_info': get_current_week_info(),
-                            'additional_notes': additional_notes
-                        }
-                        
-                        # Programı gönder
-                        success, program_id = submit_program_for_coach_approval(user_data, program_data, program_description)
-                        
-                        if success:
-                            st.success("🎉 Programınız başarıyla koçunuza gönderildi!")
-                            st.balloons()
-                            st.info("⏳ Koçunuz programınızı inceleyip en kısa sürede geri bildirim verecektir.")
-                            st.rerun()
-                        else:
-                            st.error("❌ Program gönderilirken hata oluştu. Lütfen tekrar deneyin.")
-    else:
-        # Beklemede olan program varsa bilgi göster
-        if status_info['status'] == 'beklemede':
-            st.info("⏳ **Koçunuz programınızı inceliyor.** Yeni program göndermek için mevcut programın sonucunu bekleyin.")
-        elif status_info['status'] == 'onaylandı':
-            st.markdown("#### ✅ **Programınız Onaylandı!**")
-            st.success("🎉 **Koçunuz tarafından programınız onaylandı!**")
-            
-            # Programı başlat butonu
-            col_start1, col_start2 = st.columns([1, 2])
-            with col_start2:
-                if st.button("🚀 Programı Başlat", type="primary", use_container_width=True):
-                    st.success("🚀 Programınız başladı! Başarılar dileriz!")
-                    st.rerun()
 
 def show_print_button(user_data, weekly_plan):
     """Yazdırma butonu göster"""
@@ -1326,20 +391,6 @@ def show_admin_dashboard():
     </div>
     """, unsafe_allow_html=True)
     
-    # Sekmeli yapı
-    tab1, tab2, tab3 = st.tabs(["👥 Öğrenci Takibi", "🎯 Program Onayları", "📋 Haftalık Hedef Onayları"])
-    
-    with tab1:
-        show_student_tracking_tab()
-    
-    with tab2:
-        show_program_approvals_tab()
-    
-    with tab3:
-        show_weekly_targets_approvals_tab()
-
-def show_student_tracking_tab():
-    """👥 Öğrenci takibi sekmesi"""
     # GERÇEKFirebase verilerini çek
     students = get_real_student_data_for_admin()
     
@@ -1474,361 +525,6 @@ def show_student_tracking_tab():
         else:
             st.success("✅ Tüm öğrenciler aktif")
 
-def show_program_approvals_tab():
-    """🎯 Program onayları yönetim sekmesi"""
-    st.markdown("## 🎯 Program Onayları")
-    st.markdown("*Öğrencilerin gönderdiği haftalık programları yönetin*")
-    
-    # Bekleyen programları getir
-    pending_programs = get_all_pending_programs()
-    
-    if not pending_programs:
-        st.info("📭 Şu anda bekleyen program bulunmuyor.")
-        return
-    
-    # Özet kartları
-    st.markdown("### 📊 Bekleyen Program Özeti")
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("⏳ Bekleyen Programlar", len(pending_programs))
-    
-    with col2:
-        recent_programs = [p for p in pending_programs if is_recent_submission(p.get('submission_date', ''))]
-        st.metric("🆕 Bugün Gönderilenler", len(recent_programs))
-    
-    with col3:
-        fields = list(set([p.get('student_field', 'Bilinmiyor') for p in pending_programs]))
-        st.metric("📚 Farklı Alanlar", len(fields))
-    
-    st.markdown("---")
-    
-    # Program listesi
-    st.markdown("### 📋 Programlar")
-    
-    for i, program in enumerate(pending_programs):
-        with st.expander(f"👨‍🎓 **{program.get('student_name', 'Bilinmiyor')}** - {program.get('student_field', 'Bilinmiyor')} | 📅 {format_submission_date(program.get('submission_date', ''))}", expanded=False):
-            
-            # Program detayları
-            col1, col2, col3 = st.columns([3, 1, 1])
-            
-            with col1:
-                st.markdown("#### 📝 Program Açıklaması")
-                st.write(program.get('description', 'Açıklama yok'))
-                
-                if program.get('program_data', {}).get('additional_notes'):
-                    st.markdown("#### 💬 Ek Notlar")
-                    st.write(program['program_data']['additional_notes'])
-                
-                # Program istatistikleri
-                program_data = program.get('program_data', {})
-                st.markdown("#### 📊 Program Detayları")
-                
-                col_stat1, col_stat2 = st.columns(2)
-                with col_stat1:
-                    st.write(f"📚 **Tekrar Konular:** {program_data.get('review_topics_count', 0)}")
-                    st.write(f"📈 **Mevcut İlerleme:** %{program_data.get('current_completion', 0):.1f}")
-                
-                with col_stat2:
-                    st.write(f"🎯 **Hafta:** {program_data.get('week_info', {}).get('week_number', 'Bilinmiyor')}/52")
-                    st.write(f"⏰ **YKS'ye Kalan:** {program_data.get('week_info', {}).get('days_to_yks', 'Bilinmiyor')} gün")
-            
-            with col2:
-                st.markdown("#### ⚡ Hızlı İşlemler")
-                
-                # Programı görüntüle
-                if st.button("👁️ Görüntüle", key=f"view_{i}"):
-                    show_program_details(program)
-                
-                # Onayla
-                if st.button("✅ Onayla", key=f"approve_{i}", type="primary"):
-                    feedback = st.text_input("Onay mesajı (opsiyonel)", key=f"feedback_approve_{i}")
-                    if approve_program(program.get('program_id', ''), program.get('student_username', ''), feedback):
-                        st.success("✅ Program onaylandı!")
-                        st.rerun()
-                    else:
-                        st.error("❌ Onaylama işlemi başarısız!")
-            
-            with col3:
-                st.markdown("#### ❌ Red İşlemi")
-                
-                # Reddet
-                reject_feedback = st.text_input("Red nedeni", key=f"feedback_reject_{i}", placeholder="Program neden reddedildi?")
-                if st.button("❌ Reddet", key=f"reject_{i}", type="secondary"):
-                    if not reject_feedback.strip():
-                        st.error("❌ Red nedeni belirtilmeli!")
-                    else:
-                        if reject_program(program.get('program_id', ''), program.get('student_username', ''), reject_feedback):
-                            st.success("❌ Program reddedildi!")
-                            st.rerun()
-                        else:
-                            st.error("❌ Reddetme işlemi başarısız!")
-            
-            # Programın haftalık hedeflerini göster
-            if program.get('program_data', {}).get('weekly_plan', {}).get('review_topics'):
-                st.markdown("#### 🎯 Haftalık Hedefler")
-                review_topics = program['program_data']['weekly_plan']['review_topics']
-                for topic in review_topics[:5]:  # İlk 5 konuyu göster
-                    st.write(f"• {topic}")
-                if len(review_topics) > 5:
-                    st.write(f"... ve {len(review_topics) - 5} konu daha")
-
-def show_weekly_targets_approvals_tab():
-    """📋 Haftalık hedef onayları yönetim sekmesi"""
-    st.markdown("## 📋 Haftalık Hedef Onayları")
-    st.markdown("*Öğrencilerin gönderdiği haftalık hedefleri yönetin*")
-    
-    # Bekleyen hedefleri getir
-    pending_targets = get_all_pending_weekly_targets()
-    
-    if not pending_targets:
-        st.info("📭 Şu anda bekleyen haftalık hedef bulunmuyor.")
-        return
-    
-    # Özet kartları
-    st.markdown("### 📊 Bekleyen Hedef Özeti")
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("⏳ Bekleyen Hedefler", len(pending_targets))
-    
-    with col2:
-        recent_targets = [t for t in pending_targets if is_recent_submission(t.get('submission_date', ''))]
-        st.metric("🆕 Bugün Gönderilenler", len(recent_targets))
-    
-    with col3:
-        fields = list(set([t.get('student_field', 'Bilinmiyor') for t in pending_targets]))
-        st.metric("📚 Farklı Alanlar", len(fields))
-    
-    st.markdown("---")
-    
-    # Hedef listesi
-    st.markdown("### 📋 Haftalık Hedefler")
-    
-    for i, target in enumerate(pending_targets):
-        with st.expander(f"👨‍🎓 **{target.get('student_name', 'Bilinmiyor')}** - {target.get('student_field', 'Bilinmiyor')} | 📅 {format_submission_date(target.get('submission_date', ''))}", expanded=False):
-            
-            # Hedef detayları
-            col1, col2, col3 = st.columns([3, 1, 1])
-            
-            with col1:
-                st.markdown("#### 📝 Hedef Açıklaması")
-                st.write(target.get('description', 'Açıklama yok'))
-                
-                if target.get('target_data', {}).get('additional_notes'):
-                    st.markdown("#### 💬 Ek Notlar")
-                    st.write(target['target_data']['additional_notes'])
-                
-                # Hedef istatistikleri
-                target_data = target.get('target_data', {})
-                st.markdown("#### 📊 Hedef Detayları")
-                
-                col_stat1, col_stat2 = st.columns(2)
-                with col_stat1:
-                    st.write(f"🎯 **Hafta:** {target_data.get('week_info', {}).get('week_number', 'Bilinmiyor')}/52")
-                    st.write(f"⏰ **YKS'ye Kalan:** {target_data.get('week_info', {}).get('days_to_yks', 'Bilinmiyor')} gün")
-                
-                with col_stat2:
-                    st.write(f"📈 **Öncelik Seviyesi:** {target_data.get('priority_level', 'Bilinmiyor')}")
-                    st.write(f"🕒 **Tahmini Süre:** {target_data.get('estimated_time', 'Bilinmiyor')} saat")
-            
-            with col2:
-                st.markdown("#### ⚡ Hızlı İşlemler")
-                
-                # Hedefi görüntüle
-                if st.button("👁️ Görüntüle", key=f"view_target_{i}"):
-                    show_target_details(target)
-                
-                # Onayla
-                if st.button("✅ Onayla", key=f"approve_target_{i}", type="primary"):
-                    feedback = st.text_input("Onay mesajı (opsiyonel)", key=f"feedback_approve_target_{i}")
-                    if approve_weekly_target(target.get('target_id', ''), target.get('student_username', ''), feedback):
-                        st.success("✅ Hedef onaylandı!")
-                        st.rerun()
-                    else:
-                        st.error("❌ Onaylama işlemi başarısız!")
-            
-            with col3:
-                st.markdown("#### ❌ Düzeltme İşlemi")
-                
-                # Düzeltme notu
-                correction_note = st.text_input("Düzeltme notu", key=f"feedback_correction_{i}", placeholder="Hangi düzeltmeler yapılmalı?")
-                if st.button("🔄 Düzeltme İste", key=f"correction_{i}", type="secondary"):
-                    if not correction_note.strip():
-                        st.error("❌ Düzeltme notu belirtilmeli!")
-                    else:
-                        if request_target_correction(target.get('target_id', ''), target.get('student_username', ''), correction_note):
-                            st.success("🔄 Düzeltme talebi gönderildi!")
-                            st.rerun()
-                        else:
-                            st.error("❌ Düzeltme talebi gönderilemedi!")
-                
-                # Reddet
-                reject_feedback = st.text_input("Red nedeni", key=f"feedback_reject_target_{i}", placeholder="Neden reddedildi?")
-                if st.button("❌ Reddet", key=f"reject_target_{i}", type="secondary"):
-                    if not reject_feedback.strip():
-                        st.error("❌ Red nedeni belirtilmeli!")
-                    else:
-                        if reject_weekly_target(target.get('target_id', ''), target.get('student_username', ''), reject_feedback):
-                            st.success("❌ Hedef reddedildi!")
-                            st.rerun()
-                        else:
-                            st.error("❌ Reddetme işlemi başarısız!")
-            
-            # Haftalık hedef konularını göster
-            if target.get('target_data', {}).get('weekly_topics'):
-                st.markdown("#### 🎯 Haftalık Hedef Konuları")
-                weekly_topics = target['target_data']['weekly_topics']
-                for topic in weekly_topics[:5]:  # İlk 5 konuyu göster
-                    st.write(f"• {topic}")
-                if len(weekly_topics) > 5:
-                    st.write(f"... ve {len(weekly_topics) - 5} konu daha")
-
-def get_all_pending_weekly_targets():
-    """Bekleyen haftalık hedefleri getir"""
-    # Bu fonksiyon gelecekte Firebase'den veri çekecek
-    # Şimdilik mock data döndürüyor
-    from datetime import datetime, timedelta
-    import random
-    
-    mock_targets = [
-        {
-            'target_id': 'target_001',
-            'student_name': 'Ahmet Yılmaz',
-            'student_username': 'ahmetyilmaz',
-            'student_field': 'SAYISAL',
-            'description': 'Bu hafta matematik ve fizik konularını çalışacağım',
-            'submission_date': datetime.now().isoformat(),
-            'status': 'Bekliyor',
-            'target_data': {
-                'week_info': {
-                    'week_number': 15,
-                    'days_to_yks': 120
-                },
-                'priority_level': 'Yüksek',
-                'estimated_time': 25,
-                'additional_notes': 'Geometri konularına daha fazla odaklanacağım',
-                'weekly_topics': [
-                    'Trigonometri - Açı ölçüleri',
-                    'Fonksiyonlar - Tanım ve Değer',
-                    'Analitik Geometri - Nokta ve Doğru',
-                    'Fizik - Kuvvet ve Hareket',
-                    'Fizik - İş, Güç, Enerji'
-                ]
-            }
-        },
-        {
-            'target_id': 'target_002',
-            'student_name': 'Elif Kaya',
-            'student_username': 'elifkaya',
-            'student_field': 'SÖZEL',
-            'description': 'Tarih ve coğrafya konularını tekrar edeceğim',
-            'submission_date': (datetime.now() - timedelta(hours=2)).isoformat(),
-            'status': 'Bekliyor',
-            'target_data': {
-                'week_info': {
-                    'week_number': 16,
-                    'days_to_yks': 115
-                },
-                'priority_level': 'Orta',
-                'estimated_time': 20,
-                'additional_notes': 'Tarih dersinde Osmanlı dönemi ağırlıklı çalışacağım',
-                'weekly_topics': [
-                    'Tarih - Osmanlı Devleti Kuruluş Dönemi',
-                    'Tarih - Kanuni Sultan Süleyman Dönemi',
-                    'Coğrafya - Türkiye\'nin Jeopolitik Konumu',
-                    'Coğrafya - İklim Özellikleri',
-                    'Edebiyat - Divan Edebiyatı'
-                ]
-            }
-        }
-    ]
-    
-    return mock_targets
-
-def show_target_details(target):
-    """Hedef detaylarını modal olarak göster"""
-    with st.expander("🔍 Hedef Detayları", expanded=True):
-        st.markdown("#### 📊 Teknik Bilgiler")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write(f"**Hedef ID:** {target.get('target_id', 'Bilinmiyor')}")
-            st.write(f"**Öğrenci Adı:** {target.get('student_name', 'Bilinmiyor')}")
-            st.write(f"**Öğrenci Kullanıcı:** {target.get('student_username', 'Bilinmiyor')}")
-            st.write(f"**Alan:** {target.get('student_field', 'Bilinmiyor')}")
-        
-        with col2:
-            st.write(f"**Gönderim Tarihi:** {format_submission_date(target.get('submission_date', ''))}")
-            st.write(f"**Durum:** {target.get('status', 'Bilinmiyor')}")
-            if target.get('coach_review_date'):
-                st.write(f"**İnceleme Tarihi:** {format_submission_date(target['coach_review_date'])}")
-        
-        # Ham hedef verilerini JSON formatında göster
-        st.markdown("#### 🔧 Ham Veriler (Debug için)")
-        st.json(target)
-
-def approve_weekly_target(target_id, student_username, feedback):
-    """Haftalık hedefi onayla"""
-    # Bu fonksiyon gelecekte Firebase'e yazacak
-    st.success(f"✅ Hedef onaylandı: {target_id}")
-    return True
-
-def reject_weekly_target(target_id, student_username, feedback):
-    """Haftalık hedefi reddet"""
-    # Bu fonksiyon gelecekte Firebase'e yazacak
-    st.success(f"❌ Hedef reddedildi: {target_id}")
-    return True
-
-def request_target_correction(target_id, student_username, correction_note):
-    """Haftalık hedef için düzeltme talebi gönder"""
-    # Bu fonksiyon gelecekte Firebase'e yazacak
-    st.success(f"🔄 Düzeltme talebi gönderildi: {target_id}")
-    return True
-
-def is_recent_submission(submission_date_str):
-    """Bugün gönderilen programları kontrol et"""
-    try:
-        if not submission_date_str:
-            return False
-        submission_date = datetime.fromisoformat(submission_date_str)
-        today = datetime.now()
-        return submission_date.date() == today.date()
-    except:
-        return False
-
-def format_submission_date(submission_date_str):
-    """Gönderim tarihini formatla"""
-    try:
-        if not submission_date_str:
-            return "Tarih bilinmiyor"
-        submission_date = datetime.fromisoformat(submission_date_str)
-        return submission_date.strftime("%d.%m.%Y %H:%M")
-    except:
-        return "Tarih formatı hatalı"
-
-def show_program_details(program):
-    """Program detaylarını modal olarak göster"""
-    with st.expander("🔍 Program Detayları", expanded=True):
-        st.markdown("#### 📊 Teknik Bilgiler")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write(f"**Program ID:** {program.get('program_id', 'Bilinmiyor')}")
-            st.write(f"**Öğrenci Adı:** {program.get('student_name', 'Bilinmiyor')}")
-            st.write(f"**Öğrenci Kullanıcı:** {program.get('student_username', 'Bilinmiyor')}")
-            st.write(f"**Alan:** {program.get('student_field', 'Bilinmiyor')}")
-        
-        with col2:
-            st.write(f"**Gönderim Tarihi:** {format_submission_date(program.get('submission_date', ''))}")
-            st.write(f"**Durum:** {program.get('status', 'Bilinmiyor')}")
-            if program.get('coach_review_date'):
-                st.write(f"**İnceleme Tarihi:** {format_submission_date(program['coach_review_date'])}")
-        
-        # Ham program verilerini JSON formatında göster
-        st.markdown("#### 🔧 Ham Veriler (Debug için)")
-        st.json(program)
-
 # Ana uygulama akışına admin sekmesi ekle
 def main():
     """Ana uygulama fonksiyonu"""
@@ -1961,25 +657,17 @@ class FirebaseCache:
     def update_user_data(self, username, data):
         """Kullanıcı verisini güncelle + cache'i temizle"""
         try:
-            # Firebase'e gönderilecek veriyi JSON serialize edilebilir hale getir
-            firebase_safe_data = make_json_serializable(data)
-            
             if firebase_connected and db_ref:
-                db_ref.child(username).update(firebase_safe_data)
+                db_ref.child(username).update(data)
             
             # Cache'i güncelle
             cache_key = f"user_{username}"
             if cache_key in self.cache:
-                self.cache[cache_key]['data'].update(firebase_safe_data)
+                self.cache[cache_key]['data'].update(data)
                 self.cache[cache_key]['time'] = time.time()
             
             return True
-        except Exception as e:
-            # Detaylı hata mesajı
-            error_msg = f"Firebase güncelleme hatası: {e}"
-            if "Object of type datetime is not JSON serializable" in str(e):
-                error_msg += " - JSON serialization hatası detected. Tüm datetime objeleri string'e çevrilecek."
-            st.error(error_msg)
+        except:
             return False
     
     def clear_cache(self, pattern=None):
@@ -2102,27 +790,20 @@ def load_users_from_firebase(force_refresh=False):
 
 def update_user_in_firebase(username, data):
     """🚀 OPTİMİZE EDİLMİŞ: Cache'li kullanıcı verisi güncelleme"""
-    try:
-        # Firebase'e gönderilecek verileri JSON serialize edilebilir hale getir
-        firebase_safe_data = make_json_serializable(data)
-        
-        # Session state'i güncelle
-        if 'users_db' in st.session_state:
-            if username in st.session_state.users_db:
-                st.session_state.users_db[username].update(firebase_safe_data)
-            else:
-                # Yeni kullanıcı - ekle
-                st.session_state.users_db[username] = firebase_safe_data
-        
-        # Haftalık plan cache'ini temizle
-        if 'weekly_plan_cache' in st.session_state:
-            del st.session_state.weekly_plan_cache
-        
-        # Cache'li güncelleme
-        return firebase_cache.update_user_data(username, firebase_safe_data)
-    except Exception as e:
-        st.error(f"Firebase güncelleme hatası: {e}")
-        return False
+    # Session state'i güncelle
+    if 'users_db' in st.session_state:
+        if username in st.session_state.users_db:
+            st.session_state.users_db[username].update(data)
+        else:
+            # Yeni kullanıcı - ekle
+            st.session_state.users_db[username] = data
+    
+    # Haftalık plan cache'ini temizle
+    if 'weekly_plan_cache' in st.session_state:
+        del st.session_state.weekly_plan_cache
+    
+    # Cache'li güncelleme
+    return firebase_cache.update_user_data(username, data)
 
 # === HİBRİT POMODORO SİSTEMİ SABİTLERİ ===
 
@@ -8673,9 +7354,7 @@ def yks_takip_page(user_data):
     week_info = get_current_week_info()
     days_to_yks = week_info['days_to_yks']
     
-    # Tarih formatını güvenli şekilde göster
-    today_display = str(week_info.get("today", datetime.now().strftime("%d %B %Y")))
-    st.markdown(f'<div class="main-header"><h1>🎯 YKS Takip & Planlama Sistemi</h1><p>Hedef bölümünüze odaklı strateji ve haftalık hedeflerinizi belirleyin</p><p>📅 {today_display} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="main-header"><h1>🎯 YKS Takip & Planlama Sistemi</h1><p>Hedef bölümünüze odaklı strateji ve haftalık hedeflerinizi belirleyin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
     
     # Ana panelden bilgileri al
     student_grade = user_data.get('grade', '')
@@ -8975,11 +7654,6 @@ def show_weekly_planner(user_data):
     
     st.markdown("---")
     
-    # 🎯 PROGRAM ONAY SİSTEMİ - Öğrenci Tarafı
-    show_program_approval_system(user_data, weekly_plan)
-    
-    st.markdown("---")
-    
     # Interaktif planlayıcı
     show_interactive_systematic_planner(weekly_plan, survey_data)
     
@@ -8994,8 +7668,7 @@ def show_progress_dashboard(weekly_plan, user_data):
     week_info = get_current_week_info()
     
     st.markdown(f"### 📊 GENEL İLERLEME DURUMU")
-    today_display = str(week_info.get('today', datetime.now().strftime('%d %B %Y')))
-    st.caption(f"📅 Güncel Tarih: {today_display} | Hafta: {week_info['week_number']}/52")
+    st.caption(f"📅 Güncel Tarih: {week_info['today'].strftime('%d %B %Y')} | Hafta: {week_info['week_number']}/52")
     
     # Ana metrikler
     col1, col2, col3, col4 = st.columns(4)
@@ -9367,9 +8040,9 @@ def get_current_week_info():
     current_day_turkish = day_translation.get(current_day_english, current_day_english)
     
     return {
-        'today': today.isoformat(),  # 🔥 FİX: ISO string formatına çevir
-        'monday': monday_this_week.isoformat(),  # 🔥 FİX: ISO string formatına çevir
-        'sunday': sunday_this_week.isoformat(),  # 🔥 FİX: ISO string formatına çevir
+        'today': today,
+        'monday': monday_this_week,
+        'sunday': sunday_this_week,
         'week_range': week_range,
         'week_number': today.isocalendar()[1],  # Yılın kaçıncı haftası
         'current_day': current_day_turkish,  # 🔥 Artık Türkçe!
@@ -12107,7 +10780,7 @@ def update_topic_completion_date(username, topic_key):
                     
                     # Güncellenmiş veriyi kaydet
                     update_data = {
-                        'topic_completion_dates': json.dumps(make_json_serializable(completion_dates)),  # 🔥 FİX: JSON serialization hatası için
+                        'topic_completion_dates': json.dumps(completion_dates),
                         'topic_repetition_history': user_data['topic_repetition_history'],
                         'topic_mastery_status': user_data['topic_mastery_status']
                     }
@@ -13329,7 +12002,7 @@ def show_daily_pomodoro_stats(user_data):
                 
                 # Son 7 günün istatistikleri - DİNAMİK
                 week_info = get_current_week_info()
-                today = datetime.fromisoformat(week_info['today']).date()
+                today = week_info['today'].date()
                 last_week_pomodoros = [
                     p for p in all_pomodoros 
                     if (today - datetime.fromisoformat(p['timestamp']).date()).days <= 7
@@ -14126,8 +12799,8 @@ def add_topic_to_mastery_system(user_data, topic_key, initial_level="iyi"):
     repetition_history[topic_key]['next_review_date'] = next_review.isoformat()
     
     # Güncellenmiş verileri kaydet
-    user_data['topic_repetition_history'] = json.dumps(make_json_serializable(repetition_history))  # 🔥 FİX: JSON serialization hatası için
-    user_data['topic_mastery_status'] = json.dumps(make_json_serializable(mastery_status))  # 🔥 FİX: JSON serialization hatası için
+    user_data['topic_repetition_history'] = json.dumps(repetition_history)
+    user_data['topic_mastery_status'] = json.dumps(mastery_status)
     
     return user_data
 
@@ -14240,8 +12913,8 @@ def process_review_evaluation(user_data, topic_key, evaluation_level):
             history['next_review_date'] = next_review.isoformat()
     
     # Güncellenmiş verileri kaydet
-    user_data['topic_repetition_history'] = json.dumps(make_json_serializable(repetition_history))  # 🔥 FİX: JSON serialization hatası için
-    user_data['topic_mastery_status'] = json.dumps(make_json_serializable(mastery_status))  # 🔥 FİX: JSON serialization hatası için
+    user_data['topic_repetition_history'] = json.dumps(repetition_history)
+    user_data['topic_mastery_status'] = json.dumps(mastery_status)
     
     return user_data
 
@@ -14257,8 +12930,8 @@ def complete_topic_with_mastery_system(user_data, topic_key, net_value):
     topic_progress[topic_key] = str(net_value)
     completion_dates[topic_key] = datetime.now().isoformat()
     
-    user_data['topic_progress'] = json.dumps(make_json_serializable(topic_progress))  # 🔥 FİX: JSON serialization hatası için
-    user_data['topic_completion_dates'] = json.dumps(make_json_serializable(completion_dates))  # 🔥 FİX: JSON serialization hatası için
+    user_data['topic_progress'] = json.dumps(topic_progress)
+    user_data['topic_completion_dates'] = json.dumps(completion_dates)
     
     # Eğer iyi seviye (14+ net) ise kalıcı öğrenme sistemine ekle
     if int(net_value) >= 14:
@@ -14272,7 +12945,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     # Güncel zaman bilgisi al
     week_info = get_current_week_info()
     current_week = week_info['week_number']
-    current_month = datetime.fromisoformat(week_info['today']).month
+    current_month = week_info['today'].month
     days_to_yks = week_info['days_to_yks']
     
     # 🚀 ZAMANSAL STRATEJİ ALMA - DÖNEMİ BELİRLE
@@ -15826,7 +14499,7 @@ def main():
                         'visual': visual_score,
                         'auditory': auditory_score,
                         'kinesthetic': kinesthetic_score
-                    }, ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                    })
                 
                 # Profili kaydet
                 update_user_in_firebase(st.session_state.current_user, profile_data)
@@ -15983,9 +14656,7 @@ def main():
                 days_to_yks = week_info['days_to_yks']
                 
                 bg_style = BACKGROUND_STYLES.get(target_dept, BACKGROUND_STYLES["Varsayılan"])
-                # Tarih formatını güvenli şekilde göster
-                today_display = str(week_info.get("today", datetime.now().strftime("%d %B %Y")))
-                st.markdown(f'<div class="main-header"><h1>{bg_style["icon"]} {user_data["target_department"]} Yolculuğunuz</h1><p>Hedefinize doğru emin adımlarla ilerleyin</p><p>📅 {today_display} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="main-header"><h1>{bg_style["icon"]} {user_data["target_department"]} Yolculuğunuz</h1><p>Hedefinize doğru emin adımlarla ilerleyin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
                 
                 # İlerleme özeti - kartlar (motivasyondan önce)
                 overall_progress = calculate_subject_progress(user_data)
@@ -16013,7 +14684,7 @@ def main():
                 st.subheader("🎯 Günlük Motivasyon ve Çalışma Takibi")
                 
                 # Bugünkü tarih string'i
-                today_str = str(week_info.get("today", datetime.now().strftime("%Y-%m-%d")))
+                today_str = week_info["today"].strftime("%Y-%m-%d")
                 
                 # Günlük motivasyon verilerini çek
                 daily_motivation = json.loads(user_data.get('daily_motivation', '{}'))
@@ -16163,7 +14834,7 @@ def main():
                     # Son 3 günü döngüyle göster
                     photo_cols = st.columns(3)
                     for i, col in enumerate(photo_cols):
-                        day_ago = datetime.fromisoformat(week_info["today"]) - timedelta(days=i+1)
+                        day_ago = week_info["today"] - timedelta(days=i+1)
                         day_str = day_ago.strftime("%Y-%m-%d")
                         day_name = day_ago.strftime("%d/%m")
                         
@@ -16370,7 +15041,7 @@ def main():
                         recent_tests = []
                         
                         for i in range(6, -1, -1):
-                            day = datetime.fromisoformat(week_info["today"]) - timedelta(days=i)
+                            day = week_info["today"] - timedelta(days=i)
                             day_str = day.strftime("%Y-%m-%d")
                             day_data = daily_motivation.get(day_str, {'score': 0, 'questions': {}, 'tests': {}, 'paragraf_questions': 0})
                             
@@ -16473,7 +15144,7 @@ def main():
                         # Son 30 günün verilerini göster
                         history_days = []
                         for i in range(29, -1, -1):
-                            day = datetime.fromisoformat(week_info["today"]) - timedelta(days=i)
+                            day = week_info["today"] - timedelta(days=i)
                             day_str = day.strftime("%Y-%m-%d")
                             if day_str in daily_motivation:
                                 history_days.append((day, day_str, daily_motivation[day_str]))
@@ -16872,22 +15543,6 @@ def main():
                 else:
                     st.info("📈 Henüz konu çalışmanız bulunmuyor. Konu Takip sayfasından başlayın!")
 
-                # 🎯 HAFTALIK HEDEF ONAY SİSTEMİ - ONAY SONRASI GÜNCELLEMELİ
-                st.markdown("---")
-                
-                # Haftalık plan oluştur
-                try:
-                    weekly_plan = generate_weekly_plan(user_data)
-                    
-                    # Onaylanmış hedefleri haftalık plana entegre et
-                    weekly_plan = integrate_approved_targets_with_weekly_plan(user_data, weekly_plan)
-                    
-                    # Haftalık hedef onay sistemini göster
-                    show_weekly_targets_approval_system(user_data, weekly_plan)
-                    
-                except Exception as e:
-                    st.warning(f"📝 Haftalık hedef sistemi yüklenirken hata: {e}")
-
             elif page == "📚 Konu Takip":
                 st.markdown(f'<div class="main-header"><h1>📚 Konu Takip Sistemi</h1><p>Her konuda ustalaşın</p></div>', unsafe_allow_html=True)
                 
@@ -16985,7 +15640,7 @@ def main():
                                                 # Zorluk güncellemesi
                                                 if difficulty_rating != current_difficulty_int:
                                                     topic_progress[f"{topic_key}_difficulty"] = difficulty_rating
-                                                    update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
+                                                    update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
                                                     
                                             with col5:
                                                 # Soru sıklığı ikonu
@@ -17004,7 +15659,7 @@ def main():
                                             # Güncelleme
                                             if str(new_net) != current_net:
                                                 topic_progress[topic_key] = str(new_net)
-                                                update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
+                                                update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
                                                 # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                                                 # Haftalık plan cache'ini temizle
                                                 if 'weekly_plan_cache' in st.session_state:
@@ -17064,7 +15719,7 @@ def main():
                                             # Zorluk güncellemesi
                                             if difficulty_rating != current_difficulty_int:
                                                 topic_progress[f"{topic_key}_difficulty"] = difficulty_rating
-                                                update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
+                                                update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
                                                 
                                         with col5:
                                             # Soru sıklığı ikonu
@@ -17083,7 +15738,7 @@ def main():
                                         # Güncelleme
                                         if str(new_net) != current_net:
                                             topic_progress[topic_key] = str(new_net)
-                                            update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
+                                            update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
                                             # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                                             # Haftalık plan cache'ini temizle
                                             if 'weekly_plan_cache' in st.session_state:
@@ -17144,7 +15799,7 @@ def main():
                                     # Zorluk güncellemesi
                                     if difficulty_rating != current_difficulty_int:
                                         topic_progress[f"{topic_key}_difficulty"] = difficulty_rating
-                                        update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
+                                        update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
                                         
                                 with col5:
                                     # Soru sıklığı ikonu
@@ -17163,7 +15818,7 @@ def main():
                                 # Güncelleme
                                 if str(new_net) != current_net:
                                     topic_progress[topic_key] = str(new_net)
-                                    update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
+                                    update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
                                     # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                                     # Haftalık plan cache'ini temizle
                                     if 'weekly_plan_cache' in st.session_state:
@@ -17186,7 +15841,7 @@ def main():
                     # Toplu kaydetme seçeneği
                     if st.button("💾 Tüm Değişiklikleri Kaydet", type="primary", key="save_all_button"):
                         try:
-                            update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
+                            update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
                             # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                             # Cache temizleme
                             if 'weekly_plan_cache' in st.session_state:
@@ -17391,7 +16046,7 @@ def main():
                             username = st.session_state.get('current_user', None)
                             if username:
                                 try:
-                                    flashcards_json = json.dumps(make_json_serializable(st.session_state.user_flashcards), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                    flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
                                     update_user_in_firebase(username, {'flashcards': flashcards_json})
                                     st.success(f"🎉 Kart '{subject_for_card}' dersine eklendi ve Firebase'e kaydedildi!")
                                 except Exception as e:
@@ -17570,7 +16225,7 @@ def main():
                                     username = st.session_state.get('current_user', None)
                                     if username:
                                         try:
-                                            flashcards_json = json.dumps(make_json_serializable(st.session_state.user_flashcards), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                            flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
                                             update_user_in_firebase(username, {'flashcards': flashcards_json})
                                         except:
                                             pass  # Sessiz hata yönetimi
@@ -17588,7 +16243,7 @@ def main():
                                     username = st.session_state.get('current_user', None)
                                     if username:
                                         try:
-                                            flashcards_json = json.dumps(make_json_serializable(st.session_state.user_flashcards), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                            flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
                                             update_user_in_firebase(username, {'flashcards': flashcards_json})
                                         except:
                                             pass  # Sessiz hata yönetimi
@@ -17625,7 +16280,7 @@ def main():
                                         username = st.session_state.get('current_user', None)
                                         if username:
                                             try:
-                                                flashcards_json = json.dumps(make_json_serializable(st.session_state.user_flashcards), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                                flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
                                                 update_user_in_firebase(username, {'flashcards': flashcards_json})
                                             except:
                                                 pass  # Sessiz hata yönetimi
@@ -17858,7 +16513,7 @@ Kanuni döneminde zirveye çıktık biz! 🎵""",
                             username = st.session_state.get('current_user', None)
                             if username:
                                 try:
-                                    music_json = json.dumps(make_json_serializable(st.session_state.user_music_creations), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                    music_json = json.dumps(st.session_state.user_music_creations, ensure_ascii=False)
                                     update_user_in_firebase(username, {'music_creations': music_json})
                                     st.success(f"🎉 '{music_topic}' konulu müziğin '{music_subject}' dersine eklendi ve Firebase'e kaydedildi!")
                                 except Exception as e:
@@ -17945,7 +16600,7 @@ Kanuni döneminde zirveye çıktık biz! 🎵""",
                                             username = st.session_state.get('current_user', None)
                                             if username:
                                                 try:
-                                                    music_json = json.dumps(make_json_serializable(st.session_state.user_music_creations), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                                    music_json = json.dumps(st.session_state.user_music_creations, ensure_ascii=False)
                                                     update_user_in_firebase(username, {'music_creations': music_json})
                                                 except:
                                                     pass  # Sessiz hata yönetimi
@@ -17963,7 +16618,7 @@ Kanuni döneminde zirveye çıktık biz! 🎵""",
                                                 username = st.session_state.get('current_user', None)
                                                 if username:
                                                     try:
-                                                        music_json = json.dumps(make_json_serializable(st.session_state.user_music_creations), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                                        music_json = json.dumps(st.session_state.user_music_creations, ensure_ascii=False)
                                                         update_user_in_firebase(username, {'music_creations': music_json})
                                                     except:
                                                         pass  # Sessiz hata yönetimi
@@ -18126,7 +16781,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                             username = st.session_state.get('current_user', None)
                             if username:
                                 try:
-                                    story_json = json.dumps(make_json_serializable(st.session_state.user_story_creations), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                    story_json = json.dumps(st.session_state.user_story_creations, ensure_ascii=False)
                                     update_user_in_firebase(username, {'story_creations': story_json})
                                     st.success(f"🎉 '{story_topic}' konulu hikayeniz '{story_subject}' dersine eklendi ve Firebase'e kaydedildi!")
                                 except Exception as e:
@@ -18213,7 +16868,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                             username = st.session_state.get('current_user', None)
                                             if username:
                                                 try:
-                                                    story_json = json.dumps(make_json_serializable(st.session_state.user_story_creations), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                                    story_json = json.dumps(st.session_state.user_story_creations, ensure_ascii=False)
                                                     update_user_in_firebase(username, {'story_creations': story_json})
                                                 except:
                                                     pass  # Sessiz hata yönetimi
@@ -18231,7 +16886,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                                 username = st.session_state.get('current_user', None)
                                                 if username:
                                                     try:
-                                                        story_json = json.dumps(make_json_serializable(st.session_state.user_story_creations), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                                        story_json = json.dumps(st.session_state.user_story_creations, ensure_ascii=False)
                                                         update_user_in_firebase(username, {'story_creations': story_json})
                                                     except:
                                                         pass  # Sessiz hata yönetimi
@@ -18394,7 +17049,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                             username = st.session_state.get('current_user', None)
                             if username:
                                 try:
-                                    notes_json = json.dumps(make_json_serializable(st.session_state.user_spelling_notes), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                    notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
                                     update_user_in_firebase(username, {'spelling_notes': notes_json})
                                     st.success(f"🎉 '{wrong_writing}' notu '{rule_category}' kategorisine eklendi ve Firebase'e kaydedildi!")
                                 except Exception as e:
@@ -18497,7 +17152,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                             username = st.session_state.get('current_user', None)
                                             if username:
                                                 try:
-                                                    notes_json = json.dumps(make_json_serializable(st.session_state.user_spelling_notes), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                                    notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
                                                     update_user_in_firebase(username, {'spelling_notes': notes_json})
                                                 except:
                                                     pass  # Sessiz hata yönetimi
@@ -18515,7 +17170,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                                 username = st.session_state.get('current_user', None)
                                                 if username:
                                                     try:
-                                                        notes_json = json.dumps(make_json_serializable(st.session_state.user_spelling_notes), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                                        notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
                                                         update_user_in_firebase(username, {'spelling_notes': notes_json})
                                                     except:
                                                         pass  # Sessiz hata yönetimi
@@ -18531,7 +17186,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                                 username = st.session_state.get('current_user', None)
                                                 if username:
                                                     try:
-                                                        notes_json = json.dumps(make_json_serializable(st.session_state.user_spelling_notes), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                                        notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
                                                         update_user_in_firebase(username, {'spelling_notes': notes_json})
                                                     except:
                                                         pass  # Sessiz hata yönetimi
@@ -18549,7 +17204,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                                 username = st.session_state.get('current_user', None)
                                                 if username:
                                                     try:
-                                                        notes_json = json.dumps(make_json_serializable(st.session_state.user_spelling_notes), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                                        notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
                                                         update_user_in_firebase(username, {'spelling_notes': notes_json})
                                                     except:
                                                         pass  # Sessiz hata yönetimi
@@ -18783,7 +17438,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                         username = st.session_state.get('current_user', None)
                         if username:
                             try:
-                                book_data_json = json.dumps(make_json_serializable(st.session_state.user_book_survey), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                book_data_json = json.dumps(st.session_state.user_book_survey, ensure_ascii=False)
                                 update_user_in_firebase(username, {'book_survey_data': book_data_json})
                                 st.success("📚 Anket sonucun kaydedildi! Artık okuma takibini başlatabilirsin.")
                             except Exception as e:
@@ -18870,7 +17525,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                     username = st.session_state.get('current_user', None)
                                     if username:
                                         try:
-                                            book_data_json = json.dumps(make_json_serializable(st.session_state.user_book_survey), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
+                                            book_data_json = json.dumps(st.session_state.user_book_survey, ensure_ascii=False)
                                             update_user_in_firebase(username, {'book_survey_data': book_data_json})
                                             st.success(f"📚 '{book_name}' için haftalık okuma kaydın eklendi!")
                                         except Exception as e:
@@ -19124,7 +17779,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                         deneme_kayitlari.append(yeni_deneme)
 
                         # TYT/AYT NET GÜNCELLEMESİ - Otomatik hesapla ve güncelle
-                        updates_to_firebase = {'deneme_analizleri': json.dumps(make_json_serializable(deneme_kayitlari))}  # 🔥 FİX: JSON serialization hatası için
+                        updates_to_firebase = {'deneme_analizleri': json.dumps(deneme_kayitlari)}
                         
                         # Son 3 denemeyi al ve net hesapla
                         recent_3_exams = deneme_kayitlari[-3:] if len(deneme_kayitlari) >= 3 else deneme_kayitlari
@@ -22098,7 +20753,7 @@ def run_vak_learning_styles_test():
             
             # Veritabanına kaydet - Hem eski hem yeni field isimleri
             update_user_in_firebase(st.session_state.current_user, {
-                'vak_test_results': json.dumps(make_json_serializable(all_responses)),  # 🔥 FİX: JSON serialization hatası için
+                'vak_test_results': json.dumps(all_responses),
                 'learning_style': dominant_style,
                 'learning_style_scores': json.dumps({
                     'visual': a_percentage,
@@ -22113,7 +20768,7 @@ def run_vak_learning_styles_test():
                     'B_percentage': b_percentage,
                     'C_percentage': c_percentage,
                     'dominant_style': dominant_style
-                }, ensure_ascii=False),  # 🔥 FİX: JSON serialization hatası için
+                }),
                 'vak_test_completed': 'True'
             })
             
@@ -22320,7 +20975,7 @@ def run_cognitive_profile_test():
             
             # Veritabanına kaydet
             update_user_in_firebase(st.session_state.current_user, {
-                'cognitive_test_results': json.dumps(make_json_serializable(responses)),  # 🔥 FİX: JSON serialization hatası için
+                'cognitive_test_results': json.dumps(responses),
                 'cognitive_test_scores': json.dumps(average_scores),
                 'cognitive_test_completed': 'True'
             })
@@ -22530,7 +21185,7 @@ def run_motivation_emotional_test():
             
             # Veritabanına kaydet
             update_user_in_firebase(st.session_state.current_user, {
-                'motivation_test_results': json.dumps(make_json_serializable(responses)),  # 🔥 FİX: JSON serialization hatası için
+                'motivation_test_results': json.dumps(responses),
                 'motivation_test_scores': json.dumps(average_scores),
                 'motivation_test_completed': 'True'
             })
@@ -22712,7 +21367,7 @@ def run_time_management_test():
             
             # Veritabanına kaydet
             update_user_in_firebase(st.session_state.current_user, {
-                'time_test_results': json.dumps(make_json_serializable(responses)),  # 🔥 FİX: JSON serialization hatası için
+                'time_test_results': json.dumps(responses),
                 'time_test_scores': json.dumps(average_scores),
                 'time_test_completed': 'True'
             })
@@ -22957,7 +21612,7 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     🔄 **Mevcut Hafta Döngünüz:** {week_info['current_week']}. hafta  
     📆 **Bugün:** {week_info['current_day_name']} ({week_info['current_day_in_week']}/7)  
     ⏳ **Bu Haftada Kalan:** {week_info['days_left_in_week']} gün  
-    🏁 **Hafta Aralığı:** {week_info['week_start_date'].split('T')[0].split('-')[::-1][0]}.{week_info['week_start_date'].split('T')[0].split('-')[::-1][1]} - {week_info['week_end_date'].split('T')[0].split('-')[::-1][0]}.{week_info['week_end_date'].split('T')[0].split('-')[::-1][1]}
+    🏁 **Hafta Aralığı:** {week_info['week_start_date'].strftime('%d.%m')} - {week_info['week_end_date'].strftime('%d.%m')}
     """
     
     # Haftalık döngü takvimini ekle
@@ -23939,7 +22594,7 @@ def save_daily_social_media_time(username, total_hours):
         social_media_data[today_key] = total_hours
         
         # Firebase'e kaydet
-        update_user_in_firebase(username, {'social_media_daily': json.dumps(make_json_serializable(social_media_data))})  # 🔥 FİX: JSON serialization hatası için
+        update_user_in_firebase(username, {'social_media_daily': json.dumps(social_media_data)})
         
         return True
         
@@ -24165,7 +22820,7 @@ def clean_old_daily_data():
                 cleaned_data = {k: v for k, v in social_media_data.items() if k in days_to_keep}
                 
                 if cleaned_data != social_media_data:
-                    update_user_in_firebase(username, {'social_media_daily': json.dumps(make_json_serializable(cleaned_data))})  # 🔥 FİX: JSON serialization hatası için
+                    update_user_in_firebase(username, {'social_media_daily': json.dumps(cleaned_data)})
                     
             except Exception:
                 continue
