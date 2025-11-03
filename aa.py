@@ -6214,6 +6214,42 @@ def get_topic_question_count(topic_name):
 
 # ------------------------------------------------------------------------------------------------------
 # --- DÜZELTME: KONU YAPISI AYRIŞTIRICI FONKSİYON ---
+def get_categories(subject):
+    """Belirli bir dersin tüm kategorilerini döndürür."""
+    if subject not in YKS_TOPICS:
+        return []
+    
+    return list(YKS_TOPICS[subject].keys())
+
+def get_subcategories(subject, category):
+    """Belirli bir ders ve kategorinin alt kategorilerini döndürür."""
+    if subject not in YKS_TOPICS or category not in YKS_TOPICS[subject]:
+        return []
+    
+    content = YKS_TOPICS[subject][category]
+    if isinstance(content, dict):
+        return list(content.keys())
+    else:
+        return ["Ana Kategori"]  # Liste ise alt kategori yok
+
+def get_topics_detailed(subject, category, sub_category="Ana Kategori"):
+    """Belirli bir ders, kategori ve alt kategorinin konularını döndürür."""
+    if subject not in YKS_TOPICS or category not in YKS_TOPICS[subject]:
+        return []
+    
+    content = YKS_TOPICS[subject][category]
+    
+    if isinstance(content, dict):
+        if sub_category in content:
+            return content[sub_category]
+        else:
+            # İlk alt kategoriyi al
+            return list(content.values())[0] if content else []
+    elif isinstance(content, list):
+        return content
+    
+    return []
+
 def get_topic_list(subject):
     """Belirli bir dersin tüm alt konularını düz bir liste olarak döndürür."""
     if subject not in YKS_TOPICS:
@@ -25444,83 +25480,123 @@ def admin_coach_approval_panel():
                     if 0 <= index < len(approved_topics):
                         approved_topics.pop(index)
                 
-                st.markdown("**➕ Konu Takip'ten yeni konu ekleyin:**")
+                st.markdown("**➕ Konu Takip'ten detaylı seçim ile konu ekleyin:**")
                 with st.form(f"add_topic_form_{i}"):
                     # Mevcut dersleri al
                     available_subjects = list(YKS_TOPICS.keys())
                     
-                    # Ders seçimi
+                    # 1. Ders seçimi
                     selected_subject = st.selectbox(
-                        "📚 Ders Seçin:",
+                        "📚 1. Ders Seçin:",
                         options=["-- Ders Seçin --"] + available_subjects,
                         index=0,
                         key=f"subject_select_{i}"
                     )
                     
+                    selected_category = None
+                    selected_sub_category = None
+                    selected_topic = None
+                    
                     if selected_subject != "-- Ders Seçin --":
-                        # Seçilen dersin konularını getir
-                        subject_topics = get_topic_list(selected_subject)
+                        # 2. Kategori seçimi
+                        available_categories = get_categories(selected_subject)
+                        selected_category = st.selectbox(
+                            "📖 2. Kategori Seçin:",
+                            options=["-- Kategori Seçin --"] + available_categories,
+                            index=0,
+                            key=f"category_select_{i}"
+                        )
                         
-                        if subject_topics:
-                            # Konu seçimi
-                            selected_topic_option = st.selectbox(
-                                "📖 Konu Seçin:",
-                                options=["-- Konu Seçin --"] + subject_topics,
+                        if selected_category != "-- Kategori Seçin --":
+                            # 3. Alt kategori seçimi
+                            available_subcategories = get_subcategories(selected_subject, selected_category)
+                            selected_sub_category = st.selectbox(
+                                "📂 3. Alt Kategori Seçin:",
+                                options=["-- Alt Kategori Seçin --"] + available_subcategories,
                                 index=0,
-                                key=f"topic_select_{i}"
+                                key=f"subcategory_select_{i}"
                             )
                             
-                            if selected_topic_option != "-- Konu Seçin --":
-                                # Seçilen konuyu parse et
-                                topic_parts = selected_topic_option.split(" | ")
-                                topic_subject = topic_parts[0]  # Ders
-                                category = topic_parts[1]  # Ana kategori
-                                sub_category = topic_parts[2] if topic_parts[2] != "None" else None  # Alt kategori
-                                topic_name = topic_parts[3] if len(topic_parts) > 3 else topic_parts[2] if topic_parts[2] != "None" else topic_parts[1]  # Konu
-                                detail = topic_parts[3] if len(topic_parts) > 3 and sub_category else topic_parts[3]  # Detay
+                            if selected_sub_category != "-- Alt Kategori Seçin --":
+                                # 4. Konu seçimi (en detaylı seviye)
+                                available_topics = get_topics_detailed(selected_subject, selected_category, selected_sub_category)
+                                if available_topics:
+                                    selected_topic = st.selectbox(
+                                        "🎯 4. Konu Seçin:",
+                                        options=["-- Konu Seçin --"] + available_topics,
+                                        index=0,
+                                        key=f"topic_select_{i}"
+                                    )
+                                    
+                                    if selected_topic != "-- Konu Seçin --":
+                                        # Seçilen konuyu detaylı bilgilerle birleştir
+                                        topic_subject = selected_subject
+                                        topic_category = selected_category
+                                        topic_sub_category = selected_sub_category
+                                        topic_name = selected_topic
+                                        
+                                        # Hiyerarşik bilgiyi göster
+                                        st.markdown(f"""
+                                        **📋 Seçilen Konu Detayları:**
+                                        - **Ders:** {topic_subject}
+                                        - **Kategori:** {topic_category}
+                                        - **Alt Kategori:** {topic_sub_category}
+                                        - **Konu:** {topic_name}
+                                        """)
+                                        
+                                        # Detay alanını manuel olarak değiştirebilme seçeneği
+                                        new_detail = st.text_input(
+                                            "Detay (isteğe bağlı, düzenlenebilir):", 
+                                            value=topic_name,
+                                            placeholder="Konu detayları veya notlarınızı yazın"
+                                        )
+                                        
+                                        new_priority = st.selectbox("Öncelik:", ["DÜŞÜK", "NORMAL", "YÜKSEK", "KRİTİK"])
                                 
-                                # Detay alanını manuel olarak değiştirebilme seçeneği
-                                new_detail = st.text_input(
-                                    "Detay (isteğe bağlı, düzenlenebilir):", 
-                                    value=detail,
-                                    placeholder="Konu detayları"
-                                )
-                                
-                                new_priority = st.selectbox("Öncelik:", ["DÜŞÜK", "NORMAL", "YÜKSEK", "KRİTİK"])
-                                
-                                if st.form_submit_button("➕ Konu Ekle"):
-                                    new_topic_obj = {
-                                        'subject': topic_subject,
-                                        'topic': topic_name,
-                                        'detail': new_detail,
-                                        'priority': new_priority,
-                                        'net': 0
-                                    }
-                                    approved_topics.append(new_topic_obj)
-                                    st.success(f"✅ {topic_subject} - {topic_name} konusu eklendi!")
-                                    st.rerun()
-                        else:
-                            st.warning(f"⚠️ {selected_subject} dersi için konu bulunamadı.")
+                                # Form submit button'ı her zaman görünür olsun
+                                if st.form_submit_button("➕ Seçilen Konuyu Ekle", type="primary"):
+                                    if 'topic_subject' in locals() and 'topic_name' in locals():
+                                        new_topic_obj = {
+                                            'subject': topic_subject,
+                                            'category': topic_category,
+                                            'sub_category': topic_sub_category,
+                                            'topic': topic_name,
+                                            'detail': new_detail,
+                                            'priority': new_priority,
+                                            'net': 0
+                                        }
+                                        approved_topics.append(new_topic_obj)
+                                        st.success(f"✅ {topic_subject} - {topic_name} konusu eklendi!")
+                                        st.rerun()
+                                    else:
+                                        st.error("⚠️ Lütfen önce tüm seçimleri tamamlayın!")
+                        
+                    # Eğer konu bulunamazsa uyarı ver
+                    elif selected_subject != "-- Ders Seçin --":
+                        st.warning(f"⚠️ {selected_subject} dersi için konu bulunamadı.")
                     
-                    # Manuel konu ekleme seçeneği de kalsın
-                    st.markdown("**Veya manuel olarak ekleyin:**")
-                    manual_subject = st.text_input("Manuel Ders Adı:", placeholder="TYT Matematik")
-                    manual_topic = st.text_input("Manuel Konu Adı:", placeholder="Türev")
-                    manual_detail = st.text_input("Manuel Detay:", placeholder="Türev kuralları")
-                    manual_priority = st.selectbox("Manuel Öncelik:", ["DÜŞÜK", "NORMAL", "YÜKSEK", "KRİTİK"])
-                    
-                    if st.form_submit_button("➕ Manuel Konu Ekle"):
-                        if manual_subject and manual_topic:
-                            manual_topic_obj = {
-                                'subject': manual_subject,
-                                'topic': manual_topic,
-                                'detail': manual_detail,
-                                'priority': manual_priority,
-                                'net': 0
-                            }
-                            approved_topics.append(manual_topic_obj)
-                            st.success(f"✅ Manuel: {manual_subject} - {manual_topic} eklendi!")
-                            st.rerun()
+            # Manuel konu ekleme için ayrı form
+            st.markdown("**Veya manuel olarak ekleyin:**")
+            with st.form(f"manual_add_topic_form_{i}"):
+                manual_subject = st.text_input("Manuel Ders Adı:", placeholder="TYT Matematik", key=f"manual_subject_{i}")
+                manual_topic = st.text_input("Manuel Konu Adı:", placeholder="Türev", key=f"manual_topic_{i}")
+                manual_detail = st.text_input("Manuel Detay:", placeholder="Türev kuralları", key=f"manual_detail_{i}")
+                manual_priority = st.selectbox("Manuel Öncelik:", ["DÜŞÜK", "NORMAL", "YÜKSEK", "KRİTİK"], key=f"manual_priority_{i}")
+                
+                if st.form_submit_button("➕ Manuel Konu Ekle", type="secondary"):
+                    if manual_subject and manual_topic:
+                        manual_topic_obj = {
+                            'subject': manual_subject,
+                            'topic': manual_topic,
+                            'detail': manual_detail,
+                            'priority': manual_priority,
+                            'net': 0
+                        }
+                        approved_topics.append(manual_topic_obj)
+                        st.success(f"✅ Manuel: {manual_subject} - {manual_topic} eklendi!")
+                        st.rerun()
+                    else:
+                        st.error("⚠️ Manuel ekleme için en azından ders ve konu adı gereklidir!")
             
             # Koç notu ve onay
             coach_notes = st.text_area("📝 Koç Notu:", placeholder="Programla ilgili görüşleriniz, önerileriniz...")
