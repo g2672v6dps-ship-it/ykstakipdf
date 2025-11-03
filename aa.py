@@ -15354,7 +15354,6 @@ def main():
                     }
                     
                     # Son çalışma tarihlerini al
-                    from datetime import datetime
                     topic_progress_str = user_data.get('topic_progress', '{}')
                     try:
                         topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str
@@ -15447,7 +15446,7 @@ def main():
                     # Solmuş çiçekler
                     wilted_subjects = [s for s in display_subjects if progress_data[s]['percent'] < 50]
                     if wilted_subjects:
-                        st.warning(f"🥀 **Acil ilgi gereken çiçekler:** {', '.join([s.replace('TYT ', '').replace('AYT ', '') for s in wilted_subjects])}")
+                        st.warning(f"🥀 **Acil ilgi gereken çiçekler:** {', '.join(wilted_subjects)}")
                     
                     # Tekrar zamanı gelen konular
                     needs_review = []
@@ -15457,7 +15456,7 @@ def main():
                                 last_date = datetime.fromisoformat(subject_last_study[subject])
                                 days = (datetime.now() - last_date).days
                                 if days >= 7:
-                                    needs_review.append(subject.replace('TYT ', '').replace('AYT ', ''))
+                                    needs_review.append(subject)
                             except:
                                 pass
                     
@@ -15467,7 +15466,7 @@ def main():
                     # İyi durumdaki çiçekler
                     healthy_subjects = [s for s in display_subjects if progress_data[s]['percent'] >= 70]
                     if healthy_subjects:
-                        st.success(f"🌸 **Harika giden dersler:** {', '.join([s.replace('TYT ', '').replace('AYT ', '') for s in healthy_subjects])}")
+                        st.success(f"🌸 **Harika giden dersler:** {', '.join(healthy_subjects)}")
                 
                 st.markdown("---")
                 st.subheader("📋 Son Aktivite Özeti")
@@ -23695,7 +23694,6 @@ def show_progress_analytics(user_data):
         st.warning("🔄 Haftalık program başlangıç tarihi bulunamadı!")
         return 0, []
     
-    from datetime import datetime, timedelta
     try:
         start_date = datetime.strptime(weekly_start_date, "%Y-%m-%d")
         today = datetime.now()
@@ -24866,7 +24864,6 @@ def show_real_topic_completion_timeline(user_data, current_progress, days_to_yks
     st.markdown("### 📊 Bu Hızla Hangi Ay Hangi Konular Bitecek?")
     
     # Şu anki tarih
-    from datetime import datetime, timedelta
     current_date = datetime.now()
     
     total_remaining_topics = sum(field_topics.values()) - len(completed_topics)
