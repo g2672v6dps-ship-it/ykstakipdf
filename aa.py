@@ -182,7 +182,7 @@ def submit_program_for_coach_approval(user_data, program_data, description):
         
         # Mevcut programa ekle veya yeni başlat
         programs_data[program_id] = new_program
-        user_data['program_approvals'] = json.dumps(programs_data, ensure_ascii=False)
+        user_data['program_approvals'] = json.dumps(make_json_serializable(programs_data), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
         
         # Firebase'e kaydet
         username = st.session_state.get('current_user', '')
@@ -11999,7 +11999,7 @@ def update_topic_completion_date(username, topic_key):
                     
                     # Güncellenmiş veriyi kaydet
                     update_data = {
-                        'topic_completion_dates': json.dumps(completion_dates),
+                        'topic_completion_dates': json.dumps(make_json_serializable(completion_dates)),  # 🔥 FİX: JSON serialization hatası için
                         'topic_repetition_history': user_data['topic_repetition_history'],
                         'topic_mastery_status': user_data['topic_mastery_status']
                     }
@@ -14018,8 +14018,8 @@ def add_topic_to_mastery_system(user_data, topic_key, initial_level="iyi"):
     repetition_history[topic_key]['next_review_date'] = next_review.isoformat()
     
     # Güncellenmiş verileri kaydet
-    user_data['topic_repetition_history'] = json.dumps(repetition_history)
-    user_data['topic_mastery_status'] = json.dumps(mastery_status)
+    user_data['topic_repetition_history'] = json.dumps(make_json_serializable(repetition_history))  # 🔥 FİX: JSON serialization hatası için
+    user_data['topic_mastery_status'] = json.dumps(make_json_serializable(mastery_status))  # 🔥 FİX: JSON serialization hatası için
     
     return user_data
 
@@ -14132,8 +14132,8 @@ def process_review_evaluation(user_data, topic_key, evaluation_level):
             history['next_review_date'] = next_review.isoformat()
     
     # Güncellenmiş verileri kaydet
-    user_data['topic_repetition_history'] = json.dumps(repetition_history)
-    user_data['topic_mastery_status'] = json.dumps(mastery_status)
+    user_data['topic_repetition_history'] = json.dumps(make_json_serializable(repetition_history))  # 🔥 FİX: JSON serialization hatası için
+    user_data['topic_mastery_status'] = json.dumps(make_json_serializable(mastery_status))  # 🔥 FİX: JSON serialization hatası için
     
     return user_data
 
@@ -14149,8 +14149,8 @@ def complete_topic_with_mastery_system(user_data, topic_key, net_value):
     topic_progress[topic_key] = str(net_value)
     completion_dates[topic_key] = datetime.now().isoformat()
     
-    user_data['topic_progress'] = json.dumps(topic_progress)
-    user_data['topic_completion_dates'] = json.dumps(completion_dates)
+    user_data['topic_progress'] = json.dumps(make_json_serializable(topic_progress))  # 🔥 FİX: JSON serialization hatası için
+    user_data['topic_completion_dates'] = json.dumps(make_json_serializable(completion_dates))  # 🔥 FİX: JSON serialization hatası için
     
     # Eğer iyi seviye (14+ net) ise kalıcı öğrenme sistemine ekle
     if int(net_value) >= 14:
@@ -15718,7 +15718,7 @@ def main():
                         'visual': visual_score,
                         'auditory': auditory_score,
                         'kinesthetic': kinesthetic_score
-                    })
+                    }, ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                 
                 # Profili kaydet
                 update_user_in_firebase(st.session_state.current_user, profile_data)
@@ -16875,7 +16875,7 @@ def main():
                                                 # Zorluk güncellemesi
                                                 if difficulty_rating != current_difficulty_int:
                                                     topic_progress[f"{topic_key}_difficulty"] = difficulty_rating
-                                                    update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
+                                                    update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
                                                     
                                             with col5:
                                                 # Soru sıklığı ikonu
@@ -16894,7 +16894,7 @@ def main():
                                             # Güncelleme
                                             if str(new_net) != current_net:
                                                 topic_progress[topic_key] = str(new_net)
-                                                update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
+                                                update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
                                                 # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                                                 # Haftalık plan cache'ini temizle
                                                 if 'weekly_plan_cache' in st.session_state:
@@ -16954,7 +16954,7 @@ def main():
                                             # Zorluk güncellemesi
                                             if difficulty_rating != current_difficulty_int:
                                                 topic_progress[f"{topic_key}_difficulty"] = difficulty_rating
-                                                update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
+                                                update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
                                                 
                                         with col5:
                                             # Soru sıklığı ikonu
@@ -16973,7 +16973,7 @@ def main():
                                         # Güncelleme
                                         if str(new_net) != current_net:
                                             topic_progress[topic_key] = str(new_net)
-                                            update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
+                                            update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
                                             # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                                             # Haftalık plan cache'ini temizle
                                             if 'weekly_plan_cache' in st.session_state:
@@ -17034,7 +17034,7 @@ def main():
                                     # Zorluk güncellemesi
                                     if difficulty_rating != current_difficulty_int:
                                         topic_progress[f"{topic_key}_difficulty"] = difficulty_rating
-                                        update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
+                                        update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
                                         
                                 with col5:
                                     # Soru sıklığı ikonu
@@ -17053,7 +17053,7 @@ def main():
                                 # Güncelleme
                                 if str(new_net) != current_net:
                                     topic_progress[topic_key] = str(new_net)
-                                    update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
+                                    update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
                                     # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                                     # Haftalık plan cache'ini temizle
                                     if 'weekly_plan_cache' in st.session_state:
@@ -17076,7 +17076,7 @@ def main():
                     # Toplu kaydetme seçeneği
                     if st.button("💾 Tüm Değişiklikleri Kaydet", type="primary", key="save_all_button"):
                         try:
-                            update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
+                            update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(make_json_serializable(topic_progress))})  # 🔥 FİX: JSON serialization hatası için
                             # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                             # Cache temizleme
                             if 'weekly_plan_cache' in st.session_state:
@@ -17281,7 +17281,7 @@ def main():
                             username = st.session_state.get('current_user', None)
                             if username:
                                 try:
-                                    flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
+                                    flashcards_json = json.dumps(make_json_serializable(st.session_state.user_flashcards), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                     update_user_in_firebase(username, {'flashcards': flashcards_json})
                                     st.success(f"🎉 Kart '{subject_for_card}' dersine eklendi ve Firebase'e kaydedildi!")
                                 except Exception as e:
@@ -17460,7 +17460,7 @@ def main():
                                     username = st.session_state.get('current_user', None)
                                     if username:
                                         try:
-                                            flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
+                                            flashcards_json = json.dumps(make_json_serializable(st.session_state.user_flashcards), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                             update_user_in_firebase(username, {'flashcards': flashcards_json})
                                         except:
                                             pass  # Sessiz hata yönetimi
@@ -17478,7 +17478,7 @@ def main():
                                     username = st.session_state.get('current_user', None)
                                     if username:
                                         try:
-                                            flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
+                                            flashcards_json = json.dumps(make_json_serializable(st.session_state.user_flashcards), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                             update_user_in_firebase(username, {'flashcards': flashcards_json})
                                         except:
                                             pass  # Sessiz hata yönetimi
@@ -17515,7 +17515,7 @@ def main():
                                         username = st.session_state.get('current_user', None)
                                         if username:
                                             try:
-                                                flashcards_json = json.dumps(st.session_state.user_flashcards, ensure_ascii=False)
+                                                flashcards_json = json.dumps(make_json_serializable(st.session_state.user_flashcards), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                                 update_user_in_firebase(username, {'flashcards': flashcards_json})
                                             except:
                                                 pass  # Sessiz hata yönetimi
@@ -17748,7 +17748,7 @@ Kanuni döneminde zirveye çıktık biz! 🎵""",
                             username = st.session_state.get('current_user', None)
                             if username:
                                 try:
-                                    music_json = json.dumps(st.session_state.user_music_creations, ensure_ascii=False)
+                                    music_json = json.dumps(make_json_serializable(st.session_state.user_music_creations), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                     update_user_in_firebase(username, {'music_creations': music_json})
                                     st.success(f"🎉 '{music_topic}' konulu müziğin '{music_subject}' dersine eklendi ve Firebase'e kaydedildi!")
                                 except Exception as e:
@@ -17835,7 +17835,7 @@ Kanuni döneminde zirveye çıktık biz! 🎵""",
                                             username = st.session_state.get('current_user', None)
                                             if username:
                                                 try:
-                                                    music_json = json.dumps(st.session_state.user_music_creations, ensure_ascii=False)
+                                                    music_json = json.dumps(make_json_serializable(st.session_state.user_music_creations), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                                     update_user_in_firebase(username, {'music_creations': music_json})
                                                 except:
                                                     pass  # Sessiz hata yönetimi
@@ -17853,7 +17853,7 @@ Kanuni döneminde zirveye çıktık biz! 🎵""",
                                                 username = st.session_state.get('current_user', None)
                                                 if username:
                                                     try:
-                                                        music_json = json.dumps(st.session_state.user_music_creations, ensure_ascii=False)
+                                                        music_json = json.dumps(make_json_serializable(st.session_state.user_music_creations), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                                         update_user_in_firebase(username, {'music_creations': music_json})
                                                     except:
                                                         pass  # Sessiz hata yönetimi
@@ -18016,7 +18016,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                             username = st.session_state.get('current_user', None)
                             if username:
                                 try:
-                                    story_json = json.dumps(st.session_state.user_story_creations, ensure_ascii=False)
+                                    story_json = json.dumps(make_json_serializable(st.session_state.user_story_creations), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                     update_user_in_firebase(username, {'story_creations': story_json})
                                     st.success(f"🎉 '{story_topic}' konulu hikayeniz '{story_subject}' dersine eklendi ve Firebase'e kaydedildi!")
                                 except Exception as e:
@@ -18103,7 +18103,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                             username = st.session_state.get('current_user', None)
                                             if username:
                                                 try:
-                                                    story_json = json.dumps(st.session_state.user_story_creations, ensure_ascii=False)
+                                                    story_json = json.dumps(make_json_serializable(st.session_state.user_story_creations), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                                     update_user_in_firebase(username, {'story_creations': story_json})
                                                 except:
                                                     pass  # Sessiz hata yönetimi
@@ -18121,7 +18121,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                                 username = st.session_state.get('current_user', None)
                                                 if username:
                                                     try:
-                                                        story_json = json.dumps(st.session_state.user_story_creations, ensure_ascii=False)
+                                                        story_json = json.dumps(make_json_serializable(st.session_state.user_story_creations), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                                         update_user_in_firebase(username, {'story_creations': story_json})
                                                     except:
                                                         pass  # Sessiz hata yönetimi
@@ -18284,7 +18284,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                             username = st.session_state.get('current_user', None)
                             if username:
                                 try:
-                                    notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
+                                    notes_json = json.dumps(make_json_serializable(st.session_state.user_spelling_notes), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                     update_user_in_firebase(username, {'spelling_notes': notes_json})
                                     st.success(f"🎉 '{wrong_writing}' notu '{rule_category}' kategorisine eklendi ve Firebase'e kaydedildi!")
                                 except Exception as e:
@@ -18387,7 +18387,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                             username = st.session_state.get('current_user', None)
                                             if username:
                                                 try:
-                                                    notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
+                                                    notes_json = json.dumps(make_json_serializable(st.session_state.user_spelling_notes), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                                     update_user_in_firebase(username, {'spelling_notes': notes_json})
                                                 except:
                                                     pass  # Sessiz hata yönetimi
@@ -18405,7 +18405,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                                 username = st.session_state.get('current_user', None)
                                                 if username:
                                                     try:
-                                                        notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
+                                                        notes_json = json.dumps(make_json_serializable(st.session_state.user_spelling_notes), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                                         update_user_in_firebase(username, {'spelling_notes': notes_json})
                                                     except:
                                                         pass  # Sessiz hata yönetimi
@@ -18421,7 +18421,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                                 username = st.session_state.get('current_user', None)
                                                 if username:
                                                     try:
-                                                        notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
+                                                        notes_json = json.dumps(make_json_serializable(st.session_state.user_spelling_notes), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                                         update_user_in_firebase(username, {'spelling_notes': notes_json})
                                                     except:
                                                         pass  # Sessiz hata yönetimi
@@ -18439,7 +18439,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                                 username = st.session_state.get('current_user', None)
                                                 if username:
                                                     try:
-                                                        notes_json = json.dumps(st.session_state.user_spelling_notes, ensure_ascii=False)
+                                                        notes_json = json.dumps(make_json_serializable(st.session_state.user_spelling_notes), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                                         update_user_in_firebase(username, {'spelling_notes': notes_json})
                                                     except:
                                                         pass  # Sessiz hata yönetimi
@@ -18673,7 +18673,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                         username = st.session_state.get('current_user', None)
                         if username:
                             try:
-                                book_data_json = json.dumps(st.session_state.user_book_survey, ensure_ascii=False)
+                                book_data_json = json.dumps(make_json_serializable(st.session_state.user_book_survey), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                 update_user_in_firebase(username, {'book_survey_data': book_data_json})
                                 st.success("📚 Anket sonucun kaydedildi! Artık okuma takibini başlatabilirsin.")
                             except Exception as e:
@@ -18760,7 +18760,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                                     username = st.session_state.get('current_user', None)
                                     if username:
                                         try:
-                                            book_data_json = json.dumps(st.session_state.user_book_survey, ensure_ascii=False)
+                                            book_data_json = json.dumps(make_json_serializable(st.session_state.user_book_survey), ensure_ascii=False)  # 🔥 FİX: JSON serialization hatası için
                                             update_user_in_firebase(username, {'book_survey_data': book_data_json})
                                             st.success(f"📚 '{book_name}' için haftalık okuma kaydın eklendi!")
                                         except Exception as e:
@@ -19014,7 +19014,7 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                         deneme_kayitlari.append(yeni_deneme)
 
                         # TYT/AYT NET GÜNCELLEMESİ - Otomatik hesapla ve güncelle
-                        updates_to_firebase = {'deneme_analizleri': json.dumps(deneme_kayitlari)}
+                        updates_to_firebase = {'deneme_analizleri': json.dumps(make_json_serializable(deneme_kayitlari))}  # 🔥 FİX: JSON serialization hatası için
                         
                         # Son 3 denemeyi al ve net hesapla
                         recent_3_exams = deneme_kayitlari[-3:] if len(deneme_kayitlari) >= 3 else deneme_kayitlari
@@ -21988,7 +21988,7 @@ def run_vak_learning_styles_test():
             
             # Veritabanına kaydet - Hem eski hem yeni field isimleri
             update_user_in_firebase(st.session_state.current_user, {
-                'vak_test_results': json.dumps(all_responses),
+                'vak_test_results': json.dumps(make_json_serializable(all_responses)),  # 🔥 FİX: JSON serialization hatası için
                 'learning_style': dominant_style,
                 'learning_style_scores': json.dumps({
                     'visual': a_percentage,
@@ -22003,7 +22003,7 @@ def run_vak_learning_styles_test():
                     'B_percentage': b_percentage,
                     'C_percentage': c_percentage,
                     'dominant_style': dominant_style
-                }),
+                }, ensure_ascii=False),  # 🔥 FİX: JSON serialization hatası için
                 'vak_test_completed': 'True'
             })
             
@@ -22210,7 +22210,7 @@ def run_cognitive_profile_test():
             
             # Veritabanına kaydet
             update_user_in_firebase(st.session_state.current_user, {
-                'cognitive_test_results': json.dumps(responses),
+                'cognitive_test_results': json.dumps(make_json_serializable(responses)),  # 🔥 FİX: JSON serialization hatası için
                 'cognitive_test_scores': json.dumps(average_scores),
                 'cognitive_test_completed': 'True'
             })
@@ -22420,7 +22420,7 @@ def run_motivation_emotional_test():
             
             # Veritabanına kaydet
             update_user_in_firebase(st.session_state.current_user, {
-                'motivation_test_results': json.dumps(responses),
+                'motivation_test_results': json.dumps(make_json_serializable(responses)),  # 🔥 FİX: JSON serialization hatası için
                 'motivation_test_scores': json.dumps(average_scores),
                 'motivation_test_completed': 'True'
             })
@@ -22602,7 +22602,7 @@ def run_time_management_test():
             
             # Veritabanına kaydet
             update_user_in_firebase(st.session_state.current_user, {
-                'time_test_results': json.dumps(responses),
+                'time_test_results': json.dumps(make_json_serializable(responses)),  # 🔥 FİX: JSON serialization hatası için
                 'time_test_scores': json.dumps(average_scores),
                 'time_test_completed': 'True'
             })
@@ -23829,7 +23829,7 @@ def save_daily_social_media_time(username, total_hours):
         social_media_data[today_key] = total_hours
         
         # Firebase'e kaydet
-        update_user_in_firebase(username, {'social_media_daily': json.dumps(social_media_data)})
+        update_user_in_firebase(username, {'social_media_daily': json.dumps(make_json_serializable(social_media_data))})  # 🔥 FİX: JSON serialization hatası için
         
         return True
         
@@ -24055,7 +24055,7 @@ def clean_old_daily_data():
                 cleaned_data = {k: v for k, v in social_media_data.items() if k in days_to_keep}
                 
                 if cleaned_data != social_media_data:
-                    update_user_in_firebase(username, {'social_media_daily': json.dumps(cleaned_data)})
+                    update_user_in_firebase(username, {'social_media_daily': json.dumps(make_json_serializable(cleaned_data))})  # 🔥 FİX: JSON serialization hatası için
                     
             except Exception:
                 continue
