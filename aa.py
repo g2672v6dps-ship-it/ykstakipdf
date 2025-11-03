@@ -172,7 +172,7 @@ def submit_program_for_coach_approval(user_data, program_data, description):
             'student_name': user_data.get('name', 'Bilinmeyen'),
             'student_username': st.session_state.get('current_user', ''),
             'student_field': user_data.get('field', 'Bilinmiyor'),
-            'program_data': program_data,
+            'program_data': make_json_serializable(program_data),  # 🔥 FİX: JSON serialize edilebilir hale getir
             'description': description,
             'status': 'beklemede',  # beklemede, onaylandı, reddedildi
             'submission_date': datetime.now().isoformat(),
@@ -9259,9 +9259,9 @@ def get_current_week_info():
     current_day_turkish = day_translation.get(current_day_english, current_day_english)
     
     return {
-        'today': today,
-        'monday': monday_this_week,
-        'sunday': sunday_this_week,
+        'today': today.isoformat(),  # 🔥 FİX: ISO string formatına çevir
+        'monday': monday_this_week.isoformat(),  # 🔥 FİX: ISO string formatına çevir
+        'sunday': sunday_this_week.isoformat(),  # 🔥 FİX: ISO string formatına çevir
         'week_range': week_range,
         'week_number': today.isocalendar()[1],  # Yılın kaçıncı haftası
         'current_day': current_day_turkish,  # 🔥 Artık Türkçe!
