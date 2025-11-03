@@ -172,6 +172,540 @@ def submit_program_for_coach_approval(user_data, program_data, description):
         st.error(f"Program gönderme hatası: {e}")
         return False, None
 
+# === HAFTALİK HEDEF ONAY SİSTEMİ FONKSİYONLARI ===
+
+def save_weekly_targets_approval(user_data, weekly_targets, coach_notes=''):
+    """Öğrencinin haftalık hedef konular listesini koça gönderir"""
+    try:
+        # Mevcut haftalık hedef onay durumlarını al
+        targets_data_str = user_data.get('weekly_targets_approvals', '{}')
+        targets_data = json.loads(targets_data_str) if targets_data_str else {}
+        
+        # Yeni haftalık hedef kaydı oluştur
+        approval_id = f"wt_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{st.session_state.get('current_user', 'unknown')}"
+        
+        new_target_approval = {
+            'approval_id': approval_id,
+            'student_name': user_data.get('name', 'Bilinmeyen'),
+            'student_username': st.session_state.get('current_user', ''),
+            'student_field': user_data.get('field', 'Bilinmiyor'),
+            'weekly_targets': weekly_targets,
+            'coach_notes': coach_notes,
+            'status': 'beklemede',  # beklemede, onaylandı, reddedildi
+            'submission_date': datetime.now().isoformat(),
+            'coach_review_date': None,
+            'coach_feedback': '',
+            'corrected_targets': None
+        }
+        
+        # Mevcut hedefe ekle veya yeni başlat
+        targets_data[approval_id] = new_target_approval
+        user_data['weekly_targets_approvals'] = json.dumps(targets_data, ensure_ascii=False)
+        
+        # Firebase'e kaydet
+        username = st.session_state.get('current_user', '')
+        if username:
+            update_user_in_firebase(username, {'weekly_targets_approvals': user_data['weekly_targets_approvals']})
+            return True, approval_id
+        
+        return False, approval_id
+    except Exception as e:
+        st.error(f"Haftalık hedef gönderme hatası: {e}")
+        return False, None
+
+def show_weekly_targets_approval_system(user_data, weekly_plan):
+    """🎯 Haftalık hedef onay sistemi - Öğrenci arayüzü"""
+    try:
+        # Onaylanmış hedefleri kontrol et ve göster
+        show_coach_approved_targets_section(user_data)
+        
+        # Mevcut onay durumunu getir
+        status_info = get_latest_weekly_targets_status(user_data)
+        
+        st.markdown("### 📝 Haftalık Hedef Onay Sistemi")
+        
+        # Durum göstergesi
+        if status_info['status'] == 'beklemede':
+            st.warning(f"{status_info['icon']} **{status_info['message']}**")
+        elif status_info['status'] == 'onaylandı':
+            st.success(f"{status_info['icon']} **{status_info['message']}**")
+        elif status_info['status'] == 'reddedildi':
+            st.error(f"{status_info['icon']} **{status_info['message']}**")
+            if status_info.get('coach_feedback'):
+                st.info(f"💬 **Koç Geri Bildirimi:** {status_info['coach_feedback']}")
+        else:
+            st.info("💡 Henüz haftalık hedef göndermediniz")
+        
+        st.markdown("---")
+        
+        # Yeni hedef gönderme alanı (sadece beklemede değilse)
+        if status_info['status'] != 'beklemede':
+            with st.expander("📤 Yeni Haftalık Hedef Gönder", expanded=False):
+                show_weekly_targets_form(user_data, weekly_plan)
+        else:
+            if status_info['status'] == 'beklemede':
+                st.info("⏳ **Koçunuz haftalık hedeflerinizi inceliyor.** Yeni hedef göndermek için mevcut onayın sonucunu bekleyin.")
+            elif status_info['status'] == 'onaylandı':
+                st.markdown("#### ✅ **Hedefleriniz Onaylandı!**")
+                st.success("🎉 **Koçunuz tarafından haftalık hedefleriniz onaylandı!**")
+                
+                # Onaylanmış hedeflerle çalışma seçenekleri
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("🚀 Hedeflerle Çalışmaya Başla", type="primary", use_container_width=True):
+                        st.success("🚀 Hedeflerinizle çalışmaya başladınız! Başarılar dileriz!")
+                        st.rerun()
+                with col2:
+                    if st.button("📊 Hedef İlerlemesi Takip Et", use_container_width=True):
+                        st.info("📊 Hedef ilerleme takibine geçiliyor...")
+                        st.rerun()
+
+    except Exception as e:
+        st.error(f"Haftalık hedef onay sistemi hatası: {e}")
+
+def show_weekly_targets_form(user_data, weekly_plan):
+    """Haftalık hedef gönderme formu"""
+    with st.form("weekly_targets_form"):
+        st.markdown("#### 🎯 Haftalık Hedeflerinizi Oluşturun")
+        
+        # Mevcut haftalık plandan konuları al
+        default_topics = []
+        if weekly_plan and 'new_topics' in weekly_plan:
+            default_topics = weekly_plan['new_topics']
+        
+        # Konu ekleme alanı
+        col1, col2 = st.columns([3, 1])
+        
+        with col1:
+            new_topic = st.text_input("📚 Yeni Hedef Ekle", placeholder="Örn: TYT Matematik - Türev konusunu tamamla")
+        
+        with col2:
+            subject = st.selectbox("📖 Ders", 
+                                 ["Matematik", "Türkçe", "Tarih", "Coğrafya", "Fizik", "Kimya", "Biyoloji", "Edebiyat", "Felsefe", "Din Kültürü"])
+        
+        # Mevcut hedefleri göster
+        if 'weekly_targets_list' not in st.session_state:
+            st.session_state.weekly_targets_list = []
+        
+        # Form submit
+        submitted = st.form_submit_button("📤 Hedeflerimi Koçuma Gönder", type="primary", use_container_width=True)
+        
+        if submitted:
+            if not st.session_state.weekly_targets_list:
+                st.error("❌ Lütfen en az bir hedef ekleyin!")
+            else:
+                # Hedefleri hazırla
+                targets_for_approval = []
+                for target_item in st.session_state.weekly_targets_list:
+                    if isinstance(target_item, dict):
+                        targets_for_approval.append(target_item)
+                    else:
+                        targets_for_approval.append({
+                            'subject': 'Genel',
+                            'topic': str(target_item),
+                            'priority': 'normal'
+                        })
+                
+                # Koça gönder
+                success, approval_id = save_weekly_targets_approval(user_data, targets_for_approval)
+                
+                if success:
+                    st.success("🎉 Haftalık hedefleriniz başarıyla koçunuza gönderildi!")
+                    st.balloons()
+                    st.info("⏳ Koçunuz hedeflerinizi inceleyip en kısa sürede geri bildirim verecektir.")
+                    st.session_state.weekly_targets_list = []
+                    st.rerun()
+                else:
+                    st.error("❌ Hedef gönderilirken hata oluştu. Lütfen tekrar deneyin.")
+        
+        # Hedef listesi yönetimi
+        st.markdown("#### 📋 Hedef Listeniz")
+        if st.session_state.weekly_targets_list:
+            for i, target in enumerate(st.session_state.weekly_targets_list):
+                if isinstance(target, dict):
+                    topic_name = target.get('topic', str(target))
+                    subject_name = target.get('subject', 'Genel')
+                    priority = target.get('priority', 'normal')
+                    priority_emoji = "🔴" if priority == "yüksek" else "🟡" if priority == "orta" else "🟢"
+                    
+                    col1, col2 = st.columns([4, 1])
+                    with col1:
+                        st.write(f"{priority_emoji} **{subject_name}:** {topic_name}")
+                    with col2:
+                        if st.button("🗑️", key=f"remove_{i}"):
+                            st.session_state.weekly_targets_list.pop(i)
+                            st.rerun()
+                else:
+                    col1, col2 = st.columns([4, 1])
+                    with col1:
+                        st.write(f"🎯 {target}")
+                    with col2:
+                        if st.button("🗑️", key=f"remove_{i}"):
+                            st.session_state.weekly_targets_list.pop(i)
+                            st.rerun()
+        else:
+            st.info("Henüz hedef eklenmedi. Yukarıdaki formu kullanarak hedef ekleyebilirsiniz.")
+
+def get_all_pending_weekly_targets():
+    """Admin panel için tüm bekleyen haftalık hedefleri getir"""
+    try:
+        pending_targets = []
+        
+        if 'users_db' in st.session_state:
+            for username, user_data in st.session_state.users_db.items():
+                targets_data_str = user_data.get('weekly_targets_approvals', '{}')
+                if targets_data_str:
+                    try:
+                        targets_data = json.loads(targets_data_str)
+                        for approval_id, target_data in targets_data.items():
+                            if target_data.get('status') == 'beklemede':
+                                pending_targets.append(target_data)
+                    except json.JSONDecodeError:
+                        continue
+        
+        # Tarihe göre sırala (en yeniler önce)
+        pending_targets.sort(key=lambda x: x.get('submission_date', ''), reverse=True)
+        return pending_targets
+    except Exception as e:
+        st.error(f"Bekleyen haftalık hedefler getirilemedi: {e}")
+        return []
+
+def approve_weekly_target(target_id, username, feedback=""):
+    """Koç tarafından haftalık hedefi onayla"""
+    return update_weekly_targets_approval_status(target_id, 'onaylandı', feedback)
+
+def request_target_correction(target_id, username, correction_note):
+    """Koç tarafından haftalık hedef için düzeltme talep et"""
+    return update_weekly_targets_approval_status(target_id, 'reddedildi', correction_note)
+
+def show_target_details(target):
+    """Haftalık hedef detaylarını modal olarak göster"""
+    with st.expander("👁️ Hedef Detayları", expanded=True):
+        st.markdown("#### 📋 Hedef Bilgileri")
+        st.write(f"**Öğrenci:** {target.get('student_name', 'Bilinmiyor')}")
+        st.write(f"**Alan:** {target.get('student_field', 'Bilinmiyor')}")
+        st.write(f"**Gönderim Tarihi:** {format_submission_date(target.get('submission_date', ''))}")
+        
+        # Hedef listesi
+        targets = target.get('weekly_targets', [])
+        if targets:
+            st.markdown("#### 🎯 Hedef Listesi")
+            for i, target_item in enumerate(targets, 1):
+                if isinstance(target_item, dict):
+                    st.write(f"{i}. **{target_item.get('subject', 'Genel')}:** {target_item.get('topic', 'Konu belirtilmemiş')}")
+                else:
+                    st.write(f"{i}. {target_item}")
+        
+        # Koç notları
+        coach_notes = target.get('coach_notes', '')
+        if coach_notes:
+            st.markdown("#### 💬 Koç Notları")
+            st.write(coach_notes)
+
+def format_submission_date(date_str):
+    """Tarih formatını düzenle"""
+    if not date_str:
+        return "Bilinmiyor"
+    try:
+        date_obj = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+        return date_obj.strftime('%d.%m.%Y %H:%M')
+    except:
+        return "Geçersiz tarih"
+
+def is_recent_submission(date_str):
+    """Son 24 saat içinde gönderildi mi kontrol et"""
+    if not date_str:
+        return False
+    try:
+        submit_date = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+        return (datetime.now() - submit_date).total_seconds() < 24 * 3600
+    except:
+        return False
+
+def load_weekly_targets_approvals():
+    """Tüm haftalık hedef onaylarını getirir"""
+    try:
+        approvals_data = []
+        
+        if 'users_db' in st.session_state:
+            for username, user_data in st.session_state.users_db.items():
+                targets_data_str = user_data.get('weekly_targets_approvals', '{}')
+                if targets_data_str:
+                    try:
+                        targets_data = json.loads(targets_data_str)
+                        for approval_id, approval_data in targets_data.items():
+                            # Sadece bekleyen onayları dahil et
+                            if approval_data.get('status') == 'beklemede':
+                                approvals_data.append(approval_data)
+                    except json.JSONDecodeError:
+                        continue
+        
+        # Tarihe göre sırala (en yeniler önce)
+        approvals_data.sort(key=lambda x: x.get('submission_date', ''), reverse=True)
+        return approvals_data
+    except Exception as e:
+        st.error(f"Haftalık hedef onayları getirilemedi: {e}")
+        return []
+
+def update_weekly_targets_approval_status(approval_id, status, coach_feedback='', corrected_targets=None):
+    """Koç onay/reddetme ve düzeltmeleri - ONAY SONRASI OTOMATİK HEDEF GÜNCELLEMELİ"""
+    try:
+        if status not in ['onaylandı', 'reddedildi']:
+            return False, "Geçersiz durum"
+        
+        found = False
+        target_username = None
+        
+        if 'users_db' in st.session_state:
+            for username, user_data in st.session_state.users_db.items():
+                targets_data_str = user_data.get('weekly_targets_approvals', '{}')
+                if targets_data_str:
+                    try:
+                        targets_data = json.loads(targets_data_str)
+                        if approval_id in targets_data:
+                            # Onay durumunu güncelle
+                            targets_data[approval_id]['status'] = status
+                            targets_data[approval_id]['coach_feedback'] = coach_feedback
+                            targets_data[approval_id]['coach_review_date'] = datetime.now().isoformat()
+                            
+                            # Düzeltilmiş hedefler varsa ekle
+                            if corrected_targets:
+                                targets_data[approval_id]['corrected_targets'] = corrected_targets
+                            
+                            # ONAY SONRASI GÜNCELLEME: Koç onayladığında öğrencinin haftalık hedeflerini güncelle
+                            if status == 'onaylandı':
+                                approved_targets = targets_data[approval_id].get('weekly_targets', [])
+                                corrected_targets_data = targets_data[approval_id].get('corrected_targets', approved_targets)
+                                
+                                # Öğrencinin user_data'sına onaylanmış hedefleri kaydet
+                                user_data['approved_weekly_targets'] = json.dumps({
+                                    'approval_id': approval_id,
+                                    'targets': corrected_targets_data,
+                                    'coach_feedback': coach_feedback,
+                                    'approval_date': datetime.now().isoformat(),
+                                    'is_active': True
+                                }, ensure_ascii=False)
+                                
+                                # Haftalık plandaki hedefler de güncelle (varsa)
+                                if 'weekly_plan' in user_data:
+                                    weekly_plan = json.loads(user_data['weekly_plan']) if isinstance(user_data['weekly_plan'], str) else user_data['weekly_plan']
+                                    if 'new_topics' in weekly_plan:
+                                        weekly_plan['coach_approved_targets'] = corrected_targets_data
+                                        user_data['weekly_plan'] = json.dumps(weekly_plan, ensure_ascii=False)
+                            
+                            # Firebase'e güncelle
+                            user_data['weekly_targets_approvals'] = json.dumps(targets_data, ensure_ascii=False)
+                            update_user_in_firebase(username, {
+                                'weekly_targets_approvals': user_data['weekly_targets_approvals'],
+                                'approved_weekly_targets': user_data.get('approved_weekly_targets', '{}'),
+                                'weekly_plan': user_data.get('weekly_plan', '{}')
+                            })
+                            
+                            found = True
+                            target_username = username
+                            break
+                    except json.JSONDecodeError:
+                        continue
+        
+        if found:
+            return True, f"Haftalık hedef başarıyla {status}"
+        else:
+            return False, "Haftalık hedef bulunamadı"
+            
+    except Exception as e:
+        return False, f"Haftalık hedef güncelleme hatası: {e}"
+
+def get_latest_weekly_targets_status(user_data):
+    """Öğrencinin son haftalık hedef durumunu getir"""
+    try:
+        targets_data_str = user_data.get('weekly_targets_approvals', '{}')
+        if not targets_data_str:
+            return {'status': 'yok', 'message': 'Henüz haftalık hedef gönderilmedi'}
+        
+        targets_data = json.loads(targets_data_str)
+        if not targets_data:
+            return {'status': 'yok', 'message': 'Henüz haftalık hedef gönderilmedi'}
+        
+        # En son hedefi bul
+        latest_target = max(targets_data.values(), key=lambda x: x.get('submission_date', ''))
+        
+        status_mapping = {
+            'beklemede': {'status': 'beklemede', 'icon': '⏳', 'message': 'Koç onayı bekleniyor'},
+            'onaylandı': {'status': 'onaylandı', 'icon': '✅', 'message': 'Haftalık hedefleriniz onaylandı'},
+            'reddedildi': {'status': 'reddedildi', 'icon': '❌', 'message': 'Haftalık hedefleriniz reddedildi'}
+        }
+        
+        base_status = status_mapping.get(latest_target.get('status', 'beklemede'), status_mapping['beklemede'])
+        base_status.update({
+            'approval_id': latest_target.get('approval_id', ''),
+            'submission_date': latest_target.get('submission_date', ''),
+            'coach_feedback': latest_target.get('coach_feedback', ''),
+            'corrected_targets': latest_target.get('corrected_targets', ''),
+            'coach_notes': latest_target.get('coach_notes', '')
+        })
+        
+        return base_status
+    except Exception as e:
+        return {'status': 'hata', 'message': f'Haftalık hedef durumu alınamadı: {e}'}
+
+def get_approved_weekly_targets(user_data):
+    """Öğrencinin onaylanmış haftalık hedeflerini getir"""
+    try:
+        approved_data_str = user_data.get('approved_weekly_targets', '{}')
+        if not approved_data_str:
+            return None
+        
+        approved_data = json.loads(approved_data_str)
+        if not approved_data.get('is_active', False):
+            return None
+        
+        return approved_data
+    except Exception as e:
+        return None
+
+def show_coach_approved_targets_section(user_data):
+    """Öğrencinin koç tarafından onaylanmış hedeflerini göster"""
+    approved_targets = get_approved_weekly_targets(user_data)
+    
+    if not approved_targets:
+        return
+    
+    st.markdown("---")
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); 
+                padding: 20px; border-radius: 15px; margin: 15px 0; color: white;">
+        <h3 style="margin: 0; color: white;">✅ Koçunuzun Onayladığı Haftalık Hedefler</h3>
+        <p style="margin: 5px 0 0 0; opacity: 0.9;">Bu hedefler koçunuz tarafından onaylanmış ve aktif olarak çalışabilirsiniz</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Onaylanmış hedefler
+    targets = approved_targets.get('targets', [])
+    if targets:
+        st.markdown("#### 🎯 Onaylanmış Hedefleriniz:")
+        
+        for i, target in enumerate(targets, 1):
+            if isinstance(target, dict):
+                # Eğer target bir dict ise (yapılandırılmış)
+                subject = target.get('subject', 'Genel')
+                topic = target.get('topic', 'Konu belirtilmemiş')
+                priority = target.get('priority', 'normal')
+                
+                priority_emoji = "🔴" if priority == "yüksek" else "🟡" if priority == "orta" else "🟢"
+                
+                st.markdown(f"""
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 8px 0; 
+                            border-left: 4px solid #28a745;">
+                    <div style="display: flex; align-items: center;">
+                        <span style="font-size: 20px; margin-right: 10px;">{priority_emoji}</span>
+                        <div>
+                            <strong style="color: #28a745;">{i}. {subject}</strong>
+                            <div style="color: #6c757d; font-size: 14px;">{topic}</div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                # Eğer target basit string ise
+                st.markdown(f"""
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 8px 0; 
+                            border-left: 4px solid #28a745;">
+                    <strong style="color: #28a745;">{i}. {target}</strong>
+                </div>
+                """, unsafe_allow_html=True)
+    
+    # Koç geri bildirimi
+    coach_feedback = approved_targets.get('coach_feedback', '')
+    if coach_feedback:
+        st.markdown("#### 💬 Koçunuzdan Mesaj:")
+        st.info(f"💬 **{coach_feedback}**")
+    
+    # Onay tarihi
+    approval_date = approved_targets.get('approval_date', '')
+    if approval_date:
+        try:
+            date_obj = datetime.fromisoformat(approval_date.replace('Z', '+00:00'))
+            formatted_date = date_obj.strftime('%d.%m.%Y %H:%M')
+            st.caption(f"📅 Onaylanma Tarihi: {formatted_date}")
+        except:
+            pass
+    
+    # Onaylanmış hedefler ile çalışma seçenekleri
+    st.markdown("#### 🚀 Hedeflerle Çalışmaya Başla")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📝 Hedefleri Düzenle", use_container_width=True):
+            st.session_state.edit_approved_targets = True
+            st.rerun()
+    
+    with col2:
+        if st.button("📊 İlerleme Takip Et", use_container_width=True):
+            st.session_state.track_approved_targets = True
+            st.rerun()
+    
+    with col3:
+        if st.button("🎯 Yeni Hedef Ekle", use_container_width=True):
+            st.session_state.add_new_target = True
+            st.rerun()
+
+def integrate_approved_targets_with_weekly_plan(user_data, weekly_plan):
+    """Onaylanmış haftalık hedefleri haftalık plana entegre et"""
+    approved_targets = get_approved_weekly_targets(user_data)
+    
+    if not approved_targets or not weekly_plan:
+        return weekly_plan
+    
+    try:
+        # Plan zaten dict ise direkt kullan, string ise parse et
+        if isinstance(weekly_plan, str):
+            weekly_plan = json.loads(weekly_plan)
+        
+        # Onaylanmış hedefleri plana ekle
+        targets = approved_targets.get('targets', [])
+        if targets:
+            # Eğer planın new_topics kısmı varsa onaylanmış hedefleri ekle
+            if 'new_topics' not in weekly_plan:
+                weekly_plan['new_topics'] = []
+            
+            # Onaylanmış hedefleri new_topics'e ekle (duplikasyon kontrolü ile)
+            for target in targets:
+                if isinstance(target, dict):
+                    topic_info = {
+                        'subject': target.get('subject', 'Genel'),
+                        'topic': target.get('topic', 'Konu belirtilmemiş'),
+                        'is_approved': True,
+                        'approved_date': approved_targets.get('approval_date', ''),
+                        'source': 'coach_approved'
+                    }
+                else:
+                    topic_info = {
+                        'subject': 'Genel',
+                        'topic': str(target),
+                        'is_approved': True,
+                        'approved_date': approved_targets.get('approval_date', ''),
+                        'source': 'coach_approved'
+                    }
+                
+                # Aynı konu var mı kontrol et
+                existing_topics = weekly_plan.get('new_topics', [])
+                topic_exists = any(
+                    existing.get('topic', '') == topic_info.get('topic', '') 
+                    for existing in existing_topics
+                )
+                
+                if not topic_exists:
+                    weekly_plan['new_topics'].append(topic_info)
+            
+            # Plan güncellendi işareti
+            weekly_plan['last_updated_with_approved_targets'] = datetime.now().isoformat()
+        
+        return weekly_plan
+    
+    except Exception as e:
+        return weekly_plan
+
 def get_latest_program_status(user_data):
     """Öğrencinin son program durumunu getir"""
     try:
@@ -630,13 +1164,16 @@ def show_admin_dashboard():
     """, unsafe_allow_html=True)
     
     # Sekmeli yapı
-    tab1, tab2 = st.tabs(["👥 Öğrenci Takibi", "🎯 Program Onayları"])
+    tab1, tab2, tab3 = st.tabs(["👥 Öğrenci Takibi", "🎯 Program Onayları", "📋 Haftalık Hedef Onayları"])
     
     with tab1:
         show_student_tracking_tab()
     
     with tab2:
         show_program_approvals_tab()
+    
+    with tab3:
+        show_weekly_targets_approvals_tab()
 
 def show_student_tracking_tab():
     """👥 Öğrenci takibi sekmesi"""
@@ -872,6 +1409,219 @@ def show_program_approvals_tab():
                     st.write(f"• {topic}")
                 if len(review_topics) > 5:
                     st.write(f"... ve {len(review_topics) - 5} konu daha")
+
+def show_weekly_targets_approvals_tab():
+    """📋 Haftalık hedef onayları yönetim sekmesi"""
+    st.markdown("## 📋 Haftalık Hedef Onayları")
+    st.markdown("*Öğrencilerin gönderdiği haftalık hedefleri yönetin*")
+    
+    # Bekleyen hedefleri getir
+    pending_targets = get_all_pending_weekly_targets()
+    
+    if not pending_targets:
+        st.info("📭 Şu anda bekleyen haftalık hedef bulunmuyor.")
+        return
+    
+    # Özet kartları
+    st.markdown("### 📊 Bekleyen Hedef Özeti")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("⏳ Bekleyen Hedefler", len(pending_targets))
+    
+    with col2:
+        recent_targets = [t for t in pending_targets if is_recent_submission(t.get('submission_date', ''))]
+        st.metric("🆕 Bugün Gönderilenler", len(recent_targets))
+    
+    with col3:
+        fields = list(set([t.get('student_field', 'Bilinmiyor') for t in pending_targets]))
+        st.metric("📚 Farklı Alanlar", len(fields))
+    
+    st.markdown("---")
+    
+    # Hedef listesi
+    st.markdown("### 📋 Haftalık Hedefler")
+    
+    for i, target in enumerate(pending_targets):
+        with st.expander(f"👨‍🎓 **{target.get('student_name', 'Bilinmiyor')}** - {target.get('student_field', 'Bilinmiyor')} | 📅 {format_submission_date(target.get('submission_date', ''))}", expanded=False):
+            
+            # Hedef detayları
+            col1, col2, col3 = st.columns([3, 1, 1])
+            
+            with col1:
+                st.markdown("#### 📝 Hedef Açıklaması")
+                st.write(target.get('description', 'Açıklama yok'))
+                
+                if target.get('target_data', {}).get('additional_notes'):
+                    st.markdown("#### 💬 Ek Notlar")
+                    st.write(target['target_data']['additional_notes'])
+                
+                # Hedef istatistikleri
+                target_data = target.get('target_data', {})
+                st.markdown("#### 📊 Hedef Detayları")
+                
+                col_stat1, col_stat2 = st.columns(2)
+                with col_stat1:
+                    st.write(f"🎯 **Hafta:** {target_data.get('week_info', {}).get('week_number', 'Bilinmiyor')}/52")
+                    st.write(f"⏰ **YKS'ye Kalan:** {target_data.get('week_info', {}).get('days_to_yks', 'Bilinmiyor')} gün")
+                
+                with col_stat2:
+                    st.write(f"📈 **Öncelik Seviyesi:** {target_data.get('priority_level', 'Bilinmiyor')}")
+                    st.write(f"🕒 **Tahmini Süre:** {target_data.get('estimated_time', 'Bilinmiyor')} saat")
+            
+            with col2:
+                st.markdown("#### ⚡ Hızlı İşlemler")
+                
+                # Hedefi görüntüle
+                if st.button("👁️ Görüntüle", key=f"view_target_{i}"):
+                    show_target_details(target)
+                
+                # Onayla
+                if st.button("✅ Onayla", key=f"approve_target_{i}", type="primary"):
+                    feedback = st.text_input("Onay mesajı (opsiyonel)", key=f"feedback_approve_target_{i}")
+                    if approve_weekly_target(target.get('target_id', ''), target.get('student_username', ''), feedback):
+                        st.success("✅ Hedef onaylandı!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Onaylama işlemi başarısız!")
+            
+            with col3:
+                st.markdown("#### ❌ Düzeltme İşlemi")
+                
+                # Düzeltme notu
+                correction_note = st.text_input("Düzeltme notu", key=f"feedback_correction_{i}", placeholder="Hangi düzeltmeler yapılmalı?")
+                if st.button("🔄 Düzeltme İste", key=f"correction_{i}", type="secondary"):
+                    if not correction_note.strip():
+                        st.error("❌ Düzeltme notu belirtilmeli!")
+                    else:
+                        if request_target_correction(target.get('target_id', ''), target.get('student_username', ''), correction_note):
+                            st.success("🔄 Düzeltme talebi gönderildi!")
+                            st.rerun()
+                        else:
+                            st.error("❌ Düzeltme talebi gönderilemedi!")
+                
+                # Reddet
+                reject_feedback = st.text_input("Red nedeni", key=f"feedback_reject_target_{i}", placeholder="Neden reddedildi?")
+                if st.button("❌ Reddet", key=f"reject_target_{i}", type="secondary"):
+                    if not reject_feedback.strip():
+                        st.error("❌ Red nedeni belirtilmeli!")
+                    else:
+                        if reject_weekly_target(target.get('target_id', ''), target.get('student_username', ''), reject_feedback):
+                            st.success("❌ Hedef reddedildi!")
+                            st.rerun()
+                        else:
+                            st.error("❌ Reddetme işlemi başarısız!")
+            
+            # Haftalık hedef konularını göster
+            if target.get('target_data', {}).get('weekly_topics'):
+                st.markdown("#### 🎯 Haftalık Hedef Konuları")
+                weekly_topics = target['target_data']['weekly_topics']
+                for topic in weekly_topics[:5]:  # İlk 5 konuyu göster
+                    st.write(f"• {topic}")
+                if len(weekly_topics) > 5:
+                    st.write(f"... ve {len(weekly_topics) - 5} konu daha")
+
+def get_all_pending_weekly_targets():
+    """Bekleyen haftalık hedefleri getir"""
+    # Bu fonksiyon gelecekte Firebase'den veri çekecek
+    # Şimdilik mock data döndürüyor
+    from datetime import datetime, timedelta
+    import random
+    
+    mock_targets = [
+        {
+            'target_id': 'target_001',
+            'student_name': 'Ahmet Yılmaz',
+            'student_username': 'ahmetyilmaz',
+            'student_field': 'SAYISAL',
+            'description': 'Bu hafta matematik ve fizik konularını çalışacağım',
+            'submission_date': datetime.now().isoformat(),
+            'status': 'Bekliyor',
+            'target_data': {
+                'week_info': {
+                    'week_number': 15,
+                    'days_to_yks': 120
+                },
+                'priority_level': 'Yüksek',
+                'estimated_time': 25,
+                'additional_notes': 'Geometri konularına daha fazla odaklanacağım',
+                'weekly_topics': [
+                    'Trigonometri - Açı ölçüleri',
+                    'Fonksiyonlar - Tanım ve Değer',
+                    'Analitik Geometri - Nokta ve Doğru',
+                    'Fizik - Kuvvet ve Hareket',
+                    'Fizik - İş, Güç, Enerji'
+                ]
+            }
+        },
+        {
+            'target_id': 'target_002',
+            'student_name': 'Elif Kaya',
+            'student_username': 'elifkaya',
+            'student_field': 'SÖZEL',
+            'description': 'Tarih ve coğrafya konularını tekrar edeceğim',
+            'submission_date': (datetime.now() - timedelta(hours=2)).isoformat(),
+            'status': 'Bekliyor',
+            'target_data': {
+                'week_info': {
+                    'week_number': 16,
+                    'days_to_yks': 115
+                },
+                'priority_level': 'Orta',
+                'estimated_time': 20,
+                'additional_notes': 'Tarih dersinde Osmanlı dönemi ağırlıklı çalışacağım',
+                'weekly_topics': [
+                    'Tarih - Osmanlı Devleti Kuruluş Dönemi',
+                    'Tarih - Kanuni Sultan Süleyman Dönemi',
+                    'Coğrafya - Türkiye\'nin Jeopolitik Konumu',
+                    'Coğrafya - İklim Özellikleri',
+                    'Edebiyat - Divan Edebiyatı'
+                ]
+            }
+        }
+    ]
+    
+    return mock_targets
+
+def show_target_details(target):
+    """Hedef detaylarını modal olarak göster"""
+    with st.expander("🔍 Hedef Detayları", expanded=True):
+        st.markdown("#### 📊 Teknik Bilgiler")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write(f"**Hedef ID:** {target.get('target_id', 'Bilinmiyor')}")
+            st.write(f"**Öğrenci Adı:** {target.get('student_name', 'Bilinmiyor')}")
+            st.write(f"**Öğrenci Kullanıcı:** {target.get('student_username', 'Bilinmiyor')}")
+            st.write(f"**Alan:** {target.get('student_field', 'Bilinmiyor')}")
+        
+        with col2:
+            st.write(f"**Gönderim Tarihi:** {format_submission_date(target.get('submission_date', ''))}")
+            st.write(f"**Durum:** {target.get('status', 'Bilinmiyor')}")
+            if target.get('coach_review_date'):
+                st.write(f"**İnceleme Tarihi:** {format_submission_date(target['coach_review_date'])}")
+        
+        # Ham hedef verilerini JSON formatında göster
+        st.markdown("#### 🔧 Ham Veriler (Debug için)")
+        st.json(target)
+
+def approve_weekly_target(target_id, student_username, feedback):
+    """Haftalık hedefi onayla"""
+    # Bu fonksiyon gelecekte Firebase'e yazacak
+    st.success(f"✅ Hedef onaylandı: {target_id}")
+    return True
+
+def reject_weekly_target(target_id, student_username, feedback):
+    """Haftalık hedefi reddet"""
+    # Bu fonksiyon gelecekte Firebase'e yazacak
+    st.success(f"❌ Hedef reddedildi: {target_id}")
+    return True
+
+def request_target_correction(target_id, student_username, correction_note):
+    """Haftalık hedef için düzeltme talebi gönder"""
+    # Bu fonksiyon gelecekte Firebase'e yazacak
+    st.success(f"🔄 Düzeltme talebi gönderildi: {target_id}")
+    return True
 
 def is_recent_submission(submission_date_str):
     """Bugün gönderilen programları kontrol et"""
@@ -15938,6 +16688,22 @@ def main():
                                     st.write("💪")
                 else:
                     st.info("📈 Henüz konu çalışmanız bulunmuyor. Konu Takip sayfasından başlayın!")
+
+                # 🎯 HAFTALIK HEDEF ONAY SİSTEMİ - ONAY SONRASI GÜNCELLEMELİ
+                st.markdown("---")
+                
+                # Haftalık plan oluştur
+                try:
+                    weekly_plan = generate_weekly_plan(user_data)
+                    
+                    # Onaylanmış hedefleri haftalık plana entegre et
+                    weekly_plan = integrate_approved_targets_with_weekly_plan(user_data, weekly_plan)
+                    
+                    # Haftalık hedef onay sistemini göster
+                    show_weekly_targets_approval_system(user_data, weekly_plan)
+                    
+                except Exception as e:
+                    st.warning(f"📝 Haftalık hedef sistemi yüklenirken hata: {e}")
 
             elif page == "📚 Konu Takip":
                 st.markdown(f'<div class="main-header"><h1>📚 Konu Takip Sistemi</h1><p>Her konuda ustalaşın</p></div>', unsafe_allow_html=True)
