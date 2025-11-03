@@ -9246,8 +9246,48 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
     else:
         st.info("📊 Bu hafta için otomatik konu bulunamadı. Konu Takip sekmesinden konularınızı değerlendirin.")
     
-    # Koç onay durumu göster
-    show_coach_approval_status(user_data)
+    # Koç onay durumu göster (inline)
+    try:
+        approval_status = user_data.get('coach_approval_status', 'none')
+        
+        if approval_status == 'pending':
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+                        padding: 20px; border-radius: 15px; margin: 20px 0; color: white; text-align: center;">
+                <h3 style="margin: 0; color: white;">⏳ Koç Onayı Bekleniyor</h3>
+                <p style="margin: 10px 0 0 0; opacity: 0.9;">Programınız koçunuza gönderildi, onay bekleniyor...</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            last_submission = user_data.get('last_submission_date', 'Bilinmiyor')
+            st.info(f"📅 Son gönderim: {last_submission}")
+            
+        elif approval_status == 'approved':
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); 
+                        padding: 20px; border-radius: 15px; margin: 20px 0; color: white; text-align: center;">
+                <h3 style="margin: 0; color: white;">✅ Koçunuz Tarafından Onaylandı</h3>
+                <p style="margin: 10px 0 0 0; opacity: 0.9;">Programınız koçunuz tarafından onaylandı!</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            approved_date = user_data.get('approval_date', 'Bilinmiyor')
+            st.success(f"🎉 Onay tarihi: {approved_date}")
+            
+        elif approval_status == 'rejected':
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); 
+                        padding: 20px; border-radius: 15px; margin: 20px 0; color: white; text-align: center;">
+                <h3 style="margin: 0; color: white;">⚠️ Programınız Revize Edildi</h3>
+                <p style="margin: 10px 0 0 0; opacity: 0.9;">Koçunuz programınızda değişiklik yaptı, lütfen gözden geçirin.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            coach_notes = user_data.get('coach_notes', 'Koç notu bulunamadı')
+            st.warning(f"📝 Koç notu: {coach_notes}")
+    except Exception as e:
+        # Hata durumunda sessizce geç
+        pass
     
     # Program koça gönderme butonu
     if all_topics:  # Sadece konu varsa göster
