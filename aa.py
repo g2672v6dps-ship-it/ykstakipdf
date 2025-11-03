@@ -7666,7 +7666,7 @@ def show_weekly_planner(user_data):
     st.markdown("---")
     
     # Interaktif planlayıcı
-    show_interactive_systematic_planner(weekly_plan, survey_data)
+    show_interactive_systematic_planner(weekly_plan, survey_data, user_data)
     
     st.markdown("---")
     
@@ -9102,7 +9102,7 @@ def create_speed_projection_chart(current_speed, required_speed, weeks_left, cur
     
     safe_plotly_chart(fig, use_container_width=True)
 
-def show_interactive_systematic_planner(weekly_plan, survey_data):
+def show_interactive_systematic_planner(weekly_plan, survey_data, user_data=None):
     """Basit ve etkili haftalık planlayıcı - DİNAMİK TARİH SİSTEMİ"""
     
     # Güncel hafta bilgilerini al (sürekli güncellenen)
