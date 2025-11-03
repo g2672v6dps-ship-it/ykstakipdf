@@ -32,6 +32,111 @@ def make_json_serializable(obj):
         # Basit tip için olduğu gibi döndür
         return obj
 
+def generate_weekly_plan(user_goals=None, subjects=None):
+    """Kullanıcının hedeflerine göre haftalık çalışma planı oluşturur"""
+    try:
+        # Mevcut hafta bilgilerini al
+        week_info = get_current_week_info()
+        
+        # Kullanıcı hedefleri yoksa varsayılan değerler kullan
+        if user_goals is None:
+            user_goals = {
+                'target_university': 'İyi bir üniversite',
+                'target_department': 'Mühendislik',
+                'study_hours_daily': 6,
+                'weak_subjects': ['Matematik', 'Fizik'],
+                'strong_subjects': ['Türkçe', 'Tarih']
+            }
+        
+        # Konular yoksa varsayılan konular kullan
+        if subjects is None:
+            subjects = ['Matematik', 'Fizik', 'Kimya', 'Biyoloji', 'Türkçe', 'Edebiyat', 'Tarih', 'Coğrafya']
+        
+        # Haftalık plan oluştur
+        weekly_plan = {
+            'week_start': week_info['monday'],
+            'week_end': week_info['sunday'],
+            'days_to_yks': week_info['days_to_yks'],
+            'daily_plans': {}
+        }
+        
+        # Her gün için plan oluştur
+        days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar']
+        
+        for i, day in enumerate(days):
+            # Tarihi hesapla (ISO format string'ten datetime'a çevir)
+            current_date = datetime.fromisoformat(week_info['today'])
+            day_date = current_date + timedelta(days=i)
+            
+            # Günlük plan
+            daily_plan = {
+                'date': day_date.strftime('%Y-%m-%d'),
+                'day_name': day,
+                'study_hours': user_goals.get('study_hours_daily', 6),
+                'subjects': {},
+                'total_questions': 0,
+                'break_times': ['12:00-13:00', '18:00-19:00']
+            }
+            
+            # Zayıf konulara daha fazla zaman ayır
+            weak_subjects = user_goals.get('weak_subjects', [])
+            strong_subjects = user_goals.get('strong_subjects', [])
+            
+            if i < 5:  # Hafta içi
+                # Zayıf konulara 2-3 saat, güçlü konulara 1-2 saat
+                daily_plan['subjects']['Matematik'] = {
+                    'hours': 2.5 if 'Matematik' in weak_subjects else 1.5,
+                    'questions': 50 if 'Matematik' in weak_subjects else 30
+                }
+                daily_plan['subjects']['Türkçe'] = {
+                    'hours': 1.5 if 'Türkçe' in weak_subjects else 2.0,
+                    'questions': 40 if 'Türkçe' in weak_subjects else 35
+                }
+                daily_plan['subjects']['Fen'] = {
+                    'hours': 2.0 if any(subj in ['Fizik', 'Kimya', 'Biyoloji'] for subj in weak_subjects) else 1.5,
+                    'questions': 35 if any(subj in ['Fizik', 'Kimya', 'Biyoloji'] for subj in weak_subjects) else 25
+                }
+            else:  # Hafta sonu
+                # Deneme sınavları ve genel tekrar
+                daily_plan['subjects']['Deneme Sınavı'] = {
+                    'hours': 3.0,
+                    'questions': 80
+                }
+                daily_plan['subjects']['Genel Tekrar'] = {
+                    'hours': 2.0,
+                    'questions': 50
+                }
+                daily_plan['subjects']['Zayıf Konular'] = {
+                    'hours': 1.0,
+                    'questions': 20
+                }
+            
+            # Toplam soru sayısını hesapla
+            daily_plan['total_questions'] = sum(
+                subj_data['questions'] for subj_data in daily_plan['subjects'].values()
+            )
+            
+            weekly_plan['daily_plans'][day] = daily_plan
+        
+        # Hedefler ve önerileri ekle
+        weekly_plan['goals'] = {
+            'weekly_study_hours': sum(day_plan['study_hours'] for day_plan in weekly_plan['daily_plans'].values()),
+            'weekly_questions': sum(day_plan['total_questions'] for day_plan in weekly_plan['daily_plans'].values()),
+            'recommendations': [
+                'Her gün en az 6 saat çalışmaya odaklan',
+                'Zayıf konulara daha fazla zaman ayır',
+                'Düzenli olarak deneme sınavı çöz',
+                'Yeterli miktarda ara ver ve dinlen',
+                'Günlük hedeflerini takip et'
+            ]
+        }
+        
+        return weekly_plan
+        
+    except Exception as e:
+        st.error(f"Haftalık plan oluşturulurken hata: {str(e)}")
+        return None
+
 # Paket yükleme durumları
 try:
     import pandas as pd
