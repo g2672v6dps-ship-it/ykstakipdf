@@ -11,7 +11,9 @@ from functools import lru_cache
 
 def make_json_serializable(obj):
     """JSON'a serialize edilemeyen objeleri (datetime, vs.) string'e çevirir"""
-    if isinstance(obj, datetime):
+    if obj is None:
+        return None
+    elif isinstance(obj, datetime):
         return obj.isoformat()
     elif isinstance(obj, timedelta):
         return str(obj)
@@ -21,7 +23,13 @@ def make_json_serializable(obj):
         return [make_json_serializable(item) for item in obj]
     elif isinstance(obj, tuple):
         return tuple(make_json_serializable(item) for item in obj)
+    elif isinstance(obj, set):
+        return list(obj)
+    elif hasattr(obj, '__dict__'):
+        # Custom object - string'e çevir
+        return str(obj)
     else:
+        # Basit tip için olduğu gibi döndür
         return obj
 
 # Paket yükleme durumları
@@ -202,6 +210,13 @@ def save_weekly_targets_approval(user_data, weekly_targets, coach_notes=''):
         # weekly_targets içindeki datetime objelerini string'e çevir
         targets_json_serializable = make_json_serializable(weekly_targets)
         
+        # JSON serialize edilebilirliğini test et
+        try:
+            json.dumps(targets_json_serializable, ensure_ascii=False)
+        except (TypeError, ValueError) as serialize_error:
+            st.error(f"❌ JSON Serialize Hatası: {serialize_error}")
+            return False, None
+        
         new_target_approval = {
             'approval_id': approval_id,
             'student_name': user_data.get('name', 'Bilinmeyen'),
@@ -283,13 +298,27 @@ def show_weekly_targets_approval_system(user_data, weekly_plan):
 
 def show_weekly_targets_form(user_data, weekly_plan):
     """Haftalık hedef gönderme formu"""
+    
+    # Hata kontrolü ve güvenlik katmanı
+    try:
+        if not weekly_plan:
+            weekly_plan = {}
+        # weekly_plan içindeki tüm verileri güvenli hale getir
+        if 'new_topics' in weekly_plan:
+            weekly_plan['new_topics'] = make_json_serializable(weekly_plan['new_topics'])
+    except Exception as e:
+        st.error(f"❌ Form hazırlama hatası: {e}")
+        weekly_plan = {'new_topics': []}
+    
     with st.form("weekly_targets_form"):
         st.markdown("#### 🎯 Haftalık Hedeflerinizi Oluşturun")
         
-        # Mevcut haftalık plandan konuları al
+        # Mevcut haftalık plandan konuları al ve güvenli hale getir
         default_topics = []
         if weekly_plan and 'new_topics' in weekly_plan:
-            default_topics = weekly_plan['new_topics']
+            raw_topics = weekly_plan['new_topics']
+            # JSON serialize edilemeyen objeleri güvenli hale getir
+            default_topics = make_json_serializable(raw_topics)
         
         # Konu ekleme alanı
         col1, col2 = st.columns([3, 1])
@@ -312,17 +341,22 @@ def show_weekly_targets_form(user_data, weekly_plan):
             if not st.session_state.weekly_targets_list:
                 st.error("❌ Lütfen en az bir hedef ekleyin!")
             else:
-                # Hedefleri hazırla
+                # Hedefleri hazırla ve JSON serialize edilebilir hale getir
                 targets_for_approval = []
                 for target_item in st.session_state.weekly_targets_list:
                     if isinstance(target_item, dict):
-                        targets_for_approval.append(target_item)
+                        # JSON serialize edilemeyen objeleri güvenli hale getir
+                        safe_target = make_json_serializable(target_item)
+                        targets_for_approval.append(safe_target)
                     else:
                         targets_for_approval.append({
                             'subject': 'Genel',
                             'topic': str(target_item),
                             'priority': 'normal'
                         })
+                
+                # JSON serialize edilebilir hale getir
+                targets_for_approval = make_json_serializable(targets_for_approval)
                 
                 # Koça gönder
                 success, approval_id = save_weekly_targets_approval(user_data, targets_for_approval)
