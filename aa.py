@@ -8568,7 +8568,7 @@ def yks_takip_page(user_data):
     week_info = get_current_week_info()
     days_to_yks = week_info['days_to_yks']
     
-    st.markdown(f'<div class="main-header"><h1>🎯 YKS Takip & Planlama Sistemi</h1><p>Hedef bölümünüze odaklı strateji ve haftalık hedeflerinizi belirleyin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="main-header"><h1>🎯 YKS Takip & Planlama Sistemi</h1><p>Hedef bölümünüze odaklı strateji ve haftalık hedeflerinizi belirleyin</p><p>📅 {week_info["today"]} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
     
     # Ana panelden bilgileri al
     student_grade = user_data.get('grade', '')
@@ -8887,7 +8887,7 @@ def show_progress_dashboard(weekly_plan, user_data):
     week_info = get_current_week_info()
     
     st.markdown(f"### 📊 GENEL İLERLEME DURUMU")
-    st.caption(f"📅 Güncel Tarih: {week_info['today'].strftime('%d %B %Y')} | Hafta: {week_info['week_number']}/52")
+    st.caption(f"📅 Güncel Tarih: {week_info['today']} | Hafta: {week_info['week_number']}/52")
     
     # Ana metrikler
     col1, col2, col3, col4 = st.columns(4)
@@ -15875,7 +15875,7 @@ def main():
                 days_to_yks = week_info['days_to_yks']
                 
                 bg_style = BACKGROUND_STYLES.get(target_dept, BACKGROUND_STYLES["Varsayılan"])
-                st.markdown(f'<div class="main-header"><h1>{bg_style["icon"]} {user_data["target_department"]} Yolculuğunuz</h1><p>Hedefinize doğru emin adımlarla ilerleyin</p><p>📅 {week_info["today"].strftime("%d %B %Y")} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="main-header"><h1>{bg_style["icon"]} {user_data["target_department"]} Yolculuğunuz</h1><p>Hedefinize doğru emin adımlarla ilerleyin</p><p>📅 {week_info["today"]} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
                 
                 # İlerleme özeti - kartlar (motivasyondan önce)
                 overall_progress = calculate_subject_progress(user_data)
@@ -15903,7 +15903,7 @@ def main():
                 st.subheader("🎯 Günlük Motivasyon ve Çalışma Takibi")
                 
                 # Bugünkü tarih string'i
-                today_str = week_info["today"].strftime("%Y-%m-%d")
+                today_str = week_info["today"]
                 
                 # Günlük motivasyon verilerini çek
                 daily_motivation = json.loads(user_data.get('daily_motivation', '{}'))
@@ -22847,7 +22847,7 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     🔄 **Mevcut Hafta Döngünüz:** {week_info['current_week']}. hafta  
     📆 **Bugün:** {week_info['current_day_name']} ({week_info['current_day_in_week']}/7)  
     ⏳ **Bu Haftada Kalan:** {week_info['days_left_in_week']} gün  
-    🏁 **Hafta Aralığı:** {week_info['week_start_date'].strftime('%d.%m')} - {week_info['week_end_date'].strftime('%d.%m')}
+    🏁 **Hafta Aralığı:** {week_info['week_start_date'].split('T')[0].split('-')[::-1][0]}.{week_info['week_start_date'].split('T')[0].split('-')[::-1][1]} - {week_info['week_end_date'].split('T')[0].split('-')[::-1][0]}.{week_info['week_end_date'].split('T')[0].split('-')[::-1][1]}
     """
     
     # Haftalık döngü takvimini ekle
