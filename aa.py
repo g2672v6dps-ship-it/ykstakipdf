@@ -9,6 +9,21 @@ import random
 import requests
 from functools import lru_cache
 
+def make_json_serializable(obj):
+    """JSON'a serialize edilemeyen objeleri (datetime, vs.) string'e çevirir"""
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    elif isinstance(obj, timedelta):
+        return str(obj)
+    elif isinstance(obj, dict):
+        return {key: make_json_serializable(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [make_json_serializable(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(make_json_serializable(item) for item in obj)
+    else:
+        return obj
+
 # Paket yükleme durumları
 try:
     import pandas as pd
@@ -184,12 +199,15 @@ def save_weekly_targets_approval(user_data, weekly_targets, coach_notes=''):
         # Yeni haftalık hedef kaydı oluştur
         approval_id = f"wt_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{st.session_state.get('current_user', 'unknown')}"
         
+        # weekly_targets içindeki datetime objelerini string'e çevir
+        targets_json_serializable = make_json_serializable(weekly_targets)
+        
         new_target_approval = {
             'approval_id': approval_id,
             'student_name': user_data.get('name', 'Bilinmeyen'),
             'student_username': st.session_state.get('current_user', ''),
             'student_field': user_data.get('field', 'Bilinmiyor'),
-            'weekly_targets': weekly_targets,
+            'weekly_targets': targets_json_serializable,
             'coach_notes': coach_notes,
             'status': 'beklemede',  # beklemede, onaylandı, reddedildi
             'submission_date': datetime.now().isoformat(),
@@ -468,14 +486,17 @@ def update_weekly_targets_approval_status(approval_id, status, coach_feedback=''
                             targets_data[approval_id]['coach_feedback'] = coach_feedback
                             targets_data[approval_id]['coach_review_date'] = datetime.now().isoformat()
                             
-                            # Düzeltilmiş hedefler varsa ekle
+                            # Düzeltilmiş hedefler varsa ekle (JSON serialize edilebilir hale getir)
                             if corrected_targets:
-                                targets_data[approval_id]['corrected_targets'] = corrected_targets
+                                targets_data[approval_id]['corrected_targets'] = make_json_serializable(corrected_targets)
                             
                             # ONAY SONRASI GÜNCELLEME: Koç onayladığında öğrencinin haftalık hedeflerini güncelle
                             if status == 'onaylandı':
                                 approved_targets = targets_data[approval_id].get('weekly_targets', [])
                                 corrected_targets_data = targets_data[approval_id].get('corrected_targets', approved_targets)
+                                
+                                # JSON serialize edilebilir hale getir
+                                corrected_targets_data = make_json_serializable(corrected_targets_data)
                                 
                                 # Öğrencinin user_data'sına onaylanmış hedefleri kaydet
                                 user_data['approved_weekly_targets'] = json.dumps({
@@ -490,7 +511,7 @@ def update_weekly_targets_approval_status(approval_id, status, coach_feedback=''
                                 if 'weekly_plan' in user_data:
                                     weekly_plan = json.loads(user_data['weekly_plan']) if isinstance(user_data['weekly_plan'], str) else user_data['weekly_plan']
                                     if 'new_topics' in weekly_plan:
-                                        weekly_plan['coach_approved_targets'] = corrected_targets_data
+                                        weekly_plan['coach_approved_targets'] = make_json_serializable(corrected_targets_data)
                                         user_data['weekly_plan'] = json.dumps(weekly_plan, ensure_ascii=False)
                             
                             # Firebase'e güncelle
