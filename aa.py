@@ -391,6 +391,17 @@ def show_admin_dashboard():
     </div>
     """, unsafe_allow_html=True)
     
+    # Tab sistemi oluştur
+    tab1, tab2 = st.tabs(["📊 Öğrenci Takip", "👨‍🏫 Koç Onay Sistemi"])
+    
+    with tab1:
+        show_student_tracking_panel()
+    
+    with tab2:
+        admin_coach_approval_panel()
+
+def show_student_tracking_panel():
+    """Öğrenci takip paneli (eski admin dashboard içeriği)"""
     # GERÇEKFirebase verilerini çek
     students = get_real_student_data_for_admin()
     
@@ -9234,6 +9245,30 @@ def show_interactive_systematic_planner(weekly_plan, survey_data):
     
     else:
         st.info("📊 Bu hafta için otomatik konu bulunamadı. Konu Takip sekmesinden konularınızı değerlendirin.")
+    
+    # Koç onay durumu göster
+    show_coach_approval_status(user_data)
+    
+    # Program koça gönderme butonu
+    if all_topics:  # Sadece konu varsa göster
+        st.markdown("---")
+        st.markdown("### 📤 Programımı Koçuma Onaya Gönder")
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            # Onay durumunu kontrol et
+            approval_status = user_data.get('coach_approval_status', 'none')
+            
+            if approval_status == 'pending':
+                st.warning("⏳ Programınız zaten koçunuza gönderilmiş, onay bekleniyor...")
+            elif approval_status == 'approved':
+                st.success("✅ Programınız koçunuz tarafından onaylandı!")
+            elif approval_status == 'rejected':
+                st.error("❌ Programınız reddedildi. Lütfen koç notlarını gözden geçirin.")
+            else:
+                if st.button("📤 Programımı Koçuma Onaya Gönder", use_container_width=True, type="primary"):
+                    if send_to_coach_approval(user_data, weekly_plan):
+                        st.rerun()
     
     st.markdown("---")
     st.markdown("#### 📊 Bu Haftanın Programı")
@@ -25128,6 +25163,310 @@ def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student
 # Karmaşık fonksiyonlar kaldırıldı - Basit sistem artık tamamen hazır!
 
 # === ANA UYGULAMA AKIŞI ===
+
+# === KOÇ ONAY SİSTEMİ FONKSİYONLARI ===
+
+def send_to_coach_approval(user_data, weekly_plan):
+    """Öğrencinin haftalık konularını koça onay için gönder"""
+    current_username = st.session_state.current_user
+    
+    # Haftalık konuları topla
+    all_topics = weekly_plan.get('new_topics', []) + weekly_plan.get('review_topics', [])
+    
+    if not all_topics:
+        st.warning("⚠️ Gönderilecek konu bulunamadı!")
+        return False
+    
+    # Koç onay talebi oluştur
+    approval_request = {
+        'student_username': current_username,
+        'student_name': user_data.get('name', 'İsimsiz Öğrenci'),
+        'student_field': user_data.get('field', 'Belirtilmemiş'),
+        'submission_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'topics': all_topics,
+        'status': 'pending',  # pending, approved, rejected
+        'coach_notes': '',
+        'approved_date': None,
+        'week_number': datetime.now().isocalendar()[1],
+        'year': datetime.now().year
+    }
+    
+    # Firebase'e kaydet veya session state'e ekle
+    try:
+        if firebase_connected and db_ref:
+            # Firebase'e kaydet
+            approval_key = f"{current_username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            db_ref.child('coach_approvals').child(approval_key).set(approval_request)
+        else:
+            # Session state'e kaydet (fallback)
+            if 'coach_approval_requests' not in st.session_state:
+                st.session_state.coach_approval_requests = {}
+            approval_key = f"{current_username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            st.session_state.coach_approval_requests[approval_key] = approval_request
+        
+        # Öğrenci verilerine onay durumu ekle
+        student_data = get_user_data()
+        student_data['coach_approval_status'] = 'pending'
+        student_data['last_submission_date'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        update_user_in_firebase(current_username, student_data)
+        
+        st.success("✅ Haftalık programınız koçunuza gönderildi! Onay bekleniyor...")
+        return True
+        
+    except Exception as e:
+        st.error(f"❌ Gönderim hatası: {e}")
+        return False
+
+def show_coach_approval_status(user_data):
+    """Öğrenciye koç onay durumunu göster"""
+    current_username = st.session_state.current_user
+    
+    # Onay durumunu kontrol et
+    approval_status = user_data.get('coach_approval_status', 'none')
+    
+    if approval_status == 'pending':
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+                    padding: 20px; border-radius: 15px; margin: 20px 0; color: white; text-align: center;">
+            <h3 style="margin: 0; color: white;">⏳ Koç Onayı Bekleniyor</h3>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Programınız koçunuza gönderildi, onay bekleniyor...</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        last_submission = user_data.get('last_submission_date', 'Bilinmiyor')
+        st.info(f"📅 Son gönderim: {last_submission}")
+        
+    elif approval_status == 'approved':
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); 
+                    padding: 20px; border-radius: 15px; margin: 20px 0; color: white; text-align: center;">
+            <h3 style="margin: 0; color: white;">✅ Koçunuz Tarafından Onaylandı</h3>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Programınız koçunuz tarafından onaylandı!</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        approved_date = user_data.get('approval_date', 'Bilinmiyor')
+        st.success(f"🎉 Onay tarihi: {approved_date}")
+        
+    elif approval_status == 'rejected':
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); 
+                    padding: 20px; border-radius: 15px; margin: 20px 0; color: white; text-align: center;">
+            <h3 style="margin: 0; color: white;">⚠️ Programınız Revize Edildi</h3>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Koçunuz programınızda değişiklik yaptı, lütfen gözden geçirin.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        coach_notes = user_data.get('coach_notes', 'Koç notu bulunamadı')
+        st.warning(f"📝 Koç notu: {coach_notes}")
+
+def get_student_approval_requests():
+    """Tüm öğrenci onay taleplerini getir (Admin için)"""
+    try:
+        if firebase_connected and db_ref:
+            # Firebase'den çek
+            approvals_data = db_ref.child('coach_approvals').get()
+            if approvals_data:
+                return list(approvals_data.values())
+        else:
+            # Session state'den çek (fallback)
+            return list(st.session_state.get('coach_approval_requests', {}).values())
+    except Exception as e:
+        st.error(f"Veri çekme hatası: {e}")
+        return []
+
+def approve_student_topics(approval_key, approved_topics, coach_notes, status):
+    """Koçun öğrenci programını onaylaması/reddetmesi"""
+    try:
+        if firebase_connected and db_ref:
+            # Firebase'de güncelle
+            db_ref.child('coach_approvals').child(approval_key).update({
+                'status': status,
+                'coach_notes': coach_notes,
+                'approved_topics': approved_topics,
+                'approved_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+            
+            # Öğrenci verilerini de güncelle
+            approval_data = db_ref.child('coach_approvals').child(approval_key).get()
+            if approval_data:
+                student_username = approval_data['student_username']
+                student_data = {
+                    'coach_approval_status': status,
+                    'coach_notes': coach_notes,
+                    'approval_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'approved_topics': approved_topics
+                }
+                db_ref.child('users').child(student_username).update(student_data)
+        else:
+            # Session state'de güncelle
+            if 'coach_approval_requests' in st.session_state and approval_key in st.session_state.coach_approval_requests:
+                st.session_state.coach_approval_requests[approval_key].update({
+                    'status': status,
+                    'coach_notes': coach_notes,
+                    'approved_topics': approved_topics,
+                    'approved_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                })
+        
+        return True
+    except Exception as e:
+        st.error(f"Onay işlemi hatası: {e}")
+        return False
+
+def admin_coach_approval_panel():
+    """Admin panelinde koç onay sistemi"""
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 25px; border-radius: 20px; margin: 20px 0; color: white; text-align: center;">
+        <h2 style="margin: 0; color: white;">👨‍🏫 Koç Onay Sistemi</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">Öğrenci Haftalık Program Onayları</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Onay taleplerini getir
+    approval_requests = get_student_approval_requests()
+    
+    if not approval_requests:
+        st.info("📝 Henüz hiç onay talebi bulunmuyor.")
+        return
+    
+    # Talepleri filtrele
+    pending_requests = [req for req in approval_requests if req['status'] == 'pending']
+    processed_requests = [req for req in approval_requests if req['status'] in ['approved', 'rejected']]
+    
+    st.markdown("## ⏳ Bekleyen Onaylar")
+    
+    if not pending_requests:
+        st.success("✅ Tüm onay talepleri işlendi!")
+    else:
+        st.warning(f"📊 {len(pending_requests)} adet bekleyen onay talebi var.")
+    
+    # Bekleyen talepleri göster
+    for i, request in enumerate(pending_requests):
+        with st.expander(f"📚 {request['student_name']} - {request['submission_date']}", expanded=i<3):
+            
+            col1, col2, col3 = st.columns([2, 1, 1])
+            with col1:
+                st.markdown(f"""
+                **👤 Öğrenci:** {request['student_name']}  
+                **📚 Alan:** {request['student_field']}  
+                **📅 Gönderim:** {request['submission_date']}  
+                **📅 Hafta:** {request['week_number']}
+                """)
+            
+            with col2:
+                st.metric("📊 Konu Sayısı", len(request['topics']))
+            
+            with col3:
+                status_color = "#f39c12" if request['status'] == 'pending' else "#27ae60"
+                st.markdown(f"""
+                <div style="background: {status_color}; color: white; padding: 5px 10px; border-radius: 5px; text-align: center;">
+                    {request['status'].upper()}
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.markdown("### 📚 Gönderilen Konular:")
+            
+            # Konuları tablo olarak göster
+            if request['topics']:
+                topic_data = []
+                for topic in request['topics']:
+                    topic_data.append({
+                        'Ders': topic.get('subject', 'Bilinmiyor'),
+                        'Konu': topic.get('topic', 'Bilinmiyor'),
+                        'Detay': topic.get('detail', ''),
+                        'Öncelik': topic.get('priority', 'NORMAL')
+                    })
+                
+                if topic_data:
+                    st.dataframe(topic_data, use_container_width=True)
+            
+            # Onay formu
+            st.markdown("### ✅ Koç Değerlendirmesi:")
+            
+            # Konu düzenleme
+            approved_topics = request['topics'].copy()  # Mevcut konuları kopyala
+            
+            if st.checkbox("🔧 Konuları düzenlemek istiyorum", key=f"edit_{i}"):
+                st.markdown("**🗑️ Silinecek konuları işaretleyin:**")
+                topics_to_remove = []
+                
+                for j, topic in enumerate(approved_topics):
+                    col1, col2 = st.columns([4, 1])
+                    with col1:
+                        st.write(f"{j+1}. {topic.get('subject', 'Bilinmiyor')} - {topic.get('topic', 'Bilinmiyor')}")
+                    with col2:
+                        if st.checkbox("Sil", key=f"remove_{i}_{j}"):
+                            topics_to_remove.append(j)
+                
+                # Silinecek konuları çıkar
+                for index in sorted(topics_to_remove, reverse=True):
+                    if 0 <= index < len(approved_topics):
+                        approved_topics.pop(index)
+                
+                st.markdown("**➕ Yeni konu ekleyin:**")
+                with st.form(f"add_topic_form_{i}"):
+                    new_subject = st.text_input("Ders Adı:", placeholder="TYT Matematik")
+                    new_topic = st.text_input("Konu Adı:", placeholder="Türev")
+                    new_detail = st.text_input("Detay (isteğe bağlı):", placeholder="Türev kuralları ve uygulamaları")
+                    new_priority = st.selectbox("Öncelik:", ["DÜŞÜK", "NORMAL", "YÜKSEK", "KRİTİK"])
+                    
+                    if st.form_submit_button("➕ Konu Ekle"):
+                        if new_subject and new_topic:
+                            new_topic_obj = {
+                                'subject': new_subject,
+                                'topic': new_topic,
+                                'detail': new_detail,
+                                'priority': new_priority,
+                                'net': 0
+                            }
+                            approved_topics.append(new_topic_obj)
+                            st.success("✅ Konu eklendi!")
+                            st.rerun()
+            
+            # Koç notu ve onay
+            coach_notes = st.text_area("📝 Koç Notu:", placeholder="Programla ilgili görüşleriniz, önerileriniz...")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("✅ Onayla", key=f"approve_{i}", type="primary"):
+                    if approve_student_topics(
+                        f"{request['student_username']}_{request['submission_date'].replace(' ', '_').replace('-', '_').replace(':', '_')}",
+                        approved_topics, 
+                        coach_notes, 
+                        "approved"
+                    ):
+                        st.success("✅ Program onaylandı!")
+                        st.rerun()
+            
+            with col2:
+                if st.button("❌ Reddet", key=f"reject_{i}", type="secondary"):
+                    if approve_student_topics(
+                        f"{request['student_username']}_{request['submission_date'].replace(' ', '_').replace('-', '_').replace(':', '_')}",
+                        approved_topics, 
+                        coach_notes, 
+                        "rejected"
+                    ):
+                        st.success("❌ Program reddedildi!")
+                        st.rerun()
+            
+            st.markdown("---")
+    
+    # İşlenmiş talepler
+    if processed_requests:
+        st.markdown("## ✅ İşlenmiş Onaylar")
+        
+        for request in processed_requests[-5:]:  # Son 5 işlem
+            status_emoji = "✅" if request['status'] == 'approved' else "❌"
+            status_color = "#27ae60" if request['status'] == 'approved' else "#e74c3c"
+            
+            st.markdown(f"""
+            <div style="background: {status_color}; color: white; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                <h4 style="margin: 0; color: white;">{status_emoji} {request['student_name']}</h4>
+                <p style="margin: 5px 0 0 0;">📅 {request['submission_date']} → {request.get('approved_date', 'İşlenmedi')}</p>
+                <p style="margin: 5px 0 0 0;">📝 {request.get('coach_notes', 'Koç notu yok')}</p>
+            </div>
+            """, unsafe_allow_html=True)
 
 # Ana uygulamayı başlat
 if __name__ == "__main__":
