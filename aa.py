@@ -8568,7 +8568,9 @@ def yks_takip_page(user_data):
     week_info = get_current_week_info()
     days_to_yks = week_info['days_to_yks']
     
-    st.markdown(f'<div class="main-header"><h1>🎯 YKS Takip & Planlama Sistemi</h1><p>Hedef bölümünüze odaklı strateji ve haftalık hedeflerinizi belirleyin</p><p>📅 {week_info["today"]} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
+    # Tarih formatını güvenli şekilde göster
+    today_display = str(week_info.get("today", datetime.now().strftime("%d %B %Y")))
+    st.markdown(f'<div class="main-header"><h1>🎯 YKS Takip & Planlama Sistemi</h1><p>Hedef bölümünüze odaklı strateji ve haftalık hedeflerinizi belirleyin</p><p>📅 {today_display} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
     
     # Ana panelden bilgileri al
     student_grade = user_data.get('grade', '')
@@ -8887,7 +8889,8 @@ def show_progress_dashboard(weekly_plan, user_data):
     week_info = get_current_week_info()
     
     st.markdown(f"### 📊 GENEL İLERLEME DURUMU")
-    st.caption(f"📅 Güncel Tarih: {week_info['today']} | Hafta: {week_info['week_number']}/52")
+    today_display = str(week_info.get('today', datetime.now().strftime('%d %B %Y')))
+    st.caption(f"📅 Güncel Tarih: {today_display} | Hafta: {week_info['week_number']}/52")
     
     # Ana metrikler
     col1, col2, col3, col4 = st.columns(4)
@@ -13221,7 +13224,7 @@ def show_daily_pomodoro_stats(user_data):
                 
                 # Son 7 günün istatistikleri - DİNAMİK
                 week_info = get_current_week_info()
-                today = week_info['today'].date()
+                today = datetime.fromisoformat(week_info['today']).date()
                 last_week_pomodoros = [
                     p for p in all_pomodoros 
                     if (today - datetime.fromisoformat(p['timestamp']).date()).days <= 7
@@ -14164,7 +14167,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     # Güncel zaman bilgisi al
     week_info = get_current_week_info()
     current_week = week_info['week_number']
-    current_month = week_info['today'].month
+    current_month = datetime.fromisoformat(week_info['today']).month
     days_to_yks = week_info['days_to_yks']
     
     # 🚀 ZAMANSAL STRATEJİ ALMA - DÖNEMİ BELİRLE
@@ -15875,7 +15878,9 @@ def main():
                 days_to_yks = week_info['days_to_yks']
                 
                 bg_style = BACKGROUND_STYLES.get(target_dept, BACKGROUND_STYLES["Varsayılan"])
-                st.markdown(f'<div class="main-header"><h1>{bg_style["icon"]} {user_data["target_department"]} Yolculuğunuz</h1><p>Hedefinize doğru emin adımlarla ilerleyin</p><p>📅 {week_info["today"]} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
+                # Tarih formatını güvenli şekilde göster
+                today_display = str(week_info.get("today", datetime.now().strftime("%d %B %Y")))
+                st.markdown(f'<div class="main-header"><h1>{bg_style["icon"]} {user_data["target_department"]} Yolculuğunuz</h1><p>Hedefinize doğru emin adımlarla ilerleyin</p><p>📅 {today_display} | ⏰ YKS\'ye {days_to_yks} gün kaldı!</p></div>', unsafe_allow_html=True)
                 
                 # İlerleme özeti - kartlar (motivasyondan önce)
                 overall_progress = calculate_subject_progress(user_data)
@@ -15903,7 +15908,7 @@ def main():
                 st.subheader("🎯 Günlük Motivasyon ve Çalışma Takibi")
                 
                 # Bugünkü tarih string'i
-                today_str = week_info["today"]
+                today_str = str(week_info.get("today", datetime.now().strftime("%Y-%m-%d")))
                 
                 # Günlük motivasyon verilerini çek
                 daily_motivation = json.loads(user_data.get('daily_motivation', '{}'))
@@ -16053,7 +16058,7 @@ def main():
                     # Son 3 günü döngüyle göster
                     photo_cols = st.columns(3)
                     for i, col in enumerate(photo_cols):
-                        day_ago = week_info["today"] - timedelta(days=i+1)
+                        day_ago = datetime.fromisoformat(week_info["today"]) - timedelta(days=i+1)
                         day_str = day_ago.strftime("%Y-%m-%d")
                         day_name = day_ago.strftime("%d/%m")
                         
@@ -16260,7 +16265,7 @@ def main():
                         recent_tests = []
                         
                         for i in range(6, -1, -1):
-                            day = week_info["today"] - timedelta(days=i)
+                            day = datetime.fromisoformat(week_info["today"]) - timedelta(days=i)
                             day_str = day.strftime("%Y-%m-%d")
                             day_data = daily_motivation.get(day_str, {'score': 0, 'questions': {}, 'tests': {}, 'paragraf_questions': 0})
                             
@@ -16363,7 +16368,7 @@ def main():
                         # Son 30 günün verilerini göster
                         history_days = []
                         for i in range(29, -1, -1):
-                            day = week_info["today"] - timedelta(days=i)
+                            day = datetime.fromisoformat(week_info["today"]) - timedelta(days=i)
                             day_str = day.strftime("%Y-%m-%d")
                             if day_str in daily_motivation:
                                 history_days.append((day, day_str, daily_motivation[day_str]))
