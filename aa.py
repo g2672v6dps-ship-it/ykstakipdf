@@ -6222,15 +6222,21 @@ def get_categories(subject):
     return list(YKS_TOPICS[subject].keys())
 
 def get_subcategories(subject, category):
-    """Belirli bir ders ve kategorinin alt kategorilerini döndürür."""
+    """Belirli bir ders ve kategorinin alt kategorilerini döndürür.
+    
+    Eğer kategori dict ise alt kategorilerini, list ise 'Ana Kategori' döndürür.
+    """
     if subject not in YKS_TOPICS or category not in YKS_TOPICS[subject]:
         return []
     
     content = YKS_TOPICS[subject][category]
+    
     if isinstance(content, dict):
+        # Alt kategoriler var
         return list(content.keys())
     else:
-        return ["Ana Kategori"]  # Liste ise alt kategori yok
+        # Liste (doğrudan konular var)
+        return ["Ana Kategori"]
 
 def get_topics_detailed(subject, category, sub_category="Ana Kategori"):
     """Belirli bir ders, kategori ve alt kategorinin konularını döndürür."""
@@ -6240,15 +6246,36 @@ def get_topics_detailed(subject, category, sub_category="Ana Kategori"):
     content = YKS_TOPICS[subject][category]
     
     if isinstance(content, dict):
+        # Alt kategoriler var
         if sub_category in content:
             return content[sub_category]
         else:
             # İlk alt kategoriyi al
             return list(content.values())[0] if content else []
     elif isinstance(content, list):
+        # Doğrudan konular var (alt kategori yok)
         return content
     
     return []
+
+def get_all_topics_for_cascade(subject, category):
+    """Cascading dropdown için tüm alt kategorileri ve konuları getirir."""
+    if subject not in YKS_TOPICS or category not in YKS_TOPICS[subject]:
+        return [], []
+    
+    content = YKS_TOPICS[subject][category]
+    
+    if isinstance(content, dict):
+        # Alt kategoriler var
+        subcategories = list(content.keys())
+        # Tüm alt kategorilerden konuları birleştir
+        all_topics = []
+        for sub_cat in subcategories:
+            all_topics.extend(content[sub_cat])
+        return subcategories, all_topics
+    else:
+        # Doğrudan konular var (alt kategori yok)
+        return ["Ana Kategori"], content
 
 def get_topic_list(subject):
     """Belirli bir dersin tüm alt konularını düz bir liste olarak döndürür."""
@@ -25481,69 +25508,97 @@ def admin_coach_approval_panel():
                         approved_topics.pop(index)
                 
                 st.markdown("**➕ Konu Takip'ten detaylı seçim ile konu ekleyin:**")
-                with st.form(f"add_topic_form_{i}"):
-                    # Mevcut dersleri al
-                    available_subjects = list(YKS_TOPICS.keys())
-                    
-                    # 1. Ders seçimi (her zaman görünür)
-                    selected_subject = st.selectbox(
-                        "📚 1. Ders Seçin:",
-                        options=["-- Ders Seçin --"] + available_subjects,
-                        index=0,
-                        key=f"subject_select_{i}"
-                    )
-                    
-                    # 2. Kategori seçimi (derse göre dinamik)
-                    selected_category = st.selectbox(
+                
+                # Cascading dropdown'lar - form dışında (cascading için gerekli)
+                available_subjects = list(YKS_TOPICS.keys())
+                
+                # Session state ile seçimleri takip edelim
+                if f'subject_key_{i}' not in st.session_state:
+                    st.session_state[f'subject_key_{i}'] = 0
+                if f'category_key_{i}' not in st.session_state:
+                    st.session_state[f'category_key_{i}'] = 0
+                if f'subcategory_key_{i}' not in st.session_state:
+                    st.session_state[f'subcategory_key_{i}'] = 0
+                if f'topic_key_{i}' not in st.session_state:
+                    st.session_state[f'topic_key_{i}'] = 0
+                
+                # 1. Ders seçimi
+                selected_subject_idx = st.selectbox(
+                    "📚 1. Ders Seçin:",
+                    options=range(len(available_subjects)),
+                    format_func=lambda x: available_subjects[x],
+                    index=st.session_state[f'subject_key_{i}'],
+                    key=f"subject_select_{i}"
+                )
+                
+                selected_subject = available_subjects[selected_subject_idx]
+                st.session_state[f'subject_key_{i}'] = selected_subject_idx
+                
+                # 2. Kategori seçimi
+                if selected_subject:
+                    available_categories = get_categories(selected_subject)
+                    selected_category_idx = st.selectbox(
                         "📖 2. Kategori Seçin:",
-                        options=["-- Kategori Seçin --"] + (get_categories(selected_subject) if selected_subject != "-- Ders Seçin --" else []),
-                        index=0,
+                        options=range(len(available_categories)),
+                        format_func=lambda x: available_categories[x],
+                        index=st.session_state[f'category_key_{i}'] if st.session_state[f'category_key_{i}'] < len(available_categories) else 0,
                         key=f"category_select_{i}"
                     )
                     
-                    # 3. Alt kategori seçimi (kategoriye göre dinamik)
-                    selected_sub_category = st.selectbox(
+                    selected_category = available_categories[selected_category_idx]
+                    st.session_state[f'category_key_{i}'] = selected_category_idx
+                    
+                    # 3. Alt kategori seçimi
+                    available_subcategories = get_subcategories(selected_subject, selected_category)
+                    selected_subcategory_idx = st.selectbox(
                         "📂 3. Alt Kategori Seçin:",
-                        options=["-- Alt Kategori Seçin --"] + (get_subcategories(selected_subject, selected_category) if selected_subject != "-- Ders Seçin --" and selected_category != "-- Kategori Seçin --" else []),
-                        index=0,
+                        options=range(len(available_subcategories)),
+                        format_func=lambda x: available_subcategories[x],
+                        index=st.session_state[f'subcategory_key_{i}'] if st.session_state[f'subcategory_key_{i}'] < len(available_subcategories) else 0,
                         key=f"subcategory_select_{i}"
                     )
                     
-                    # 4. Konu seçimi (en detaylı seviye, konuya göre dinamik)
-                    available_topics = []
-                    if (selected_subject != "-- Ders Seçin --" and 
-                        selected_category != "-- Kategori Seçin --" and 
-                        selected_sub_category != "-- Alt Kategori Seçin --"):
-                        available_topics = get_topics_detailed(selected_subject, selected_category, selected_sub_category)
+                    selected_sub_category = available_subcategories[selected_subcategory_idx]
+                    st.session_state[f'subcategory_key_{i}'] = selected_subcategory_idx
                     
-                    selected_topic = st.selectbox(
+                    # 4. Konu seçimi
+                    available_topics = get_topics_detailed(selected_subject, selected_category, selected_sub_category)
+                    selected_topic_idx = st.selectbox(
                         "🎯 4. Konu Seçin:",
-                        options=["-- Konu Seçin --"] + available_topics,
-                        index=0,
+                        options=range(len(available_topics)),
+                        format_func=lambda x: available_topics[x],
+                        index=st.session_state[f'topic_key_{i}'] if st.session_state[f'topic_key_{i}'] < len(available_topics) else 0,
                         key=f"topic_select_{i}"
                     )
                     
-                    # Detay ve öncelik (her zaman görünür)
-                    new_detail = st.text_input(
-                        "Detay (isteğe bağlı, düzenlenebilir):", 
-                        value=selected_topic if selected_topic != "-- Konu Seçin --" else "",
-                        placeholder="Konu detayları veya notlarınızı yazın",
-                        key=f"detail_{i}"
-                    )
+                    selected_topic = available_topics[selected_topic_idx]
+                    st.session_state[f'topic_key_{i}'] = selected_topic_idx
                     
-                    new_priority = st.selectbox(
-                        "Öncelik:", 
-                        ["DÜŞÜK", "NORMAL", "YÜKSEK", "KRİTİK"],
-                        key=f"priority_{i}"
-                    )
+                    # Seçilen konunun detaylı bilgilerini göster
+                    st.markdown(f"""
+                    **📋 Seçilen Konu Detayları:**
+                    - **Ders:** {selected_subject}
+                    - **Kategori:** {selected_category}
+                    - **Alt Kategori:** {selected_sub_category}
+                    - **Konu:** {selected_topic}
+                    """)
                     
-                    # Her zaman görünür submit button
-                    if st.form_submit_button("➕ Seçilen Konuyu Ekle", type="primary"):
-                        if (selected_subject != "-- Ders Seçin --" and 
-                            selected_category != "-- Kategori Seçin --" and 
-                            selected_sub_category != "-- Alt Kategori Seçin --" and 
-                            selected_topic != "-- Konu Seçin --"):
-                            
+                    # Form submit
+                    with st.form(f"add_topic_form_{i}"):
+                        new_detail = st.text_input(
+                            "Detay (isteğe bağlı, düzenlenebilir):", 
+                            value=selected_topic,
+                            placeholder="Konu detayları veya notlarınızı yazın",
+                            key=f"detail_{i}"
+                        )
+                        
+                        new_priority = st.selectbox(
+                            "Öncelik:", 
+                            ["DÜŞÜK", "NORMAL", "YÜKSEK", "KRİTİK"],
+                            key=f"priority_{i}"
+                        )
+                        
+                        if st.form_submit_button("➕ Seçilen Konuyu Ekle", type="primary"):
                             new_topic_obj = {
                                 'subject': selected_subject,
                                 'category': selected_category,
@@ -25556,8 +25611,8 @@ def admin_coach_approval_panel():
                             approved_topics.append(new_topic_obj)
                             st.success(f"✅ {selected_subject} - {selected_topic} konusu eklendi!")
                             st.rerun()
-                        else:
-                            st.error("⚠️ Lütfen tüm seviyeleri (Ders, Kategori, Alt Kategori, Konu) seçin!")
+                else:
+                    st.info("⚠️ Önce bir ders seçin")
                     
             # Manuel konu ekleme için ayrı form
             st.markdown("**Veya manuel olarak ekleyin:**")
