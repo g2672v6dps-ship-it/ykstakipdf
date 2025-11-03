@@ -132,6 +132,146 @@ def check_and_show_welcome_message(username):
             st.success(f"Hoşgeldin {username}! Sisteme başarıyla giriş yaptın.", icon="🎉")
             st.session_state.welcome_message_shown = True
 
+# === PROGRAM ONAY SİSTEMİ FONKSİYONLARI ===
+
+def submit_program_for_coach_approval(user_data, program_data, description):
+    """Öğrencinin haftalık programını koç onayına gönder"""
+    try:
+        # Mevcut program onay durumlarını al
+        programs_data_str = user_data.get('program_approvals', '{}')
+        programs_data = json.loads(programs_data_str) if programs_data_str else {}
+        
+        # Yeni program kaydı oluştur
+        program_id = f"prog_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{st.session_state.get('current_user', 'unknown')}"
+        
+        new_program = {
+            'program_id': program_id,
+            'student_name': user_data.get('name', 'Bilinmeyen'),
+            'student_username': st.session_state.get('current_user', ''),
+            'student_field': user_data.get('field', 'Bilinmiyor'),
+            'program_data': program_data,
+            'description': description,
+            'status': 'beklemede',  # beklemede, onaylandı, reddedildi
+            'submission_date': datetime.now().isoformat(),
+            'coach_review_date': None,
+            'coach_feedback': ''
+        }
+        
+        # Mevcut programa ekle veya yeni başlat
+        programs_data[program_id] = new_program
+        user_data['program_approvals'] = json.dumps(programs_data, ensure_ascii=False)
+        
+        # Firebase'e kaydet
+        username = st.session_state.get('current_user', '')
+        if username:
+            update_user_in_firebase(username, {'program_approvals': user_data['program_approvals']})
+            return True, program_id
+        
+        return False, program_id
+    except Exception as e:
+        st.error(f"Program gönderme hatası: {e}")
+        return False, None
+
+def get_latest_program_status(user_data):
+    """Öğrencinin son program durumunu getir"""
+    try:
+        programs_data_str = user_data.get('program_approvals', '{}')
+        if not programs_data_str:
+            return {'status': 'yok', 'message': 'Henüz program gönderilmedi'}
+        
+        programs_data = json.loads(programs_data_str)
+        if not programs_data:
+            return {'status': 'yok', 'message': 'Henüz program gönderilmedi'}
+        
+        # En son programı bul
+        latest_program = max(programs_data.values(), key=lambda x: x.get('submission_date', ''))
+        
+        status_mapping = {
+            'beklemede': {'status': 'beklemede', 'icon': '⏳', 'message': 'Koç onayı bekleniyor'},
+            'onaylandı': {'status': 'onaylandı', 'icon': '✅', 'message': 'Koçunuz tarafından programınız onaylandı'},
+            'reddedildi': {'status': 'reddedildi', 'icon': '❌', 'message': 'Programınız koç tarafından reddedildi'}
+        }
+        
+        base_status = status_mapping.get(latest_program.get('status', 'beklemede'), status_mapping['beklemede'])
+        base_status.update({
+            'program_id': latest_program.get('program_id', ''),
+            'submission_date': latest_program.get('submission_date', ''),
+            'coach_feedback': latest_program.get('coach_feedback', ''),
+            'description': latest_program.get('description', '')
+        })
+        
+        return base_status
+    except Exception as e:
+        return {'status': 'hata', 'message': f'Program durumu alınamadı: {e}'}
+
+def get_all_pending_programs():
+    """Admin panel için tüm bekleyen programları getir"""
+    try:
+        pending_programs = []
+        
+        if 'users_db' in st.session_state:
+            for username, user_data in st.session_state.users_db.items():
+                programs_data_str = user_data.get('program_approvals', '{}')
+                if programs_data_str:
+                    try:
+                        programs_data = json.loads(programs_data_str)
+                        for program_id, program_data in programs_data.items():
+                            if program_data.get('status') == 'beklemede':
+                                pending_programs.append(program_data)
+                    except json.JSONDecodeError:
+                        continue
+        
+        # Tarihe göre sırala (en yeniler önce)
+        pending_programs.sort(key=lambda x: x.get('submission_date', ''), reverse=True)
+        return pending_programs
+    except Exception as e:
+        st.error(f"Bekleyen programlar getirilemedi: {e}")
+        return []
+
+def approve_program(program_id, username, feedback=""):
+    """Koç tarafından programı onayla"""
+    try:
+        if username in st.session_state.users_db:
+            user_data = st.session_state.users_db[username]
+            programs_data_str = user_data.get('program_approvals', '{}')
+            if programs_data_str:
+                programs_data = json.loads(programs_data_str)
+                if program_id in programs_data:
+                    programs_data[program_id]['status'] = 'onaylandı'
+                    programs_data[program_id]['coach_feedback'] = feedback
+                    programs_data[program_id]['coach_review_date'] = datetime.now().isoformat()
+                    
+                    # Firebase'e güncelle
+                    user_data['program_approvals'] = json.dumps(programs_data, ensure_ascii=False)
+                    update_user_in_firebase(username, {'program_approvals': user_data['program_approvals']})
+                    return True
+        return False
+    except Exception as e:
+        st.error(f"Program onaylama hatası: {e}")
+        return False
+
+def reject_program(program_id, username, feedback):
+    """Koç tarafından programı reddet"""
+    try:
+        if username in st.session_state.users_db:
+            user_data = st.session_state.users_db[username]
+            programs_data_str = user_data.get('program_approvals', '{}')
+            if programs_data_str:
+                programs_data = json.loads(programs_data_str)
+                if program_id in programs_data:
+                    programs_data[program_id]['status'] = 'reddedildi'
+                    programs_data[program_id]['coach_feedback'] = feedback
+                    programs_data[program_id]['coach_review_date'] = datetime.now().isoformat()
+                    
+                    # Firebase'e güncelle
+                    user_data['program_approvals'] = json.dumps(programs_data, ensure_ascii=False)
+                    update_user_in_firebase(username, {'program_approvals': user_data['program_approvals']})
+                    return True
+        return False
+    except Exception as e:
+        st.error(f"Program reddetme hatası: {e}")
+        return False
+
 # === ADMIN PANELİ KONTROLÜ ===
 def check_admin_access():
     """Admin panel erişim kontrolü"""
@@ -215,6 +355,104 @@ Tarih: {datetime.now().strftime('%d.%m.%Y')}
         pdf_content += "\nBu hafta için henüz konu planı oluşturulmamış.\n"
     
     return pdf_content
+
+def show_program_approval_system(user_data, weekly_plan):
+    """🎯 Öğrenci tarafı program onay sistemi"""
+    st.markdown("### 📝 Program Onay Sistemi")
+    
+    # Mevcut program durumunu kontrol et
+    status_info = get_latest_program_status(user_data)
+    
+    # Program durum kartı
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        # Durum göstergesi
+        if status_info['status'] == 'beklemede':
+            st.warning(f"{status_info['icon']} **{status_info['message']}**")
+        elif status_info['status'] == 'onaylandı':
+            st.success(f"{status_info['icon']} **{status_info['message']}**")
+        elif status_info['status'] == 'reddedildi':
+            st.error(f"{status_info['icon']} **{status_info['message']}**")
+            if status_info.get('coach_feedback'):
+                st.info(f"💬 **Koç Geri Bildirimi:** {status_info['coach_feedback']}")
+        else:
+            st.info("💡 Henüz program göndermediniz")
+    
+    with col2:
+        # Gönderim tarihi göster
+        if status_info.get('submission_date'):
+            from datetime import datetime
+            try:
+                submit_date = datetime.fromisoformat(status_info['submission_date']).strftime('%d/%m %H:%M')
+                st.caption(f"📅 Son Gönderim: {submit_date}")
+            except:
+                st.caption("📅 Tarih bilinmiyor")
+    
+    st.markdown("---")
+    
+    # Program gönderme alanı
+    if status_info['status'] != 'beklemede':  # Sadece beklemede değilse yeni program gönderebilir
+        with st.expander("📤 Yeni Program Gönder", expanded=False):
+            # Form ile program gönderme
+            with st.form("program_submit_form"):
+                st.markdown("#### 📋 Haftalık Programınız")
+                
+                # Program açıklaması
+                program_description = st.text_area(
+                    "📝 Program açıklaması ve hedeflerinizi yazın:",
+                    placeholder="Bu hafta hangi konuları çalışmayı planlıyorsunuz? Hangi derslere ne kadar zaman ayıracaksınız? Hedefleriniz nelerdir?",
+                    height=150
+                )
+                
+                # Ek notlar
+                additional_notes = st.text_area(
+                    "💬 Ek notlar (opsiyonel):",
+                    placeholder="Koçunuzla paylaşmak istediğiniz ek bilgiler, sorularınız veya özel durumlar...",
+                    height=100
+                )
+                
+                # Önemli bilgileri kontrol et
+                has_review_topics = weekly_plan.get('review_topics', [])
+                current_completion = calculate_weekly_completion_percentage(user_data, weekly_plan)
+                
+                if st.form_submit_button("📤 Programımı Koçuma Onaya Gönder", type="primary", use_container_width=True):
+                    if not program_description.strip():
+                        st.error("❌ Lütfen program açıklamasını doldurun!")
+                    else:
+                        # Program verilerini hazırla
+                        program_data = {
+                            'weekly_plan': weekly_plan,
+                            'review_topics_count': len(has_review_topics),
+                            'current_completion': current_completion,
+                            'week_info': get_current_week_info(),
+                            'additional_notes': additional_notes
+                        }
+                        
+                        # Programı gönder
+                        success, program_id = submit_program_for_coach_approval(user_data, program_data, program_description)
+                        
+                        if success:
+                            st.success("🎉 Programınız başarıyla koçunuza gönderildi!")
+                            st.balloons()
+                            st.info("⏳ Koçunuz programınızı inceleyip en kısa sürede geri bildirim verecektir.")
+                            st.rerun()
+                        else:
+                            st.error("❌ Program gönderilirken hata oluştu. Lütfen tekrar deneyin.")
+    else:
+        # Beklemede olan program varsa bilgi göster
+        if status_info['status'] == 'beklemede':
+            st.info("⏳ **Koçunuz programınızı inceliyor.** Yeni program göndermek için mevcut programın sonucunu bekleyin.")
+        elif status_info['status'] == 'onaylandı':
+            st.markdown("#### ✅ **Programınız Onaylandı!**")
+            st.success("🎉 **Koçunuz tarafından programınız onaylandı!**")
+            
+            # Programı başlat butonu
+            col_start1, col_start2 = st.columns([1, 2])
+            with col_start2:
+                if st.button("🚀 Programı Başlat", type="primary", use_container_width=True):
+                    st.success("🚀 Programınız başladı! Başarılar dileriz!")
+                    st.rerun()
 
 def show_print_button(user_data, weekly_plan):
     """Yazdırma butonu göster"""
@@ -391,6 +629,17 @@ def show_admin_dashboard():
     </div>
     """, unsafe_allow_html=True)
     
+    # Sekmeli yapı
+    tab1, tab2 = st.tabs(["👥 Öğrenci Takibi", "🎯 Program Onayları"])
+    
+    with tab1:
+        show_student_tracking_tab()
+    
+    with tab2:
+        show_program_approvals_tab()
+
+def show_student_tracking_tab():
+    """👥 Öğrenci takibi sekmesi"""
     # GERÇEKFirebase verilerini çek
     students = get_real_student_data_for_admin()
     
@@ -524,6 +773,148 @@ def show_admin_dashboard():
                 st.error(f"🔴 {student['name']}: {days_ago} gün önce")
         else:
             st.success("✅ Tüm öğrenciler aktif")
+
+def show_program_approvals_tab():
+    """🎯 Program onayları yönetim sekmesi"""
+    st.markdown("## 🎯 Program Onayları")
+    st.markdown("*Öğrencilerin gönderdiği haftalık programları yönetin*")
+    
+    # Bekleyen programları getir
+    pending_programs = get_all_pending_programs()
+    
+    if not pending_programs:
+        st.info("📭 Şu anda bekleyen program bulunmuyor.")
+        return
+    
+    # Özet kartları
+    st.markdown("### 📊 Bekleyen Program Özeti")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("⏳ Bekleyen Programlar", len(pending_programs))
+    
+    with col2:
+        recent_programs = [p for p in pending_programs if is_recent_submission(p.get('submission_date', ''))]
+        st.metric("🆕 Bugün Gönderilenler", len(recent_programs))
+    
+    with col3:
+        fields = list(set([p.get('student_field', 'Bilinmiyor') for p in pending_programs]))
+        st.metric("📚 Farklı Alanlar", len(fields))
+    
+    st.markdown("---")
+    
+    # Program listesi
+    st.markdown("### 📋 Programlar")
+    
+    for i, program in enumerate(pending_programs):
+        with st.expander(f"👨‍🎓 **{program.get('student_name', 'Bilinmiyor')}** - {program.get('student_field', 'Bilinmiyor')} | 📅 {format_submission_date(program.get('submission_date', ''))}", expanded=False):
+            
+            # Program detayları
+            col1, col2, col3 = st.columns([3, 1, 1])
+            
+            with col1:
+                st.markdown("#### 📝 Program Açıklaması")
+                st.write(program.get('description', 'Açıklama yok'))
+                
+                if program.get('program_data', {}).get('additional_notes'):
+                    st.markdown("#### 💬 Ek Notlar")
+                    st.write(program['program_data']['additional_notes'])
+                
+                # Program istatistikleri
+                program_data = program.get('program_data', {})
+                st.markdown("#### 📊 Program Detayları")
+                
+                col_stat1, col_stat2 = st.columns(2)
+                with col_stat1:
+                    st.write(f"📚 **Tekrar Konular:** {program_data.get('review_topics_count', 0)}")
+                    st.write(f"📈 **Mevcut İlerleme:** %{program_data.get('current_completion', 0):.1f}")
+                
+                with col_stat2:
+                    st.write(f"🎯 **Hafta:** {program_data.get('week_info', {}).get('week_number', 'Bilinmiyor')}/52")
+                    st.write(f"⏰ **YKS'ye Kalan:** {program_data.get('week_info', {}).get('days_to_yks', 'Bilinmiyor')} gün")
+            
+            with col2:
+                st.markdown("#### ⚡ Hızlı İşlemler")
+                
+                # Programı görüntüle
+                if st.button("👁️ Görüntüle", key=f"view_{i}"):
+                    show_program_details(program)
+                
+                # Onayla
+                if st.button("✅ Onayla", key=f"approve_{i}", type="primary"):
+                    feedback = st.text_input("Onay mesajı (opsiyonel)", key=f"feedback_approve_{i}")
+                    if approve_program(program.get('program_id', ''), program.get('student_username', ''), feedback):
+                        st.success("✅ Program onaylandı!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Onaylama işlemi başarısız!")
+            
+            with col3:
+                st.markdown("#### ❌ Red İşlemi")
+                
+                # Reddet
+                reject_feedback = st.text_input("Red nedeni", key=f"feedback_reject_{i}", placeholder="Program neden reddedildi?")
+                if st.button("❌ Reddet", key=f"reject_{i}", type="secondary"):
+                    if not reject_feedback.strip():
+                        st.error("❌ Red nedeni belirtilmeli!")
+                    else:
+                        if reject_program(program.get('program_id', ''), program.get('student_username', ''), reject_feedback):
+                            st.success("❌ Program reddedildi!")
+                            st.rerun()
+                        else:
+                            st.error("❌ Reddetme işlemi başarısız!")
+            
+            # Programın haftalık hedeflerini göster
+            if program.get('program_data', {}).get('weekly_plan', {}).get('review_topics'):
+                st.markdown("#### 🎯 Haftalık Hedefler")
+                review_topics = program['program_data']['weekly_plan']['review_topics']
+                for topic in review_topics[:5]:  # İlk 5 konuyu göster
+                    st.write(f"• {topic}")
+                if len(review_topics) > 5:
+                    st.write(f"... ve {len(review_topics) - 5} konu daha")
+
+def is_recent_submission(submission_date_str):
+    """Bugün gönderilen programları kontrol et"""
+    try:
+        if not submission_date_str:
+            return False
+        submission_date = datetime.fromisoformat(submission_date_str)
+        today = datetime.now()
+        return submission_date.date() == today.date()
+    except:
+        return False
+
+def format_submission_date(submission_date_str):
+    """Gönderim tarihini formatla"""
+    try:
+        if not submission_date_str:
+            return "Tarih bilinmiyor"
+        submission_date = datetime.fromisoformat(submission_date_str)
+        return submission_date.strftime("%d.%m.%Y %H:%M")
+    except:
+        return "Tarih formatı hatalı"
+
+def show_program_details(program):
+    """Program detaylarını modal olarak göster"""
+    with st.expander("🔍 Program Detayları", expanded=True):
+        st.markdown("#### 📊 Teknik Bilgiler")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write(f"**Program ID:** {program.get('program_id', 'Bilinmiyor')}")
+            st.write(f"**Öğrenci Adı:** {program.get('student_name', 'Bilinmiyor')}")
+            st.write(f"**Öğrenci Kullanıcı:** {program.get('student_username', 'Bilinmiyor')}")
+            st.write(f"**Alan:** {program.get('student_field', 'Bilinmiyor')}")
+        
+        with col2:
+            st.write(f"**Gönderim Tarihi:** {format_submission_date(program.get('submission_date', ''))}")
+            st.write(f"**Durum:** {program.get('status', 'Bilinmiyor')}")
+            if program.get('coach_review_date'):
+                st.write(f"**İnceleme Tarihi:** {format_submission_date(program['coach_review_date'])}")
+        
+        # Ham program verilerini JSON formatında göster
+        st.markdown("#### 🔧 Ham Veriler (Debug için)")
+        st.json(program)
 
 # Ana uygulama akışına admin sekmesi ekle
 def main():
@@ -7651,6 +8042,11 @@ def show_weekly_planner(user_data):
             show_next_week_bonus_topics(next_week_topics, user_data)
         else:
             st.info("🎯 Gelecek hafta için ek bonus konu bulunamadı. Mevcut konularını tekrar etmeye odaklan!")
+    
+    st.markdown("---")
+    
+    # 🎯 PROGRAM ONAY SİSTEMİ - Öğrenci Tarafı
+    show_program_approval_system(user_data, weekly_plan)
     
     st.markdown("---")
     
