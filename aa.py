@@ -3801,6 +3801,10 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
                                 real_net = 0
                         break
                 
+                # 🎯 YENİ: Yüksek netlileri atla (büyük oranda tamamlanmış)
+                if real_net >= 15:
+                    continue
+                
                 all_remaining_topics.append({
                     'subject': subject,
                     'topic': topic,
@@ -3883,6 +3887,10 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics, u
                             except:
                                 real_net = 0
                         break
+                
+                # 🎯 YENİ: Yüksek netlileri atla (büyük oranda tamamlanmış)
+                if real_net >= 15:
+                    continue
                 
                 all_remaining_topics.append({
                     'subject': subject,
@@ -3978,6 +3986,10 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
                                 real_net = 0
                         break
                 
+                # 🎯 YENİ: Yüksek netlileri atla (büyük oranda tamamlanmış)
+                if real_net >= 15:
+                    continue
+                
                 weekly_topics.append({
                     'subject': subject,
                     'topic': topic,
@@ -4009,6 +4021,10 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
                             except:
                                 real_net = 0
                         break
+                
+                # 🎯 YENİ: Yüksek netlileri atla (büyük oranda tamamlanmış)
+                if real_net >= 15:
+                    continue
                 
                 weekly_topics.append({
                     'subject': subject,
