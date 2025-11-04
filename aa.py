@@ -21799,21 +21799,38 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     # 🔥 KOÇ ONAYLARINI HAFTALIK HEDEF KONULAR'A ENTEGRE ET (DEĞİŞİKLİKLERLE)
     approved_coached_topics = get_approved_coached_topics(user_data)
     
-    # 🔧 DEBUG: Koç onaylı konuları listele
+    # 🔧 DEBUG: Koç onaylı konuları listele (HER ZAMAN GÖSTER)
     st.info(f"🔍 DEBUG: {len(approved_coached_topics)} adet koç onaylı konu bulundu")
     if approved_coached_topics:
+        st.info("📋 Koç onaylı konular listesi:")
         for i, topic in enumerate(approved_coached_topics):
+            st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')}")
+    else:
+        st.info("❌ Hiç koç onaylı konu bulunamadı!")
+    
+    # Orijinal konu sayısını HER ZAMAN göster
+    original_topics = base_weekly_plan.get('new_topics', [])
+    st.info(f"🔍 DEBUG: Orijinal konu sayısı: {len(original_topics)}")
+    
+    # Orijinal konuları listele
+    if original_topics:
+        st.info("📋 Orijinal konular listesi:")
+        for i, topic in enumerate(original_topics):
             st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')}")
     
     if approved_coached_topics:
-        original_topics = base_weekly_plan.get('new_topics', [])
-        st.info(f"🔍 DEBUG: Orijinal konu sayısı: {len(original_topics)}")
-        
         # Mevcut konuları güncelle/sil/ekle
         updated_new_topics = apply_coach_changes(original_topics, approved_coached_topics)
         base_weekly_plan['new_topics'] = updated_new_topics
         
         st.info(f"🔍 DEBUG: Güncellenmiş konu sayısı: {len(updated_new_topics)}")
+        
+        # Güncellenmiş konuları listele
+        if updated_new_topics:
+            st.info("📋 Güncellenmiş konular listesi:")
+            for i, topic in enumerate(updated_new_topics):
+                st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')}")
+        
         # Kaç değişiklik yapıldığını say
         changes_count = len(approved_coached_topics)
         st.info(f"✅ {changes_count} adet koç onaylı konu haftalık hedef konularınız güncellendi!")
@@ -21897,34 +21914,51 @@ def get_approved_coached_topics(user_data):
     """Koç tarafından onaylanan öğrenci konularını Firebase'den getir"""
     try:
         if firebase_connected and db_ref and 'username' in user_data:
+            # 🔧 DEBUG: Kullanıcı bilgilerini göster
+            st.info(f"🔍 DEBUG: get_approved_coached_topics çağrıldı - Username: {user_data.get('username', 'N/A')}")
+            
             # Kullanıcının onaylanmış konularını bul
             approved_topics = []
             
             # Coach approvals'dan bu kullanıcı için olanları çek
             approvals_data = db_ref.child('coach_approvals').get()
+            st.info(f"🔍 DEBUG: Firebase'den gelen tüm approvals data: {list(approvals_data.keys()) if approvals_data else 'None'}")
+            
             if approvals_data:
                 username = user_data['username']
+                st.info(f"🔍 DEBUG: Aranan username: {username}")
+                
                 for approval_key, approval_data in approvals_data.items():
+                    st.info(f"🔍 DEBUG: İncelenen approval: {approval_key} - Status: {approval_data.get('status', 'N/A')}")
+                    
                     # 🔧 GÜVENLİ: Student bilgileri çıkar
                     student_username = approval_data.get('student_username', '')
                     student_name = approval_data.get('student_name', '')
+                    
+                    st.info(f"🔍 DEBUG: Student bilgileri - username: '{student_username}', name: '{student_name}'")
                     
                     # Eğer student_username yoksa approval_key'den çıkar
                     if not student_username:
                         try:
                             student_username = approval_key.split('_')[0]
+                            st.info(f"🔍 DEBUG: Key'den çıkarılan username: '{student_username}'")
                         except:
                             student_username = ''
                     
                     # Username eşleşmesi veya name eşleşmesi veya key eşleşmesi
-                    if (student_username == username or 
+                    user_matches = (student_username == username or 
                         student_name == user_data.get('name', username) or
-                        approval_key.startswith(username)):
-                        
+                        approval_key.startswith(username))
+                    
+                    st.info(f"🔍 DEBUG: Eşleşme sonucu: {user_matches}")
+                    
+                    if user_matches:
                         # Onaylanmış durumda ise ve onaylanan konular varsa
                         if (approval_data.get('status') == 'approved' and 
                             'approved_topics' in approval_data and 
                             approval_data['approved_topics']):
+                            
+                            st.info(f"🔍 DEBUG: Onaylanmış approval bulundu! Topic sayısı: {len(approval_data['approved_topics'])}")
                             
                             # Onaylanan konuları ekle
                             for topic in approval_data['approved_topics']:
@@ -21933,13 +21967,18 @@ def get_approved_coached_topics(user_data):
                                 topic_with_date['approval_date'] = approval_data.get('approved_date', '')
                                 topic_with_date['coach_notes'] = approval_data.get('coach_notes', '')
                                 approved_topics.append(topic_with_date)
+                        else:
+                            st.info(f"🔍 DEBUG: Approval onaylanmamış veya topics yok - Status: {approval_data.get('status', 'N/A')}")
             
+            st.info(f"🔍 DEBUG: Toplam bulunan onaylı topic sayısı: {len(approved_topics)}")
             return approved_topics
         else:
+            st.info(f"🔍 DEBUG: Firebase bağlı değil veya username yok - connected: {firebase_connected}, db_ref: {bool(db_ref)}, username: {'username' in user_data}")
             # Session state'den (fallback)
             return []
     except Exception as e:
         st.error(f"Onaylanan konuları getirme hatası: {e}")
+        st.info(f"🔍 DEBUG: Hata detayı: {str(e)}")
         return []
 
 def create_weekly_calendar(week_info):
