@@ -21738,6 +21738,12 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     # Mevcut haftalık plan sistemindeki temel bilgileri al
     base_weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     
+    # 🔄 ÖNEMLİ: Onaylanan konuları Firebase'den çek ve ekle
+    approved_coached_topics = get_approved_coached_topics(user_data)
+    if approved_coached_topics:
+        base_weekly_plan['approved_coached_topics'] = approved_coached_topics
+        st.info(f"✅ {len(approved_coached_topics)} adet koç onaylı konu haftalık programınıza eklendi!")
+    
     # Dinamik bilgileri ekle
     base_weekly_plan['dynamic_week_info'] = week_info
     base_weekly_plan['is_dynamic'] = True
@@ -21757,6 +21763,48 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     base_weekly_plan['weekly_calendar'] = create_weekly_calendar(week_info)
     
     return base_weekly_plan
+
+def get_approved_coached_topics(user_data):
+    """Koç tarafından onaylanan öğrenci konularını Firebase'den getir"""
+    try:
+        if firebase_connected and db_ref and 'username' in user_data:
+            # Kullanıcının onaylanmış konularını bul
+            approved_topics = []
+            
+            # Coach approvals'dan bu kullanıcı için olanları çek
+            approvals_data = db_ref.child('coach_approvals').get()
+            if approvals_data:
+                username = user_data['username']
+                for approval_key, approval_data in approvals_data.items():
+                    # Bu approval'in bu kullanıcıya ait olup olmadığını kontrol et
+                    student_username = approval_data.get('student_username', '')
+                    student_name = approval_data.get('student_name', '')
+                    
+                    # Username eşleşmesi veya name eşleşmesi
+                    if (student_username == username or 
+                        student_name == user_data.get('name', username) or
+                        approval_key.startswith(username)):
+                        
+                        # Onaylanmış durumda ise ve onaylanan konular varsa
+                        if (approval_data.get('status') == 'approved' and 
+                            'approved_topics' in approval_data and 
+                            approval_data['approved_topics']):
+                            
+                            # Onaylanan konuları ekle
+                            for topic in approval_data['approved_topics']:
+                                # Tarih bilgisi ekle
+                                topic_with_date = topic.copy()
+                                topic_with_date['approval_date'] = approval_data.get('approved_date', '')
+                                topic_with_date['coach_notes'] = approval_data.get('coach_notes', '')
+                                approved_topics.append(topic_with_date)
+            
+            return approved_topics
+        else:
+            # Session state'den (fallback)
+            return []
+    except Exception as e:
+        st.error(f"Onaylanan konuları getirme hatası: {e}")
+        return []
 
 def create_weekly_calendar(week_info):
     """📅 7 günlük döngü takvimi oluşturur - GERÇEK TAKVİM TARİHLERİYLE"""
@@ -21910,6 +21958,27 @@ def show_dynamic_week_dashboard(weekly_plan, user_data):
             label="İlerleme",
             value=f"%{week_progress:.1f}"
         )
+    
+    # 🔄 YENİ: Onaylanan koç konularını göster
+    approved_coached_topics = weekly_plan.get('approved_coached_topics', [])
+    if approved_coached_topics:
+        st.markdown("### 👨‍🏫 Koçunuzun Onayladığı Bu Haftaki Konular:")
+        
+        for i, topic in enumerate(approved_coached_topics, 1):
+            priority_color = {
+                'DÜŞÜK': '#74b9ff',
+                'NORMAL': '#fdcb6e', 
+                'YÜKSEK': '#fd79a8',
+                'KRİTİK': '#e17055'
+            }.get(topic.get('priority', 'NORMAL'), '#fdcb6e')
+            
+            st.markdown(f"""
+            <div style="background: {priority_color}; color: white; padding: 12px; border-radius: 10px; margin: 5px 0;">
+                <h4 style="margin: 0; color: white;">📚 {topic.get('subject', 'Ders')} - {topic.get('topic', 'Konu')}</h4>
+                <p style="margin: 5px 0 0 0; color: white;">📝 {topic.get('detail', 'Detay yok')}</p>
+                <p style="margin: 2px 0 0 0; font-size: 12px; color: white;">🎯 Öncelik: {topic.get('priority', 'NORMAL')} | 📅 Onay: {topic.get('approval_date', 'Bilinmiyor')}</p>
+            </div>
+            """, unsafe_allow_html=True)
 
 # ===== DİNAMİK HAFTALIK PLAN ENTEGRASYONU =====
 
@@ -25370,10 +25439,66 @@ def get_student_approval_requests():
             # Firebase'den çek
             approvals_data = db_ref.child('coach_approvals').get()
             if approvals_data:
-                return list(approvals_data.values())
+                processed_requests = []
+                for request in approvals_data.values():
+                    # Eksik alanları tamamla
+                    if 'student_name' not in request:
+                        # Eğer student_name yoksa, student_username'dan al
+                        if 'student_username' in request:
+                            student_username = request['student_username']
+                            try:
+                                user_data = db_ref.child('users').child(student_username).get()
+                                if user_data:
+                                    request['student_name'] = user_data.get('name', student_username)
+                                else:
+                                    request['student_name'] = student_username
+                            except:
+                                request['student_name'] = request.get('student_username', 'İsimsiz Öğrenci')
+                        else:
+                            request['student_name'] = 'İsimsiz Öğrenci'
+                    
+                    # Eğer student_username yoksa, başka alanlardan bul
+                    if 'student_username' not in request:
+                        # Admin panelinde approval_key'den username çıkarılabilir
+                        # Şimdilik user_data'dan bul
+                        if 'student_name' in request:
+                            # User data'dan username bul (bu yaklaşım eksik olabilir)
+                            request['student_username'] = request.get('student_name', 'unknown_user')
+                        else:
+                            request['student_username'] = 'unknown_user'
+                    
+                    # Debug: Hangi alanların eksik olduğunu göster
+                    missing_fields = []
+                    if 'student_name' not in request: missing_fields.append('student_name')
+                    if 'student_username' not in request: missing_fields.append('student_username')
+                    if 'submission_date' not in request: missing_fields.append('submission_date')
+                    if 'status' not in request: missing_fields.append('status')
+                    if 'topics' not in request: missing_fields.append('topics')
+                    
+                    if missing_fields:
+                        st.warning(f"Talepten eksik alanlar: {missing_fields} - {request.get('student_name', 'Unknown')}")
+                    
+                    # Diğer gerekli alanları kontrol et ve tamamla
+                    required_fields = ['submission_date', 'status', 'topics', 'student_field']
+                    missing_core_fields = [field for field in required_fields if field not in request]
+                    
+                    if not missing_core_fields:
+                        processed_requests.append(request)
+                    else:
+                        st.warning(f"Eksik temel alanlar nedeniyle talep atlandı: {missing_core_fields}")
+                
+                if processed_requests:
+                    st.success(f"✅ {len(processed_requests)} adet onay talebi başarıyla yüklendi.")
+                else:
+                    st.info("📝 Hiç geçerli onay talebi bulunamadı.")
+                
+                return processed_requests
         else:
             # Session state'den çek (fallback)
-            return list(st.session_state.get('coach_approval_requests', {}).values())
+            requests = st.session_state.get('coach_approval_requests', {})
+            if requests:
+                st.info("📝 Session state'den onay talepleri yüklendi.")
+            return list(requests.values()) if requests else []
     except Exception as e:
         st.error(f"Veri çekme hatası: {e}")
         return []
@@ -25643,25 +25768,27 @@ def admin_coach_approval_panel():
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("✅ Onayla", key=f"approve_{i}", type="primary"):
-                    if approve_student_topics(
-                        f"{request['student_username']}_{request['submission_date'].replace(' ', '_').replace('-', '_').replace(':', '_')}",
-                        approved_topics, 
-                        coach_notes, 
-                        "approved"
-                    ):
+                    # Student_username yoksa alternatif olarak student_name kullan
+                    username = request.get('student_username', request.get('student_name', 'unknown'))
+                    approval_key = f"{username}_{request['submission_date'].replace(' ', '_').replace('-', '_').replace(':', '_')}"
+                    
+                    if approve_student_topics(approval_key, approved_topics, coach_notes, "approved"):
                         st.success("✅ Program onaylandı!")
                         st.rerun()
+                    else:
+                        st.error("❌ Onay işlemi başarısız oldu!")
             
             with col2:
                 if st.button("❌ Reddet", key=f"reject_{i}", type="secondary"):
-                    if approve_student_topics(
-                        f"{request['student_username']}_{request['submission_date'].replace(' ', '_').replace('-', '_').replace(':', '_')}",
-                        approved_topics, 
-                        coach_notes, 
-                        "rejected"
-                    ):
+                    # Student_username yoksa alternatif olarak student_name kullan
+                    username = request.get('student_username', request.get('student_name', 'unknown'))
+                    approval_key = f"{username}_{request['submission_date'].replace(' ', '_').replace('-', '_').replace(':', '_')}"
+                    
+                    if approve_student_topics(approval_key, approved_topics, coach_notes, "rejected"):
                         st.success("❌ Program reddedildi!")
                         st.rerun()
+                    else:
+                        st.error("❌ Red işlemi başarısız oldu!")
             
             st.markdown("---")
     
