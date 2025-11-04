@@ -9348,6 +9348,64 @@ def show_interactive_systematic_planner(weekly_plan, survey_data, user_data=None
             
             coach_notes = user_data.get('coach_notes', 'Koç notu bulunamadı')
             st.warning(f"📝 Koç notu: {coach_notes}")
+        
+        # 🔥 GÜÇLENDİRİLMİŞ: Onay durumu ve haftalık hedef yenileme
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🔄 Onay Durumunu Yenile", type="secondary"):
+                # Cache'i temizle ve yeniden yükle
+                if 'users_db' in st.session_state and current_user in st.session_state.users_db:
+                    # Kullanıcının verilerini Firebase'den yeniden çek
+                    if firebase_connected and db_ref:
+                        try:
+                            fresh_user_data = db_ref.child('users').child(current_user).get()
+                            if fresh_user_data:
+                                st.session_state.users_db[current_user].update(fresh_user_data)
+                                st.success("✅ Onay durumu güncellendi!")
+                        except Exception as e:
+                            st.error(f"Yenileme hatası: {e}")
+                
+                # Firebase cache'i de temizle
+                if hasattr(st.session_state, 'firebase_cache'):
+                    st.session_state.firebase_cache.clear()
+                
+                st.info("📱 Sayfa yenileniyor...")
+                st.rerun()
+        
+        with col2:
+            if st.button("🆕 Haftalık Hedefleri Yenile", type="primary"):
+                # Haftalık hedef konular için özel yenileme
+                if 'users_db' in st.session_state and current_user in st.session_state.users_db:
+                    # Tüm onaylı konuları yeniden çek
+                    if firebase_connected and db_ref:
+                        try:
+                            # Kullanıcının tüm onaylı konularını çek
+                            approvals_data = db_ref.child('coach_approvals').get()
+                            user_approved_topics = []
+                            
+                            if approvals_data:
+                                for approval_key, approval_data in approvals_data.items():
+                                    student_username = approval_data.get('student_username', '')
+                                    student_name = approval_data.get('student_name', '')
+                                    
+                                    if (student_username == current_user or 
+                                        student_name == st.session_state.users_db[current_user].get('name', current_user)):
+                                        
+                                        if approval_data.get('status') == 'approved' and 'approved_topics' in approval_data:
+                                            user_approved_topics.extend(approval_data['approved_topics'])
+                            
+                            # Onaylı konuları kullanıcı verilerine ekle
+                            st.session_state.users_db[current_user]['approved_topics'] = user_approved_topics
+                            st.session_state.users_db[current_user]['coach_approval_status'] = 'approved'
+                            
+                            st.success(f"✅ {len(user_approved_topics)} adet koç onaylı konu yüklendi!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Haftalık hedef yenileme hatası: {e}")
+                
+                st.info("🔄 Haftalık hedefler yenileniyor...")
+                st.rerun()
     except Exception as e:
         # Hata durumunda sessizce geç
         pass
@@ -21738,13 +21796,16 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     # Mevcut haftalık plan sistemindeki temel bilgileri al
     base_weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     
-    # 🔥 KOÇ ONAYLARINI HAFTALIK HEDEF KONULAR'A ENTEGRE ET
+    # 🔥 KOÇ ONAYLARINI HAFTALIK HEDEF KONULAR'A ENTEGRE ET (DEĞİŞİKLİKLERLE)
     approved_coached_topics = get_approved_coached_topics(user_data)
     if approved_coached_topics:
-        # Onaylı koç konularını doğrudan new_topics'e ekle
-        existing_new_topics = base_weekly_plan.get('new_topics', [])
-        base_weekly_plan['new_topics'] = existing_new_topics + approved_coached_topics
-        st.info(f"✅ {len(approved_coached_topics)} adet koç onaylı konu haftalık hedef konularınıza entegre edildi!")
+        # Mevcut konuları güncelle/sil/ekle
+        updated_new_topics = apply_coach_changes(base_weekly_plan.get('new_topics', []), approved_coached_topics)
+        base_weekly_plan['new_topics'] = updated_new_topics
+        
+        # Kaç değişiklik yapıldığını say
+        changes_count = len(approved_coached_topics)
+        st.info(f"✅ {changes_count} adet koç onaylı konu haftalık hedef konularınız güncellendi!")
     
     # Dinamik bilgileri ekle
     base_weekly_plan['dynamic_week_info'] = week_info
@@ -21765,6 +21826,61 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     base_weekly_plan['weekly_calendar'] = create_weekly_calendar(week_info)
     
     return base_weekly_plan
+
+def apply_coach_changes(original_topics, coach_approved_topics):
+    """Koçun yaptığı değişiklikleri orijinal konu listesine uygula"""
+    try:
+        if not coach_approved_topics:
+            return original_topics
+            
+        # Koç onaylı konuları işle
+        updated_topics = []
+        added_topics = set()  # Eklenecek konuları takip et
+        
+        for coach_topic in coach_approved_topics:
+            subject = coach_topic.get('subject', '')
+            topic = coach_topic.get('topic', '')
+            detail = coach_topic.get('detail', '')
+            
+            # Konu zaten var mı kontrol et
+            topic_found = False
+            for i, orig_topic in enumerate(original_topics):
+                if (orig_topic.get('subject', '') == subject and 
+                    orig_topic.get('topic', '') == topic and
+                    orig_topic.get('detail', '') == detail):
+                    
+                    # Konu bulundu, güncelle (eğer coach'ta özel bilgiler varsa)
+                    updated_topic = orig_topic.copy()
+                    if 'priority' in coach_topic:
+                        updated_topic['priority'] = coach_topic['priority']
+                    if 'net' in coach_topic and coach_topic['net'] != 0:
+                        updated_topic['net'] = coach_topic['net']
+                    
+                    updated_topics.append(updated_topic)
+                    topic_found = True
+                    added_topics.add(f"{subject}_{topic}_{detail}")
+                    break
+            
+            # Eğer konu yoksa, koç onayladığı için yeni ekle
+            if not topic_found:
+                new_topic = coach_topic.copy()
+                # Eğer net değeri yoksa 0 yap
+                if 'net' not in new_topic:
+                    new_topic['net'] = 0
+                updated_topics.append(new_topic)
+                added_topics.add(f"{subject}_{topic}_{detail}")
+        
+        # Orijinal konulardan koçun onaylamadığı konuları da ekle (sadece manuel olarak silinmedikçe)
+        for orig_topic in original_topics:
+            topic_key = f"{orig_topic.get('subject', '')}_{orig_topic.get('topic', '')}_{orig_topic.get('detail', '')}"
+            if topic_key not in added_topics:
+                # Bu konu koç tarafından açıkça silinmemiş, ekle
+                updated_topics.append(orig_topic)
+        
+        return updated_topics
+    except Exception as e:
+        st.error(f"Koç değişiklikleri uygulama hatası: {e}")
+        return original_topics
 
 def get_approved_coached_topics(user_data):
     """Koç tarafından onaylanan öğrenci konularını Firebase'den getir"""
@@ -25545,6 +25661,22 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
                         'approved_topics': approved_topics
                     }
                     db_ref.child('users').child(student_username).update(student_data)
+                    
+                    # 🔥 GÜÇLÜ CACHE TEMİZLE: Öğrencinin tüm cache'lerini temizle
+                    if 'users_db' in st.session_state and student_username in st.session_state.users_db:
+                        # Cache'deki user_data'yı güncelle
+                        st.session_state.users_db[student_username].update(student_data)
+                    
+                    # Firebase cache'i de temizle
+                    if hasattr(st.session_state, 'firebase_cache'):
+                        st.session_state.firebase_cache.clear()
+                    
+                    # 🔄 SESSION STATE GÜNCELLEME: Tüm related cache'leri temizle
+                    if 'user_data' in st.session_state and st.session_state.user_data.get('username') == student_username:
+                        st.session_state.user_data.update(student_data)
+                    
+                    # Debug: Cache temizlendi mesajı
+                    st.success(f"🔄 {student_username} için cache temizlendi, onay durumu güncellenmeli!")
         else:
             # Session state'de güncelle
             if 'coach_approval_requests' in st.session_state and approval_key in st.session_state.coach_approval_requests:
@@ -25791,8 +25923,15 @@ def admin_coach_approval_panel():
                     username = request.get('student_username', request.get('student_name', 'unknown'))
                     approval_key = f"{username}_{request['submission_date'].replace(' ', '_').replace('-', '_').replace(':', '_')}"
                     
+                    # 🔧 TEST: Onay işlemi debug için
+                    st.info(f"📋 Onaylanacak konu sayısı: {len(approved_topics)}")
+                    st.info(f"🔑 Approval Key: {approval_key}")
+                    st.info(f"👤 Student Username: {username}")
+                    
                     if approve_student_topics(approval_key, approved_topics, coach_notes, "approved"):
                         st.success("✅ Program onaylandı!")
+                        # Başarı sonrası kısa bekleme
+                        st.info("🔄 Değişiklikler yansıtılıyor...")
                         st.rerun()
                     else:
                         st.error("❌ Onay işlemi başarısız oldu!")
