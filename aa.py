@@ -25457,6 +25457,24 @@ def get_student_approval_requests():
                         else:
                             request['student_username'] = 'unknown_user'
                     
+                    # 🔧 EKSİK ALANLARI OTOMATİK TAMAMLA
+                    if 'submission_date' not in request:
+                        # Default olarak bugünün tarihini ver
+                        from datetime import datetime
+                        request['submission_date'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    
+                    if 'topics' not in request:
+                        # Topics yoksa boş liste
+                        request['topics'] = []
+                    
+                    if 'student_field' not in request:
+                        # Field yoksa belirtilmemiş
+                        request['student_field'] = 'Belirtilmemiş'
+                    
+                    if 'status' not in request:
+                        # Status yoksa pending olarak ayarla
+                        request['status'] = 'pending'
+                    
                     # Debug: Hangi alanların eksik olduğunu göster
                     missing_fields = []
                     if 'student_name' not in request: missing_fields.append('student_name')
