@@ -21798,11 +21798,22 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     
     # 🔥 KOÇ ONAYLARINI HAFTALIK HEDEF KONULAR'A ENTEGRE ET (DEĞİŞİKLİKLERLE)
     approved_coached_topics = get_approved_coached_topics(user_data)
+    
+    # 🔧 DEBUG: Koç onaylı konuları listele
+    st.info(f"🔍 DEBUG: {len(approved_coached_topics)} adet koç onaylı konu bulundu")
     if approved_coached_topics:
+        for i, topic in enumerate(approved_coached_topics):
+            st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')}")
+    
+    if approved_coached_topics:
+        original_topics = base_weekly_plan.get('new_topics', [])
+        st.info(f"🔍 DEBUG: Orijinal konu sayısı: {len(original_topics)}")
+        
         # Mevcut konuları güncelle/sil/ekle
-        updated_new_topics = apply_coach_changes(base_weekly_plan.get('new_topics', []), approved_coached_topics)
+        updated_new_topics = apply_coach_changes(original_topics, approved_coached_topics)
         base_weekly_plan['new_topics'] = updated_new_topics
         
+        st.info(f"🔍 DEBUG: Güncellenmiş konu sayısı: {len(updated_new_topics)}")
         # Kaç değişiklik yapıldığını say
         changes_count = len(approved_coached_topics)
         st.info(f"✅ {changes_count} adet koç onaylı konu haftalık hedef konularınız güncellendi!")
