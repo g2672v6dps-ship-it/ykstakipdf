@@ -25667,9 +25667,18 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
                         # Cache'deki user_data'yı güncelle
                         st.session_state.users_db[student_username].update(student_data)
                     
-                    # Firebase cache'i de temizle
+                    # Firebase cache'i güvenli temizle
                     if hasattr(st.session_state, 'firebase_cache'):
-                        st.session_state.firebase_cache.clear()
+                        try:
+                            # FirebaseCache objesinin clear metodu olup olmadığını kontrol et
+                            if hasattr(st.session_state.firebase_cache, 'clear'):
+                                st.session_state.firebase_cache.clear()
+                            else:
+                                # clear metodu yoksa, cache'i yeniden başlat
+                                st.session_state.firebase_cache = type('obj', (object,), {})()
+                        except Exception as cache_error:
+                            # Cache temizleme hatası olsa bile onay işlemini devam ettir
+                            st.warning(f"Cache temizleme hatası: {cache_error}")
                     
                     # 🔄 SESSION STATE GÜNCELLEME: Tüm related cache'leri temizle
                     if 'user_data' in st.session_state and st.session_state.user_data.get('username') == student_username:
