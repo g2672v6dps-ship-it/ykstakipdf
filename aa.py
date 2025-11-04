@@ -21778,11 +21778,18 @@ def get_approved_coached_topics(user_data):
             if approvals_data:
                 username = user_data['username']
                 for approval_key, approval_data in approvals_data.items():
-                    # Bu approval'in bu kullanıcıya ait olup olmadığını kontrol et
+                    # 🔧 GÜVENLİ: Student bilgileri çıkar
                     student_username = approval_data.get('student_username', '')
                     student_name = approval_data.get('student_name', '')
                     
-                    # Username eşleşmesi veya name eşleşmesi
+                    # Eğer student_username yoksa approval_key'den çıkar
+                    if not student_username:
+                        try:
+                            student_username = approval_key.split('_')[0]
+                        except:
+                            student_username = ''
+                    
+                    # Username eşleşmesi veya name eşleşmesi veya key eşleşmesi
                     if (student_username == username or 
                         student_name == user_data.get('name', username) or
                         approval_key.startswith(username)):
@@ -25498,17 +25505,28 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
                 'approved_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             })
             
-            # Öğrenci verilerini de güncelle
+            # 🔧 FİX: Student_username kontrolü ile öğrenci verilerini güncelle
             approval_data = db_ref.child('coach_approvals').child(approval_key).get()
             if approval_data:
-                student_username = approval_data['student_username']
-                student_data = {
-                    'coach_approval_status': status,
-                    'coach_notes': coach_notes,
-                    'approval_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    'approved_topics': approved_topics
-                }
-                db_ref.child('users').child(student_username).update(student_data)
+                # Student_username'i güvenli bir şekilde al
+                student_username = approval_data.get('student_username', '')
+                
+                # Eğer student_username yoksa approval_key'den çıkar
+                if not student_username and approval_key:
+                    try:
+                        student_username = approval_key.split('_')[0]
+                    except:
+                        student_username = 'unknown_user'
+                
+                # Student_username bulunduysa kullanıcı verilerini güncelle
+                if student_username and student_username != 'unknown_user':
+                    student_data = {
+                        'coach_approval_status': status,
+                        'coach_notes': coach_notes,
+                        'approval_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        'approved_topics': approved_topics
+                    }
+                    db_ref.child('users').child(student_username).update(student_data)
         else:
             # Session state'de güncelle
             if 'coach_approval_requests' in st.session_state and approval_key in st.session_state.coach_approval_requests:
