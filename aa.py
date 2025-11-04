@@ -21738,11 +21738,13 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     # Mevcut haftalık plan sistemindeki temel bilgileri al
     base_weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     
-    # 🔄 ÖNEMLİ: Onaylanan konuları Firebase'den çek ve ekle
+    # 🔥 KOÇ ONAYLARINI HAFTALIK HEDEF KONULAR'A ENTEGRE ET
     approved_coached_topics = get_approved_coached_topics(user_data)
     if approved_coached_topics:
-        base_weekly_plan['approved_coached_topics'] = approved_coached_topics
-        st.info(f"✅ {len(approved_coached_topics)} adet koç onaylı konu haftalık programınıza eklendi!")
+        # Onaylı koç konularını doğrudan new_topics'e ekle
+        existing_new_topics = base_weekly_plan.get('new_topics', [])
+        base_weekly_plan['new_topics'] = existing_new_topics + approved_coached_topics
+        st.info(f"✅ {len(approved_coached_topics)} adet koç onaylı konu haftalık hedef konularınıza entegre edildi!")
     
     # Dinamik bilgileri ekle
     base_weekly_plan['dynamic_week_info'] = week_info
@@ -21959,26 +21961,7 @@ def show_dynamic_week_dashboard(weekly_plan, user_data):
             value=f"%{week_progress:.1f}"
         )
     
-    # 🔄 YENİ: Onaylanan koç konularını göster
-    approved_coached_topics = weekly_plan.get('approved_coached_topics', [])
-    if approved_coached_topics:
-        st.markdown("### 👨‍🏫 Koçunuzun Onayladığı Bu Haftaki Konular:")
-        
-        for i, topic in enumerate(approved_coached_topics, 1):
-            priority_color = {
-                'DÜŞÜK': '#74b9ff',
-                'NORMAL': '#fdcb6e', 
-                'YÜKSEK': '#fd79a8',
-                'KRİTİK': '#e17055'
-            }.get(topic.get('priority', 'NORMAL'), '#fdcb6e')
-            
-            st.markdown(f"""
-            <div style="background: {priority_color}; color: white; padding: 12px; border-radius: 10px; margin: 5px 0;">
-                <h4 style="margin: 0; color: white;">📚 {topic.get('subject', 'Ders')} - {topic.get('topic', 'Konu')}</h4>
-                <p style="margin: 5px 0 0 0; color: white;">📝 {topic.get('detail', 'Detay yok')}</p>
-                <p style="margin: 2px 0 0 0; font-size: 12px; color: white;">🎯 Öncelik: {topic.get('priority', 'NORMAL')} | 📅 Onay: {topic.get('approval_date', 'Bilinmiyor')}</p>
-            </div>
-            """, unsafe_allow_html=True)
+
 
 # ===== DİNAMİK HAFTALIK PLAN ENTEGRASYONU =====
 
