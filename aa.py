@@ -21820,7 +21820,26 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     
     if approved_coached_topics:
         # Mevcut konuları güncelle/sil/ekle
-        updated_new_topics = apply_coach_changes(original_topics, approved_coached_topics)
+        updated_new_topics = apply_coach_changes(original_topics, approved_coached_topics, user_data)
+        
+        # 🔥 BONUS: KONU TAKİP SİSTEMİNDEN NET DEĞİŞİKLİKLERİ ENTEGRE ET
+        try:
+            completed_topics = get_completed_topics_from_user_data(user_data)
+            if completed_topics:
+                st.info(f"🔍 DEBUG: Konu takip sisteminden {len(completed_topics)} adet tamamlanmış konu bulundu")
+                
+                # Koç onaylı konularda tamamlanmış olanları net değerleriyle güncelle
+                for updated_topic in updated_new_topics:
+                    for completed_topic in completed_topics:
+                        if (updated_topic.get('subject') == completed_topic.get('subject') and
+                            updated_topic.get('topic') == completed_topic.get('topic')):
+                            
+                            updated_topic['net'] = completed_topic.get('net', 0)
+                            st.info(f"🔄 Net güncellendi: {updated_topic['subject']} - {updated_topic['topic']} = {completed_topic.get('net', 0)}")
+                            break
+        except Exception as topic_tracking_error:
+            st.info(f"🔍 DEBUG: Konu takip entegrasyonu hatası: {topic_tracking_error}")
+        
         base_weekly_plan['new_topics'] = updated_new_topics
         
         st.info(f"🔍 DEBUG: Güncellenmiş konu sayısı: {len(updated_new_topics)}")
@@ -21829,7 +21848,7 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
         if updated_new_topics:
             st.info("📋 Güncellenmiş konular listesi:")
             for i, topic in enumerate(updated_new_topics):
-                st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')}")
+                st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')} - Net: {topic.get('net', 0)}")
         
         # Kaç değişiklik yapıldığını say
         changes_count = len(approved_coached_topics)
@@ -21855,59 +21874,71 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     
     return base_weekly_plan
 
-def apply_coach_changes(original_topics, coach_approved_topics):
-    """Koçun yaptığı değişiklikleri orijinal konu listesine uygula"""
+def apply_coach_changes(original_topics, coach_approved_topics, user_data):
+    """💯 GÜÇLENDIRILMIŞ KOÇ DEĞİŞİKLİKLERİ UYGULAMA - KESIN ÇÖZÜM"""
     try:
         if not coach_approved_topics:
+            st.info("🔍 DEBUG: Koç onaylı konu yok, orijinal listeyi döndürüyorum")
             return original_topics
-            
-        # Koç onaylı konuları işle
+        
+        st.info("🔍 DEBUG: 💯 GÜÇLENDIRILMIŞ apply_coach_changes çalışıyor...")
+        st.info(f"🔍 DEBUG: Gelen koç onaylı konu sayısı: {len(coach_approved_topics)}")
+        
+        # 💯 ANINDA GÜNCELLEME: Haftalık hedef konuları koç onayladıklarıyla DEĞİŞTİR
         updated_topics = []
-        added_topics = set()  # Eklenecek konuları takip et
         
         for coach_topic in coach_approved_topics:
-            subject = coach_topic.get('subject', '')
-            topic = coach_topic.get('topic', '')
-            detail = coach_topic.get('detail', '')
+            # Koçun onayladığı her konuyu direkt kullan
+            new_topic = {
+                'subject': coach_topic.get('subject', 'Bilinmeyen'),
+                'topic': coach_topic.get('topic', 'Bilinmeyen'),
+                'detail': coach_topic.get('detail', ''),
+                'priority': coach_topic.get('priority', 'NORMAL'),
+                'net': coach_topic.get('net', 0),
+                'approval_date': coach_topic.get('approval_date', ''),
+                'coach_notes': coach_topic.get('coach_notes', '')
+            }
             
-            # Konu zaten var mı kontrol et
-            topic_found = False
-            for i, orig_topic in enumerate(original_topics):
-                if (orig_topic.get('subject', '') == subject and 
-                    orig_topic.get('topic', '') == topic and
-                    orig_topic.get('detail', '') == detail):
-                    
-                    # Konu bulundu, güncelle (eğer coach'ta özel bilgiler varsa)
-                    updated_topic = orig_topic.copy()
-                    if 'priority' in coach_topic:
-                        updated_topic['priority'] = coach_topic['priority']
-                    if 'net' in coach_topic and coach_topic['net'] != 0:
-                        updated_topic['net'] = coach_topic['net']
-                    
-                    updated_topics.append(updated_topic)
-                    topic_found = True
-                    added_topics.add(f"{subject}_{topic}_{detail}")
-                    break
-            
-            # Eğer konu yoksa, koç onayladığı için yeni ekle
-            if not topic_found:
-                new_topic = coach_topic.copy()
-                # Eğer net değeri yoksa 0 yap
-                if 'net' not in new_topic:
-                    new_topic['net'] = 0
-                updated_topics.append(new_topic)
-                added_topics.add(f"{subject}_{topic}_{detail}")
+            updated_topics.append(new_topic)
+            st.info(f"✅ KONUK ONAYLADI: {new_topic['subject']} - {new_topic['topic']} - {new_topic['priority']}")
         
-        # Orijinal konulardan koçun onaylamadığı konuları da ekle (sadece manuel olarak silinmedikçe)
-        for orig_topic in original_topics:
-            topic_key = f"{orig_topic.get('subject', '')}_{orig_topic.get('topic', '')}_{orig_topic.get('detail', '')}"
-            if topic_key not in added_topics:
-                # Bu konu koç tarafından açıkça silinmemiş, ekle
-                updated_topics.append(orig_topic)
+        # 🔥 GÜÇLÜ CACHE TEMİZLEME - Öğrencinin tüm cache'ini temizle
+        try:
+            # Tüm olası cache key'lerini temizle
+            username = user_data.get('username', 'unknown')
+            cache_keys_to_delete = [
+                f"weekly_plan_{username}",
+                f"topics_from_user_data_{username}",
+                f"get_weekly_topics_{username}",
+                f"create_dynamic_weekly_plan_{username}"
+            ]
+            
+            for key in cache_keys_to_delete:
+                if key in st.session_state:
+                    del st.session_state[key]
+                    st.info(f"🔄 Cache temizlendi: {key}")
+            
+            # Genel cache de temizle
+            if hasattr(st.session_state, 'firebase_cache'):
+                try:
+                    st.session_state.firebase_cache.clear()
+                    st.info("🔄 Firebase cache temizlendi!")
+                except:
+                    pass
+        except Exception as cache_error:
+            st.info(f"Cache temizleme hatası: {cache_error}")
+        
+        st.info(f"🔍 DEBUG: Sonuç - {len(updated_topics)} konu haftalık hedef konular listesine eklendi")
+        
+        # Sonuçları göster
+        for i, topic in enumerate(updated_topics):
+            st.info(f"  📋 Sonuç {i+1}. {topic['subject']} - {topic['topic']} - {topic['priority']}")
         
         return updated_topics
+        
     except Exception as e:
         st.error(f"Koç değişiklikleri uygulama hatası: {e}")
+        st.info(f"🔍 DEBUG: Hata detayı: {str(e)}")
         return original_topics
 
 def get_approved_coached_topics(user_data):
