@@ -26003,8 +26003,12 @@ def admin_coach_approval_panel():
                     else:
                         st.error("⚠️ Manuel ekleme için en azından ders ve konu adı gereklidir!")
             
-            # Koç notu ve onay
-            coach_notes = st.text_area("📝 Koç Notu:", placeholder="Programla ilgili görüşleriniz, önerileriniz...")
+            # Koç notu ve onay (HER TALEBİN KENDİ TEXTAREA'SI)
+            coach_notes = st.text_area(
+                "📝 Koç Notu:", 
+                placeholder="Programla ilgili görüşleriniz, önerileriniz...", 
+                key=f"coach_notes_{i}"  # 🔧 UNIQUE KEY: Her talep için farklı
+            )
             
             col1, col2 = st.columns(2)
             with col1:
