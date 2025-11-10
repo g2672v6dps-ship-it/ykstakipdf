@@ -7984,7 +7984,17 @@ def show_pending_reviews_section(pending_topics):
         return
     
     for topic in pending_topics:
-        with st.expander(f"🔄 {topic['subject']} - {topic['topic']} | {topic['stage_name']}", expanded=True):
+        # 🔧 GÜVENLİ: Her topic için gerekli alanları kontrol et
+        if not isinstance(topic, dict):
+            st.warning("⚠️ Hatalı topic formatı atlanıyor")
+            continue
+            
+        subject = topic.get('subject', 'Bilinmiyor')
+        topic_name = topic.get('topic', 'Bilinmiyor') 
+        stage_name = topic.get('stage_name', 'Bilinmiyor Aşama')
+        stage = topic.get('stage', 0)
+        
+        with st.expander(f"🔄 {subject} - {topic_name} | {stage_name}", expanded=True):
             # Konu bilgileri
             col1, col2 = st.columns([2, 1])
             
@@ -7997,13 +8007,23 @@ def show_pending_reviews_section(pending_topics):
                 """)
             
             with col2:
-                stage_info = MASTERY_STATUS.get(f"REVIEW_{topic['stage'] + 1}", MASTERY_STATUS["INITIAL"])
-                st.markdown(f"""
-                <div style='text-align: center; padding: 10px; background: {stage_info['color']}22; border-radius: 8px;'>
-                    <div style='font-size: 24px;'>{stage_info['icon']}</div>
-                    <div style='font-weight: bold; color: {stage_info['color']};'>{stage_info['name']}</div>
-                </div>
-                """, unsafe_allow_html=True)
+                # 🔧 GÜVENLİ: Stage bilgisini güvenli şekilde al
+                try:
+                    safe_stage = max(0, min(4, stage))  # 0-4 arasında sınırla
+                    stage_key = f"REVIEW_{safe_stage + 1}" if safe_stage < 4 else "REVIEW_4"
+                    stage_info = MASTERY_STATUS.get(stage_key, MASTERY_STATUS["INITIAL"])
+                    
+                    st.markdown(f"""
+                    <div style='text-align: center; padding: 10px; background: {stage_info['color']}22; border-radius: 8px;'>
+                        <div style='font-size: 24px;'>{stage_info['icon']}</div>
+                        <div style='font-weight: bold; color: {stage_info['color']};'>{stage_info['name']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                except Exception as stage_error:
+                    st.info("⚠️ Stage bilgisi yüklenemedi")
+                    st.info(f"🔍 DEBUG: Stage hatası: {stage_error}")
+                    st.info(f"🔍 DEBUG: Stage değeri: {stage}")
+                    st.info(f"🔍 DEBUG: Topic: {topic}")
             
             # Değerlendirme seçenekleri
             st.markdown("#### 🎯 Bu konuda kendinizi nasıl değerlendiriyorsunuz?")
@@ -8011,34 +8031,36 @@ def show_pending_reviews_section(pending_topics):
             col1, col2, col3, col4, col5 = st.columns(5)
             
             with col1:
-                if st.button("❌ Zayıf", key=f"zayif_{topic['key']}", 
+                # 🔧 GÜVENLİ: Key bilgisini güvenli şekilde al
+                topic_key = topic.get('key', f"topic_{hash(str(topic))}")  # Fallback key
+                if st.button("❌ Zayıf", key=f"zayif_{topic_key}", 
                            help="Konuyu tekrar öğrenmem gerekiyor",
                            use_container_width=True):
                     process_and_update_review(topic['key'], 'zayif')
             
             with col2:
-                if st.button("📚 Temel", key=f"temel_{topic['key']}", 
+                if st.button("📚 Temel", key=f"temel_{topic_key}", 
                            help="Temel seviyede biliyorum",
                            use_container_width=True):
-                    process_and_update_review(topic['key'], 'temel')
+                    process_and_update_review(topic_key, 'temel')
             
             with col3:
-                if st.button("📜 Orta", key=f"orta_{topic['key']}", 
+                if st.button("📜 Orta", key=f"orta_{topic_key}", 
                            help="Orta seviyede biliyorum",
                            use_container_width=True):
-                    process_and_update_review(topic['key'], 'orta')
+                    process_and_update_review(topic_key, 'orta')
             
             with col4:
-                if st.button("✅ İyi", key=f"iyi_{topic['key']}", 
+                if st.button("✅ İyi", key=f"iyi_{topic_key}", 
                            help="İyi seviyede biliyorum",
                            use_container_width=True):
-                    process_and_update_review(topic['key'], 'iyi')
+                    process_and_update_review(topic_key, 'iyi')
             
             with col5:
-                if st.button("⭐ Uzman", key=f"uzman_{topic['key']}", 
+                if st.button("⭐ Uzman", key=f"uzman_{topic_key}", 
                            help="Uzman seviyede biliyorum",
                            use_container_width=True):
-                    process_and_update_review(topic['key'], 'uzman')
+                    process_and_update_review(topic_key, 'uzman')
 
 def process_and_update_review(topic_key, evaluation):
     """Tekrar değerlendirmesini işler ve Firebase'i günceller"""
@@ -11645,13 +11667,33 @@ def show_pomodoro_interface(user_data):
     student_field = user_data.get('field', '')
     survey_data = json.loads(user_data.get('survey_data', '{}')) if user_data.get('survey_data') else {}
     
-    # Haftalık hedef konuları çek
-    weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
+    # Haftalık hedef konuları çek - KOÇ ONAYLARIYLA BİRLİKTE
+    weekly_plan = create_dynamic_weekly_plan(user_data, student_field, survey_data)
     weekly_target_topics = weekly_plan.get('new_topics', []) + weekly_plan.get('review_topics', [])
+    
+    # 🔍 DEBUG: Coach integration test
+    st.info(f"🔍 DEBUG: Haftalık hedef konu sayısı: {len(weekly_target_topics)}")
+    if weekly_target_topics:
+        st.info("📋 Haftalık hedef konular listesi:")
+        for i, topic in enumerate(weekly_target_topics[:5]):  # İlk 5 konuyu göster
+            st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - Net: {topic.get('net', 'N/A')}")
+    else:
+        st.warning("⚠️ Hiç haftalık hedef konu bulunamadı!")
     
     if weekly_target_topics:
         # Haftalık hedef konularını görüntüle
         st.markdown("#### 📋 YKS Canlı Takip'ten Hedef Konular")
+        
+        # 🔍 DEBUG: Coach onay kontrolü
+        try:
+            from datetime import datetime
+            coach_approved_topics = get_approved_coached_topics(user_data)
+            if coach_approved_topics:
+                st.success(f"✅ {len(coach_approved_topics)} adet koç onaylı konu entegre edildi!")
+            else:
+                st.info("ℹ️ Henüz koç onaylı konu yok")
+        except Exception as coach_debug_error:
+            st.warning(f"🔍 DEBUG: Koç onay kontrolü hatası: {coach_debug_error}")
         
         # Bu haftaki pomodorolardan konu bazında ilerleme hesapla
         topic_progress_in_pomodoros = {}
@@ -13036,27 +13078,38 @@ def get_pending_review_topics(user_data):
     current_date = datetime.now()
     
     for topic_key, history in repetition_history.items():
-        next_review_date = history.get('next_review_date')
-        if next_review_date and history['current_stage'] < 4:  # Henüz tamamlanmamış
-            try:
-                review_date = datetime.fromisoformat(next_review_date)
-                if current_date >= review_date:
-                    # Konu bilgilerini topic_key'den çıkar
-                    parts = topic_key.split(' | ')
-                    if len(parts) >= 4:
-                        pending_topics.append({
-                            'key': topic_key,
-                            'subject': parts[0],
-                            'main_topic': parts[1],
-                            'topic': parts[2] if parts[2] != 'None' else parts[1],
-                            'detail': parts[3],
-                            'stage': history['current_stage'],
-                            'stage_name': get_stage_name(history['current_stage']),
-                            'days_since_last': (current_date - datetime.fromisoformat(history['initial_date'])).days,
-                            'review_count': len(history['reviews'])
-                        })
-            except:
+        try:
+            # 🔧 GÜVENLİ: History dictionary'sini kontrol et
+            if not isinstance(history, dict):
                 continue
+                
+            next_review_date = history.get('next_review_date')
+            current_stage = history.get('current_stage', 0)
+            
+            if next_review_date and current_stage < 4:  # Henüz tamamlanmamış
+                try:
+                    review_date = datetime.fromisoformat(next_review_date)
+                    if current_date >= review_date:
+                        # Konu bilgilerini topic_key'den çıkar
+                        parts = topic_key.split(' | ')
+                        if len(parts) >= 4:
+                            pending_topics.append({
+                                'key': topic_key,
+                                'subject': parts[0] if parts[0] else 'Bilinmiyor',
+                                'main_topic': parts[1] if parts[1] else 'Bilinmiyor',
+                                'topic': parts[2] if parts[2] != 'None' else parts[1] if parts[1] else 'Bilinmiyor',
+                                'detail': parts[3] if parts[3] else '',
+                                'stage': current_stage,
+                                'stage_name': get_stage_name(current_stage),
+                                'days_since_last': (current_date - datetime.fromisoformat(history.get('initial_date', current_date.strftime('%Y-%m-%d')))).days,
+                                'review_count': len(history.get('reviews', []))
+                            })
+                except Exception as inner_error:
+                    # İç hatalar log'lanabilir ama devam et
+                    continue
+        except Exception as outer_error:
+            # Dış hatalar da görmezden gel
+            continue
     
     return pending_topics
 
@@ -21796,13 +21849,22 @@ def get_user_dynamic_week_info(user_data):
         }
 
 def create_dynamic_weekly_plan(user_data, student_field, survey_data):
-    """🔄 Kullanıcının dinamik haftalık planını oluşturur"""
+    """🔄 Kullanıcının dinamik haftalık planını oluşturur - KOÇ ONAYLARIYLA BİRLİKTE"""
     from datetime import datetime
     import json
     
-    # 🔧 GÜVENLİ: user_data kontrolü
-    if not user_data:
-        st.error("❌ Kullanıcı verisi bulunamadı! Lütfen sayfayı yenileyin.")
+    try:
+        st.info("🔍 DEBUG: create_dynamic_weekly_plan başladı")
+        
+        # 🔧 GÜVENLİ: user_data kontrolü
+        if not user_data:
+            st.error("❌ Kullanıcı verisi bulunamadı! Lütfen sayfayı yenileyin.")
+            return {}
+        
+        st.info(f"🔍 DEBUG: user_data kontrolü geçti - username: {user_data.get('username', 'N/A')}")
+        
+    except Exception as init_error:
+        st.error(f"❌ Fonksiyon başlatma hatası: {init_error}")
         return {}
     
     # Haftalık program başlama kaydı - İLK KEZ ÇAĞIRILDIĞINDA KAYDET
@@ -21903,7 +21965,15 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     # Haftalık döngü takvimini ekle
     base_weekly_plan['weekly_calendar'] = create_weekly_calendar(week_info)
     
+    st.info("🔍 DEBUG: create_dynamic_weekly_plan başarıyla tamamlandı")
+    st.info(f"🔍 DEBUG: Sonuç - {len(base_weekly_plan.get('new_topics', []))} yeni konu, {len(base_weekly_plan.get('review_topics', []))} tekrar konu")
+    
     return base_weekly_plan
+    
+    except Exception as e:
+        st.error(f"❌ Haftalık plan oluşturma hatası: {e}")
+        st.info(f"🔍 DEBUG: Hata detayı: {str(e)}")
+        return {}
 
 def apply_coach_changes(original_topics, coach_approved_topics, user_data):
     """💯 GÜÇLENDIRILMIŞ KOÇ DEĞİŞİKLİKLERİ UYGULAMA - KESIN ÇÖZÜM"""
