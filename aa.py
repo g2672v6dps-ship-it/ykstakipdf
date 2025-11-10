@@ -5090,59 +5090,80 @@ def get_completed_topics_from_user_data(user_data):
     if debug_mode:
         st.write("🔍 DEBUG: get_completed_topics_from_user_data çağrıldı")
     
-    # topic_progress'i al
-    topic_progress_str = user_data.get('topic_progress', '{}')
-    if not topic_progress_str:
-        topic_progress_str = '{}'
+    # 🔧 GÜVENLİ: user_data kontrolü
+    if not user_data:
+        if debug_mode:
+            st.write("⚠️ DEBUG: user_data boş, boş liste döndürülüyor")
+        return completed_topics, completed_topic_names
     
-    topic_progress = json.loads(topic_progress_str)
+    try:
+        # topic_progress'i al
+        topic_progress_str = user_data.get('topic_progress', '{}')
+        if not topic_progress_str:
+            topic_progress_str = '{}'
+        
+        topic_progress = json.loads(topic_progress_str)
+    except Exception as e:
+        if debug_mode:
+            st.write(f"⚠️ DEBUG: topic_progress parse hatası: {e}")
+        return completed_topics, completed_topic_names
     
     for topic_key, topic_data in topic_progress.items():
-        # Veri formatını kontrol et
-        if isinstance(topic_data, dict):
-            topic_net = topic_data.get('net', 0)
-        elif isinstance(topic_data, (int, float, str)):
-            try:
-                topic_net = int(float(str(topic_data)))
-            except:
+        try:
+            # Veri formatını kontrol et
+            if isinstance(topic_data, dict):
+                topic_net = topic_data.get('net', 0)
+                # 🔧 GÜVENLİ: subject bilgisini al
+                subject = topic_data.get('subject', '') if topic_data else ''
+            elif isinstance(topic_data, (int, float, str)):
+                try:
+                    topic_net = int(float(str(topic_data)))
+                except:
+                    topic_net = 0
+                subject = ''  # Simple data type'larda subject bilgisi yok
+            else:
                 topic_net = 0
-        else:
-            topic_net = 0
-        
-        # Net sayısı 14 veya daha fazla ise "iyi" seviye (tamamlanmış)
-        if topic_net >= 14:
-            # Konu formatını parse et
-            # Format: "TYT Türkçe | Anlam Bilgisi | Cümlede Anlam | Neden-Sonuç"
-            topic_parts = topic_key.split(' | ')
+                subject = ''
             
-            completed_topics.append({
-                'topic': topic_key,  # Tam format
-                'topic_name_only': topic_parts[-1] if topic_parts else topic_key,
-                'subject': topic_data.get('subject', '') if isinstance(topic_data, dict) else '',
-                'net': topic_net,
-                'status': 'completed'
-            })
-            
-            # 🔥 KRİTİK: Haftalık plan ile eşleşme için TÜM olası formatları ekle
-            completed_topic_names.add(topic_key)  # Tam format: "TYT Türkçe | Anlam Bilgisi | Cümlede Anlam | Neden-Sonuç"
-            
-            if len(topic_parts) >= 1:
-                completed_topic_names.add(topic_parts[-1])  # Sadece detail: "Neden-Sonuç"
-            
-            if len(topic_parts) >= 3 and topic_parts[-2] != "None":
-                # Main topic - detail kombinasyonu: "Cümlede Anlam - Neden-Sonuç"
-                main_topic_detail = f"{topic_parts[-2]} - {topic_parts[-1]}"
-                completed_topic_names.add(main_topic_detail)
+            # Net sayısı 14 veya daha fazla ise "iyi" seviye (tamamlanmış)
+            if topic_net >= 14:
+                # Konu formatını parse et
+                # Format: "TYT Türkçe | Anlam Bilgisi | Cümlede Anlam | Neden-Sonuç"
+                topic_parts = topic_key.split(' | ') if topic_key else [topic_key]
                 
-                # 🔍 DEBUG
-                if debug_mode and "Neden-Sonuç" in topic_parts[-1]:
-                    st.write(f"✅ Eklendi: {main_topic_detail} (net={topic_net})")
-            
-            if len(topic_parts) >= 2:
-                # Category - detail kombinasyonu: "Anlam Bilgisi - Neden-Sonuç"
-                if topic_parts[-3] != "None" if len(topic_parts) > 2 else False:
-                    category_detail = f"{topic_parts[-3]} - {topic_parts[-1]}"
-                    completed_topic_names.add(category_detail)
+                completed_topics.append({
+                    'topic': topic_key,  # Tam format
+                    'topic_name_only': topic_parts[-1] if topic_parts else topic_key,
+                    'subject': subject,  # 🔧 GÜVENLİ: Yukarıda güvenli şekilde alındı
+                    'net': topic_net,
+                    'status': 'completed'
+                })
+                
+                # 🔥 KRİTİK: Haftalık plan ile eşleşme için TÜM olası formatları ekle
+                completed_topic_names.add(topic_key)  # Tam format
+                
+                if len(topic_parts) >= 1:
+                    completed_topic_names.add(topic_parts[-1])  # Sadece detail: "Neden-Sonuç"
+                
+                if len(topic_parts) >= 3 and topic_parts[-2] != "None":
+                    # Main topic - detail kombinasyonu
+                    main_topic_detail = f"{topic_parts[-2]} - {topic_parts[-1]}"
+                    completed_topic_names.add(main_topic_detail)
+                    
+                    # 🔍 DEBUG
+                    if debug_mode and "Neden-Sonuç" in topic_parts[-1]:
+                        st.write(f"✅ Eklendi: {main_topic_detail} (net={topic_net})")
+                
+                if len(topic_parts) >= 2:
+                    # Category - detail kombinasyonu
+                    if topic_parts[-3] != "None" if len(topic_parts) > 2 else False:
+                        category_detail = f"{topic_parts[-3]} - {topic_parts[-1]}"
+                        completed_topic_names.add(category_detail)
+        except Exception as topic_error:
+            # Tek topic hatası tüm fonksiyonu bozmasın
+            if debug_mode:
+                st.write(f"⚠️ DEBUG: Topic '{topic_key}' işlenirken hata: {topic_error}")
+            continue
     
     # 🔍 DEBUG: Tamamlanmış konuları göster
     if debug_mode:
@@ -7955,6 +7976,11 @@ def show_review_card(topic, priority_type):
 def show_pending_reviews_section(pending_topics):
     """Tekrar değerlendirmesi bekleyen konular bölümünü gösterir"""
     if not pending_topics:
+        return
+    
+    # 🔧 GÜVENLİ: Liste kontrolü
+    if not isinstance(pending_topics, list):
+        st.warning("⚠️ Bekleyen konu listesi formatı hatalı")
         return
     
     for topic in pending_topics:
@@ -21774,6 +21800,11 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     from datetime import datetime
     import json
     
+    # 🔧 GÜVENLİ: user_data kontrolü
+    if not user_data:
+        st.error("❌ Kullanıcı verisi bulunamadı! Lütfen sayfayı yenileyin.")
+        return {}
+    
     # Haftalık program başlama kaydı - İLK KEZ ÇAĞIRILDIĞINDA KAYDET
     if not user_data.get('weekly_program_started', False):
         user_data['weekly_program_started'] = True
@@ -21824,7 +21855,7 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
         
         # 🔥 BONUS: KONU TAKİP SİSTEMİNDEN NET DEĞİŞİKLİKLERİ ENTEGRE ET
         try:
-            completed_topics = get_completed_topics_from_user_data(user_data)
+            completed_topics, completed_topic_names = get_completed_topics_from_user_data(user_data)
             if completed_topics:
                 st.info(f"🔍 DEBUG: Konu takip sisteminden {len(completed_topics)} adet tamamlanmış konu bulundu")
                 
