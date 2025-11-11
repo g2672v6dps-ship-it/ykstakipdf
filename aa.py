@@ -5107,7 +5107,7 @@ def get_completed_topics_from_user_data(user_data):
                     completed_topic_names.add(main_topic_detail)
                     
 
-                    if debug_mode and "Neden-Sonuç" in topic_parts[-1]:
+                    if "Neden-Sonuç" in topic_parts[-1]:
                         st.write(f"✅ Eklendi: {main_topic_detail} (net={topic_net})")
                 
                 if len(topic_parts) >= 2:
@@ -5121,7 +5121,7 @@ def get_completed_topics_from_user_data(user_data):
             continue
     
 
-    if debug_mode:
+    # Debug mod kaldırıldı
         st.write(f"📊 Toplam {len(completed_topics)} tamamlanmış konu bulundu")
         if completed_topic_names:
             st.write("🔎 Tamamlanmış konu formatları:")
@@ -7896,7 +7896,8 @@ def show_review_topics_section(review_topics, user_data):
                     level_key = f"review_level_{topic['subject']}_{topic['topic']}"
                     
                     # Mevcut seçimi al
-                    current_level = user_data.get('topic_repetition_history', {}).get(topic['topic'], {}).get('level', 'Zayıf')
+                    topic_key = f"{topic['subject']}_{topic['topic']}"
+                    current_level = user_data.get('topic_repetition_history', {}).get(topic_key, {}).get('level', 'Zayıf')
                     
                     level_options = ['Zayıf', 'Temel', 'Orta', 'İyi', 'Uzman']
                     
