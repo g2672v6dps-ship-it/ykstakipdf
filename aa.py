@@ -21863,114 +21863,110 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
         
         st.info(f"🔍 DEBUG: user_data kontrolü geçti - username: {user_data.get('username', 'N/A')}")
         
-    # Haftalık program başlama kaydı - İLK KEZ ÇAĞIRILDIĞINDA KAYDET
-    if not user_data.get('weekly_program_started', False):
-        user_data['weekly_program_started'] = True
-        user_data['weekly_plan_start_date'] = datetime.now().strftime("%Y-%m-%d")
-        # Firebase'e güncelleyi gönder
-        if 'username' in user_data:
-            update_user_in_firebase(user_data['username'], {
-                'weekly_program_started': True,
-                'weekly_plan_start_date': user_data['weekly_plan_start_date']
-            })
-        st.success("🎆 Haftalık program başlatıldı! Gidişat analizi İLK HAFTAN bitince açılacak.")
-    
-    # Dinamik hafta bilgisini al
-    week_info = get_user_dynamic_week_info(user_data)
-    
-    # 🆕 FİX: TYT/AYT ilerleme hesaplaması için projections hesapla
-    days_to_yks = get_current_week_info()['days_to_yks']
-    projections = calculate_completion_projections(user_data, student_field, days_to_yks)
-    
-    # Mevcut haftalık plan sistemindeki temel bilgileri al
-    base_weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
-    
-    # 🔥 KOÇ ONAYLARINI HAFTALIK HEDEF KONULAR'A ENTEGRE ET (DEĞİŞİKLİKLERLE)
-    approved_coached_topics = get_approved_coached_topics(user_data)
-    
-    # 🔧 DEBUG: Koç onaylı konuları listele (HER ZAMAN GÖSTER)
-    st.info(f"🔍 DEBUG: {len(approved_coached_topics)} adet koç onaylı konu bulundu")
-    if approved_coached_topics:
-        st.info("📋 Koç onaylı konular listesi:")
-        for i, topic in enumerate(approved_coached_topics):
-            st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')}")
-    else:
-        st.info("❌ Hiç koç onaylı konu bulunamadı!")
-    
-    # Orijinal konu sayısını HER ZAMAN göster
-    original_topics = base_weekly_plan.get('new_topics', [])
-    st.info(f"🔍 DEBUG: Orijinal konu sayısı: {len(original_topics)}")
-    
-    # Orijinal konuları listele
-    if original_topics:
-        st.info("📋 Orijinal konular listesi:")
-        for i, topic in enumerate(original_topics):
-            st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')}")
-    
-    if approved_coached_topics:
-        # Mevcut konuları güncelle/sil/ekle
-        updated_new_topics = apply_coach_changes(original_topics, approved_coached_topics, user_data)
+        # Haftalık program başlama kaydı - İLK KEZ ÇAĞIRILDIĞINDA KAYDET
+        if not user_data.get('weekly_program_started', False):
+            user_data['weekly_program_started'] = True
+            user_data['weekly_plan_start_date'] = datetime.now().strftime("%Y-%m-%d")
+            # Firebase'e güncelleyi gönder
+            if 'username' in user_data:
+                update_user_in_firebase(user_data['username'], {
+                    'weekly_program_started': True,
+                    'weekly_plan_start_date': user_data['weekly_plan_start_date']
+                })
+            st.success("🎆 Haftalık program başlatıldı! Gidişat analizi İLK HAFTAN bitince açılacak.")
         
-        # 🔥 BONUS: KONU TAKİP SİSTEMİNDEN NET DEĞİŞİKLİKLERİ ENTEGRE ET
-        try:
-            completed_topics, completed_topic_names = get_completed_topics_from_user_data(user_data)
-            if completed_topics:
-                st.info(f"🔍 DEBUG: Konu takip sisteminden {len(completed_topics)} adet tamamlanmış konu bulundu")
-                
-                # Koç onaylı konularda tamamlanmış olanları net değerleriyle güncelle
-                for updated_topic in updated_new_topics:
-                    for completed_topic in completed_topics:
-                        if (updated_topic.get('subject') == completed_topic.get('subject') and
-                            updated_topic.get('topic') == completed_topic.get('topic')):
-                            
-                            updated_topic['net'] = completed_topic.get('net', 0)
-                            st.info(f"🔄 Net güncellendi: {updated_topic['subject']} - {updated_topic['topic']} = {completed_topic.get('net', 0)}")
-                            break
-        except Exception as topic_tracking_error:
-            st.info(f"🔍 DEBUG: Konu takip entegrasyonu hatası: {topic_tracking_error}")
+        # Dinamik hafta bilgisini al
+        week_info = get_user_dynamic_week_info(user_data)
         
-        base_weekly_plan['new_topics'] = updated_new_topics
+        # 🆕 FİX: TYT/AYT ilerleme hesaplaması için projections hesapla
+        days_to_yks = get_current_week_info()['days_to_yks']
+        projections = calculate_completion_projections(user_data, student_field, days_to_yks)
         
-        st.info(f"🔍 DEBUG: Güncellenmiş konu sayısı: {len(updated_new_topics)}")
+        # Mevcut haftalık plan sistemindeki temel bilgileri al
+        base_weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         
-        # Güncellenmiş konuları listele
-        if updated_new_topics:
-            st.info("📋 Güncellenmiş konular listesi:")
-            for i, topic in enumerate(updated_new_topics):
-                st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')} - Net: {topic.get('net', 0)}")
+        # 🔥 KOÇ ONAYLARINI HAFTALIK HEDEF KONULAR'A ENTEGRE ET (DEĞİŞİKLİKLERLE)
+        approved_coached_topics = get_approved_coached_topics(user_data)
         
-        # Kaç değişiklik yapıldığını say
-        changes_count = len(approved_coached_topics)
-        st.info(f"✅ {changes_count} adet koç onaylı konu haftalık hedef konularınız güncellendi!")
-    
-    # Dinamik bilgileri ekle
-    base_weekly_plan['dynamic_week_info'] = week_info
-    base_weekly_plan['is_dynamic'] = True
-    base_weekly_plan['projections'] = projections  # 🆕 FİX: Projections ekle
-    
-    # Özel dinamik başlık ve açıklama
-    base_weekly_plan['dynamic_title'] = f"🔁 {week_info['current_week']}. Haftanız - Gün {week_info['current_day_in_week']}/7"
-    base_weekly_plan['dynamic_description'] = f"""
-    📅 **Kayıt Tarihinizden Bu Yana:** {week_info['days_since_registration']} gün  
-    🔄 **Mevcut Hafta Döngünüz:** {week_info['current_week']}. hafta  
-    📆 **Bugün:** {week_info['current_day_name']} ({week_info['current_day_in_week']}/7)  
-    ⏳ **Bu Haftada Kalan:** {week_info['days_left_in_week']} gün  
-    🏁 **Hafta Aralığı:** {week_info['week_start_date'].strftime('%d.%m')} - {week_info['week_end_date'].strftime('%d.%m')}
-    """
-    
-    # Haftalık döngü takvimini ekle
-    base_weekly_plan['weekly_calendar'] = create_weekly_calendar(week_info)
-    
+        # 🔧 DEBUG: Koç onaylı konuları listele (HER ZAMAN GÖSTER)
+        st.info(f"🔍 DEBUG: {len(approved_coached_topics)} adet koç onaylı konu bulundu")
+        if approved_coached_topics:
+            st.info("📋 Koç onaylı konular listesi:")
+            for i, topic in enumerate(approved_coached_topics):
+                st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')}")
+        else:
+            st.info("❌ Hiç koç onaylı konu bulunamadı!")
+        
+        # Orijinal konu sayısını HER ZAMAN göster
+        original_topics = base_weekly_plan.get('new_topics', [])
+        st.info(f"🔍 DEBUG: Orijinal konu sayısı: {len(original_topics)}")
+        
+        # Orijinal konuları listele
+        if original_topics:
+            st.info("📋 Orijinal konular listesi:")
+            for i, topic in enumerate(original_topics):
+                st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')}")
+        
+        if approved_coached_topics:
+            # Mevcut konuları güncelle/sil/ekle
+            updated_new_topics = apply_coach_changes(original_topics, approved_coached_topics, user_data)
+            
+            # 🔥 BONUS: KONU TAKİP SİSTEMİNDEN NET DEĞİŞİKLİKLERİ ENTEGRE ET
+            try:
+                completed_topics, completed_topic_names = get_completed_topics_from_user_data(user_data)
+                if completed_topics:
+                    st.info(f"🔍 DEBUG: Konu takip sisteminden {len(completed_topics)} adet tamamlanmış konu bulundu")
+                    
+                    # Koç onaylı konularda tamamlanmış olanları net değerleriyle güncelle
+                    for updated_topic in updated_new_topics:
+                        for completed_topic in completed_topics:
+                            if (updated_topic.get('subject') == completed_topic.get('subject') and
+                                updated_topic.get('topic') == completed_topic.get('topic')):
+                                
+                                updated_topic['net'] = completed_topic.get('net', 0)
+                                st.info(f"🔄 Net güncellendi: {updated_topic['subject']} - {updated_topic['topic']} = {completed_topic.get('net', 0)}")
+                                break
+            except Exception as topic_tracking_error:
+                st.info(f"🔍 DEBUG: Konu takip entegrasyonu hatası: {topic_tracking_error}")
+            
+            base_weekly_plan['new_topics'] = updated_new_topics
+            
+            st.info(f"🔍 DEBUG: Güncellenmiş konu sayısı: {len(updated_new_topics)}")
+            
+            # Güncellenmiş konuları listele
+            if updated_new_topics:
+                st.info("📋 Güncellenmiş konular listesi:")
+                for i, topic in enumerate(updated_new_topics):
+                    st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')} - Net: {topic.get('net', 0)}")
+            
+            # Kaç değişiklik yapıldığını say
+            changes_count = len(approved_coached_topics)
+            st.info(f"✅ {changes_count} adet koç onaylı konu haftalık hedef konularınız güncellendi!")
+        
+        # Dinamik bilgileri ekle
+        base_weekly_plan['dynamic_week_info'] = week_info
+        base_weekly_plan['is_dynamic'] = True
+        base_weekly_plan['projections'] = projections  # 🆕 FİX: Projections ekle
+        
+        # Özel dinamik başlık ve açıklama
+        base_weekly_plan['dynamic_title'] = f"🔁 {week_info['current_week']}. Haftanız - Gün {week_info['current_day_in_week']}/7"
+        base_weekly_plan['dynamic_description'] = f"""
+        📅 **Kayıt Tarihinizden Bu Yana:** {week_info['days_since_registration']} gün  
+        🔄 **Mevcut Hafta Döngünüz:** {week_info['current_week']}. hafta  
+        📆 **Bugün:** {week_info['current_day_name']} ({week_info['current_day_in_week']}/7)  
+        ⏳ **Bu Haftada Kalan:** {week_info['days_left_in_week']} gün  
+        🏁 **Hafta Aralığı:** {week_info['week_start_date'].strftime('%d.%m')} - {week_info['week_end_date'].strftime('%d.%m')}
+        """
+        
+        # Haftalık döngü takvimini ekle
+        base_weekly_plan['weekly_calendar'] = create_weekly_calendar(week_info)
+        
+        return base_weekly_plan
+        
     except Exception as e:
         st.error(f"❌ Haftalık plan oluşturma hatası: {e}")
         st.info(f"🔍 DEBUG: Hata detayı: {str(e)}")
         return {}
-    
-    # Bu kısım sadece başarı durumunda çalışır
-    st.info("🔍 DEBUG: create_dynamic_weekly_plan başarıyla tamamlandı")
-    st.info(f"🔍 DEBUG: Sonuç - {len(base_weekly_plan.get('new_topics', []))} yeni konu, {len(base_weekly_plan.get('review_topics', []))} tekrar konu")
-    
-    return base_weekly_plan
 
 def apply_coach_changes(original_topics, coach_approved_topics, user_data):
     """💯 GÜÇLENDIRILMIŞ KOÇ DEĞİŞİKLİKLERİ UYGULAMA - KESIN ÇÖZÜM"""
