@@ -2524,10 +2524,10 @@ TYT_MSU_WEEKLY_PLAN = {
             ],
             "TYT Matematik": [
                 "Ondalıklı Sayılar",
-                "Oran Oranti",
-                "Denklem çözme",
-                "Sayı Problemleri",
-                "Kesir Problemleri"
+                "Oran Orantı",
+                "Denklem Çözme",
+                "Problemler - Sayı Problemleri",
+                "Problemler - Kesir Problemleri"
             ],
             "TYT Geometri": [
                 "Açıortay",
@@ -2561,11 +2561,11 @@ TYT_MSU_WEEKLY_PLAN = {
                 "Noktalama İşaretleri"
             ],
             "TYT Matematik": [
-                "Basit eşitsizlikler",
+                "Basit Eşitsizlikler",
                 "Mutlak Değer",
-                "Yaş problemleri",
-                "Yüzde problemleri",
-                "Kar-zarar problemleri"
+                "Problemler - Yaş Problemleri",
+                "Problemler - Yüzde Problemleri",
+                "Problemler - Kar-Zarar Problemleri"
             ],
             "TYT Geometri": [
                 "Eşlik ve benzerlik"
@@ -2597,9 +2597,9 @@ TYT_MSU_WEEKLY_PLAN = {
                 "Sözcük Türleri"
             ],
             "TYT Matematik": [
-                "Üslü sayılar",
+                "Üslü Sayılar",
                 "Köklü Sayılar",
-                "Karışım Problemleri"
+                "Problemler - Karışım Problemleri"
             ],
             "TYT Geometri": [
                 "Üçgende alan"
@@ -2634,8 +2634,8 @@ TYT_MSU_WEEKLY_PLAN = {
             ],
             "TYT Matematik": [
                 "Çarpanlara Ayırma",
-                "Hareket Problemleri",
-                "İşçi problemleri"
+                "Problemler - Hareket Problemleri",
+                "Problemler - İşçi Problemleri"
             ],
             "TYT Geometri": [
                 "Açı kenar bağlantıları",
@@ -2674,8 +2674,8 @@ TYT_MSU_WEEKLY_PLAN = {
                 "Cümle türleri"
             ],
             "TYT Matematik": [
-                "Tablo-Grafik problemleri",
-                "Rutin olmayan problemler"
+                "Problemler - Tablo-Grafik Problemleri",
+                "Problemler - Rutin Olmayan Problemler"
             ],
             "TYT Geometri": [
                 "Özel dörtgenler",
@@ -2749,7 +2749,7 @@ TYT_MSU_WEEKLY_PLAN = {
         "topics": {
             "TYT Matematik": [
                 "Kombinasyon-Permütasyon",
-                "Olasilik"
+                "Olasılık"
             ],
             "TYT Tarih": [
                 "II.TBMM Dönemi ve çok partili hayata geçiş",
@@ -7875,7 +7875,7 @@ def show_new_topics_section(new_topics, user_data):
             show_topic_card(topic, "MINIMAL")
 
 def show_review_topics_section(review_topics, user_data):
-    """Tekrar konuları bölümü - ESKİ VE YENİ SİSTEM ENTEGRASYONLİ"""
+    """Tekrar konuları bölümü - KOMPACT VERSİYON"""
     # YENİ: Kalıcı öğrenme sistemi tekrarları
     pending_mastery_topics = get_pending_review_topics(user_data)
     
@@ -7884,42 +7884,37 @@ def show_review_topics_section(review_topics, user_data):
         st.info("🎉 Bu hafta tekrar edilecek konu yok!")
         return
     
-    # YENİ SİSTEM: Kalıcı Öğrenme Tekrarları (Öncelik)
-    if pending_mastery_topics:
-        st.markdown("#### 🎯 KALİCİ ÖĞRENME TEKRARLARİ")
-        st.caption("Bu konuları yeniden değerlendirerek kalıcılığını onaylayın!")
-        show_pending_reviews_section(pending_mastery_topics)
-        
-        if review_topics:  # Eğer eski sistem tekrarları da varsa ayırıcı ekle
-            st.markdown("---")
+    # Tüm tekrarları tek listede birleştir
+    all_review_topics = []
     
-    # ESKİ SİSTEM: Spaced Repetition Tekrarları
+    # Kalıcı öğrenme tekrarlarını ekle (öncelik)
+    if pending_mastery_topics:
+        for topic in pending_mastery_topics:
+            topic_with_priority = topic.copy()
+            topic_with_priority['review_type'] = 'KALİCİ'
+            all_review_topics.append(topic_with_priority)
+    
+    # Genel tekrarları ekle
     if review_topics:
-        st.markdown("#### 🔄 GENEL TEKRARLAR")
-        st.caption("Eski sistemden gelen aralıklı tekrar konuları")
+        for topic in review_topics:
+            topic_with_priority = topic.copy()
+            topic_with_priority['review_type'] = 'GENEL'
+            all_review_topics.append(topic_with_priority)
+    
+    # Kompakt liste göster
+    if all_review_topics:
+        st.markdown("#### 🔄 TEKRAR EDİLECEK KONULAR")
         
-        # Öncelik gruplarına ayır
-        high_reviews = [t for t in review_topics if t.get('priority') == 'REPEAT_HIGH']
-        medium_reviews = [t for t in review_topics if t.get('priority') == 'REPEAT_MEDIUM']
-        normal_reviews = [t for t in review_topics if t.get('priority') == 'REPEAT_NORMAL']
+        # Kompakt liste formatı
+        for i, topic in enumerate(all_review_topics[:15]):  # Max 15 konu göster
+            review_type_icon = "🎯" if topic['review_type'] == 'KALİCİ' else "🔄"
+            review_type_text = "Kalıcı" if topic['review_type'] == 'KALİCİ' else "Genel"
+            
+            st.markdown(f"{i+1}. **{topic['subject']}** - {topic['topic']} {review_type_icon} ({review_type_text})")
         
-        # Yüksek öncelikli tekrarlar
-        if high_reviews:
-            st.markdown("##### 🔄 Yüksek Öncelikli Tekrar")
-            for topic in high_reviews:
-                show_review_card(topic, "REPEAT_HIGH")
-        
-        # Öncelikli tekrarlar
-        if medium_reviews:
-            st.markdown("##### 🔄 Öncelikli Tekrar")
-            for topic in medium_reviews:
-                show_review_card(topic, "REPEAT_MEDIUM")
-        
-        # Normal tekrarlar
-        if normal_reviews:
-            st.markdown("##### 🔄 Normal Tekrar")
-            for topic in normal_reviews:
-                show_review_card(topic, "REPEAT_NORMAL")
+        # Eğer daha fazla konu varsa
+        if len(all_review_topics) > 15:
+            st.caption(f"... ve {len(all_review_topics) - 15} konu daha")
 
 def show_topic_card(topic, priority_type):
     """Konu kartı gösterici"""
@@ -13557,22 +13552,20 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     
     # 1. 🎯 ZAMANSAL STRATEJİYE GÖRE KONU DAĞILIMI
     for subject, priority_score in sorted_subjects:
-        st.info(f"🔍 DEBUG: Processing subject: {subject}, priority: {priority_score}")
         
         # Ders önem puanını al
         importance = SUBJECT_IMPORTANCE_SCORES.get(subject, 5)
-        st.info(f"🔍 DEBUG: Subject: {subject}, importance: {importance}")
+
         
         # 🚀 ZAMANSAL STRATEJİYE GÖRE DİNAMİK HAFTALIK LİMİT HESAPLA
         weekly_limit = calculate_dynamic_topic_limits(time_strategy, importance)
-        st.info(f"🔍 DEBUG: Subject: {subject}, weekly_limit: {weekly_limit}")
         
         # 📅 DÖNEM BAZLI DERS FİLTRELEME (Eski statik sistemin yerine)
         should_include_subject = should_include_subject_in_period(
             subject, importance, time_strategy, user_data, week_info
         )
-        
         st.info(f"🔍 DEBUG: Should include {subject}: {should_include_subject}")
+        
         
         if not should_include_subject:
             continue
@@ -13630,8 +13623,6 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     
     # 5. 🎯 ZAMANSAL STRATEJİ İLE TOPLAM PLAN
     st.info(f"🔍 DEBUG: Final weekly_new_topics count: {len(weekly_new_topics)}")
-    st.info(f"🔍 DEBUG: Final weekly_review_topics count: {len(weekly_review_topics)}")
-    st.info(f"🔍 DEBUG: Final all_available_topics count: {len(all_available_topics)}")
     
     total_plan = {
         'new_topics': weekly_new_topics[:time_strategy['new_topics_per_week']],  # Strateji bazlı limit
@@ -21881,14 +21872,10 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
         st.info("🔍 DEBUG: create_dynamic_weekly_plan başladı")
         st.info(f"🔍 DEBUG: user_data keys: {list(user_data.keys()) if user_data else 'None'}")
         st.info(f"🔍 DEBUG: student_field: {student_field}")
-        st.info(f"🔍 DEBUG: survey_data keys: {list(survey_data.keys()) if survey_data else 'None'}")
-        
-        # 🔧 GÜVENLİ: user_data kontrolü
+        # Güvenli: user_data kontrolü
         if not user_data:
             st.error("❌ Kullanıcı verisi bulunamadı! Lütfen sayfayı yenileyin.")
             return {}
-        
-        st.info(f"🔍 DEBUG: user_data kontrolü geçti - username: {user_data.get('username', 'N/A')}")
         
         # Haftalık program başlama kaydı - İLK KEZ ÇAĞIRILDIĞINDA KAYDET
         if not user_data.get('weekly_program_started', False):
@@ -21915,25 +21902,8 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
         # 🔥 KOÇ ONAYLARINI HAFTALIK HEDEF KONULAR'A ENTEGRE ET (DEĞİŞİKLİKLERLE)
         approved_coached_topics = get_approved_coached_topics(user_data)
         
-        # 🔧 DEBUG: Koç onaylı konuları listele (HER ZAMAN GÖSTER)
-        st.info(f"🔍 DEBUG: {len(approved_coached_topics)} adet koç onaylı konu bulundu")
-        st.info(f"🔍 DEBUG: Student field: {student_field}")
-        if approved_coached_topics:
-            st.info("📋 Koç onaylı konular listesi:")
-            for i, topic in enumerate(approved_coached_topics):
-                st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')}")
-        else:
-            st.info("❌ Hiç koç onaylı konu bulunamadı!")
-        
-        # Orijinal konu sayısını HER ZAMAN göster
+        # Koç onaylı konuları entegre et
         original_topics = base_weekly_plan.get('new_topics', [])
-        st.info(f"🔍 DEBUG: Orijinal konu sayısı: {len(original_topics)}")
-        
-        # Orijinal konuları listele
-        if original_topics:
-            st.info("📋 Orijinal konular listesi:")
-            for i, topic in enumerate(original_topics):
-                st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')}")
         
         if approved_coached_topics:
             # Mevcut konuları güncelle/sil/ekle
@@ -21943,8 +21913,6 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
             try:
                 completed_topics, completed_topic_names = get_completed_topics_from_user_data(user_data)
                 if completed_topics:
-                    st.info(f"🔍 DEBUG: Konu takip sisteminden {len(completed_topics)} adet tamamlanmış konu bulundu")
-                    
                     # Koç onaylı konularda tamamlanmış olanları net değerleriyle güncelle
                     for updated_topic in updated_new_topics:
                         for completed_topic in completed_topics:
@@ -21955,21 +21923,9 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
                                 st.info(f"🔄 Net güncellendi: {updated_topic['subject']} - {updated_topic['topic']} = {completed_topic.get('net', 0)}")
                                 break
             except Exception as topic_tracking_error:
-                st.info(f"🔍 DEBUG: Konu takip entegrasyonu hatası: {topic_tracking_error}")
+                pass
             
             base_weekly_plan['new_topics'] = updated_new_topics
-            
-            st.info(f"🔍 DEBUG: Güncellenmiş konu sayısı: {len(updated_new_topics)}")
-            
-            # Güncellenmiş konuları listele
-            if updated_new_topics:
-                st.info("📋 Güncellenmiş konular listesi:")
-                for i, topic in enumerate(updated_new_topics):
-                    st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - {topic.get('priority', 'N/A')} - Net: {topic.get('net', 0)}")
-            
-            # Kaç değişiklik yapıldığını say
-            changes_count = len(approved_coached_topics)
-            st.info(f"✅ {changes_count} adet koç onaylı konu haftalık hedef konularınız güncellendi!")
         
         # Dinamik bilgileri ekle
         base_weekly_plan['dynamic_week_info'] = week_info
@@ -22022,7 +21978,6 @@ def apply_coach_changes(original_topics, coach_approved_topics, user_data):
             }
             
             updated_topics.append(new_topic)
-            st.info(f"✅ KONUK ONAYLADI: {new_topic['subject']} - {new_topic['topic']} - {new_topic['priority']}")
         
         # 🔥 GÜÇLÜ CACHE TEMİZLEME - Öğrencinin tüm cache'ini temizle
         try:
@@ -22038,23 +21993,17 @@ def apply_coach_changes(original_topics, coach_approved_topics, user_data):
             for key in cache_keys_to_delete:
                 if key in st.session_state:
                     del st.session_state[key]
-                    st.info(f"🔄 Cache temizlendi: {key}")
+
             
             # Genel cache de temizle
             if hasattr(st.session_state, 'firebase_cache'):
                 try:
                     st.session_state.firebase_cache.clear()
-                    st.info("🔄 Firebase cache temizlendi!")
+
                 except:
                     pass
         except Exception as cache_error:
-            st.info(f"Cache temizleme hatası: {cache_error}")
-        
-        st.info(f"🔍 DEBUG: Sonuç - {len(updated_topics)} konu haftalık hedef konular listesine eklendi")
-        
-        # Sonuçları göster
-        for i, topic in enumerate(updated_topics):
-            st.info(f"  📋 Sonuç {i+1}. {topic['subject']} - {topic['topic']} - {topic['priority']}")
+            pass
         
         return updated_topics
         
@@ -22067,34 +22016,24 @@ def get_approved_coached_topics(user_data):
     """Koç tarafından onaylanan öğrenci konularını Firebase'den getir"""
     try:
         if firebase_connected and db_ref and 'username' in user_data:
-            # 🔧 DEBUG: Kullanıcı bilgilerini göster
-            st.info(f"🔍 DEBUG: get_approved_coached_topics çağrıldı - Username: {user_data.get('username', 'N/A')}")
-            
             # Kullanıcının onaylanmış konularını bul
             approved_topics = []
-            
-            # Coach approvals'dan bu kullanıcı için olanları çek
+        
+        # Coach approvals'dan bu kullanıcı için olanları çek
             approvals_data = db_ref.child('coach_approvals').get()
-            st.info(f"🔍 DEBUG: Firebase'den gelen tüm approvals data: {list(approvals_data.keys()) if approvals_data else 'None'}")
             
             if approvals_data:
                 username = user_data['username']
-                st.info(f"🔍 DEBUG: Aranan username: {username}")
-                
-                for approval_key, approval_data in approvals_data.items():
-                    st.info(f"🔍 DEBUG: İncelenen approval: {approval_key} - Status: {approval_data.get('status', 'N/A')}")
                     
-                    # 🔧 GÜVENLİ: Student bilgileri çıkar
+                for approval_key, approval_data in approvals_data.items():
+                    # Student bilgileri çıkar
                     student_username = approval_data.get('student_username', '')
                     student_name = approval_data.get('student_name', '')
-                    
-                    st.info(f"🔍 DEBUG: Student bilgileri - username: '{student_username}', name: '{student_name}'")
                     
                     # Eğer student_username yoksa approval_key'den çıkar
                     if not student_username:
                         try:
                             student_username = approval_key.split('_')[0]
-                            st.info(f"🔍 DEBUG: Key'den çıkarılan username: '{student_username}'")
                         except:
                             student_username = ''
                     
@@ -22102,8 +22041,7 @@ def get_approved_coached_topics(user_data):
                     user_matches = (student_username == username or 
                         student_name == user_data.get('name', username) or
                         approval_key.startswith(username))
-                    
-                    st.info(f"🔍 DEBUG: Eşleşme sonucu: {user_matches}")
+
                     
                     if user_matches:
                         # Onaylanmış durumda ise ve onaylanan konular varsa
@@ -22111,7 +22049,7 @@ def get_approved_coached_topics(user_data):
                             'approved_topics' in approval_data and 
                             approval_data['approved_topics']):
                             
-                            st.info(f"🔍 DEBUG: Onaylanmış approval bulundu! Topic sayısı: {len(approval_data['approved_topics'])}")
+
                             
                             # Onaylanan konuları ekle
                             for topic in approval_data['approved_topics']:
@@ -22121,17 +22059,15 @@ def get_approved_coached_topics(user_data):
                                 topic_with_date['coach_notes'] = approval_data.get('coach_notes', '')
                                 approved_topics.append(topic_with_date)
                         else:
-                            st.info(f"🔍 DEBUG: Approval onaylanmamış veya topics yok - Status: {approval_data.get('status', 'N/A')}")
+                            pass
+
             
-            st.info(f"🔍 DEBUG: Toplam bulunan onaylı topic sayısı: {len(approved_topics)}")
             return approved_topics
         else:
-            st.info(f"🔍 DEBUG: Firebase bağlı değil veya username yok - connected: {firebase_connected}, db_ref: {bool(db_ref)}, username: {'username' in user_data}")
             # Session state'den (fallback)
             return []
     except Exception as e:
         st.error(f"Onaylanan konuları getirme hatası: {e}")
-        st.info(f"🔍 DEBUG: Hata detayı: {str(e)}")
         return []
 
 def create_weekly_calendar(week_info):
@@ -25880,7 +25816,7 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
                                 # clear metodu yoksa, cache'i yeniden başlat
                                 st.session_state.firebase_cache = type('obj', (object,), {})()
                         except Exception as cache_error:
-                            # Cache temizleme hatası olsa bile onay işlemini devam ettir
+                            pass                # Cache temizleme hatası olsa bile onay işlemini devam ettir
                             st.warning(f"Cache temizleme hatası: {cache_error}")
                     
                     # 🔄 SESSION STATE GÜNCELLEME: Tüm related cache'leri temizle
