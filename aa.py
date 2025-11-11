@@ -13526,6 +13526,12 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             # TYT konusuysa direkt ekle
             filtered_subjects.append(subject)
     
+    # 🔧 DEBUG: Hangi dersler filtrelendi
+    st.info(f"🔍 DEBUG: Available subjects: {available_subjects}")
+    st.info(f"🔍 DEBUG: Filtered subjects: {filtered_subjects}")
+    st.info(f"🔍 DEBUG: Include AYT: {include_ayt}")
+    st.info(f"🔍 DEBUG: Student field: {student_field}")
+    
     # 🎯 ZAMANSAL STRATEJİYE GÖRE DERS ÖNCELİKLERİNİ HESAPLA
     subject_priorities = {}
     for subject in filtered_subjects:
@@ -13551,16 +13557,22 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     
     # 1. 🎯 ZAMANSAL STRATEJİYE GÖRE KONU DAĞILIMI
     for subject, priority_score in sorted_subjects:
+        st.info(f"🔍 DEBUG: Processing subject: {subject}, priority: {priority_score}")
+        
         # Ders önem puanını al
         importance = SUBJECT_IMPORTANCE_SCORES.get(subject, 5)
+        st.info(f"🔍 DEBUG: Subject: {subject}, importance: {importance}")
         
         # 🚀 ZAMANSAL STRATEJİYE GÖRE DİNAMİK HAFTALIK LİMİT HESAPLA
         weekly_limit = calculate_dynamic_topic_limits(time_strategy, importance)
+        st.info(f"🔍 DEBUG: Subject: {subject}, weekly_limit: {weekly_limit}")
         
         # 📅 DÖNEM BAZLI DERS FİLTRELEME (Eski statik sistemin yerine)
         should_include_subject = should_include_subject_in_period(
             subject, importance, time_strategy, user_data, week_info
         )
+        
+        st.info(f"🔍 DEBUG: Should include {subject}: {should_include_subject}")
         
         if not should_include_subject:
             continue
@@ -13617,6 +13629,10 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             continue
     
     # 5. 🎯 ZAMANSAL STRATEJİ İLE TOPLAM PLAN
+    st.info(f"🔍 DEBUG: Final weekly_new_topics count: {len(weekly_new_topics)}")
+    st.info(f"🔍 DEBUG: Final weekly_review_topics count: {len(weekly_review_topics)}")
+    st.info(f"🔍 DEBUG: Final all_available_topics count: {len(all_available_topics)}")
+    
     total_plan = {
         'new_topics': weekly_new_topics[:time_strategy['new_topics_per_week']],  # Strateji bazlı limit
         'review_topics': weekly_review_topics,
@@ -13635,6 +13651,14 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         'period_recommendations': get_period_specific_recommendations(time_strategy, user_data),
         'focus_areas': get_focus_areas_by_period(time_strategy, user_data)
     }
+    
+    # 🔍 DEBUG: Son planı listele
+    if total_plan['new_topics']:
+        st.info("📋 Final new_topics listesi:")
+        for i, topic in enumerate(total_plan['new_topics'][:5]):
+            st.info(f"  {i+1}. {topic.get('subject', 'N/A')} - {topic.get('topic', 'N/A')} - Net: {topic.get('net', 'N/A')}")
+    else:
+        st.info("❌ Hiç new_topics bulunamadı!")
     
     return total_plan
 
@@ -21855,6 +21879,9 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     
     try:
         st.info("🔍 DEBUG: create_dynamic_weekly_plan başladı")
+        st.info(f"🔍 DEBUG: user_data keys: {list(user_data.keys()) if user_data else 'None'}")
+        st.info(f"🔍 DEBUG: student_field: {student_field}")
+        st.info(f"🔍 DEBUG: survey_data keys: {list(survey_data.keys()) if survey_data else 'None'}")
         
         # 🔧 GÜVENLİ: user_data kontrolü
         if not user_data:
@@ -21890,6 +21917,7 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
         
         # 🔧 DEBUG: Koç onaylı konuları listele (HER ZAMAN GÖSTER)
         st.info(f"🔍 DEBUG: {len(approved_coached_topics)} adet koç onaylı konu bulundu")
+        st.info(f"🔍 DEBUG: Student field: {student_field}")
         if approved_coached_topics:
             st.info("📋 Koç onaylı konular listesi:")
             for i, topic in enumerate(approved_coached_topics):
