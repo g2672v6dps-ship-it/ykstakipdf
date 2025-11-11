@@ -21863,10 +21863,6 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
         
         st.info(f"🔍 DEBUG: user_data kontrolü geçti - username: {user_data.get('username', 'N/A')}")
         
-    except Exception as init_error:
-        st.error(f"❌ Fonksiyon başlatma hatası: {init_error}")
-        return {}
-    
     # Haftalık program başlama kaydı - İLK KEZ ÇAĞIRILDIĞINDA KAYDET
     if not user_data.get('weekly_program_started', False):
         user_data['weekly_program_started'] = True
@@ -21965,15 +21961,16 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     # Haftalık döngü takvimini ekle
     base_weekly_plan['weekly_calendar'] = create_weekly_calendar(week_info)
     
-    st.info("🔍 DEBUG: create_dynamic_weekly_plan başarıyla tamamlandı")
-    st.info(f"🔍 DEBUG: Sonuç - {len(base_weekly_plan.get('new_topics', []))} yeni konu, {len(base_weekly_plan.get('review_topics', []))} tekrar konu")
-    
-    return base_weekly_plan
-    
     except Exception as e:
         st.error(f"❌ Haftalık plan oluşturma hatası: {e}")
         st.info(f"🔍 DEBUG: Hata detayı: {str(e)}")
         return {}
+    
+    # Bu kısım sadece başarı durumunda çalışır
+    st.info("🔍 DEBUG: create_dynamic_weekly_plan başarıyla tamamlandı")
+    st.info(f"🔍 DEBUG: Sonuç - {len(base_weekly_plan.get('new_topics', []))} yeni konu, {len(base_weekly_plan.get('review_topics', []))} tekrar konu")
+    
+    return base_weekly_plan
 
 def apply_coach_changes(original_topics, coach_approved_topics, user_data):
     """💯 GÜÇLENDIRILMIŞ KOÇ DEĞİŞİKLİKLERİ UYGULAMA - KESIN ÇÖZÜM"""
