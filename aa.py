@@ -7617,7 +7617,6 @@ def show_weekly_planner(user_data):
     st.info(f"📅 **{week_info['week_range']}** | ⏰ **YKS'ye {days_to_yks} gün kaldı!**")
     
     # Sadece tekrar konuları göster - YENİ KONULAR kısmı kaldırıldı
-    st.markdown("#### 🔄 TEKRAR EDİLECEK KONULAR")
     show_review_topics_section(weekly_plan.get('review_topics', []), user_data)
     
     # YENİ: Haftalık tamamlanma kontrolü ve bonus konular
@@ -7897,31 +7896,58 @@ def show_review_topics_section(review_topics, user_data):
                     
                     # Mevcut seçimi al
                     topic_key = f"{topic['subject']}_{topic['topic']}"
-                    current_level = user_data.get('topic_repetition_history', {}).get(topic_key, {}).get('level', 'Zayıf')
+                    repetition_history = user_data.get('topic_repetition_history', {})
+                    if isinstance(repetition_history, str):
+                        try:
+                            repetition_history = json.loads(repetition_history)
+                        except:
+                            repetition_history = {}
+                    
+                    current_level = repetition_history.get(topic_key, {}).get('level', 'Zayıf')
                     
                     level_options = ['Zayıf', 'Temel', 'Orta', 'İyi', 'Uzman']
                     
+                    # Session state'den mevcut seçimi al veya default olarak ayarla
+                    if level_key not in st.session_state:
+                        st.session_state[level_key] = current_level
+                    
                     selected_level = st.selectbox(
-                        f"Seviye:",
+                        "Seviye:",
                         level_options,
-                        index=level_options.index(current_level) if current_level in level_options else 0,
+                        index=level_options.index(st.session_state[level_key]) if st.session_state[level_key] in level_options else 0,
                         key=level_key,
                         label_visibility="collapsed"
                     )
                     
-                    # Seviye değişikliğini kaydet
-                    if selected_level != current_level:
-                        update_topic_repetition_history(user_data, topic['topic'], {
-                            'level': selected_level,
-                            'last_reviewed': datetime.now().strftime("%Y-%m-%d"),
-                            'subject': topic['subject'],
-                            'review_type': topic['review_type']
-                        })
-                        st.success(f"✅ Seviye güncellendi: {selected_level}")
-            
+                    # Seviye değiştiğinde otomatik kaydet
+                    if st.session_state[level_key] != selected_level:
+                        st.session_state[level_key] = selected_level
+                        
+                        # Repetition history güncelle
+                        if isinstance(repetition_history, dict):
+                            repetition_history[topic_key] = {
+                                'level': selected_level,
+                                'date': datetime.now().strftime("%Y-%m-%d"),
+                                'action': 'review_completed'
+                            }
+                            
+                            # user_data'yı güncelle
+                            user_data['topic_repetition_history'] = json.dumps(repetition_history)
+                            
+                            # Firebase'e gönder
+                            if 'username' in user_data:
+                                try:
+                                    update_user_in_firebase(user_data['username'], {
+                                        'topic_repetition_history': repetition_history
+                                    })
+                                except:
+                                    pass
+                    
             # Eğer daha fazla konu varsa
             if len(all_review_topics) > 15:
                 st.markdown(f"<div style='text-align: center; color: #666; font-size: 12px; margin-top: 10px;'>... ve {len(all_review_topics) - 15} konu daha</div>", unsafe_allow_html=True)
+    else:
+        st.info("🔄 Bu hafta için tekrar edilecek konu bulunmuyor.")
 
 def show_topic_card(topic, priority_type):
     """Konu kartı gösterici"""
