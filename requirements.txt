@@ -2,3 +2,5 @@ streamlit
 firebase-admin
 plotly
 pandas
+boto3
+python-dotenv
