@@ -263,9 +263,7 @@ def get_real_student_data_for_admin():
     users_db = st.session_state.users_db
     students = []
     
-    # DEBUG: Veri durumu kontrolü
-    st.sidebar.write(f"📊 **Debug Info:**")
-    st.sidebar.write(f"• Toplam user DB kaydı: {len(users_db) if users_db else 0}")
+
     if users_db:
         st.sidebar.write(f"• Kullanıcılar: {list(users_db.keys())}")
     
@@ -4508,21 +4506,11 @@ def show_equal_weight_special_dashboard(weekly_plan, user_data):
             if remaining_topics_count == 0:
                 st.success(f"🎉 {current_week}. haftanın tüm konularını tamamladınız! Tebrikler!")
     
-    # DEBUG: Mevcut haftalık planı göster
-    with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
+
         st.write(f"**User Data equal_weight_current_week:** {user_data.get('equal_weight_current_week', 'YOK')}")
         st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
         st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
         
-        new_topics = weekly_plan.get('new_topics', [])
-        if new_topics:
-            st.write("**Bu haftanın konuları:**")
-            for topic in new_topics[:5]:  # İlk 5 konu
-                st.write(f"• {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
-            if len(new_topics) > 5:
-                st.write(f"... ve {len(new_topics) - 5} konu daha")
-        else:
-            st.error("Hiç konu bulunamadı!")
 
 def show_numerical_special_dashboard(weekly_plan, user_data):
     """Sayısal özel planı dashboard'u"""
@@ -4647,21 +4635,11 @@ def show_numerical_special_dashboard(weekly_plan, user_data):
             if remaining_topics_count == 0:
                 st.success(f"🎉 {current_week}. haftanın tüm konularını tamamladınız! Tebrikler!")
     
-    # DEBUG: Mevcut haftalık planı göster
-    with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
+
         st.write(f"**User Data numerical_current_week:** {user_data.get('numerical_current_week', 'YOK')}")
         st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
         st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
         
-        new_topics = weekly_plan.get('new_topics', [])
-        if new_topics:
-            st.write("**Bu haftanın konuları:**")
-            for topic in new_topics[:5]:  # İlk 5 konu
-                st.write(f"• {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
-            if len(new_topics) > 5:
-                st.write(f"... ve {len(new_topics) - 5} konu daha")
-        else:
-            st.error("Hiç konu bulunamadı!")
 
 def show_tyt_msu_special_dashboard(weekly_plan, user_data):
     """TYT & MSÜ özel planı dashboard'u"""
@@ -4821,8 +4799,7 @@ def show_tyt_msu_special_dashboard(weekly_plan, user_data):
     elif 'Çocuk Gelişimi' in sub_category:
         st.info("👶 **Çocuk Gelişimi Tavsiyeleri:** Psikoloji ve eğitim temelleri önemli. Çocuk gelişimi ile ilgili temel bilgileri araştırın.")
     
-    # DEBUG: Mevcut haftalık planı göster
-    with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
+
         st.write(f"**User Data tyt_msu_current_week:** {user_data.get('tyt_msu_current_week', 'YOK')}")
         st.write(f"**Sub Category:** {sub_category}")
         st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
@@ -4994,22 +4971,7 @@ def show_verbal_special_dashboard(weekly_plan, user_data):
     # Sözel için özel tavsiyeler
     st.info("📚 **Sözel Alan Tavsiyeleri:** Felsefe ve Din dersleri kritik önceliğe sahip. Türkçe, Tarih ve Coğrafya ile bütünleşik çalışın. Analitik düşünce ve yorumlama becerilerinizi geliştirin.")
     
-    # DEBUG: Mevcut haftalık planı göster
-    with st.expander("🔧 DEBUG: Mevcut Haftalık Plan Kontrolü", expanded=False):
-        st.write(f"**User Data verbal_current_week:** {user_data.get('verbal_current_week', 'YOK')}")
-        st.write(f"**Matematik Dahil:** {st.session_state.verbal_include_math}")
-        st.write(f"**Weekly Plan current_week:** {weekly_plan.get('current_week', 'YOK')}")
-        st.write(f"**Weekly Plan new_topics count:** {len(weekly_plan.get('new_topics', []))}")
-        
-        new_topics = weekly_plan.get('new_topics', [])
-        if new_topics:
-            st.write("**Bu haftanın konuları:**")
-            for topic in new_topics[:5]:  # İlk 5 konu
-                st.write(f"• {topic.get('subject', 'UNKNOWN')}: {topic.get('topic', 'UNKNOWN')}")
-            if len(new_topics) > 5:
-                st.write(f"... ve {len(new_topics) - 5} konu daha")
-        else:
-            st.error("Hiç konu bulunamadı!")
+
 
 def update_weekly_plan_with_pending_topics(user_data, weekly_plan):
     """Haftalık planı kalan konularla günceller"""
@@ -5085,15 +5047,11 @@ def get_completed_topics_from_user_data(user_data):
     completed_topics = []
     completed_topic_names = set()  # Hızlı arama için set
     
-    # 🔍 DEBUG: Fonksiyon çağrıldı
-    debug_mode = st.session_state.get('debug_completed_topics', False)
-    if debug_mode:
-        st.write("🔍 DEBUG: get_completed_topics_from_user_data çağrıldı")
+
+
     
     # 🔧 GÜVENLİ: user_data kontrolü
     if not user_data:
-        if debug_mode:
-            st.write("⚠️ DEBUG: user_data boş, boş liste döndürülüyor")
         return completed_topics, completed_topic_names
     
     try:
@@ -5104,8 +5062,6 @@ def get_completed_topics_from_user_data(user_data):
         
         topic_progress = json.loads(topic_progress_str)
     except Exception as e:
-        if debug_mode:
-            st.write(f"⚠️ DEBUG: topic_progress parse hatası: {e}")
         return completed_topics, completed_topic_names
     
     for topic_key, topic_data in topic_progress.items():
@@ -5150,7 +5106,7 @@ def get_completed_topics_from_user_data(user_data):
                     main_topic_detail = f"{topic_parts[-2]} - {topic_parts[-1]}"
                     completed_topic_names.add(main_topic_detail)
                     
-                    # 🔍 DEBUG
+
                     if debug_mode and "Neden-Sonuç" in topic_parts[-1]:
                         st.write(f"✅ Eklendi: {main_topic_detail} (net={topic_net})")
                 
@@ -5161,11 +5117,10 @@ def get_completed_topics_from_user_data(user_data):
                         completed_topic_names.add(category_detail)
         except Exception as topic_error:
             # Tek topic hatası tüm fonksiyonu bozmasın
-            if debug_mode:
-                st.write(f"⚠️ DEBUG: Topic '{topic_key}' işlenirken hata: {topic_error}")
+        
             continue
     
-    # 🔍 DEBUG: Tamamlanmış konuları göster
+
     if debug_mode:
         st.write(f"📊 Toplam {len(completed_topics)} tamamlanmış konu bulundu")
         if completed_topic_names:
@@ -7875,7 +7830,7 @@ def show_new_topics_section(new_topics, user_data):
             show_topic_card(topic, "MINIMAL")
 
 def show_review_topics_section(review_topics, user_data):
-    """Tekrar konuları bölümü - KOMPACT VERSİYON"""
+    """Tekrar konuları bölümü - KARE KARE TABLO FORMATI"""
     # YENİ: Kalıcı öğrenme sistemi tekrarları
     pending_mastery_topics = get_pending_review_topics(user_data)
     
@@ -7901,20 +7856,71 @@ def show_review_topics_section(review_topics, user_data):
             topic_with_priority['review_type'] = 'GENEL'
             all_review_topics.append(topic_with_priority)
     
-    # Kompakt liste göster
+    # KARE KARE TABLO GÖSTER
     if all_review_topics:
         st.markdown("#### 🔄 TEKRAR EDİLECEK KONULAR")
         
-        # Kompakt liste formatı
-        for i, topic in enumerate(all_review_topics[:15]):  # Max 15 konu göster
-            review_type_icon = "🎯" if topic['review_type'] == 'KALİCİ' else "🔄"
-            review_type_text = "Kalıcı" if topic['review_type'] == 'KALİCİ' else "Genel"
+        # Grid container oluştur
+        with st.container():
+            # 3 sütunlu grid layout
+            cols = st.columns(3)
             
-            st.markdown(f"{i+1}. **{topic['subject']}** - {topic['topic']} {review_type_icon} ({review_type_text})")
-        
-        # Eğer daha fazla konu varsa
-        if len(all_review_topics) > 15:
-            st.caption(f"... ve {len(all_review_topics) - 15} konu daha")
+            for i, topic in enumerate(all_review_topics[:15]):  # Max 15 konu
+                col_index = i % 3
+                
+                review_type_icon = "🎯" if topic['review_type'] == 'KALİCİ' else "🔄"
+                review_type_text = "Kalıcı" if topic['review_type'] == 'KALİCİ' else "Genel"
+                
+                with cols[col_index]:
+                    # Her konu için kart
+                    st.markdown(f"""
+                    <div style='background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%); 
+                                border: 2px solid #ddd; padding: 8px; border-radius: 8px; 
+                                margin-bottom: 8px; height: 140px;'>
+                        <div style='text-align: center; margin-bottom: 6px;'>
+                            <span style='font-size: 12px; color: #666;'>{i+1}.</span>
+                            <div style='font-weight: bold; font-size: 12px; margin: 4px 0;'>
+                                {topic['subject']} {review_type_icon}
+                            </div>
+                        </div>
+                        <div style='font-size: 11px; text-align: center; margin-bottom: 8px; line-height: 1.2;'>
+                            {topic['topic']}
+                        </div>
+                        <div style='font-size: 10px; color: #888; text-align: center;'>
+                            {review_type_text} • {topic.get('net', 0)} net
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Seviye seçimi dropdown
+                    level_key = f"review_level_{topic['subject']}_{topic['topic']}"
+                    
+                    # Mevcut seçimi al
+                    current_level = user_data.get('topic_repetition_history', {}).get(topic['topic'], {}).get('level', 'Zayıf')
+                    
+                    level_options = ['Zayıf', 'Temel', 'Orta', 'İyi', 'Uzman']
+                    
+                    selected_level = st.selectbox(
+                        f"Seviye:",
+                        level_options,
+                        index=level_options.index(current_level) if current_level in level_options else 0,
+                        key=level_key,
+                        label_visibility="collapsed"
+                    )
+                    
+                    # Seviye değişikliğini kaydet
+                    if selected_level != current_level:
+                        update_topic_repetition_history(user_data, topic['topic'], {
+                            'level': selected_level,
+                            'last_reviewed': datetime.now().strftime("%Y-%m-%d"),
+                            'subject': topic['subject'],
+                            'review_type': topic['review_type']
+                        })
+                        st.success(f"✅ Seviye güncellendi: {selected_level}")
+            
+            # Eğer daha fazla konu varsa
+            if len(all_review_topics) > 15:
+                st.markdown(f"<div style='text-align: center; color: #666; font-size: 12px; margin-top: 10px;'>... ve {len(all_review_topics) - 15} konu daha</div>", unsafe_allow_html=True)
 
 def show_topic_card(topic, priority_type):
     """Konu kartı gösterici"""
@@ -8016,9 +8022,9 @@ def show_pending_reviews_section(pending_topics):
                     """, unsafe_allow_html=True)
                 except Exception as stage_error:
                     st.info("⚠️ Stage bilgisi yüklenemedi")
-                    st.info(f"🔍 DEBUG: Stage hatası: {stage_error}")
-                    st.info(f"🔍 DEBUG: Stage değeri: {stage}")
-                    st.info(f"🔍 DEBUG: Topic: {topic}")
+
+
+
             
             # Değerlendirme seçenekleri
             st.markdown("#### 🎯 Bu konuda kendinizi nasıl değerlendiriyorsunuz?")
@@ -9593,8 +9599,7 @@ def show_yks_journey_cinema(user_data, progress_data):
         st.rerun()
         return
     
-    # DEBUG: Kullanıcı bilgilerini göster (geliştirme aşamasında)
-    if st.session_state.get('debug_mode', False):
+
         st.info(f"🔍 Debug: Kullanıcı {current_username} için veriler yükleniyor...")
         st.info(f"📅 Kayıt tarihi: {user_data.get('created_at', 'Bilinmiyor')}")
         st.info(f"👤 İsim: {user_data.get('name', 'Bilinmiyor')}")
@@ -9637,14 +9642,6 @@ def show_yks_journey_cinema(user_data, progress_data):
     except Exception as e:
         # Hata durumunda güvenli varsayılan
         start_date = datetime.now() - timedelta(days=1)
-        if st.session_state.get('debug_mode', False):
-            st.error(f"⚠️ Tarih ayrıştırma hatası: {e}")
-    
-    # Debug modunda tarih bilgilerini göster
-    if st.session_state.get('debug_mode', False):
-        st.info(f"📅 Hesaplanan başlangıç tarihi: {start_date.strftime('%Y-%m-%d %H:%M')}")
-        st.info(f"🔍 created_at: {user_data.get('created_at', 'Yok')}")
-        st.info(f"🔍 created_date: {user_data.get('created_date', 'Yok')}")
     
     current_date = datetime.now()
     days_passed = (current_date - start_date).days + 1
@@ -11666,8 +11663,8 @@ def show_pomodoro_interface(user_data):
     weekly_plan = create_dynamic_weekly_plan(user_data, student_field, survey_data)
     weekly_target_topics = weekly_plan.get('new_topics', []) + weekly_plan.get('review_topics', [])
     
-    # 🔍 DEBUG: Coach integration test
-    st.info(f"🔍 DEBUG: Haftalık hedef konu sayısı: {len(weekly_target_topics)}")
+
+
     if weekly_target_topics:
         st.info("📋 Haftalık hedef konular listesi:")
         for i, topic in enumerate(weekly_target_topics[:5]):  # İlk 5 konuyu göster
@@ -11679,7 +11676,7 @@ def show_pomodoro_interface(user_data):
         # Haftalık hedef konularını görüntüle
         st.markdown("#### 📋 YKS Canlı Takip'ten Hedef Konular")
         
-        # 🔍 DEBUG: Coach onay kontrolü
+
         try:
             from datetime import datetime
             coach_approved_topics = get_approved_coached_topics(user_data)
@@ -11688,9 +11685,7 @@ def show_pomodoro_interface(user_data):
             else:
                 st.info("ℹ️ Henüz koç onaylı konu yok")
         except Exception as coach_debug_error:
-            st.warning(f"🔍 DEBUG: Koç onay kontrolü hatası: {coach_debug_error}")
-        
-        # Bu haftaki pomodorolardan konu bazında ilerleme hesapla
+            pass        # Bu haftaki pomodorolardan konu bazında ilerleme hesapla
         topic_progress_in_pomodoros = {}
         
         # Kullanıcının tüm pomodoro geçmişini al
@@ -13063,6 +13058,29 @@ def add_topic_to_mastery_system(user_data, topic_key, initial_level="iyi"):
     
     return user_data
 
+def update_topic_repetition_history(user_data, topic_name, updates):
+    """Konu tekrar geçmişini güncelle"""
+    try:
+        if 'topic_repetition_history' not in user_data:
+            user_data['topic_repetition_history'] = {}
+        
+        if topic_name not in user_data['topic_repetition_history']:
+            user_data['topic_repetition_history'][topic_name] = {}
+        
+        # Güncellemeleri ekle
+        user_data['topic_repetition_history'][topic_name].update(updates)
+        
+        # Firebase'e gönder
+        if 'username' in user_data:
+            update_user_in_firebase(user_data['username'], {
+                'topic_repetition_history': user_data['topic_repetition_history']
+            })
+            
+        return True
+    except Exception as e:
+        print(f"Seviye güncelleme hatası: {e}")
+        return False
+
 def get_pending_review_topics(user_data):
     """Tekrar değerlendirmesi bekleyen konuları döndürür"""
     import json
@@ -13522,10 +13540,10 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             filtered_subjects.append(subject)
     
     # 🔧 DEBUG: Hangi dersler filtrelendi
-    st.info(f"🔍 DEBUG: Available subjects: {available_subjects}")
-    st.info(f"🔍 DEBUG: Filtered subjects: {filtered_subjects}")
-    st.info(f"🔍 DEBUG: Include AYT: {include_ayt}")
-    st.info(f"🔍 DEBUG: Student field: {student_field}")
+
+
+
+
     
     # 🎯 ZAMANSAL STRATEJİYE GÖRE DERS ÖNCELİKLERİNİ HESAPLA
     subject_priorities = {}
@@ -13564,7 +13582,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         should_include_subject = should_include_subject_in_period(
             subject, importance, time_strategy, user_data, week_info
         )
-        st.info(f"🔍 DEBUG: Should include {subject}: {should_include_subject}")
+
         
         
         if not should_include_subject:
@@ -13622,7 +13640,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             continue
     
     # 5. 🎯 ZAMANSAL STRATEJİ İLE TOPLAM PLAN
-    st.info(f"🔍 DEBUG: Final weekly_new_topics count: {len(weekly_new_topics)}")
+
     
     total_plan = {
         'new_topics': weekly_new_topics[:time_strategy['new_topics_per_week']],  # Strateji bazlı limit
@@ -13643,7 +13661,7 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
         'focus_areas': get_focus_areas_by_period(time_strategy, user_data)
     }
     
-    # 🔍 DEBUG: Son planı listele
+
     if total_plan['new_topics']:
         st.info("📋 Final new_topics listesi:")
         for i, topic in enumerate(total_plan['new_topics'][:5]):
@@ -14914,27 +14932,6 @@ def main():
                         st.session_state.current_user = None
                         st.rerun()
                 
-                with col2:
-                    debug_mode = st.session_state.get('debug_mode', False)
-                    if st.button(f"🔍 Debug {'ON' if debug_mode else 'OFF'}", use_container_width=True):
-                        st.session_state.debug_mode = not debug_mode
-                        st.rerun()
-                
-                # Debug bilgileri göster
-                if st.session_state.get('debug_mode', False):
-                    st.markdown("### 🔍 Debug Bilgileri")
-                    st.info(f"👤 Aktif Kullanıcı: {st.session_state.get('current_user', 'Bilinmiyor')}")
-                    st.info(f"📅 Kullanıcı Kayıt Tarihi: {user_data.get('created_at', 'Bilinmiyor')}")
-                    st.info(f"🔤 Kullanıcı Username: {user_data.get('username', 'Bilinmiyor')}")
-                    st.info(f"📝 Kullanıcı Adı: {user_data.get('name', 'Bilinmiyor')}")
-                    
-                    # Session state kontrolü
-                    if st.button("🧹 Session State Temizle"):
-                        for key in list(st.session_state.keys()):
-                            if key not in ['current_user', 'debug_mode']:
-                                del st.session_state[key]
-                        st.success("✅ Session state temizlendi!")
-            
 
             
             if page == "🏠 Ana Sayfa":
@@ -21869,9 +21866,7 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
     import json
     
     try:
-        st.info("🔍 DEBUG: create_dynamic_weekly_plan başladı")
-        st.info(f"🔍 DEBUG: user_data keys: {list(user_data.keys()) if user_data else 'None'}")
-        st.info(f"🔍 DEBUG: student_field: {student_field}")
+
         # Güvenli: user_data kontrolü
         if not user_data:
             st.error("❌ Kullanıcı verisi bulunamadı! Lütfen sayfayı yenileyin.")
@@ -21920,7 +21915,7 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
                                 updated_topic.get('topic') == completed_topic.get('topic')):
                                 
                                 updated_topic['net'] = completed_topic.get('net', 0)
-                                st.info(f"🔄 Net güncellendi: {updated_topic['subject']} - {updated_topic['topic']} = {completed_topic.get('net', 0)}")
+
                                 break
             except Exception as topic_tracking_error:
                 pass
@@ -21949,18 +21944,17 @@ def create_dynamic_weekly_plan(user_data, student_field, survey_data):
         
     except Exception as e:
         st.error(f"❌ Haftalık plan oluşturma hatası: {e}")
-        st.info(f"🔍 DEBUG: Hata detayı: {str(e)}")
+
         return {}
 
 def apply_coach_changes(original_topics, coach_approved_topics, user_data):
     """💯 GÜÇLENDIRILMIŞ KOÇ DEĞİŞİKLİKLERİ UYGULAMA - KESIN ÇÖZÜM"""
     try:
         if not coach_approved_topics:
-            st.info("🔍 DEBUG: Koç onaylı konu yok, orijinal listeyi döndürüyorum")
+
             return original_topics
         
-        st.info("🔍 DEBUG: 💯 GÜÇLENDIRILMIŞ apply_coach_changes çalışıyor...")
-        st.info(f"🔍 DEBUG: Gelen koç onaylı konu sayısı: {len(coach_approved_topics)}")
+
         
         # 💯 ANINDA GÜNCELLEME: Haftalık hedef konuları koç onayladıklarıyla DEĞİŞTİR
         updated_topics = []
@@ -22009,7 +22003,7 @@ def apply_coach_changes(original_topics, coach_approved_topics, user_data):
         
     except Exception as e:
         st.error(f"Koç değişiklikleri uygulama hatası: {e}")
-        st.info(f"🔍 DEBUG: Hata detayı: {str(e)}")
+
         return original_topics
 
 def get_approved_coached_topics(user_data):
