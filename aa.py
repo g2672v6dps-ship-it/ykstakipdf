@@ -7891,8 +7891,8 @@ def show_review_topics_section(review_topics, user_data):
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # Seviye seçimi dropdown
-                    level_key = f"review_level_{topic['subject']}_{topic['topic']}"
+                    # Benzersiz key oluştur (duplicate key hatasını önlemek için)
+                    level_key = f"review_level_{topic['subject']}_{topic['topic']}_{i}"
                     
                     # Mevcut seçimi al
                     topic_key = f"{topic['subject']}_{topic['topic']}"
