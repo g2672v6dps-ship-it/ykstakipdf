@@ -779,16 +779,16 @@ if BACKBLAZE_AVAILABLE:
         # 1. Streamlit Cloud secrets
         # 2. b2_storage.py dosyası
         # 3. Environment variables
-        application_key_id = ''
-        application_key = ''
-        bucket_name = 'student-data'
+        application_key_id = 'f69accbc6328'
+        application_key = '0036683481420f7d06274bd7b343e5cc6e53e5257a'
+        bucket_name = 'psikodonus-files'
         
         try:
             # Streamlit Cloud secrets'ları dene
             import streamlit as st
             if hasattr(st, 'secrets'):
                 application_key_id = st.secrets.get('f69accbc6328', '')
-                application_key = st.secrets.get('5f7639dabc9c7b2c96a30218', '')
+                application_key = st.secrets.get('0036683481420f7d06274bd7b343e5cc6e53e5257a', '')
                 bucket_name = st.secrets.get('psikodonus-files', 'student-data')
             
             # Eğer secrets yoksa b2_storage.py'yi import et
@@ -819,6 +819,8 @@ if BACKBLAZE_AVAILABLE:
         
         if application_key_id and application_key:
             # API ile giriş yap
+            st.info(f"🔑 Key ID: {application_key_id[:10]}... başlangıç kontrolü")
+            st.info(f"🔑 Application Key: {application_key[:10]}... başlangıç kontrolü")
             b2_api.authorize_account("production", application_key_id, application_key)
             
             # Bucket'ı al veya oluştur
