@@ -2,7 +2,7 @@ import os
 import boto3
 from botocore.client import Config
 
-B2_ENDPOINT = os.getenv("Master Application Key")
+B2_ENDPOINT = os.getenv("s3.eu-central-003.backblazeb2.com")
 B2_KEY = os.getenv("f69accbc6328")
 B2_SECRET = os.getenv("0036683481420f7d06274bd7b343e5cc6e53e5257a")
 B2_BUCKET = os.getenv("psikodonus-files")
