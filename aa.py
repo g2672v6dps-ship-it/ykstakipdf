@@ -7408,7 +7408,7 @@ def yks_takip_page(user_data):
     learning_style = user_data.get('learning_style', '')
     
     # YKS Takip sistemi sekmeleri
-    tab1, tab2, tab3 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi"])
+    tab1, tab2, tab3, tab4 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi", "💪 Zorlandığım Konular"])
     
     with tab1:
         show_target_department_roadmap(user_data)
@@ -7433,6 +7433,9 @@ def yks_takip_page(user_data):
     
     with tab3:
         show_progress_analytics(user_data)
+    
+    with tab4:
+        show_struggling_subjects_section(user_data)
     
 
 
@@ -7825,7 +7828,7 @@ def show_new_topics_section(new_topics, user_data):
             show_topic_card(topic, "MINIMAL")
 
 def show_review_topics_section(review_topics, user_data):
-    """Tekrar konuları bölümü - KARE KARE TABLO FORMATI"""
+    """Tekrar konuları bölümü - BASİTLİK ve NET GÜNCELLEMESİ"""
     # Önce konu takip hatırlatmalarını göster
     show_topic_reminder_alerts(user_data)
     
@@ -7854,109 +7857,222 @@ def show_review_topics_section(review_topics, user_data):
             topic_with_priority['review_type'] = 'GENEL'
             all_review_topics.append(topic_with_priority)
     
-    # KARE KARE TABLO GÖSTER
+    # BASİT DİKDÖRTGEN LİSTE GÖSTER
     if all_review_topics:
         st.markdown("#### 🔄 TEKRAR EDİLECEK KONULAR")
         
-        # Grid container oluştur
-        with st.container():
-            # 3 sütunlu grid layout
-            cols = st.columns(3)
+        # Konu takip sisteminden güncel bilgileri al
+        topic_progress = user_data.get('topic_progress', {})
+        if isinstance(topic_progress, str):
+            try:
+                topic_progress = json.loads(topic_progress)
+            except:
+                topic_progress = {}
+        
+        # Zorlandığınız konuları al
+        struggling_subjects = user_data.get('struggling_subjects', {})
+        if isinstance(struggling_subjects, str):
+            try:
+                struggling_subjects = json.loads(struggling_subjects)
+            except:
+                struggling_subjects = {}
+        
+        st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+        
+        # Her konu için basit dikdörtgen göster
+        for i, topic in enumerate(all_review_topics):
+            topic_key = f"{topic['subject']}_{topic['topic']}"
             
-            for i, topic in enumerate(all_review_topics[:15]):  # Max 15 konu
-                col_index = i % 3
-                
+            # Konu takip sisteminden güncel net bilgisini al
+            current_net = 0
+            topic_found_in_progress = False
+            
+            # Konu takip sisteminde bu konunun güncel bilgilerini ara
+            for subject_key, subjects_data in topic_progress.items():
+                if subject_key == topic['subject'] or f"{subject_key}" == topic['subject']:
+                    if isinstance(subjects_data, dict):
+                        for topic_key_check, topic_data in subjects_data.items():
+                            if topic_key_check == topic['topic'] or topic_key == f"{subject_key}_{topic_key_check}":
+                                try:
+                                    current_net = int(float(topic_data.get('net', 0)))
+                                    topic_found_in_progress = True
+                                    break
+                                except:
+                                    pass
+                    if topic_found_in_progress:
+                        break
+            
+            # Eğer konu takip sisteminde bulunamadıysa eski veriyi kullan
+            if not topic_found_in_progress:
+                try:
+                    current_net = int(float(topic.get('net', 0)))
+                except:
+                    current_net = 0
+            
+            # Dikdörtgen kart göster
+            col1, col2, col3 = st.columns([3, 1, 1])
+            
+            with col1:
+                # Konu bilgilerini göster
                 review_type_icon = "🎯" if topic['review_type'] == 'KALİCİ' else "🔄"
-                review_type_text = "Kalıcı" if topic['review_type'] == 'KALİCİ' else "Genel"
                 
-                with cols[col_index]:
-                    # Her konu için kart - koyu kırmızı arka plan, siyah yazılar
+                # Seviye durumuna göre renk belirle
+                if current_net >= 15:
+                    status_color = "#228B22"  # Yeşil - İyi seviye
+                    status_text = f"✅ {current_net} net (İyi seviye)"
+                elif current_net >= 10:
+                    status_color = "#FF8C00"  # Turuncu - Orta seviye
+                    status_text = f"🟡 {current_net} net (Orta seviye)"
+                else:
+                    status_color = "#DC143C"  # Kırmızı - Zayıf seviye
+                    status_text = f"🔴 {current_net} net (Zayıf seviye)"
+                
+                st.markdown(f"""
+                <div style='background: linear-gradient(90deg, {status_color}22 0%, #f8f9fa 100%); 
+                            border-left: 4px solid {status_color}; padding: 12px 15px; border-radius: 8px; 
+                            margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
+                    <div style='font-weight: bold; font-size: 14px; color: #2c3e50;'>
+                        {i+1}. {topic['subject']} {review_type_icon}
+                    </div>
+                    <div style='font-size: 13px; color: #34495e; margin: 4px 0 2px 0;'>
+                        {topic['topic']}
+                    </div>
+                    <div style='font-size: 12px; color: {status_color}; font-weight: 600;'>
+                        {status_text}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col2:
+                # Net bilgisi ve güncelleme durumu
+                if current_net >= 15:
                     st.markdown(f"""
-                    <div style='background: linear-gradient(135deg, #8b0000 0%, #5d0000 100%); 
-                                border: 2px solid #000000; padding: 8px; border-radius: 8px; 
-                                margin-bottom: 8px; height: 140px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);'>
-                        <div style='text-align: center; margin-bottom: 6px;'>
-                            <span style='font-size: 12px; color: #ffffff; font-weight: bold;'>{i+1}.</span>
-                            <div style='font-weight: bold; font-size: 12px; margin: 4px 0; color: #ffffff;'>
-                                {topic['subject']} {review_type_icon}
-                            </div>
-                        </div>
-                        <div style='font-size: 11px; text-align: center; margin-bottom: 8px; line-height: 1.2; font-weight: 600; color: #ffffff;'>
-                            {topic['topic']}
-                        </div>
-                        <div style='font-size: 10px; color: #ffffff; text-align: center; font-weight: 500;'>
-                            {review_type_text} • Mevcut: {topic.get('net', 0)} net
-                        </div>
+                    <div style='text-align: center; padding: 20px 0;'>
+                        <div style='font-size: 18px; color: #228B22;'>✅</div>
+                        <div style='font-size: 11px; color: #228B22; font-weight: bold;'>İyi Seviye</div>
                     </div>
                     """, unsafe_allow_html=True)
-                    
-                    # Benzersiz key oluştur (duplicate key hatasını önlemek için)
-                    level_key = f"review_level_{topic['subject']}_{topic['topic']}_{i}"
-                    
-                    # Mevcut seçimi al
-                    topic_key = f"{topic['subject']}_{topic['topic']}"
-                    repetition_history = user_data.get('topic_repetition_history', {})
-                    if isinstance(repetition_history, str):
-                        try:
-                            repetition_history = json.loads(repetition_history)
-                        except:
-                            repetition_history = {}
-                    
-                    current_level = repetition_history.get(topic_key, {}).get('level', 'Sadece Tekrar Ettim')
-                    
-                    level_options = [
-                        'Sadece Tekrar Ettim',
-                        'Güncel son netim (1-7)',
-                        'Güncel son netim (8-12)', 
-                        'Güncel son netim (13-15)',
-                        'Güncel son netim (16-17)',
-                        'Güncel son netim (18-20)'
-                    ]
-                    
-                    # Session state'den mevcut seçimi al veya default olarak ayarla
-                    if level_key not in st.session_state:
-                        st.session_state[level_key] = current_level
-                    
-                    # Seçeneklerin indeksini bul
-                    try:
-                        selected_index = level_options.index(st.session_state[level_key]) if st.session_state[level_key] in level_options else 0
-                    except:
-                        selected_index = 0
-                    
-                    selected_level = st.selectbox(
-                        "Seviye:",
-                        level_options,
-                        index=selected_index,
-                        key=level_key,
-                        label_visibility="collapsed"
-                    )
-                    
-                    # Seviye değiştiğinde otomatik kaydet
-                    if st.session_state[level_key] != selected_level:
-                        st.session_state[level_key] = selected_level
+                else:
+                    st.markdown(f"""
+                    <div style='text-align: center; padding: 20px 0;'>
+                        <div style='font-size: 18px; color: #FF8C00;'>⚠️</div>
+                        <div style='font-size: 11px; color: #FF8C00; font-weight: bold;'>Güncelleme Gerekli</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+            
+            with col3:
+                # Tekrarımı yaptım butonu
+                button_key = f"repeat_button_{topic['subject']}_{topic['topic']}_{i}"
+                
+                if st.button("✅ Tekrarımı yaptım", key=button_key, type="primary"):
+                    # Konu takip sisteminde 15+ net kontrolü
+                    if current_net >= 15:
+                        # 15+ net - konuyu listeden kaldır
+                        remove_topic_from_review_list(user_data, topic_key)
+                        st.success(f"🎉 {topic['subject']} - {topic['topic']} konusu listeden kaldırıldı!")
+                        st.rerun()
+                    else:
+                        # 15 altı net - uyarı göster ve zorlandığınız konulara ekle
+                        add_to_struggling_subjects(user_data, topic, current_net)
+                        st.error(f"⚠️ Lütfen önce güncel netinizi **Konu Takip** sekmesinden güncelleyiniz!")
+                        st.info(f"💡 Konunuz **zorlandığınız konular** bölümüne eklendi.")
+                        st.rerun()
                         
-                        # Hatırlatma sistemi ile güncelle
-                        update_topic_repetition_history(user_data, topic_key, selected_level)
-                        
-                        # Session state'i güncelle
-                        if 'topic_repetition_history' in user_data:
-                            # JSON string'i dict'e çevir
-                            try:
-                                if isinstance(user_data['topic_repetition_history'], str):
-                                    updated_repetition_history = json.loads(user_data['topic_repetition_history'])
-                                else:
-                                    updated_repetition_history = user_data['topic_repetition_history']
-                                
-                                # Güncellenmiş history'yi sakla
-                                repetition_history.update(updated_repetition_history)
-                            except:
-                                pass
-                    
-            # Eğer daha fazla konu varsa
-            if len(all_review_topics) > 15:
-                st.markdown(f"<div style='text-align: center; color: #666; font-size: 12px; margin-top: 10px;'>... ve {len(all_review_topics) - 15} konu daha</div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
+        
     else:
         st.info("🔄 Bu hafta için tekrar edilecek konu bulunmuyor.")
+
+def add_to_struggling_subjects(user_data, topic, current_net):
+    """Konuyu zorlandığınız konular listesine ekle"""
+    try:
+        if 'struggling_subjects' not in user_data:
+            user_data['struggling_subjects'] = {}
+        
+        struggling_subjects = user_data['struggling_subjects']
+        
+        # Konuyu ekle veya güncelle
+        topic_key = f"{topic['subject']}_{topic['topic']}"
+        struggling_subjects[topic_key] = {
+            'subject': topic['subject'],
+            'topic': topic['topic'],
+            'current_net': current_net,
+            'added_date': datetime.now().strftime("%Y-%m-%d"),
+            'status': 'needs_improvement'
+        }
+        
+        user_data['struggling_subjects'] = struggling_subjects
+        
+        # Firebase'e gönder
+        if 'username' in user_data:
+            try:
+                update_user_in_firebase(user_data['username'], {
+                    'struggling_subjects': struggling_subjects
+                })
+            except:
+                pass
+                
+    except Exception as e:
+        print(f"Zorlanılan konu ekleme hatası: {e}")
+
+def remove_topic_from_review_list(user_data, topic_key):
+    """Konuyu tekrar edilecekler listesinden kaldır ve tekrar geçmişini güncelle"""
+    from datetime import datetime, timedelta
+    
+    try:
+        # Eğer topic_repetition_history yoksa oluştur
+        if 'topic_repetition_history' not in user_data:
+            user_data['topic_repetition_history'] = {}
+        
+        current_date = datetime.now()
+        current_date_str = current_date.strftime("%Y-%m-%d")
+        
+        # Tekrar geçmişine ekle
+        user_data['topic_repetition_history'][topic_key] = {
+            'level': 'Tekrar Ettim',
+            'date': current_date_str,
+            'action': 'completed',
+            'next_review_date': (current_date + timedelta(days=7)).strftime("%Y-%m-%d"),
+            'completed_at': current_date_str
+        }
+        
+        # Weekly_plan'dan da kaldır
+        if 'weekly_plan' in user_data:
+            weekly_plan = user_data['weekly_plan']
+            if 'review_topics' in weekly_plan:
+                # Konuyu review_topics'ten kaldır
+                new_review_topics = []
+                for review_topic in weekly_plan['review_topics']:
+                    review_topic_key = f"{review_topic.get('subject', '')}_{review_topic.get('topic', '')}"
+                    if review_topic_key != topic_key:
+                        new_review_topics.append(review_topic)
+                weekly_plan['review_topics'] = new_review_topics
+                user_data['weekly_plan'] = weekly_plan
+        
+        # Kalıcı öğrenme tekrarlarından da kaldır (varsa)
+        if 'pending_review_topics' in user_data:
+            pending_topics = user_data['pending_review_topics']
+            if isinstance(pending_topics, list):
+                new_pending_topics = []
+                for pending_topic in pending_topics:
+                    pending_topic_key = f"{pending_topic.get('subject', '')}_{pending_topic.get('topic', '')}"
+                    if pending_topic_key != topic_key:
+                        new_pending_topics.append(pending_topic)
+                user_data['pending_review_topics'] = new_pending_topics
+                
+        # Firebase'e gönder
+        if 'username' in user_data:
+            try:
+                update_user_in_firebase(user_data['username'], {
+                    'topic_repetition_history': user_data['topic_repetition_history'],
+                    'weekly_plan': user_data.get('weekly_plan', {}),
+                    'pending_review_topics': user_data.get('pending_review_topics', [])
+                })
+            except:
+                pass
+                
+    except Exception as e:
+        print(f"Konu kaldırma hatası: {e}")
 
 def show_topic_card(topic, priority_type):
     """Konu kartı gösterici"""
@@ -8167,6 +8283,138 @@ def show_mastery_progress_dashboard(user_data):
                 parts = topic_key.split(' | ')
                 if len(parts) >= 3:
                     st.success(f"✅ {parts[0]} - {parts[2]} | ✨ Başarı: {status['success_count']}/{status['total_reviews']}")
+
+def show_struggling_subjects_section(user_data):
+    """💪 Zorlandığınız konular bölümü"""
+    st.markdown("#### 💪 Zorlandığınız Konular")
+    
+    # Zorlandığınız konuları al
+    struggling_subjects = user_data.get('struggling_subjects', {})
+    if isinstance(struggling_subjects, str):
+        try:
+            struggling_subjects = json.loads(struggling_subjects)
+        except:
+            struggling_subjects = {}
+    
+    # Konu takip sisteminden güncel net bilgilerini al
+    topic_progress = user_data.get('topic_progress', {})
+    if isinstance(topic_progress, str):
+        try:
+            topic_progress = json.loads(topic_progress)
+        except:
+            topic_progress = {}
+    
+    if not struggling_subjects:
+        st.success("🎉 Harika! Şu anda zorlandığınız konu bulunmuyor!")
+        st.markdown("**İpuçları:**")
+        st.markdown("• Bu bölüm 15+ net yapmadığınız konuları gösterir")
+        st.markdown("• Konularınızı geliştirdikçe buradan otomatik olarak çıkar")
+        st.markdown("• Konu Takip sekmesinden güncel netlerinizi takip edin")
+        return
+    
+    # Zorlandığınız konuları seviyelere göre grupla
+    very_weak = []  # 0-5 net
+    weak = []       # 6-10 net  
+    moderate = []   # 11-14 net
+    
+    for topic_key, topic_data in struggling_subjects.items():
+        try:
+            current_net = int(float(topic_data.get('current_net', 0)))
+            
+            if current_net <= 5:
+                very_weak.append((topic_key, topic_data, current_net))
+            elif current_net <= 10:
+                weak.append((topic_key, topic_data, current_net))
+            elif current_net <= 14:
+                moderate.append((topic_key, topic_data, current_net))
+        except:
+            moderate.append((topic_key, topic_data, 0))
+    
+    # Çok zayıf konular
+    if very_weak:
+        st.markdown("##### 🔴 Çok Zayıf Konular (0-5 net)")
+        for topic_key, topic_data, current_net in very_weak:
+            st.markdown(f"""
+            <div style='background: linear-gradient(90deg, #DC143C22 0%, #f8f9fa 100%); 
+                        border-left: 4px solid #DC143C; padding: 12px 15px; border-radius: 8px; 
+                        margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
+                <div style='font-weight: bold; font-size: 14px; color: #2c3e50;'>
+                    🚨 {topic_data['subject']} - {topic_data['topic']}
+                </div>
+                <div style='font-size: 12px; color: #DC143C; margin-top: 4px;'>
+                    ⚠️ {current_net} net - Acil çalışma gerekli!
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Zayıf konular
+    if weak:
+        st.markdown("##### 🟠 Zayıf Konular (6-10 net)")
+        for topic_key, topic_data, current_net in weak:
+            st.markdown(f"""
+            <div style='background: linear-gradient(90deg, #FF8C0022 0%, #f8f9fa 100%); 
+                        border-left: 4px solid #FF8C00; padding: 12px 15px; border-radius: 8px; 
+                        margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
+                <div style='font-weight: bold; font-size: 14px; color: #2c3e50;'>
+                    ⚡ {topic_data['subject']} - {topic_data['topic']}
+                </div>
+                <div style='font-size: 12px; color: #FF8C00; margin-top: 4px;'>
+                    📈 {current_net} net - Çalışmaya devam edin!
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Orta seviye konular
+    if moderate:
+        st.markdown("##### 🟡 Orta Seviye Konular (11-14 net)")
+        for topic_key, topic_data, current_net in moderate:
+            st.markdown(f"""
+            <div style='background: linear-gradient(90deg, #FFD70022 0%, #f8f9fa 100%); 
+                        border-left: 4px solid #FFD700; padding: 12px 15px; border-radius: 8px; 
+                        margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
+                <div style='font-weight: bold; font-size: 14px; color: #2c3e50;'>
+                    🎯 {topic_data['subject']} - {topic_data['topic']}
+                </div>
+                <div style='font-size: 12px; color: #B8860B; margin-top: 4px;'>
+                    🌟 {current_net} net - Biraz daha çalışırsanız hedefe ulaşacaksınız!
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Öneriler
+    st.markdown("---")
+    st.markdown("##### 💡 Öneriler")
+    
+    if very_weak:
+        st.markdown("• **Çok zayıf konular** için önce konu anlatım videolarını izleyin")
+        st.markdown("• Temel kavramları öğrenmeden soru çözmeye geçmeyin")
+    
+    if weak:
+        st.markdown("• **Zayıf konular** için daha fazla soru çözün")
+        st.markdown("• Eksik noktalarınızı tespit edip çalışma planınızı ona göre ayarlayın")
+    
+    if moderate:
+        st.markdown("• **Orta seviye konular** için pratik yapmaya devam edin")
+        st.markdown("• Hedefe yakınsınız, sadece biraz daha çalışın!")
+    
+    # Temizleme seçeneği
+    st.markdown("---")
+    if st.button("🗑️ Tüm zorlandığınız konuları temizle", type="secondary"):
+        # Kullanıcının onayını al
+        if st.checkbox("Emin misiniz? Bu işlem geri alınamaz."):
+            user_data['struggling_subjects'] = {}
+            
+            # Firebase'e gönder
+            if 'username' in user_data:
+                try:
+                    update_user_in_firebase(user_data['username'], {
+                        'struggling_subjects': {}
+                    })
+                except:
+                    pass
+            
+            st.success("✅ Tüm zorlandığınız konular temizlendi!")
+            st.rerun()
 
 def get_current_week_info():
     """Güncel haftanın bilgilerini döndürür - sürekli güncellenecek"""
