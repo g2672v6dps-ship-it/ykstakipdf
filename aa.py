@@ -766,6 +766,9 @@ backblaze_connected = False
 b2_api = None
 b2_bucket = None
 
+# 🔥 BACKWARD COMPATIBILITY - Değişkenler
+firebase_connected = backblaze_connected
+
 if BACKBLAZE_AVAILABLE:
     try:
         # Backblaze B2 API'sini başlat
@@ -790,6 +793,7 @@ if BACKBLAZE_AVAILABLE:
                 b2_bucket = b2_api.create_bucket(bucket_name, 'allPrivate')
             
             backblaze_connected = True
+            firebase_connected = backblaze_connected  # Update backward compatibility
             st.success("✅ Backblaze B2 bağlantısı kuruldu!")
         else:
             st.warning("⚠️ Backblaze B2 API anahtarları bulunamadı!")
@@ -797,9 +801,12 @@ if BACKBLAZE_AVAILABLE:
     except Exception as e:
         st.warning(f"⚠️ Backblaze B2 bağlantısı kurulamadı: {e}")
         backblaze_connected = False
+        firebase_connected = backblaze_connected  # Update backward compatibility
         b2_api = None
         b2_bucket = None
 else:
+    backblaze_connected = False
+    firebase_connected = backblaze_connected  # Update backward compatibility
     st.info("📦 Backblaze B2 modülü yüklenmedi - yerel test modu aktif")
 
 # FALLBACK: Geçici test kullanıcıları
@@ -882,9 +889,6 @@ def update_user_in_backblaze(username, data):
 load_users_from_firebase = load_users_from_backblaze  # Alias
 update_user_in_firebase = update_user_in_backblaze    # Alias
 firebase_cache = backblaze_cache                      # Alias
-
-# 🔥 BACKWARD COMPATIBILITY - Değişkenler
-firebase_connected = backblaze_connected
 
 # === HİBRİT POMODORO SİSTEMİ SABİTLERİ ===
 
