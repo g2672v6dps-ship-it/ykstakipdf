@@ -777,9 +777,9 @@ if BACKBLAZE_AVAILABLE:
         
         # API anahtarlarını environment'dan al
         # Kendi API anahtarlarınızı buraya yazın:
-        application_key_id = 'BACKBLAZE_APPLICATION_KEY_ID_BURAYA_YAZIN'
-        application_key = 'BACKBLAZE_APPLICATION_KEY_BURAYA_YAZIN'
-        bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'student-data')
+        application_key_id = 'f69accbc6328'
+        application_key = '5f7639dabc9c7b2c96a30218'
+        bucket_name = os.environ.get('psikodonus-files', 'student-data')
         
         if application_key_id and application_key:
             # API ile giriş yap
