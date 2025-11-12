@@ -890,6 +890,10 @@ load_users_from_firebase = load_users_from_backblaze  # Alias
 update_user_in_firebase = update_user_in_backblaze    # Alias
 # firebase_cache alias removed - using backblaze_cache directly
 
+# 🔥 BACKWARD COMPATIBILITY - db_ref değişkeni (Firebase uyumluluğu için)
+# Firebase uyumlu olmak için basit bir referans
+db_ref = True if backblaze_connected else None
+
 # === HİBRİT POMODORO SİSTEMİ SABİTLERİ ===
 
 # YKS Odaklı Motivasyon Sözleri - Hibrit Sistem için
