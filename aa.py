@@ -7861,6 +7861,9 @@ def show_review_topics_section(review_topics, user_data):
     if all_review_topics:
         st.markdown("#### 🔄 TEKRAR EDİLECEK KONULAR")
         
+        # 🔥 Session state'e kaydet (button sırasında kullanmak için)
+        st.session_state.all_review_topics = all_review_topics
+        
         # Konu takip sisteminden güncel bilgileri al
         topic_progress = user_data.get('topic_progress', {})
         if isinstance(topic_progress, str):
@@ -7887,22 +7890,42 @@ def show_review_topics_section(review_topics, user_data):
             current_net = 0
             topic_found_in_progress = False
             
-            # Konu takip sisteminde bu konunun güncel bilgilerini ara
-            for subject_key, subjects_data in topic_progress.items():
-                if subject_key == topic['subject'] or f"{subject_key}" == topic['subject']:
-                    if isinstance(subjects_data, dict):
-                        for topic_key_check, topic_data in subjects_data.items():
-                            if topic_key_check == topic['topic'] or topic_key == f"{subject_key}_{topic_key_check}":
-                                try:
-                                    current_net = int(float(topic_data.get('net', 0)))
-                                    topic_found_in_progress = True
-                                    break
-                                except:
-                                    pass
-                    if topic_found_in_progress:
-                        break
+            # 🔥 DÜZELTME: Net bilgisini doğru şekilde çek
+            # 1. Doğrudan topic_key ile ara (format: "Ders | Ana Konu | Alt Konu | Detay")
+            direct_topic_key = f"{topic['subject']} | {topic['topic']}"
+            if direct_topic_key in topic_progress:
+                try:
+                    net_value = topic_progress[direct_topic_key]
+                    if net_value and net_value != '0':
+                        current_net = int(float(net_value))
+                        topic_found_in_progress = True
+                except:
+                    pass
             
-            # Eğer konu takip sisteminde bulunamadıysa eski veriyi kullan
+            # 2. Eğer bulunamadıysa, daha geniş arama yap
+            if not topic_found_in_progress:
+                for stored_key, stored_value in topic_progress.items():
+                    # topic_progress'de direkt string net değeri varsa
+                    if stored_key == topic['topic'] and isinstance(stored_value, str):
+                        try:
+                            current_net = int(float(stored_value))
+                            topic_found_in_progress = True
+                            break
+                        except:
+                            pass
+                    
+                    # topic_progress'de dict formatında veri varsa
+                    elif isinstance(stored_value, dict):
+                        if topic['subject'] in stored_key and topic['topic'] in stored_key:
+                            net_from_dict = stored_value.get('net', '0')
+                            try:
+                                current_net = int(float(net_from_dict))
+                                topic_found_in_progress = True
+                                break
+                            except:
+                                pass
+            
+            # 3. Eğer konu takip sisteminde bulunamadıysa eski veriyi kullan
             if not topic_found_in_progress:
                 try:
                     current_net = int(float(topic.get('net', 0)))
@@ -8017,18 +8040,18 @@ def show_review_topics_section(review_topics, user_data):
                 button_key = f"repeat_button_{topic['subject']}_{topic['topic']}_{i}"
                 
                 if st.button("✅ Tekrarımı yaptım", key=button_key, type="primary"):
-                    # Konu takip sisteminde 15+ net kontrolü
-                    if current_net >= 15:
-                        # 15+ net - konuyu listeden kaldır
-                        remove_topic_from_review_list(user_data, topic_key)
-                        st.success(f"🎉 {topic['subject']} - {topic['topic']} konusu listeden kaldırıldı!")
-                        st.rerun()
-                    else:
-                        # 15 altı net - uyarı göster ve zorlandığınız konulara ekle
-                        add_to_struggling_subjects(user_data, topic, current_net)
-                        st.error(f"⚠️ Lütfen önce güncel netinizi **Konu Takip** sekmesinden güncelleyiniz!")
-                        st.info(f"💡 Konunuz **zorlandığınız konular** bölümüne eklendi.")
-                        st.rerun()
+                    # 🔥 KESİN ÇÖZÜM: Firebase + Session State birlikte güncelle
+                    
+                    # 1. Firebase'den konuyu kaldır
+                    remove_topic_from_review_list(user_data, topic_key)
+                    
+                    # 2. Session State'den anında kaldır (görsel güncelleme için)
+                    remove_topic_from_session_state(topic_key)
+                    
+                    # 3. Success mesajı ve yeniden yükle
+                    st.success(f"🎉 {topic['subject']} - {topic['topic']} konusu listeden kaldırıldı!")
+                    st.balloons()
+                    st.rerun()
                         
         st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
         
@@ -8111,7 +8134,7 @@ def remove_topic_from_review_list(user_data, topic_key):
                     if pending_topic_key != topic_key:
                         new_pending_topics.append(pending_topic)
                 user_data['pending_review_topics'] = new_pending_topics
-                
+        
         # Firebase'e gönder
         if 'username' in user_data:
             try:
@@ -8129,6 +8152,7 @@ def remove_topic_from_review_list(user_data, topic_key):
                     firebase_update_data['pending_review_topics'] = user_data['pending_review_topics']
                     
                 update_user_in_firebase(user_data['username'], firebase_update_data)
+                print(f"✅ Konu {topic_key} başarıyla listeden kaldırıldı")
                 
             except Exception as firebase_error:
                 print(f"Firebase güncelleme hatası: {firebase_error}")
@@ -8136,6 +8160,23 @@ def remove_topic_from_review_list(user_data, topic_key):
                 
     except Exception as e:
         print(f"Konu kaldırma hatası: {e}")
+
+def remove_topic_from_session_state(topic_key):
+    """Session state'den konuyu kaldır (anında güncelleme için)"""
+    try:
+        # 🔥 Session State'i güncelle
+        if 'all_review_topics' in st.session_state:
+            st.session_state.all_review_topics = [
+                t for t in st.session_state.all_review_topics 
+                if f"{t.get('subject', '')}_{t.get('topic', '')}" != topic_key
+            ]
+        
+        # Cache'i temizle
+        if 'weekly_plan_cache' in st.session_state:
+            del st.session_state.weekly_plan_cache
+            
+    except Exception as session_error:
+        print(f"Session state güncelleme hatası: {session_error}")
 
 def show_topic_card(topic, priority_type):
     """Konu kartı gösterici"""
