@@ -8058,7 +8058,7 @@ def show_review_topics_section(review_topics, user_data):
             with col3:
                 # Tekrarımı yaptım butonu
                 topic_key = f"{topic['subject']}_{topic['topic']}"  # 🔥 SABİT: Her zaman subject_topic formatı
-                button_key = f"repeat_button_{topic_key}"  # Button için benzersiz key
+                button_key = f"repeat_button_{topic_key}_{i}"  # 🔥 DÜZELT: i ile benzersiz key yap
                 
                 print(f"🔍 [DEBUG] Buton render ediliyor...")
                 print(f"🔍 [DEBUG] topic_key: {topic_key}")
