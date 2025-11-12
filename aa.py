@@ -7829,6 +7829,23 @@ def show_new_topics_section(new_topics, user_data):
 
 def show_review_topics_section(review_topics, user_data):
     """Tekrar konuları bölümü - BASİTLİK ve NET GÜNCELLEMESİ"""
+    # 🔥 DEBUG BUTONU - Uygulamanın en üstüne ekliyorum
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("🔧 DEBUG: Bilgileri Test Et", help="Console'da debug mesajlarını görün"):
+            print("🔥 [DEBUG MODE] Debug butonu tıklandı!")
+            print(f"🔥 [DEBUG MODE] review_topics: {review_topics}")
+            print(f"🔥 [DEBUG MODE] pending_mastery_topics: {get_pending_review_topics(user_data)}")
+            print(f"🔥 [DEBUG MODE] user_data keys: {list(user_data.keys()) if user_data else 'None'}")
+            
+            # Session state'i de kontrol et
+            if 'all_review_topics' in st.session_state:
+                print(f"🔥 [DEBUG MODE] Session state all_review_topics: {st.session_state.all_review_topics}")
+            else:
+                print("🔥 [DEBUG MODE] Session state all_review_topics: YOK")
+                
+            st.info("🔧 Debug butonu tıklandı! Console (F12) kısmını kontrol edin.")
+    
     # Önce konu takip hatırlatmalarını göster
     show_topic_reminder_alerts(user_data)
     
@@ -8056,6 +8073,12 @@ def show_review_topics_section(review_topics, user_data):
                     """, unsafe_allow_html=True)
             
             with col3:
+                # Debug butonu
+                debug_button_key = f"debug_button_{topic_key}_{i}"
+                if st.button("🔧 Debug", key=debug_button_key, help="Buton test için tıklayın"):
+                    print(f"🟢 [DEBUG BUTTON] Test butonu çalıştı! Topic: {topic_key}")
+                    st.info("Debug butonu çalıştı! Console'u kontrol edin.")
+                
                 # Tekrarımı yaptım butonu
                 topic_key = f"{topic['subject']}_{topic['topic']}"  # 🔥 SABİT: Her zaman subject_topic formatı
                 button_key = f"repeat_button_{topic_key}_{i}"  # 🔥 DÜZELT: i ile benzersiz key yap
@@ -8082,20 +8105,6 @@ def show_review_topics_section(review_topics, user_data):
                         print("✅ Session state güncelleme tamamlandı")
                         
                         # 3. Success mesajı ve yeniden yükle
-                        st.success(f"🎉 {topic['subject']} - {topic['topic']} konusu listeden kaldırıldı!")
-                        print("✅ Success mesajı gösterildi")
-                        
-                        st.balloons()
-                        print("🔴 st.rerun() çağrılıyor...")
-                        st.rerun()
-                        print("✅ st.rerun() tamamlandı")
-                        
-                    except Exception as button_error:
-                        st.error(f"❌ Bir hata oluştu: {button_error}")
-                        st.write(f"🔍 Hata detayı: {topic_key}")
-                        print(f"❌ Button error: {button_error}")
-                        import traceback
-                        print(f"Traceback: {traceback.format_exc()}")
                         st.success(f"🎉 {topic['subject']} - {topic['topic']} konusu listeden kaldırıldı!")
                         print("✅ Success mesajı gösterildi")
                         
