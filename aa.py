@@ -7916,6 +7916,55 @@ def show_review_topics_section(review_topics, user_data):
                 # Konu bilgilerini göster
                 review_type_icon = "🎯" if topic['review_type'] == 'KALİCİ' else "🔄"
                 
+                # Detaylı konu bilgisini çek - konu takip sisteminden
+                detail_info = topic.get('detail', '')
+                if not detail_info:
+                    # Konu takip sisteminde detay bilgisini ara
+                    for key, value in topic_progress.items():
+                        if topic['subject'] in key and topic['topic'] in key:
+                            if isinstance(value, dict):
+                                detail_info = value.get('detail', '')
+                                if detail_info:
+                                    break
+                
+                # Eğer hala detay yoksa, genel açıklama ekle
+                if not detail_info:
+                    # Türkçe sözcükte anlam gibi genel konular için özel açıklamalar
+                    if "sözcükte anlam" in topic['topic'].lower():
+                        if "terim" in topic['topic'].lower():
+                            detail_info = "Terim Anlam - Sözlükte tanımlanmış özel anlamlar"
+                        elif "yan" in topic['topic'].lower():
+                            detail_info = "Yan Anlam - Kelimenin ikincil anlamları"
+                        elif "mecaz" in topic['topic'].lower():
+                            detail_info = "Mecaz Anlam - Gerçek dışı kullanımlar"
+                        else:
+                            detail_info = "Sözcükte Anlam - Temel kavramlar"
+                    elif "paragraf" in topic['topic'].lower():
+                        if "anlam" in topic['topic'].lower():
+                            detail_info = "Paragraf Anlama - Metin yorumlama"
+                        elif "çıkarım" in topic['topic'].lower():
+                            detail_info = "Çıkarım - Gizli anlam bulma"
+                        else:
+                            detail_info = "Paragraf - Okuduğunu anlama"
+                    elif "sayılar" in topic['topic'].lower():
+                        if "rasyonel" in topic['topic'].lower():
+                            detail_info = "Rasyonel Sayılar - Kesirli sayılar"
+                        elif "irrational" in topic['topic'].lower():
+                            detail_info = "İrrasyonel Sayılar - Köklü sayılar"
+                        else:
+                            detail_info = "Sayılar - Temel aritmetik"
+                    elif "üslü" in topic['topic'].lower():
+                        detail_info = "Üslü İfadeler - Kuvvet ve kök işlemleri"
+                    elif "denklem" in topic['topic'].lower():
+                        if "birinci" in topic['topic'].lower():
+                            detail_info = "Birinci Dereceden Denklemler"
+                        elif "ikinci" in topic['topic'].lower():
+                            detail_info = "İkinci Dereceden Denklemler"
+                        else:
+                            detail_info = "Denklem Çözme"
+                    else:
+                        detail_info = "Ana Konu"
+                
                 # Seviye durumuna göre renk belirle
                 if current_net >= 15:
                     status_color = "#228B22"  # Yeşil - İyi seviye
@@ -7934,8 +7983,11 @@ def show_review_topics_section(review_topics, user_data):
                     <div style='font-weight: bold; font-size: 14px; color: #2c3e50;'>
                         {i+1}. {topic['subject']} {review_type_icon}
                     </div>
-                    <div style='font-size: 13px; color: #34495e; margin: 4px 0 2px 0;'>
-                        {topic['topic']}
+                    <div style='font-size: 13px; color: #34495e; margin: 4px 0 2px 0; font-weight: 600;'>
+                        📖 {topic['topic']}
+                    </div>
+                    <div style='font-size: 11px; color: #6c757d; margin: 2px 0 4px 0; font-style: italic;'>
+                        └ {detail_info}
                     </div>
                     <div style='font-size: 12px; color: {status_color}; font-weight: 600;'>
                         {status_text}
