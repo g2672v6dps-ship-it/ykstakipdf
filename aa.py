@@ -7977,19 +7977,19 @@ def show_review_topics_section(review_topics, user_data):
                     status_text = f"🔴 {current_net} net (Zayıf seviye)"
                 
                 st.markdown(f"""
-                <div style='background: linear-gradient(90deg, {status_color}CC 0%, #f8f9fa 100%); 
-                            border-left: 4px solid {status_color}; padding: 12px 15px; border-radius: 8px; 
-                            margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
-                    <div style='font-weight: bold; font-size: 14px; color: #2c3e50;'>
+                <div style='background: linear-gradient(135deg, {status_color} 0%, {status_color}88 50%, {status_color}66 100%); 
+                            border: 2px solid {status_color}; padding: 16px 20px; border-radius: 12px; 
+                            margin-bottom: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); color: white;'>
+                    <div style='font-weight: bold; font-size: 16px; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); margin-bottom: 8px;'>
                         {i+1}. {topic['subject']} {review_type_icon}
                     </div>
-                    <div style='font-size: 14px; color: #2c3e50; margin: 4px 0 2px 0; font-weight: bold;'>
+                    <div style='font-size: 18px; color: white; margin: 6px 0 4px 0; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);'>
                         📖 {topic['topic']}
                     </div>
-                    <div style='font-size: 11px; color: #6c757d; margin: 2px 0 4px 0; font-style: italic;'>
+                    <div style='font-size: 13px; color: rgba(255,255,255,0.9); margin: 4px 0 8px 0; font-style: italic; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);'>
                         └ {detail_info}
                     </div>
-                    <div style='font-size: 12px; color: {status_color}; font-weight: bold; background: rgba(255,255,255,0.3); padding: 3px 6px; border-radius: 4px; margin-top: 4px;'>
+                    <div style='font-size: 14px; color: white; font-weight: bold; background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 8px; margin-top: 8px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);'>
                         {status_text}
                     </div>
                 </div>
@@ -8115,13 +8115,24 @@ def remove_topic_from_review_list(user_data, topic_key):
         # Firebase'e gönder
         if 'username' in user_data:
             try:
-                update_user_in_firebase(user_data['username'], {
+                # Ana kullanıcı verilerini güncelle
+                firebase_update_data = {
                     'topic_repetition_history': user_data['topic_repetition_history'],
-                    'weekly_plan': user_data.get('weekly_plan', {}),
-                    'pending_review_topics': user_data.get('pending_review_topics', [])
-                })
-            except:
-                pass
+                }
+                
+                # Weekly plan varsa onu da güncelle
+                if 'weekly_plan' in user_data:
+                    firebase_update_data['weekly_plan'] = user_data['weekly_plan']
+                
+                # Pending review topics varsa onu da güncelle  
+                if 'pending_review_topics' in user_data:
+                    firebase_update_data['pending_review_topics'] = user_data['pending_review_topics']
+                    
+                update_user_in_firebase(user_data['username'], firebase_update_data)
+                
+            except Exception as firebase_error:
+                print(f"Firebase güncelleme hatası: {firebase_error}")
+                # Firebase hatası olsa bile devam et, yerel veri güncellenmiş olsun
                 
     except Exception as e:
         print(f"Konu kaldırma hatası: {e}")
@@ -16551,6 +16562,19 @@ def main():
                                             if str(new_net) != current_net:
                                                 topic_progress[topic_key] = str(new_net)
                                                 update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
+                                                
+                                                # 🔥 YENİ: Eğer net 15+ olduysa tekrar listesinden otomatik çıkar
+                                                if new_net >= 15:
+                                                    # Konu key'ini oluştur (tekrar listesinden çıkarmak için)
+                                                    topic_parts = topic_key.split(' | ')
+                                                    if len(topic_parts) >= 4:
+                                                        subject_name = topic_parts[0]
+                                                        main_topic_name = topic_parts[2] if topic_parts[2] != 'None' else topic_parts[1]
+                                                        detail_topic = topic_parts[3]
+                                                        
+                                                        auto_topic_key = f"{subject_name}_{detail_topic}"
+                                                        remove_topic_from_review_list(user_data, auto_topic_key)
+                                                
                                                 # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                                                 # Haftalık plan cache'ini temizle
                                                 if 'weekly_plan_cache' in st.session_state:
@@ -16629,6 +16653,18 @@ def main():
                                         if str(new_net) != current_net:
                                             topic_progress[topic_key] = str(new_net)
                                             update_user_in_firebase(st.session_state.current_user, {'topic_progress': json.dumps(topic_progress)})
+                                            
+                                            # 🔥 YENİ: Eğer net 15+ olduysa tekrar listesinden otomatik çıkar
+                                            if new_net >= 15:
+                                                # Konu key'ini oluştur (tekrar listesinden çıkarmak için)
+                                                topic_parts = topic_key.split(' | ')
+                                                if len(topic_parts) >= 3:
+                                                    subject_name = topic_parts[0]
+                                                    detail_topic = topic_parts[3] if topic_parts[3] != 'None' else topic_parts[1]
+                                                    
+                                                    auto_topic_key = f"{subject_name}_{detail_topic}"
+                                                    remove_topic_from_review_list(user_data, auto_topic_key)
+                                            
                                             # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
                                             # Haftalık plan cache'ini temizle
                                             if 'weekly_plan_cache' in st.session_state:
