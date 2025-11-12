@@ -1,5 +1,7 @@
 streamlit
-firebase-admin
+
 plotly
 pandas
+b2sdk==2.3.0
+python-dotenv
 
