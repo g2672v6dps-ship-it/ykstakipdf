@@ -775,11 +775,47 @@ if BACKBLAZE_AVAILABLE:
         info = InMemoryAccountInfo()
         b2_api = B2Api(info)
         
-        # API anahtarlarını environment'dan al
-        # Kendi API anahtarlarınızı buraya yazın:
-        application_key_id = 'f69accbc6328'
-        application_key = '5f7639dabc9c7b2c96a30218'
-        bucket_name = os.environ.get('psikodonus-files', 'student-data')
+        # API anahtarlarını öncelik sırasına göre al:
+        # 1. Streamlit Cloud secrets
+        # 2. b2_storage.py dosyası
+        # 3. Environment variables
+        application_key_id = ''
+        application_key = ''
+        bucket_name = 'student-data'
+        
+        try:
+            # Streamlit Cloud secrets'ları dene
+            import streamlit as st
+            if hasattr(st, 'secrets'):
+                application_key_id = st.secrets.get('f69accbc6328', '')
+                application_key = st.secrets.get('5f7639dabc9c7b2c96a30218', '')
+                bucket_name = st.secrets.get('psikodonus-files', 'student-data')
+            
+            # Eğer secrets yoksa b2_storage.py'yi import et
+            if not application_key_id or not application_key:
+                try:
+                    from b2_storage import (
+                        BACKBLAZE_APPLICATION_KEY_ID as b2_key_id,
+                        BACKBLAZE_APPLICATION_KEY as b2_key,
+                        BACKBLAZE_BUCKET_NAME as b2_bucket
+                    )
+                    application_key_id = b2_key_id
+                    application_key = b2_key
+                    bucket_name = b2_bucket
+                except ImportError:
+                    pass
+            
+            # Eğer hala yoksa environment variables'ı kullan
+            if not application_key_id or not application_key:
+                application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '')
+                application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', '')
+                bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'student-data')
+                
+        except Exception as e:
+            st.error(f"API anahtarları yüklenirken hata: {e}")
+            application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '')
+            application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', '')
+            bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'student-data')
         
         if application_key_id and application_key:
             # API ile giriş yap
