@@ -7891,41 +7891,54 @@ def show_review_topics_section(review_topics, user_data):
             topic_found_in_progress = False
             
             # 🔥 DÜZELTME: Net bilgisini doğru şekilde çek
-            # 1. Doğrudan topic_key ile ara (format: "Ders | Ana Konu | Alt Konu | Detay")
-            direct_topic_key = f"{topic['subject']} | {topic['topic']}"
-            if direct_topic_key in topic_progress:
-                try:
-                    net_value = topic_progress[direct_topic_key]
-                    if net_value and net_value != '0':
-                        current_net = int(float(net_value))
-                        topic_found_in_progress = True
-                except:
-                    pass
+            current_net = 0
+            topic_found_in_progress = False
             
-            # 2. Eğer bulunamadıysa, daha geniş arama yap
+            # 1. Tam eşleşme arama (format: "Ders | Ana Konu | Alt Konu | Detay")
+            for stored_key, stored_value in topic_progress.items():
+                if isinstance(stored_key, str):
+                    # Key'in yapısını kontrol et
+                    key_parts = stored_key.split(' | ')
+                    
+                    if len(key_parts) >= 3:
+                        # Tam format: "Ders | Ana Konu | Alt Konu | Detay"
+                        stored_subject = key_parts[0].strip()
+                        stored_topic = key_parts[2].strip() if key_parts[2] != 'None' else key_parts[1].strip()
+                        
+                        # Subject ve topic eşleşmesi
+                        if (topic['subject'] in stored_subject or stored_subject in topic['subject']) and \
+                           (topic['topic'] in stored_topic or stored_topic in topic['topic']):
+                            
+                            try:
+                                if isinstance(stored_value, str):
+                                    # Direkt string net değeri
+                                    current_net = int(float(stored_value))
+                                    topic_found_in_progress = True
+                                    break
+                                elif isinstance(stored_value, dict):
+                                    # Dict formatında net değeri
+                                    net_from_dict = stored_value.get('net', '0')
+                                    current_net = int(float(net_from_dict))
+                                    topic_found_in_progress = True
+                                    break
+                            except:
+                                pass
+            
+            # 2. Eğer bulunamadıysa, daha gevşek arama yap
             if not topic_found_in_progress:
                 for stored_key, stored_value in topic_progress.items():
-                    # topic_progress'de direkt string net değeri varsa
-                    if stored_key == topic['topic'] and isinstance(stored_value, str):
-                        try:
-                            current_net = int(float(stored_value))
-                            topic_found_in_progress = True
-                            break
-                        except:
-                            pass
-                    
-                    # topic_progress'de dict formatında veri varsa
-                    elif isinstance(stored_value, dict):
-                        if topic['subject'] in stored_key and topic['topic'] in stored_key:
-                            net_from_dict = stored_value.get('net', '0')
+                    if isinstance(stored_key, str) and isinstance(stored_value, str):
+                        # Sadece topic adı ile eşleşme ara
+                        if topic['topic'].lower() in stored_key.lower() or \
+                           any(word in stored_key.lower() for word in topic['topic'].lower().split()):
                             try:
-                                current_net = int(float(net_from_dict))
+                                current_net = int(float(stored_value))
                                 topic_found_in_progress = True
                                 break
                             except:
                                 pass
             
-            # 3. Eğer konu takip sisteminde bulunamadıysa eski veriyi kullan
+            # 3. Son çare: Eski veriyi kullan
             if not topic_found_in_progress:
                 try:
                     current_net = int(float(topic.get('net', 0)))
@@ -8042,16 +8055,22 @@ def show_review_topics_section(review_topics, user_data):
                 if st.button("✅ Tekrarımı yaptım", key=button_key, type="primary"):
                     # 🔥 KESİN ÇÖZÜM: Firebase + Session State birlikte güncelle
                     
-                    # 1. Firebase'den konuyu kaldır
-                    remove_topic_from_review_list(user_data, topic_key)
-                    
-                    # 2. Session State'den anında kaldır (görsel güncelleme için)
-                    remove_topic_from_session_state(topic_key)
-                    
-                    # 3. Success mesajı ve yeniden yükle
-                    st.success(f"🎉 {topic['subject']} - {topic['topic']} konusu listeden kaldırıldı!")
-                    st.balloons()
-                    st.rerun()
+                    try:
+                        # 1. Firebase'den konuyu kaldır
+                        remove_topic_from_review_list(user_data, topic_key)
+                        
+                        # 2. Session State'den anında kaldır (görsel güncelleme için)
+                        remove_topic_from_session_state(topic_key)
+                        
+                        # 3. Success mesajı ve yeniden yükle
+                        st.success(f"🎉 {topic['subject']} - {topic['topic']} konusu listeden kaldırıldı!")
+                        st.balloons()
+                        st.rerun()
+                        
+                    except Exception as button_error:
+                        st.error(f"❌ Bir hata oluştu: {button_error}")
+                        st.write(f"🔍 Hata detayı: {topic_key}")
+                        print(f"Button error: {button_error}")
                         
         st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
         
@@ -8111,29 +8130,40 @@ def remove_topic_from_review_list(user_data, topic_key):
             'completed_at': current_date_str
         }
         
-        # Weekly_plan'dan da kaldır
+        # 🔥 DÜZELTME: Weekly_plan'dan da kaldır
         if 'weekly_plan' in user_data:
             weekly_plan = user_data['weekly_plan']
             if 'review_topics' in weekly_plan:
-                # Konuyu review_topics'ten kaldır
+                # Konuyu review_topics'ten kaldır (精确匹配)
                 new_review_topics = []
+                removed_count = 0
                 for review_topic in weekly_plan['review_topics']:
                     review_topic_key = f"{review_topic.get('subject', '')}_{review_topic.get('topic', '')}"
                     if review_topic_key != topic_key:
                         new_review_topics.append(review_topic)
+                    else:
+                        removed_count += 1
+                
                 weekly_plan['review_topics'] = new_review_topics
                 user_data['weekly_plan'] = weekly_plan
+                
+                print(f"✅ Weekly plan'dan {removed_count} konu kaldırıldı")
         
         # Kalıcı öğrenme tekrarlarından da kaldır (varsa)
         if 'pending_review_topics' in user_data:
             pending_topics = user_data['pending_review_topics']
             if isinstance(pending_topics, list):
                 new_pending_topics = []
+                removed_count = 0
                 for pending_topic in pending_topics:
                     pending_topic_key = f"{pending_topic.get('subject', '')}_{pending_topic.get('topic', '')}"
                     if pending_topic_key != topic_key:
                         new_pending_topics.append(pending_topic)
+                    else:
+                        removed_count += 1
                 user_data['pending_review_topics'] = new_pending_topics
+                
+                print(f"✅ Pending review'den {removed_count} konu kaldırıldı")
         
         # Firebase'e gönder
         if 'username' in user_data:
@@ -8151,8 +8181,8 @@ def remove_topic_from_review_list(user_data, topic_key):
                 if 'pending_review_topics' in user_data:
                     firebase_update_data['pending_review_topics'] = user_data['pending_review_topics']
                     
-                update_user_in_firebase(user_data['username'], firebase_update_data)
-                print(f"✅ Konu {topic_key} başarıyla listeden kaldırıldı")
+                update_result = update_user_in_firebase(user_data['username'], firebase_update_data)
+                print(f"✅ Firebase'e gönderildi: {topic_key}")
                 
             except Exception as firebase_error:
                 print(f"Firebase güncelleme hatası: {firebase_error}")
