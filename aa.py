@@ -7826,6 +7826,9 @@ def show_new_topics_section(new_topics, user_data):
 
 def show_review_topics_section(review_topics, user_data):
     """Tekrar konuları bölümü - KARE KARE TABLO FORMATI"""
+    # Önce konu takip hatırlatmalarını göster
+    show_topic_reminder_alerts(user_data)
+    
     # YENİ: Kalıcı öğrenme sistemi tekrarları
     pending_mastery_topics = get_pending_review_topics(user_data)
     
@@ -7867,22 +7870,22 @@ def show_review_topics_section(review_topics, user_data):
                 review_type_text = "Kalıcı" if topic['review_type'] == 'KALİCİ' else "Genel"
                 
                 with cols[col_index]:
-                    # Her konu için kart
+                    # Her konu için kart - koyu kırmızı arka plan, siyah yazılar
                     st.markdown(f"""
-                    <div style='background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); 
-                                border: 2px solid #d32f2f; padding: 8px; border-radius: 8px; 
-                                margin-bottom: 8px; height: 140px; box-shadow: 0 2px 4px rgba(211, 47, 47, 0.2);'>
+                    <div style='background: linear-gradient(135deg, #8b0000 0%, #5d0000 100%); 
+                                border: 2px solid #000000; padding: 8px; border-radius: 8px; 
+                                margin-bottom: 8px; height: 140px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);'>
                         <div style='text-align: center; margin-bottom: 6px;'>
-                            <span style='font-size: 12px; color: #d32f2f; font-weight: bold;'>{i+1}.</span>
-                            <div style='font-weight: bold; font-size: 12px; margin: 4px 0; color: #b71c1c;'>
+                            <span style='font-size: 12px; color: #ffffff; font-weight: bold;'>{i+1}.</span>
+                            <div style='font-weight: bold; font-size: 12px; margin: 4px 0; color: #ffffff;'>
                                 {topic['subject']} {review_type_icon}
                             </div>
                         </div>
-                        <div style='font-size: 11px; text-align: center; margin-bottom: 8px; line-height: 1.2; font-weight: 600; color: #b71c1c;'>
+                        <div style='font-size: 11px; text-align: center; margin-bottom: 8px; line-height: 1.2; font-weight: 600; color: #ffffff;'>
                             {topic['topic']}
                         </div>
-                        <div style='font-size: 10px; color: #d32f2f; text-align: center; font-weight: 500;'>
-                            {review_type_text} • {topic.get('net', 0)} net
+                        <div style='font-size: 10px; color: #ffffff; text-align: center; font-weight: 500;'>
+                            {review_type_text} • Mevcut: {topic.get('net', 0)} net
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -7899,18 +7902,31 @@ def show_review_topics_section(review_topics, user_data):
                         except:
                             repetition_history = {}
                     
-                    current_level = repetition_history.get(topic_key, {}).get('level', 'Zayıf')
+                    current_level = repetition_history.get(topic_key, {}).get('level', 'Sadece Tekrar Ettim')
                     
-                    level_options = ['Zayıf', 'Temel', 'Orta', 'İyi', 'Uzman']
+                    level_options = [
+                        'Sadece Tekrar Ettim',
+                        'Güncel son netim (1-7)',
+                        'Güncel son netim (8-12)', 
+                        'Güncel son netim (13-15)',
+                        'Güncel son netim (16-17)',
+                        'Güncel son netim (18-20)'
+                    ]
                     
                     # Session state'den mevcut seçimi al veya default olarak ayarla
                     if level_key not in st.session_state:
                         st.session_state[level_key] = current_level
                     
+                    # Seçeneklerin indeksini bul
+                    try:
+                        selected_index = level_options.index(st.session_state[level_key]) if st.session_state[level_key] in level_options else 0
+                    except:
+                        selected_index = 0
+                    
                     selected_level = st.selectbox(
                         "Seviye:",
                         level_options,
-                        index=level_options.index(st.session_state[level_key]) if st.session_state[level_key] in level_options else 0,
+                        index=selected_index,
                         key=level_key,
                         label_visibility="collapsed"
                     )
@@ -7919,25 +7935,22 @@ def show_review_topics_section(review_topics, user_data):
                     if st.session_state[level_key] != selected_level:
                         st.session_state[level_key] = selected_level
                         
-                        # Repetition history güncelle
-                        if isinstance(repetition_history, dict):
-                            repetition_history[topic_key] = {
-                                'level': selected_level,
-                                'date': datetime.now().strftime("%Y-%m-%d"),
-                                'action': 'review_completed'
-                            }
-                            
-                            # user_data'yı güncelle
-                            user_data['topic_repetition_history'] = json.dumps(repetition_history)
-                            
-                            # Firebase'e gönder
-                            if 'username' in user_data:
-                                try:
-                                    update_user_in_firebase(user_data['username'], {
-                                        'topic_repetition_history': repetition_history
-                                    })
-                                except:
-                                    pass
+                        # Hatırlatma sistemi ile güncelle
+                        update_topic_repetition_history(user_data, topic_key, selected_level)
+                        
+                        # Session state'i güncelle
+                        if 'topic_repetition_history' in user_data:
+                            # JSON string'i dict'e çevir
+                            try:
+                                if isinstance(user_data['topic_repetition_history'], str):
+                                    updated_repetition_history = json.loads(user_data['topic_repetition_history'])
+                                else:
+                                    updated_repetition_history = user_data['topic_repetition_history']
+                                
+                                # Güncellenmiş history'yi sakla
+                                repetition_history.update(updated_repetition_history)
+                            except:
+                                pass
                     
             # Eğer daha fazla konu varsa
             if len(all_review_topics) > 15:
@@ -11064,8 +11077,175 @@ def update_topic_completion_date(username, topic_key):
         st.error(f"Tamamlama tarihi kaydedilemedi: {e}")
 
 # Konu takip sistemine entegrasyon için yardımcı fonksiyon
-def check_and_update_completion_dates():
-    """Konu takip sisteminden iyi seviyeye çıkan konuları takip et"""
+def show_topic_reminder_alerts(user_data):
+    """Konu takip hatırlatmalarını göster (24 saat, 3 gün, 7 gün sonrası)"""
+    from datetime import datetime
+    
+    try:
+        repetition_history = user_data.get('topic_repetition_history', {})
+        if isinstance(repetition_history, str):
+            repetition_history = json.loads(repetition_history)
+        
+        if not repetition_history:
+            return
+            
+        current_date = datetime.now()
+        reminders_to_show = []
+        
+        for topic_key, history in repetition_history.items():
+            if not isinstance(history, dict):
+                continue
+                
+            stages = history.get('stages', {})
+            if not stages:
+                continue
+                
+            # Her aşama için hatırlatma kontrolü
+            for stage_key, stage_data in stages.items():
+                if stage_data.get('completed', False):
+                    continue
+                    
+                reminder_date = stage_data.get('date') or stage_data.get('next_date')
+                if not reminder_date:
+                    continue
+                    
+                try:
+                    # Tarih kontrolü
+                    if 'T' in reminder_date:
+                        # Saat içeren tarih
+                        reminder_dt = datetime.fromisoformat(reminder_date)
+                    else:
+                        # Sadece tarih
+                        reminder_dt = datetime.strptime(reminder_date, "%Y-%m-%d")
+                    
+                    # Hatırlatma zamanı geldi mi?
+                    if current_date >= reminder_dt:
+                        reminders_to_show.append({
+                            'topic_key': topic_key,
+                            'stage_key': stage_key,
+                            'reminder_text': stage_data.get('reminder_text', ''),
+                            'action': stage_data.get('action', ''),
+                            'reminder_date': reminder_date
+                        })
+                except:
+                    continue
+        
+        # Hatırlatmaları göster
+        if reminders_to_show:
+            st.markdown("#### ⏰ AKTİF HATIRLATMALAR")
+            for reminder in reminders_to_show:
+                show_reminder_card(reminder, user_data)
+                
+    except Exception as e:
+        print(f"Hatırlatma gösterimi hatası: {e}")
+
+def show_reminder_card(reminder, user_data):
+    """Tek bir hatırlatma kartı göster"""
+    topic_key = reminder['topic_key']
+    reminder_text = reminder['reminder_text']
+    
+    with st.container():
+        st.markdown(f"""
+        <div style='background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%); 
+                    border: 2px solid #e65100; padding: 12px; border-radius: 10px; 
+                    margin-bottom: 10px; box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);'>
+            <div style='display: flex; align-items: center; justify-content: space-between;'>
+                <div>
+                    <div style='font-weight: bold; color: white; font-size: 14px;'>
+                        ⏰ {reminder_text}
+                    </div>
+                    <div style='font-size: 11px; color: #fff3e0; margin-top: 4px;'>
+                        {topic_key}
+                    </div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # İşlem butonları
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button(f"✅ {reminder_text[:20]}...", key=f"complete_{topic_key}_{reminder['stage_key']}"):
+                complete_reminder_action(reminder, user_data)
+                st.rerun()
+        
+        with col2:
+            if st.button("⏰ 1 Saat Sonra", key=f"snooze_{topic_key}_{reminder['stage_key']}"):
+                snooze_reminder(reminder, user_data)
+                st.rerun()
+
+def complete_reminder_action(reminder, user_data):
+    """Hatırlatma işlemini tamamla"""
+    topic_key = reminder['topic_key']
+    stage_key = reminder['stage_key']
+    
+    try:
+        repetition_history = user_data.get('topic_repetition_history', {})
+        if isinstance(repetition_history, str):
+            repetition_history = json.loads(repetition_history)
+        
+        if topic_key in repetition_history and stage_key in repetition_history[topic_key].get('stages', {}):
+            # Hatırlatmayı tamamlandı olarak işaretle
+            repetition_history[topic_key]['stages'][stage_key]['completed'] = True
+            
+            # Bir sonraki aşamaya geç
+            if stage_key == 'stage_1' and 'stage_2' in repetition_history[topic_key]['stages']:
+                repetition_history[topic_key]['current_stage'] = 2
+            elif stage_key == 'stage_2' and 'stage_3' in repetition_history[topic_key]['stages']:
+                repetition_history[topic_key]['current_stage'] = 3
+            elif stage_key == 'stage_3':
+                repetition_history[topic_key]['current_stage'] = 4  # Tamamlandı
+            
+            # Güncellenmiş veriyi kaydet
+            user_data['topic_repetition_history'] = json.dumps(repetition_history)
+            
+            # Firebase'e gönder
+            if 'username' in user_data:
+                try:
+                    update_user_in_firebase(user_data['username'], {
+                        'topic_repetition_history': repetition_history
+                    })
+                except:
+                    pass
+                    
+    except Exception as e:
+        print(f"Hatırlatma tamamlama hatası: {e}")
+
+def snooze_reminder(reminder, user_data):
+    """Hatırlatmayı ertele (1 saat sonra)"""
+    from datetime import datetime, timedelta
+    
+    topic_key = reminder['topic_key']
+    stage_key = reminder['stage_key']
+    
+    try:
+        repetition_history = user_data.get('topic_repetition_history', {})
+        if isinstance(repetition_history, str):
+            repetition_history = json.loads(repetition_history)
+        
+        if topic_key in repetition_history and stage_key in repetition_history[topic_key].get('stages', {}):
+            # Yeni hatırlatma zamanını 1 saat sonraya ayarla
+            new_reminder_time = (datetime.now() + timedelta(hours=1)).strftime("%Y-%m-%d %H:%M")
+            repetition_history[topic_key]['stages'][stage_key]['date'] = new_reminder_time
+            
+            # Güncellenmiş veriyi kaydet
+            user_data['topic_repetition_history'] = json.dumps(repetition_history)
+            
+            # Firebase'e gönder
+            if 'username' in user_data:
+                try:
+                    update_user_in_firebase(user_data['username'], {
+                        'topic_repetition_history': repetition_history
+                    })
+                except:
+                    pass
+                    
+    except Exception as e:
+        print(f"Hatırlatma erteleme hatası: {e}")
+
+def track_topic_completion_for_review():
+    """Konu takip sisteminden iyi seviyeye çıkan konuları takip et ve hatırlatma sistemi kur"""
     if not st.session_state.get('current_user'):
         return
     
@@ -11081,10 +11261,69 @@ def check_and_update_completion_dates():
         try:
             net_value = int(float(net_str))
             if net_value >= 14 and topic_key not in completion_dates:
-                # Yeni tamamlanan konu
+                # Yeni tamamlanan konu - tamamlanma tarihini kaydet
                 update_topic_completion_date(st.session_state.current_user, topic_key)
+                
+                # HATİRLATMA SİSTEMİ KUR
+                setup_topic_reminder_system(user_data, topic_key, net_value)
         except:
             continue
+
+def setup_topic_reminder_system(user_data, topic_key, current_net):
+    """Konu için akıllı hatırlatma sistemi kur"""
+    from datetime import datetime, timedelta
+    
+    try:
+        # İlk hatırlatma: 24 saat sonra "5 dakika kısa tekrar"
+        current_date = datetime.now()
+        first_reminder = (current_date + timedelta(hours=24)).strftime("%Y-%m-%d %H:%M")
+        
+        # topic_repetition_history'yi hazırla
+        if 'topic_repetition_history' not in user_data:
+            user_data['topic_repetition_history'] = {}
+        
+        if topic_key not in user_data['topic_repetition_history']:
+            user_data['topic_repetition_history'][topic_key] = {}
+        
+        # Hatırlatma aşamalarını ayarla
+        user_data['topic_repetition_history'][topic_key].update({
+            'completed_net': current_net,
+            'current_stage': 1,  # 1=İlk 24 saat hatırlatma
+            'stages': {
+                'stage_1': {
+                    'date': first_reminder,
+                    'action': 'short_review_5min',
+                    'reminder_text': '5 dakika kısa tekrar yap',
+                    'completed': False
+                },
+                'stage_2': {
+                    'next_date': (current_date + timedelta(days=3)).strftime("%Y-%m-%d"),
+                    'action': 'question_practice',
+                    'reminder_text': 'Soru çözme hatırlatması',
+                    'completed': False
+                },
+                'stage_3': {
+                    'next_date': (current_date + timedelta(days=7)).strftime("%Y-%m-%d"),
+                    'action': 'net_review',
+                    'reminder_text': 'Güncel netinizi kontrol edin',
+                    'completed': False
+                }
+            },
+            'created_at': current_date.strftime("%Y-%m-%d %H:%M"),
+            'updated_at': current_date.strftime("%Y-%m-%d %H:%M")
+        })
+        
+        # Firebase'e kaydet
+        if 'username' in user_data:
+            try:
+                update_user_in_firebase(user_data['username'], {
+                    'topic_repetition_history': user_data['topic_repetition_history']
+                })
+            except:
+                pass
+                
+    except Exception as e:
+        print(f"Hatırlatma sistemi kurulum hatası: {e}")
 
 
 
@@ -13081,27 +13320,69 @@ def add_topic_to_mastery_system(user_data, topic_key, initial_level="iyi"):
     
     return user_data
 
-def update_topic_repetition_history(user_data, topic_name, updates):
-    """Konu tekrar geçmişini güncelle"""
+def update_topic_repetition_history(user_data, topic_key, selected_level):
+    """Konu tekrar geçmişini güncelle ve hatırlatma sistemi kur"""
     try:
+        from datetime import datetime, timedelta
+        
+        # Eğer topic_repetition_history yoksa oluştur
         if 'topic_repetition_history' not in user_data:
             user_data['topic_repetition_history'] = {}
         
-        if topic_name not in user_data['topic_repetition_history']:
-            user_data['topic_repetition_history'][topic_name] = {}
+        if topic_key not in user_data['topic_repetition_history']:
+            user_data['topic_repetition_history'][topic_key] = {}
         
-        # Güncellemeleri ekle
-        user_data['topic_repetition_history'][topic_name].update(updates)
+        current_date = datetime.now()
+        current_date_str = current_date.strftime("%Y-%m-%d")
+        
+        # Hatırlatma tarihini hesapla
+        next_review_date = None
+        action = None
+        
+        if selected_level == 'Sadece Tekrar Ettim':
+            # 7 gün sonra tekrar
+            next_review_date = (current_date + timedelta(days=7)).strftime("%Y-%m-%d")
+            action = 'simple_review'
+            
+            # Konuyu listeden kaldır (geçici olarak)
+            # Eğer konu mevcut review topics listesinde varsa onu da kaldır
+            if 'current_review_topics' in user_data and topic_key in user_data['current_review_topics']:
+                user_data['current_review_topics'].remove(topic_key)
+                
+        elif 'Güncel son netim' in selected_level:
+            # Net seviyesine göre güncelle
+            next_review_date = (current_date + timedelta(days=7)).strftime("%Y-%m-%d")
+            action = 'net_update'
+            
+            # Net seviyesini çıkar
+            net_range = selected_level.replace('Güncel son netim ', '').strip('()')
+            
+        else:
+            # Diğer durumlar için varsayılan 7 gün
+            next_review_date = (current_date + timedelta(days=7)).strftime("%Y-%m-%d")
+            action = 'review_completed'
+        
+        # Geçmişi güncelle
+        user_data['topic_repetition_history'][topic_key].update({
+            'level': selected_level,
+            'date': current_date_str,
+            'action': action,
+            'next_review_date': next_review_date,
+            'updated_at': current_date_str
+        })
         
         # Firebase'e gönder
         if 'username' in user_data:
-            update_user_in_firebase(user_data['username'], {
-                'topic_repetition_history': user_data['topic_repetition_history']
-            })
-            
+            try:
+                update_user_in_firebase(user_data['username'], {
+                    'topic_repetition_history': user_data['topic_repetition_history']
+                })
+            except:
+                pass
+                
         return True
     except Exception as e:
-        print(f"Seviye güncelleme hatası: {e}")
+        print(f"Hatırlatma sistemi güncelleme hatası: {e}")
         return False
 
 def get_pending_review_topics(user_data):
