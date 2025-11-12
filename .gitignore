@@ -1,29 +1,4 @@
-# Firebase build and deployment files
-/firebase-debug.log
-/firebase-debug.*.log
-.firebaserc
-
-# Firebase Hosting
-/firebase.json
-*.cache
-hosting/.cache
-
-# Firebase Functions
-/functions/node_modules/
-/functions/.env
-/functions/package-lock.json
-
-# Firebase Emulators
-/firebase-*.zip
-/.firebase/
-/emulator-ui/
-
-# Logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Environment files (local configs)
-/.env.*
-firebase_key.json
+B2_ENDPOINT = "s3.eu-central-003.backblazeb2.com"
+B2_KEY_ID = "f69accbc6328"
+B2_APP_KEY = "5f7639dabc9c7b2c96a30218"
+B2_BUCKET_NAME = "psikodf-files"
