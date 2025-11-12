@@ -7977,19 +7977,19 @@ def show_review_topics_section(review_topics, user_data):
                     status_text = f"🔴 {current_net} net (Zayıf seviye)"
                 
                 st.markdown(f"""
-                <div style='background: linear-gradient(90deg, {status_color}22 0%, #f8f9fa 100%); 
+                <div style='background: linear-gradient(90deg, {status_color}CC 0%, #f8f9fa 100%); 
                             border-left: 4px solid {status_color}; padding: 12px 15px; border-radius: 8px; 
                             margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
                     <div style='font-weight: bold; font-size: 14px; color: #2c3e50;'>
                         {i+1}. {topic['subject']} {review_type_icon}
                     </div>
-                    <div style='font-size: 13px; color: #34495e; margin: 4px 0 2px 0; font-weight: 600;'>
+                    <div style='font-size: 14px; color: #2c3e50; margin: 4px 0 2px 0; font-weight: bold;'>
                         📖 {topic['topic']}
                     </div>
                     <div style='font-size: 11px; color: #6c757d; margin: 2px 0 4px 0; font-style: italic;'>
                         └ {detail_info}
                     </div>
-                    <div style='font-size: 12px; color: {status_color}; font-weight: 600;'>
+                    <div style='font-size: 12px; color: {status_color}; font-weight: bold; background: rgba(255,255,255,0.3); padding: 3px 6px; border-radius: 4px; margin-top: 4px;'>
                         {status_text}
                     </div>
                 </div>
@@ -16555,8 +16555,7 @@ def main():
                                                 # Haftalık plan cache'ini temizle
                                                 if 'weekly_plan_cache' in st.session_state:
                                                     del st.session_state.weekly_plan_cache
-                                                # 14+ net ise tamamlama tarihini kaydet
-                                                check_and_update_completion_dates()
+                                                # 14+ net ise tamamlama tarihini kaydet (Bu satır fonksiyon tanımlanana kadar geçici olarak kaldırıldı)
                                                 st.session_state.topic_updates.append((detail, new_net))
                                                 # 🔥 KRİTİK: Haftalık hedef konular listesini anında güncelle
                                                 st.rerun()
