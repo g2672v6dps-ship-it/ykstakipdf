@@ -5122,11 +5122,7 @@ def get_completed_topics_from_user_data(user_data):
     
 
     # Debug mod kaldırıldı
-        st.write(f"📊 Toplam {len(completed_topics)} tamamlanmış konu bulundu")
-        if completed_topic_names:
-            st.write("🔎 Tamamlanmış konu formatları:")
-            for name in sorted(list(completed_topic_names)[:20]):
-                st.write(f"  • {name}")
+
     
     return completed_topics, completed_topic_names
 
@@ -7873,19 +7869,19 @@ def show_review_topics_section(review_topics, user_data):
                 with cols[col_index]:
                     # Her konu için kart
                     st.markdown(f"""
-                    <div style='background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%); 
-                                border: 2px solid #ddd; padding: 8px; border-radius: 8px; 
-                                margin-bottom: 8px; height: 140px;'>
+                    <div style='background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); 
+                                border: 2px solid #d32f2f; padding: 8px; border-radius: 8px; 
+                                margin-bottom: 8px; height: 140px; box-shadow: 0 2px 4px rgba(211, 47, 47, 0.2);'>
                         <div style='text-align: center; margin-bottom: 6px;'>
-                            <span style='font-size: 12px; color: #666;'>{i+1}.</span>
-                            <div style='font-weight: bold; font-size: 12px; margin: 4px 0;'>
+                            <span style='font-size: 12px; color: #d32f2f; font-weight: bold;'>{i+1}.</span>
+                            <div style='font-weight: bold; font-size: 12px; margin: 4px 0; color: #b71c1c;'>
                                 {topic['subject']} {review_type_icon}
                             </div>
                         </div>
-                        <div style='font-size: 11px; text-align: center; margin-bottom: 8px; line-height: 1.2;'>
+                        <div style='font-size: 11px; text-align: center; margin-bottom: 8px; line-height: 1.2; font-weight: 600; color: #b71c1c;'>
                             {topic['topic']}
                         </div>
-                        <div style='font-size: 10px; color: #888; text-align: center;'>
+                        <div style='font-size: 10px; color: #d32f2f; text-align: center; font-weight: 500;'>
                             {review_type_text} • {topic.get('net', 0)} net
                         </div>
                     </div>
