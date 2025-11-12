@@ -7894,6 +7894,13 @@ def show_review_topics_section(review_topics, user_data):
             current_net = 0
             topic_found_in_progress = False
             
+            # 🔥 DEBUG: Topic progress verilerini göster
+            print(f"🔍 Topic Progress Verileri:")
+            print(f"🔍 Total keys in topic_progress: {len(topic_progress)}")
+            if len(topic_progress) > 0:
+                print(f"🔍 Sample keys: {list(topic_progress.keys())[:3]}")
+            print(f"🔍 Current topic: {topic['subject']} - {topic['topic']}")
+            
             # 1. Tam eşleşme arama (format: "Ders | Ana Konu | Alt Konu | Detay")
             for stored_key, stored_value in topic_progress.items():
                 if isinstance(stored_key, str):
@@ -8053,19 +8060,37 @@ def show_review_topics_section(review_topics, user_data):
                 button_key = f"repeat_button_{topic['subject']}_{topic['topic']}_{i}"
                 
                 if st.button("✅ Tekrarımı yaptım", key=button_key, type="primary"):
-                    # 🔥 KESİN ÇÖZÜM: Firebase + Session State birlikte güncelle
+                    # 🔥 DEBUG: Buton tıklandığını göster
+                    print(f"🔴 BUTON TIKLANDI: {topic_key}")
+                    print(f"🔍 Topic key: {topic_key}")
+                    print(f"🔍 User data keys: {list(user_data.keys())}")
                     
                     try:
                         # 1. Firebase'den konuyu kaldır
+                        print("🔴 Firebase'den konu kaldırılıyor...")
                         remove_topic_from_review_list(user_data, topic_key)
+                        print("✅ Firebase'den kaldırma tamamlandı")
                         
                         # 2. Session State'den anında kaldır (görsel güncelleme için)
+                        print("🔴 Session state güncelleniyor...")
                         remove_topic_from_session_state(topic_key)
+                        print("✅ Session state güncelleme tamamlandı")
                         
                         # 3. Success mesajı ve yeniden yükle
                         st.success(f"🎉 {topic['subject']} - {topic['topic']} konusu listeden kaldırıldı!")
+                        print("✅ Success mesajı gösterildi")
+                        
                         st.balloons()
+                        print("🔴 st.rerun() çağrılıyor...")
                         st.rerun()
+                        print("✅ st.rerun() tamamlandı")
+                        
+                    except Exception as button_error:
+                        st.error(f"❌ Bir hata oluştu: {button_error}")
+                        st.write(f"🔍 Hata detayı: {topic_key}")
+                        print(f"❌ Button error: {button_error}")
+                        import traceback
+                        print(f"Traceback: {traceback.format_exc()}")
                         
                     except Exception as button_error:
                         st.error(f"❌ Bir hata oluştu: {button_error}")
@@ -8148,6 +8173,8 @@ def remove_topic_from_review_list(user_data, topic_key):
                 user_data['weekly_plan'] = weekly_plan
                 
                 print(f"✅ Weekly plan'dan {removed_count} konu kaldırıldı")
+                print(f"🔍 Weekly plan review_topics uzunluğu: {len(weekly_plan.get('review_topics', []))}")
+                print(f"🔍 new_review_topics uzunluğu: {len(new_review_topics)}")
         
         # Kalıcı öğrenme tekrarlarından da kaldır (varsa)
         if 'pending_review_topics' in user_data:
@@ -8165,9 +8192,15 @@ def remove_topic_from_review_list(user_data, topic_key):
                 
                 print(f"✅ Pending review'den {removed_count} konu kaldırıldı")
         
+        # 🔥 DEBUG: Kaldırma işleminden sonra veri durumunu kontrol et
+        print(f"🔍 user_data['weekly_plan']['review_topics'] uzunluğu: {len(user_data.get('weekly_plan', {}).get('review_topics', []))}")
+        print(f"🔍 user_data['pending_review_topics'] uzunluğu: {len(user_data.get('pending_review_topics', []))}")
+        
         # Firebase'e gönder
         if 'username' in user_data:
             try:
+                print(f"🔴 Firebase'e gönderiliyor... Username: {user_data['username']}")
+                
                 # Ana kullanıcı verilerini güncelle
                 firebase_update_data = {
                     'topic_repetition_history': user_data['topic_repetition_history'],
@@ -8176,6 +8209,8 @@ def remove_topic_from_review_list(user_data, topic_key):
                 # Weekly plan varsa onu da güncelle
                 if 'weekly_plan' in user_data:
                     firebase_update_data['weekly_plan'] = user_data['weekly_plan']
+                    print(f"🔍 Firebase update data keys: {list(firebase_update_data.keys())}")
+                    print(f"🔍 Review topics count: {firebase_update_data.get('weekly_plan', {}).get('review_topics', [])}")
                 
                 # Pending review topics varsa onu da güncelle  
                 if 'pending_review_topics' in user_data:
