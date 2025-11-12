@@ -24,6 +24,14 @@ except ImportError:
     pd = type('MockPandas', (), {'DataFrame': MockDataFrame})()
 
 try:
+    from b2sdk.v2 import InMemoryAccountInfo, B2Api, Bucket
+    BACKBLAZE_AVAILABLE = True
+except ImportError:
+    BACKBLAZE_AVAILABLE = False
+    b2sdk = None
+
+# Backward compatibility - Eski Firebase import'ları da koru
+try:
     import firebase_admin
     from firebase_admin import credentials, db
     FIREBASE_AVAILABLE = True
@@ -606,15 +614,16 @@ def play_break_start_sound():
     </script>
     """, unsafe_allow_html=True)
 
-# 🚀 FIREBASE CACHE SİSTEMİ (Download Optimizasyonu)
-class FirebaseCache:
-    """Firebase işlemleri için cache sistemi"""
+# 🚀 BACKBLAZE B2 CACHE SİSTEMİ (Download Optimizasyonu)
+class BackblazeCache:
+    """Backblaze B2 işlemleri için cache sistemi"""
     def __init__(self):
         self.cache = {}
-        self.cache_duration = 3600  # 🚀 OPTİMİZE: 1 saat cache (önceden 5 dakika)
+        self.cache_duration = 3600  # 1 saat cache
+        self.local_storage = {}  # Yerel depolama fallback için
     
     def get_users(self, limit_to_user=None):
-        """🚀 OPTİMİZE: Cache'li ve lazy loading destekli kullanıcı verisi"""
+        """Backblaze B2'den kullanıcı verilerini al"""
         cache_key = "all_users" if not limit_to_user else f"user_{limit_to_user}"
         current_time = time.time()
         
@@ -622,14 +631,30 @@ class FirebaseCache:
             current_time - self.cache[cache_key]['time'] < self.cache_duration):
             return self.cache[cache_key]['data']
             
-        # Firebase'den çek
+        # Backblaze B2'den çek
         try:
-            if limit_to_user:
-                # Sadece belirli kullanıcıyı çek (Lazy Loading)
-                users_data = {limit_to_user: db_ref.child(limit_to_user).get()} if firebase_connected else {}
+            users_data = {}
+            
+            if backblaze_connected and b2_bucket:
+                # B2'den dosya listesini al
+                file_names = [file.file_name for file in b2_bucket.ls()]
+                
+                if limit_to_user:
+                    # Belirli kullanıcının dosyasını al
+                    file_name = f"{limit_to_user}.json"
+                    if file_name in file_names:
+                        file_data = b2_bucket.get_file_by_name(file_name).download()
+                        users_data = {limit_to_user: json.loads(file_data.decode('utf-8'))}
+                else:
+                    # Tüm kullanıcı dosyalarını al
+                    for file_name in file_names:
+                        if file_name.endswith('.json'):
+                            username = file_name.replace('.json', '')
+                            file_data = b2_bucket.get_file_by_name(file_name).download()
+                            users_data[username] = json.loads(file_data.decode('utf-8'))
             else:
-                # Tüm kullanıcıları çek (Admin için)
-                users_data = db_ref.get() if firebase_connected else {}
+                # Yerel fallback
+                users_data = self.local_storage.copy()
             
             self.cache[cache_key] = {
                 'data': users_data,
@@ -648,15 +673,25 @@ class FirebaseCache:
             current_time - self.cache[cache_key]['time'] < self.cache_duration):
             return self.cache[cache_key]['data']
         
-        # Firebase'den çek
+        # Backblaze B2'den çek
         try:
-            if firebase_connected and db_ref:
-                data = db_ref.child(username).get()
-                if data:
+            if backblaze_connected and b2_bucket:
+                file_name = f"{username}.json"
+                try:
+                    file_data = b2_bucket.get_file_by_name(file_name).download()
+                    data = json.loads(file_data.decode('utf-8'))
                     self.cache[cache_key] = {
                         'data': data,
                         'time': current_time
                     }
+                    return data
+                except Exception:
+                    return None
+            else:
+                # Yerel fallback
+                return self.local_storage.get(username)
+        except:
+            return None
                     return data
         except:
             pass
@@ -664,19 +699,43 @@ class FirebaseCache:
         return self.cache.get(cache_key, {}).get('data', {})
     
     def update_user_data(self, username, data):
-        """Kullanıcı verisini güncelle + cache'i temizle"""
+        """Kullanıcı verisini B2'ye kaydet + cache'i güncelle"""
         try:
-            if firebase_connected and db_ref:
-                db_ref.child(username).update(data)
+            # Önce mevcut veriyi al
+            existing_data = self.get_user_data(username) or {}
+            
+            # Yeni verilerle birleştir
+            updated_data = {**existing_data, **data}
+            
+            if backblaze_connected and b2_bucket:
+                # B2'ye JSON dosyası olarak kaydet
+                file_name = f"{username}.json"
+                json_data = json.dumps(updated_data).encode('utf-8')
+                
+                # Dosyayı sil (varsa)
+                try:
+                    file_versions = b2_bucket.list_file_versions(file_name)
+                    for file_version in file_versions:
+                        b2_bucket.delete_file_version(file_version.id_, file_name)
+                except:
+                    pass  # Dosya yoksa sorun yok
+                
+                # Yeni dosyayı yükle
+                b2_bucket.upload_bytes(json_data, file_name)
+            else:
+                # Yerel fallback
+                self.local_storage[username] = updated_data
             
             # Cache'i güncelle
             cache_key = f"user_{username}"
-            if cache_key in self.cache:
-                self.cache[cache_key]['data'].update(data)
-                self.cache[cache_key]['time'] = time.time()
+            self.cache[cache_key] = {
+                'data': updated_data,
+                'time': time.time()
+            }
             
             return True
-        except:
+        except Exception as e:
+            print(f"Backblaze B2 update error: {e}")
             return False
     
     def clear_cache(self, pattern=None):
@@ -689,9 +748,10 @@ class FirebaseCache:
         else:
             # Tüm cache'i temizle
             self.cache.clear()
+            self.cache.clear()
 
 # Global cache objesi
-firebase_cache = FirebaseCache()
+backblaze_cache = BackblazeCache()
 
 # 🚀 OPTİMİZE EDİLMİŞ GRAFİK CACHE SİSTEMİ
 @lru_cache(maxsize=32)
@@ -704,39 +764,46 @@ def create_cached_chart(chart_type, *args, **kwargs):
     else:
         return {"type": "default_chart", "data": args, "kwargs": kwargs}
 
-# Firebase başlatma
-firebase_connected = False
-db_ref = None
+# Backblaze B2 başlatma
+backblaze_connected = False
+b2_api = None
+b2_bucket = None
 
-if FIREBASE_AVAILABLE:
+if BACKBLAZE_AVAILABLE:
     try:
-        # Firebase'in zaten başlatılıp başlatılmadığını kontrol et
-        if not firebase_admin._apps:
-            # Firebase Admin SDK'yı başlat
-            # GitHub/Streamlit Cloud deployment için environment variable kontrolü
-            if 'FIREBASE_KEY' in os.environ:
-                # Production: Environment variable'dan JSON key'i al
-                firebase_json = os.environ["FIREBASE_KEY"]
-                firebase_config = json.loads(firebase_json)
-                cred = credentials.Certificate(firebase_config)
-            else:
-                # Local development: JSON dosyasından al
-                cred = credentials.Certificate("firebase_key.json")
+        # Backblaze B2 API'sini başlat
+        info = InMemoryAccountInfo()
+        b2_api = B2Api(info)
+        
+        # API anahtarlarını environment'dan al
+        application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '')
+        application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', '')
+        bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'student-data')
+        
+        if application_key_id and application_key:
+            # API ile giriş yap
+            b2_api.authorize_account("production", application_key_id, application_key)
             
-            firebase_admin.initialize_app(cred, {
-                'databaseURL':'https://yeniseninalanin-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
-            })
-        
-        db_ref = db.reference('users')
-        firebase_connected = True
-   
-        
+            # Bucket'ı al veya oluştur
+            bucket_name = bucket_name
+            try:
+                b2_bucket = b2_api.get_bucket_by_name(bucket_name)
+            except Exception:
+                # Bucket yoksa oluştur
+                b2_bucket = b2_api.create_bucket(bucket_name, 'allPrivate')
+            
+            backblaze_connected = True
+            st.success("✅ Backblaze B2 bağlantısı kuruldu!")
+        else:
+            st.warning("⚠️ Backblaze B2 API anahtarları bulunamadı!")
+            
     except Exception as e:
-        st.warning(f"⚠️ Firebase bağlantısı kurulamadı: {e}")
-        firebase_connected = False
-        db_ref = None
+        st.warning(f"⚠️ Backblaze B2 bağlantısı kurulamadı: {e}")
+        backblaze_connected = False
+        b2_api = None
+        b2_bucket = None
 else:
-    st.info("📦 Firebase modülü yüklenmedi - yerel test modu aktif")
+    st.info("📦 Backblaze B2 modülü yüklenmedi - yerel test modu aktif")
 
 # FALLBACK: Geçici test kullanıcıları
 if not firebase_connected:
@@ -783,21 +850,21 @@ if not firebase_connected:
     st.success("✅ Test kullanıcıları hazırlandı!")
 
 # Firebase veritabanı fonksiyonları
-def load_users_from_firebase(force_refresh=False):
+def load_users_from_backblaze(force_refresh=False):
     """🚀 OPTİMİZE EDİLMİŞ: Session state ile agresif cache"""
     # Session state'te varsa ve force refresh yoksa direkt döndür
     if not force_refresh and 'users_db' in st.session_state and st.session_state.users_db:
         return st.session_state.users_db
     
-    # Firebase cache'den çek
-    users_data = firebase_cache.get_users()
+    # Backblaze cache'den çek
+    users_data = backblaze_cache.get_users()
     
     # Session state'e kaydet
     st.session_state.users_db = users_data
     
     return users_data
 
-def update_user_in_firebase(username, data):
+def update_user_in_backblaze(username, data):
     """🚀 OPTİMİZE EDİLMİŞ: Cache'li kullanıcı verisi güncelleme"""
     # Session state'i güncelle
     if 'users_db' in st.session_state:
@@ -812,7 +879,15 @@ def update_user_in_firebase(username, data):
         del st.session_state.weekly_plan_cache
     
     # Cache'li güncelleme
-    return firebase_cache.update_user_data(username, data)
+    return backblaze_cache.update_user_data(username, data)
+
+# 🔥 BACKWARD COMPATIBILITY - Eski fonksiyon isimleri hala çalışsın
+load_users_from_firebase = load_users_from_backblaze  # Alias
+update_user_in_firebase = update_user_in_backblaze    # Alias
+firebase_cache = backblaze_cache                      # Alias
+
+# 🔥 BACKWARD COMPATIBILITY - Değişkenler
+firebase_connected = backblaze_connected
 
 # === HİBRİT POMODORO SİSTEMİ SABİTLERİ ===
 
@@ -8062,11 +8137,14 @@ def show_review_topics_section(review_topics, user_data):
                 
                 if st.button("✅ Tekrar ettim", key=button_key):
                     try:
-                        # Firebase'den kaldır
+                        # Backblaze B2'den kaldır
                         if 'weekly_plan' in user_data and 'review_topics' in user_data['weekly_plan']:
                             if topic_key in user_data['weekly_plan']['review_topics']:
                                 del user_data['weekly_plan']['review_topics'][topic_key]
-                                save_user_data(user_data)
+                                # Kullanıcı verilerini B2'ye kaydet
+                                update_user_in_backblaze(user_data['username'], {
+                                    'weekly_plan': user_data['weekly_plan']
+                                })
                         
                         # Session state'den kaldır
                         if 'all_review_topics' in st.session_state:
