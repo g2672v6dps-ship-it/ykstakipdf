@@ -776,8 +776,9 @@ if BACKBLAZE_AVAILABLE:
         b2_api = B2Api(info)
         
         # API anahtarlarını environment'dan al
-        application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '')
-        application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', '')
+        # Kendi API anahtarlarınızı buraya yazın:
+        application_key_id = 'BACKBLAZE_APPLICATION_KEY_ID_BURAYA_YAZIN'
+        application_key = 'BACKBLAZE_APPLICATION_KEY_BURAYA_YAZIN'
         bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'student-data')
         
         if application_key_id and application_key:
