@@ -692,9 +692,6 @@ class BackblazeCache:
                 return self.local_storage.get(username)
         except:
             return None
-                    return data
-        except:
-            pass
         
         return self.cache.get(cache_key, {}).get('data', {})
     
