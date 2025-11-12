@@ -8057,13 +8057,48 @@ def show_review_topics_section(review_topics, user_data):
             
             with col3:
                 # Tekrarımı yaptım butonu
-                button_key = f"repeat_button_{topic['subject']}_{topic['topic']}_{i}"
+                topic_key = f"{topic['subject']}_{topic['topic']}"  # 🔥 SABİT: Her zaman subject_topic formatı
+                button_key = f"repeat_button_{topic_key}"  # Button için benzersiz key
                 
-                if st.button("✅ Tekrarımı yaptım", key=button_key, type="primary"):
-                    # 🔥 DEBUG: Buton tıklandığını göster
-                    print(f"🔴 BUTON TIKLANDI: {topic_key}")
-                    print(f"🔍 Topic key: {topic_key}")
-                    print(f"🔍 User data keys: {list(user_data.keys())}")
+                print(f"🔍 [DEBUG] Buton render ediliyor...")
+                print(f"🔍 [DEBUG] topic_key: {topic_key}")
+                print(f"🔍 [DEBUG] button_key: {button_key}")
+                print(f"🔍 [DEBUG] topic: {topic}")
+                
+                # Butonu render et ve tıklanıp tıklanmadığını kontrol et
+                button_clicked = st.button("✅ Tekrarımı yaptım", key=button_key, type="primary")
+                print(f"🔍 [DEBUG] Button render tamamlandı, clicked={button_clicked}")
+                
+                if button_clicked:  # Buton tıklandıysa
+                    print(f"🟢 [SUCCESS] BUTON ÇALIŞIYOR! Topic: {topic_key}")
+                    print(f"🟢 [SUCCESS] Buton başarıyla tıklandı")
+                    
+                    try:
+                        # 1. Firebase'den konuyu kaldır
+                        print("🔴 Firebase'den konu kaldırılıyor...")
+                        remove_topic_from_review_list(user_data, topic_key)
+                        print("✅ Firebase'den kaldırma tamamlandı")
+                        
+                        # 2. Session State'den anında kaldır (görsel güncelleme için)
+                        print("🔴 Session state güncelleniyor...")
+                        remove_topic_from_session_state(topic_key)
+                        print("✅ Session state güncelleme tamamlandı")
+                        
+                        # 3. Success mesajı ve yeniden yükle
+                        st.success(f"🎉 {topic['subject']} - {topic['topic']} konusu listeden kaldırıldı!")
+                        print("✅ Success mesajı gösterildi")
+                        
+                        st.balloons()
+                        print("🔴 st.rerun() çağrılıyor...")
+                        st.rerun()
+                        print("✅ st.rerun() tamamlandı")
+                        
+                    except Exception as button_error:
+                        st.error(f"❌ Bir hata oluştu: {button_error}")
+                        st.write(f"🔍 Hata detayı: {topic_key}")
+                        print(f"❌ Button error: {button_error}")
+                        import traceback
+                        print(f"Traceback: {traceback.format_exc()}")
                     
                     try:
                         # 1. Firebase'den konuyu kaldır
