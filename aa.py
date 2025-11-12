@@ -888,7 +888,7 @@ def update_user_in_backblaze(username, data):
 # 🔥 BACKWARD COMPATIBILITY - Eski fonksiyon isimleri hala çalışsın
 load_users_from_firebase = load_users_from_backblaze  # Alias
 update_user_in_firebase = update_user_in_backblaze    # Alias
-firebase_cache = backblaze_cache                      # Alias
+# firebase_cache alias removed - using backblaze_cache directly
 
 # === HİBRİT POMODORO SİSTEMİ SABİTLERİ ===
 
@@ -9932,8 +9932,8 @@ def show_interactive_systematic_planner(weekly_plan, survey_data, user_data=None
                             st.error(f"Yenileme hatası: {e}")
                 
                 # Firebase cache'i de temizle
-                if hasattr(st.session_state, 'firebase_cache'):
-                    st.session_state.firebase_cache.clear()
+                if hasattr(st.session_state, 'backblaze_cache'):
+                    st.session_state.backblaze_cache.clear()
                 
                 st.info("📱 Sayfa yenileniyor...")
                 st.rerun()
@@ -14989,8 +14989,8 @@ def get_user_data():
 
 def main():
     # 🚀 OPTİMİZE EDİLMİŞ: Cache sistemi başlat
-    if 'firebase_cache' not in st.session_state:
-        st.session_state.firebase_cache = FirebaseCache()
+    if 'backblaze_cache' not in st.session_state:
+        st.session_state.backblaze_cache = BackblazeCache()
     
     # Veri kalıcılığını garanti altına al
     ensure_data_persistence()
@@ -22798,9 +22798,9 @@ def apply_coach_changes(original_topics, coach_approved_topics, user_data):
 
             
             # Genel cache de temizle
-            if hasattr(st.session_state, 'firebase_cache'):
+            if hasattr(st.session_state, 'backblaze_cache'):
                 try:
-                    st.session_state.firebase_cache.clear()
+                    st.session_state.backblaze_cache.clear()
 
                 except:
                     pass
@@ -26609,14 +26609,14 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
                         st.session_state.users_db[student_username].update(student_data)
                     
                     # Firebase cache'i güvenli temizle
-                    if hasattr(st.session_state, 'firebase_cache'):
+                    if hasattr(st.session_state, 'backblaze_cache'):
                         try:
-                            # FirebaseCache objesinin clear metodu olup olmadığını kontrol et
-                            if hasattr(st.session_state.firebase_cache, 'clear'):
-                                st.session_state.firebase_cache.clear()
+                            # BackblazeCache objesinin clear metodu olup olmadığını kontrol et
+                            if hasattr(st.session_state.backblaze_cache, 'clear'):
+                                st.session_state.backblaze_cache.clear()
                             else:
                                 # clear metodu yoksa, cache'i yeniden başlat
-                                st.session_state.firebase_cache = type('obj', (object,), {})()
+                                st.session_state.backblaze_cache = type('obj', (object,), {})()
                         except Exception as cache_error:
                             pass                # Cache temizleme hatası olsa bile onay işlemini devam ettir
                             st.warning(f"Cache temizleme hatası: {cache_error}")
