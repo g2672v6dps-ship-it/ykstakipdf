@@ -840,7 +840,7 @@ if BACKBLAZE_AVAILABLE:
                 application_key = st.secrets.get('BACKBLAZE_APPLICATION_KEY', '')
                 bucket_name = st.secrets.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr-files')
             
-            # Eğer secrets yoksa b2_storage.py'yi import et
+            # API anahtarlarını yükle (b2_storage.py import edilemezse hardcode değerleri kullan)
             if not application_key_id or not application_key:
                 try:
                     from b2_storage import (
@@ -852,21 +852,24 @@ if BACKBLAZE_AVAILABLE:
                     application_key_id = b2_key_id
                     application_key = b2_key
                     bucket_name = b2_bucket
-                    # Endpoint bilgisi şu anda kullanılmıyor ama gelecekte kullanılabilir
                 except ImportError:
-                    pass
+                    # b2_storage.py bulunamazsa hardcode anahtarları kullan
+                    application_key_id = "003f69accbc63280000000001"
+                    application_key = "K003OMsFWIvniVkyYIhP1yjuQnElwZ4"
+                    bucket_name = "psikodonustr-files"
             
-            # Eğer hala yoksa environment variables'ı kullan
+            # Son çare: environment variables
             if not application_key_id or not application_key:
-                application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '')
-                application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', '')
+                application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '003f69accbc63280000000001')
+                application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', 'K003OMsFWIvniVkyYIhP1yjuQnElwZ4')
                 bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr-files')
                 
         except Exception as e:
             st.error(f"API anahtarları yüklenirken hata: {e}")
-            application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '')
-            application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', '')
-            bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr-files')
+            # Hata durumunda hardcode anahtarları kullan
+            application_key_id = "003f69accbc63280000000001"
+            application_key = "K003OMsFWIvniVkyYIhP1yjuQnElwZ4"
+            bucket_name = "psikodonustr-files"
         
         if application_key_id and application_key:
             # API ile giriş yap
