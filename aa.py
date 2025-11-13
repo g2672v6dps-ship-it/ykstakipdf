@@ -781,7 +781,7 @@ if BACKBLAZE_AVAILABLE:
         # 3. Environment variables
         application_key_id = ''
         application_key = ''
-        bucket_name = 'student-data'
+        bucket_name = 'psikodonus-files'
         
         try:
             # Streamlit Cloud secrets'ları dene
@@ -789,7 +789,7 @@ if BACKBLAZE_AVAILABLE:
             if hasattr(st, 'secrets'):
                 application_key_id = st.secrets.get('BACKBLAZE_APPLICATION_KEY_ID', '')
                 application_key = st.secrets.get('BACKBLAZE_APPLICATION_KEY', '')
-                bucket_name = st.secrets.get('BACKBLAZE_BUCKET_NAME', 'student-data')
+                bucket_name = st.secrets.get('BACKBLAZE_BUCKET_NAME', 'psikodonus-files')
             
             # Eğer secrets yoksa b2_storage.py'yi import et
             if not application_key_id or not application_key:
@@ -811,13 +811,13 @@ if BACKBLAZE_AVAILABLE:
             if not application_key_id or not application_key:
                 application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '')
                 application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', '')
-                bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'student-data')
+                bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'psikodonus-files')
                 
         except Exception as e:
             st.error(f"API anahtarları yüklenirken hata: {e}")
             application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '')
             application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', '')
-            bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'student-data')
+            bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'psikodonus-files')
         
         if application_key_id and application_key:
             # API ile giriş yap
