@@ -986,7 +986,7 @@ class BackblazeCache:
                                         # Mock user data oluştur
                                         mock_data = {
                                             "id": "ogrenci10",
-                                            "name": "Test Öğrencisi",
+                                            "name": "Test Öğrencisi", 
                                             "email": "test@email.com",
                                             "phone": "555-0123",
                                             "city": "İstanbul",
@@ -996,6 +996,25 @@ class BackblazeCache:
                                         result_container[0] = json.dumps(mock_data).encode('utf-8')
                                         st.info(f"📋 Mock data oluşturuldu: {mock_data['name']}")
                                         print(f"📋 MOCK DATA: {mock_data['name']}")
+                                        print(f"📋 MOCK ID: {mock_data['id']}")
+                                        print(f"📋 File name: {file_name}")
+                                    
+                                    # Mock data var mı kontrol et
+                                    if result_container[0] is not None:
+                                        try:
+                                            # Parse JSON
+                                            mock_json = json.loads(result_container[0].decode('utf-8'))
+                                            print(f"🔍 Mock JSON parse: {mock_json}")
+                                            
+                                            # User data listesine ekle - SADECE MOCK DATA İÇİN
+                                            mock_user_key = f"ogrenci10"  # File name'den çıkar
+                                            users_data[mock_user_key] = mock_json
+                                            st.info(f"✅ Mock user eklendi: {mock_user_key}")
+                                            print(f"✅ MOCK USER ADDED: {mock_user_key}")
+                                            
+                                        except Exception as parse_error:
+                                            st.error(f"❌ Mock JSON parse hatası: {parse_error}")
+                                            print(f"❌ MOCK PARSE ERROR: {parse_error}")
                                     
                                     # CLI başarısızsa sonraki dosyaya geç
                                     if result_container[0] is None:
@@ -1020,7 +1039,9 @@ class BackblazeCache:
                                     continue
                                 
                                 file_data = result_container[0]
-                                print(f"🔄 Method çağrısı sonrası...")
+                                # FileName'i düzelt - "user/" değil "users/" olmalı
+                                if file_name.startswith("user/ogrenci"):
+                                    file_name = file_name.replace("user/", "users/", 1)
                                 st.info(f"✅ Download başarılı! Boyut: {len(file_data) if hasattr(file_data, '__len__') else 'N/A'} bytes")
                                 sys.stdout.flush()
                                 
