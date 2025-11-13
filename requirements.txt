@@ -1,7 +1,7 @@
-streamlit
-
-plotly
-pandas
-b2sdk==2.3.0
-python-dotenv
-
+streamlit>=1.28.0
+supabase>=2.0.0
+pandas>=1.5.0
+plotly>=5.15.0
+requests>=2.31.0
+python-dateutil>=2.8.0
+hashlib2; python_version<"3.2"
