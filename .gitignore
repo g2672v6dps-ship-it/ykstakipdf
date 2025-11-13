@@ -1,4 +1,10 @@
-BACKBLAZE_APPLICATION_KEY_ID = "003f69accbc63280000000001"
-BACKBLAZE_APPLICATION_KEY = "K003OMsFWIvniVkyYIhP1yjuQnElwZ4"
-BACKBLAZE_BUCKET_NAME = "psikodonustr-files"
-BACKBLAZE_ENDPOINT = "https://s3.eu-central-003.backblazeb2.com"
+# Supabase Configuration for Streamlit Cloud
+# Bu dosyayı GitHub'a YÜKLEMEYİN - Sadece local development için
+# Streamlit Cloud'da bu değerleri secrets'ta tanımlayın
+
+SUPABASE_URL = "https://blbmapsjtktzgmjefdmc.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYm1hcHNqdGt0emdtamVmZG1jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTkwMDcsImV4cCI6MjA3ODU5NTAwN30.98F4oDx5EBwnobgCvOC6qPK2cIPRzL_ksi3fRfY8SNY"
+
+# Örnek format:
+# SUPABASE_URL = "https://xyzcompany.supabase.co"
+# SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
