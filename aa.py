@@ -16120,7 +16120,38 @@ def main():
             progress_data = calculate_subject_progress(user_data)
             
             with st.sidebar:
-                # Logo - En üstte!
+                # STUDENT LOGIN BÖLÜMÜ - En üstte!
+                st.markdown("### 🔐 Öğrenci Girişi")
+                
+                # Check if user is logged in
+                if 'current_user' not in st.session_state:
+                    st.session_state.current_user = None
+                
+                if st.session_state.current_user is None:
+                    # Student login form
+                    username = st.text_input("👤 Kullanıcı Adı", placeholder="ogrenci10", key="student_username")
+                    password = st.text_input("🔑 Şifre", type="password", key="student_password")
+                    
+                    if st.button("🔑 Giriş Yap", key="student_login_btn"):
+                        # Mock data authentication - tüm şifreler kabul
+                        if username in users_data:
+                            st.session_state.current_user = username
+                            st.session_state.user_data = users_data[username]
+                            st.success(f"✅ Başarılı giriş! Hoş geldin {username}!")
+                            st.rerun()
+                        else:
+                            st.error("❌ Kullanıcı bulunamadı!")
+                else:
+                    # Logged in user display
+                    st.success(f"✅ Giriş Yapıldı: {st.session_state.current_user}")
+                    if st.button("🚪 Çıkış Yap", key="student_logout_btn"):
+                        st.session_state.current_user = None
+                        st.session_state.user_data = None
+                        st.rerun()
+                
+                st.markdown("---")
+                
+                # Logo - Login'den sonra!
                 st.markdown("""
                 <div style="
         background-color: white;
@@ -20421,7 +20452,18 @@ def run_psychology_page():
         return
     
     users_data = load_users_from_firebase()
-    user_data = users_data.get(username, {})
+    # User data - session_state'den al, yoksa users_data'dan getir
+    if st.session_state.get('current_user') and st.session_state.get('user_data'):
+        user_data = st.session_state.user_data
+        username = st.session_state.current_user
+    else:
+        # Fallback: ilk kullanıcıyı al (demo için)
+        if users_data:
+            username = list(users_data.keys())[0]
+            user_data = users_data[username]
+        else:
+            st.error("❌ Kullanıcı bulunamadı! Lütfen giriş yapın.")
+            st.stop()
     
     # Ana başlık - Hedef bölüme göre dinamik arka plan
     target_department = user_data.get('target_department', 'Varsayılan')
