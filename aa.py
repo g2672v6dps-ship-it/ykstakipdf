@@ -402,7 +402,7 @@ if not supabase_connected:
     st.warning("🔧 Supabase credentials'unuzu kontrol edin:")
     st.code("""
     # Supabase secrets:
-    SUPABASE_URL="https://blbmapsjtktzgmjefdmc.supabase.co
+    SUPABASE_URL=https://blbmapsjtktzgmjefdmc.supabase.co
     SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYm1hcHNqdGt0emdtamVmZG1jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTkwMDcsImV4cCI6MjA3ODU5NTAwN30.98F4oDx5EBwnobgCvOC6qPK2cIPRzL_ksi3fRfY8SNY
     """)
 
@@ -4332,7 +4332,7 @@ def show_weekly_plan_tab(user_data):
             st.markdown(f"""
             <div style="border-left: 4px solid {priority_color}; padding: 15px; margin: 10px 0; 
                         background-color: #f8f9fa; border-radius: 5px;">
-                <h4 style="margin: 0; color: #333;">{i}. {topic['subject']} - {topic['topic']}</h4>
+                <h4 style="margin: 0; color: #333;">{i}. {topic.get('subject', 'Bilinmeyen')} - {topic.get('topic', 'Konu bulunamadı')}</h4>
                 <p style="margin: 5px 0; color: #666;">
                     Zorluk: {difficulty_stars} ({difficulty_level}/5) | 
                     Öncelik: <span style="color: {priority_color}; font-weight: bold;">{topic.get('priority', 'medium').upper()}</span>
@@ -4345,7 +4345,7 @@ def show_weekly_plan_tab(user_data):
         st.markdown("### 🔄 Bu Haftanın Tekrar Konuları")
         
         for i, topic in enumerate(weekly_plan['review_topics'], 1):
-            st.markdown(f"{i}. **{topic['subject']}** - {topic['topic']} ({topic.get('priority', 'medium').upper()})")
+            st.markdown(f"{i}. **{topic.get('subject', 'Bilinmeyen')}** - {topic.get('topic', 'Konu bulunamadı')} ({topic.get('priority', 'medium').upper()})")
     
     # Yazdırma butonu
     show_print_button(user_data, weekly_plan)
@@ -5157,12 +5157,13 @@ class CurriculumManager:
         """Zorluk dağılımını hesapla"""
         distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         for topic in topics:
-            distribution[topic['difficulty']] += 1
+            difficulty = topic.get('difficulty', 3)
+            distribution[difficulty] += 1
         return distribution
     
     def calculate_study_load(self, topics, user_intensity="normal"):
         """Çalışma yükünü hesapla"""
-        total_hours = sum(topic['hours'] for topic in topics)
+        total_hours = sum(topic.get('hours', 0) for topic in topics)
         
         intensity_multipliers = {
             'düşük': 0.7,
@@ -7645,7 +7646,7 @@ def calculate_completion_projections(user_data, student_field, days_to_yks):
 def get_topic_level_from_tracking(topic, user_data):
     """Bir konunun mevcut seviyesini getirir"""
     topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
-    current_net = topic_progress.get(topic['key'], '0')
+    current_net = topic_progress.get(topic.get('key', ''), '0')
     
     try:
         net_value = int(float(current_net))
@@ -8673,13 +8674,14 @@ def show_weak_subjects_analysis(user_data, field, score_diff):
         st.markdown(f"#### 📚 {subject}")
         
         for topic in topics:
-            net_color = "#dc3545" if topic['net'] < 5 else "#ffc107"
-            net_icon = "🔴" if topic['net'] < 5 else "🟠"
+            net_value = topic.get('net', 0)
+            net_color = "#dc3545" if net_value < 5 else "#ffc107"
+            net_icon = "🔴" if net_value < 5 else "🟠"
             
             st.markdown(f"""
             <div style="background: #fff3cd; padding: 15px; border-radius: 10px; margin: 10px 0; 
                         border-left: 4px solid {net_color};">
-                <strong>{net_icon} {topic['topic']}</strong> - Net: {topic['net']}
+                <strong>{net_icon} {topic.get('topic', 'Konu')}</strong> - Net: {net_value}
                 <br><br>
                 <em>İyileştirme Önerisi: Bu konuyu günde 1 saat boyunca çalış ve 50 soru çöz.</em>
             </div>
@@ -9054,7 +9056,7 @@ def main():
                 st.info("🔧 Supabase Credentials gerekli:")
                 st.code("""
                 # Supabase Secrets:
-                SUPABASE_URL="https://blbmapsjtktzgmjefdmc.supabase.co
+                SUPABASE_URL=https://blbmapsjtktzgmjefdmc.supabase.co
                 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYm1hcHNqdGt0emdtamVmZG1jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTkwMDcsImV4cCI6MjA3ODU5NTAwN30.98F4oDx5EBwnobgCvOC6qPK2cIPRzL_ksi3fRfY8SNY
                 """)
         else:
