@@ -33,6 +33,19 @@ except ImportError:
     SUPABASE_AVAILABLE = False
     supabase = None
 
+# ✅ Supabase Client Tanımlaması
+# Kullanıcının kendi bilgilerini buraya yazması gerekiyor
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+SUPABASE_KEY = os.environ.get('SUPABASE_ANON_KEY', '')
+
+# Client oluştur
+if SUPABASE_AVAILABLE and SUPABASE_URL and SUPABASE_KEY:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    supabase_connected = True
+else:
+    supabase = None
+    supabase_connected = False
+
 try:
     import plotly.express as px
     import plotly.graph_objects as go
@@ -363,27 +376,23 @@ class SupabaseCache:
 # Global cache objesi
 supabase_cache = SupabaseCache()
 
-# Supabase başlatma
-supabase_connected = False
-supabase_client = None
-
+# ✅ Supabase Bağlantı Durumu
+# Bağlantı kontrolü ve bilgilendirme
 if SUPABASE_AVAILABLE:
-    try:
-        # Environment variable'lardan Supabase bilgilerini al
-        supabase_url = os.environ.get('SUPABASE_URL')
-        supabase_key = os.environ.get('SUPABASE_ANON_KEY')
+    if supabase_connected:
+        st.success("✅ Supabase bağlantısı kuruldu!")
+    else:
+        st.warning("⚠️ Supabase bilgileri eksik!")
+        st.info("""
+        🔧 Supabase bilgilerinizi ekleyin:
         
-        if supabase_url and supabase_key:
-            supabase_client = create_client(supabase_url, supabase_key)
-            supabase_connected = True
-            st.success("✅ Supabase bağlantısı kuruldu!")
-        else:
-            st.warning("⚠️ Supabase environment variable'ları bulunamadı!")
-            supabase_connected = False
-    except Exception as e:
-        st.warning(f"⚠️ Supabase bağlantısı kurulamadı: {e}")
-        supabase_connected = False
-        supabase_client = None
+        1. Supabase Dashboard > Settings > API
+        2. Project URL ve anon public key'i kopyalayın
+        3. Environment variable olarak ayarlayın:
+           
+           SUPABASE_URL=your_project_url
+           SUPABASE_ANON_KEY=your_anon_key
+        """)
 else:
     st.info("📦 Supabase modülü yüklenmedi - yerel test modu aktif")
 
