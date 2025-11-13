@@ -1,9 +1,6 @@
 import streamlit as st
 import hashlib
 import time
-import re
-import threading
-import concurrent.futures
 from datetime import datetime, timedelta
 import csv
 import os
@@ -26,14 +23,6 @@ except ImportError:
             return {'data': self.data}
     pd = type('MockPandas', (), {'DataFrame': MockDataFrame})()
 
-try:
-    from b2sdk.v2 import InMemoryAccountInfo, B2Api, Bucket
-    BACKBLAZE_AVAILABLE = True
-except ImportError:
-    BACKBLAZE_AVAILABLE = False
-    b2sdk = None
-
-# Backward compatibility - Eski Firebase import'ları da koru
 try:
     import firebase_admin
     from firebase_admin import credentials, db
@@ -617,17 +606,15 @@ def play_break_start_sound():
     </script>
     """, unsafe_allow_html=True)
 
-# 🚀 BACKBLAZE B2 CACHE SİSTEMİ (Download Optimizasyonu)
-class BackblazeCache:
-    """Backblaze B2 işlemleri için cache sistemi"""
+# 🚀 FIREBASE CACHE SİSTEMİ (Download Optimizasyonu)
+class FirebaseCache:
+    """Firebase işlemleri için cache sistemi"""
     def __init__(self):
         self.cache = {}
-        self.cache_duration = 3600  # 1 saat cache
-        self.local_storage = {}  # Yerel depolama fallback için
+        self.cache_duration = 3600  # 🚀 OPTİMİZE: 1 saat cache (önceden 5 dakika)
     
     def get_users(self, limit_to_user=None):
-        """Backblaze B2'den kullanıcı verilerini al"""
-        import time  # Ensure time module is available
+        """🚀 OPTİMİZE: Cache'li ve lazy loading destekli kullanıcı verisi"""
         cache_key = "all_users" if not limit_to_user else f"user_{limit_to_user}"
         current_time = time.time()
         
@@ -635,449 +622,14 @@ class BackblazeCache:
             current_time - self.cache[cache_key]['time'] < self.cache_duration):
             return self.cache[cache_key]['data']
             
-        # Backblaze B2'den çek
+        # Firebase'den çek
         try:
-            users_data = {}
-            
-            if backblaze_connected and b2_bucket:
-                import sys
-                st.info(f"🔍 Bucket'a bağlanıyor: {b2_bucket.name}")
-                print(f"🔍 Backblaze B2 Bucket: {b2_bucket.name}")
-                sys.stdout.flush()
-                
-                # B2'den dosya listesini al - DEBUG EKLİ
-                try:
-                    st.info("📋 B2Bucket.ls() çağrılıyor...")
-                    b2_files = list(b2_bucket.ls())
-                    st.info(f"✅ B2Bucket.ls() başarılı! {len(b2_files)} dosya bulundu")
-                    print(f"✅ B2Bucket.ls() sonucu: {b2_files}")
-                    
-                    # FORMAT DEBUG: B2 files yapısını analiz et
-                    st.info(f"🔍 B2 files türü: {type(b2_files)}")
-                    if b2_files:
-                        first_item = b2_files[0]
-                        st.info(f"🔍 İlk item türü: {type(first_item)}")
-                        st.info(f"🔍 İlk item: {first_item}")
-                        st.info(f"🔍 İlk item uzunluğu: {len(first_item) if hasattr(first_item, '__len__') else 'N/A'}")
-                    
-                    # File names ve FileVersion objelerini sakla - authenticated download için
-                    file_names = []
-                    file_versions = []  # FileVersion objelerini sakla
-                    
-                    for item in b2_files:
-                        if isinstance(item, tuple):
-                            # Tuple ise, genellikle (file_version, folder_info)
-                            file_version = item[0]
-                            
-                            # FileVersion objesini sakla
-                            file_versions.append(file_version)
-                            
-                            # Dosya adını çıkar
-                            if hasattr(file_version, 'file_name'):
-                                extracted_name = file_version.file_name
-                            elif hasattr(file_version, 'name'):
-                                extracted_name = file_version.name
-                            elif hasattr(file_version, '_name'):
-                                extracted_name = file_version._name
-                            elif len(str(file_version).split("'")) > 2:
-                                # String representation'dan dosya adını çıkar
-                                file_str = str(file_version)
-                                print(f"🔍 Raw FileVersion string: {file_str}")
-                                st.info(f"🔍 Raw string: {file_str[:100]}...")
-                                
-                                # Doğrudan attribute erişimi
-                                if hasattr(file_version, '_name'):
-                                    extracted_name = file_version._name
-                                elif hasattr(file_version, 'name'):
-                                    extracted_name = file_version.name
-                                else:
-                                    # Fallback: Regex pattern
-                                    import re
-                                    file_name_match = re.search(r"',\s*'([^']*\.json)'", file_str)
-                                    if file_name_match:
-                                        extracted_name = file_name_match.group(1)
-                                    else:
-                                        file_name_match = re.search(r"',\s*'([^']*)'", file_str)
-                                        if file_name_match:
-                                            extracted_name = file_name_match.group(1)
-                                        else:
-                                            parts = file_str.split("', '")
-                                            if len(parts) > 1:
-                                                extracted_name = parts[1].split("',")[0]
-                                            else:
-                                                extracted_name = "unknown.json"
-                            
-                            file_names.append(extracted_name)
-                            st.info(f"🔍 Çıkarılan dosya: {extracted_name}")
-                            print(f"🔍 File name çıkarıldı: {extracted_name}")
-                        else:
-                            # Doğrudan FileVersion obje ise
-                            file_versions.append(item)
-                            
-                            if hasattr(item, 'file_name'):
-                                extracted_name = item.file_name
-                            elif hasattr(item, 'name'):
-                                extracted_name = item.name
-                            elif hasattr(item, '_name'):
-                                extracted_name = item._name
-                            elif len(str(item).split("'")) > 2:
-                                file_str = str(item)
-                                parts = file_str.split("'")
-                                if len(parts) >= 4:
-                                    extracted_name = parts[3]
-                                else:
-                                    extracted_name = "unknown.json"
-                            else:
-                                extracted_name = "unknown.json"
-                            
-                            file_names.append(extracted_name)
-                    
-                    print(f"📁 Çıkarılan file names: {file_names}")
-                    st.info(f"📁 Çıkarılan dosya isimleri: {len(file_names)} adet")
-                    
-                except Exception as e:
-                    st.error(f"❌ B2Bucket.ls() hatası: {e}")
-                    print(f"❌ B2Bucket.ls() hatası: {e}")
-                    import traceback
-                    traceback.print_exc()
-                    file_names = []
-                    sys.stdout.flush()
-                
-                # DEBUG: Bulunan tüm dosyaları göster - GÜÇLENDİRİLMİŞ
-                import sys
-                debug_msg = f"""
-🔍 ===============================
-   BACKBLAZE DEBUG BİLGİLERİ
-============================== 
-📁 Bucket: {b2_bucket.name}
-📊 Toplam Dosya: {len(file_names)} adet
-🔎 Dosya Listesi:
-"""
-                for i, fname in enumerate(file_names, 1):
-                    debug_msg += f"   {i:2d}. {fname}\n"
-                
-                json_files = [f for f in file_names if f.endswith('.json')]
-                debug_msg += f"\n✅ JSON Dosyası Sayısı: {len(json_files)} adet\n"
-                for json_file in json_files:
-                    debug_msg += f"   📄 JSON: {json_file}\n"
-                
-                debug_msg += f"===============================\n"
-                
-                print(debug_msg)
-                sys.stdout.flush()
-                st.info(f"📁 Backblaze'de bulunan dosyalar: {len(file_names)} adet")
-                st.info(f"📄 JSON dosya sayısı: {len(json_files)}")
-                st.text(debug_msg)
-                
-                if not json_files:
-                    st.error("⚠️ Hiç JSON dosyası bulunamadı!")
-                    st.error("❌ Bucket içeriği:")
-                    for fname in file_names:
-                        st.error(f"   - {fname}")
-                
-                if limit_to_user:
-                    # Belirli kullanıcının dosyasını al - hem users/ hem kök dizinde ara
-                    file_name1 = f"{limit_to_user}.json"
-                    file_name2 = f"users/{limit_to_user}.json"
-                    file_data = None
-                    
-                    try:
-                        # Önce kök dizinde ara
-                        if file_name1 in file_names:
-                            file_data = b2_bucket.download_file_by_name(file_name1)
-                        # Sonra users/ klasöründe ara
-                        elif file_name2 in file_names:
-                            file_data = b2_bucket.download_file_by_name(file_name2)
-                    except:
-                        pass
-                    
-                    if file_data:
-                        users_data = {limit_to_user: json.loads(file_data.decode('utf-8'))}
-                else:
-                    # Tüm kullanıcı dosyalarını al - users/ klasörünü de destekle
-                    st.info("📥 Dosya indirme işlemi başlıyor...")
-                    for i, file_name in enumerate(file_names):
-                        if file_name.endswith('.json'):
-                            # Klasör yapısını temizle - users/ogrenci10.json -> ogrenci10
-                            username = file_name.replace('users/', '').replace('.json', '')
-                            st.info(f"🔄 İşleniyor: {file_name} -> {username}")
-                            
-                            st.info(f"🔍 Debug: try-catch bloğuna giriyorum...")
-                            print(f"🔍 DEBUG: Try-catch bloğuna giriyorum, file_name = {file_name}")
-                            sys.stdout.flush()
-                            
-                            try:
-                                st.info(f"🔍 FILEVERSION DETAILED DEBUG başlıyor...")
-                                print(f"🔍 DETAILED: Try-catch bloğuna giriyorum, file_name = {file_name}")
-                                sys.stdout.flush()
-                                
-                                # FileVersion objesi detaylı analiz
-                                if i < len(file_versions):
-                                    file_version = file_versions[i]
-                                    st.info(f"🔍 FileVersion tipi: {type(file_version)}")
-                                    print(f"🔍 FileVersion object: {file_version}")
-                                    
-                                    # FileVersion attributes listesi
-                                    st.info(f"🔍 FileVersion methodları: {[m for m in dir(file_version) if not m.startswith('_')][:10]}...")
-                                    print(f"🔍 FileVersion attributes: {[attr for attr in dir(file_version) if not attr.startswith('_')]}")
-                                    
-                                    # File name attribute kontrolü
-                                    if hasattr(file_version, 'file_name'):
-                                        st.info(f"🔍 FileVersion.file_name: {file_version.file_name}")
-                                    if hasattr(file_version, 'name'):
-                                        st.info(f"🔍 FileVersion.name: {file_version.name}")
-                                    if hasattr(file_version, 'id'):
-                                        st.info(f"🔍 FileVersion.id: {file_version.id}")
-                                    if hasattr(file_version, '_name'):
-                                        st.info(f"🔍 FileVersion._name: {file_version._name}")
-                                
-                                print(f"🔍 IMMEDIATE: File name = '{file_name}', i = {i}, file_versions len = {len(file_versions)}")
-                                st.info(f"🔍 IMMEDIATE: Index i={i}, file_versions={len(file_versions)}")
-                                sys.stdout.flush()
-                                
-                                import threading
-                                import time
-                                
-                                # FARKLI DOWNLOAD METHOD'LARI DENEMEK
-                                result_container = [None]
-                                error_container = [None]
-                                
-                                def download_file():
-                                    try:
-                                        st.info(f"🔍 DOWNLOAD ATTEMPT başlıyor...")
-                                        print(f"🔍 DOWNLOAD ATTEMPT için: {file_name}")
-                                        
-                                        file_data = None
-                                        
-                                        # METHOD 1: FileVersion objesinin direct download methodu
-                                        if i < len(file_versions) and hasattr(file_versions[i], 'download'):
-                                            st.info(f"🔍 METHOD 1: FileVersion.download() - BytesIO ile")
-                                            import io
-                                            output_stream = io.BytesIO()
-                                            file_data = file_versions[i].download(output_stream)
-                                            output_stream.seek(0)  # Stream'i başa sar
-                                            file_data = output_stream.read()
-                                        
-                                        # METHOD 2: B2 bucket download_file_by_name
-                                        elif hasattr(b2_bucket, 'download_file_by_name'):
-                                            st.info(f"🔍 METHOD 2: b2_bucket.download_file_by_name()")
-                                            file_data = b2_bucket.download_file_by_name(file_name)
-                                        
-                                        # METHOD 3: B2 bucket download_file_by_id (fallback)
-                                        elif i < len(file_versions) and hasattr(file_versions[i], 'id'):
-                                            st.info(f"🔍 METHOD 3: b2_bucket.download_file_by_id()")
-                                            file_id = file_versions[i].id
-                                            file_data = b2_bucket.download_file_by_id(file_id)
-                                        
-                                        # METHOD 4: FileVersion.download_file() alternative
-                                        elif i < len(file_versions) and hasattr(file_versions[i], 'download_file'):
-                                            st.info(f"🔍 METHOD 4: FileVersion.download_file()")
-                                            import tempfile
-                                            import os
-                                            with tempfile.NamedTemporaryFile(mode='w+b', delete=False) as tmp_file:
-                                                temp_path = tmp_file.name
-                                            try:
-                                                file_versions[i].download_file(temp_path)
-                                                with open(temp_path, 'rb') as f:
-                                                    file_data = f.read()
-                                            finally:
-                                                if os.path.exists(temp_path):
-                                                    os.unlink(temp_path)
-                                        
-                                        if file_data:
-                                            # File content'i bytes olarak al
-                                            if hasattr(file_data, 'read'):
-                                                content = file_data.read()
-                                            else:
-                                                content = file_data
-                                            
-                                            result_container[0] = content
-                                            st.info(f"✅ ANY Download method başarılı! Boyut: {len(content)} bytes")
-                                            print(f"✅ ANY Download sonucu: {len(content)} bytes")
-                                        else:
-                                            raise Exception("Hiçbir download method çalışmadı!")
-                                        
-                                    except Exception as e:
-                                        error_container[0] = e
-                                        st.error(f"❌ Download Attempt hatası: {e}")
-                                        print(f"❌ Download Attempt ERROR: {e}")
-                                        import traceback
-                                        print("🔍 Download Error Stack:")
-                                        traceback.print_exc()
-                                        
-                                    except Exception as e:
-                                        error_container[0] = e
-                                        st.error(f"❌ B2 Authenticated Download hatası: {e}")
-                                        print(f"❌ B2 Authenticated ERROR: {e}")
-                                        import traceback
-                                        print("🔍 B2 Error Stack:")
-                                        traceback.print_exc()
-                                
-                                # Thread başlat ve timeout ile bekle
-                                download_thread = threading.Thread(target=download_file)
-                                download_thread.daemon = True
-                                download_thread.start()
-                                download_thread.join(timeout=30)
-                                
-                                # EĞER TIMEOUT OLUYORSA B2 CLI TOOL KULLAN
-                                if download_thread.is_alive():
-                                    st.warning("⏱️ SDK timeout! CLI Tool kullanılıyor...")
-                                    
-                                    try:
-                                        import subprocess
-                                        import os
-                                        import tempfile
-                                        
-                                        # Temporary file oluştur
-                                        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as temp_file:
-                                            temp_path = temp_file.name
-                                        
-                                        # STEP 1: CLI Authorization
-                                        st.info("🔧 CLI Authorization...")
-                                        auth_result = subprocess.run([
-                                            "b2", "account", "authorize", 
-                                            "003f69accbc63280000000001", 
-                                            "K003OMsFWIvniVkyYIhP1yjuQnElwZ4"
-                                        ], capture_output=True, text=True, timeout=15)
-                                        
-                                        if auth_result.returncode != 0:
-                                            st.error(f"❌ CLI Auth: {auth_result.stderr}")
-                                            continue
-                                        
-                                        # STEP 2: CLI Download - F003 BACKBLAZE ENDPOINT
-                                        st.info("🔧 CLI Download (F003 endpoint)...")
-                                        download_result = subprocess.run([
-                                            "b2", "file", "download",
-                                            "b2://psikodonustr-files/users/ogrenci10.json",
-                                            temp_path
-                                        ], capture_output=True, text=True, timeout=30)
-                                        
-                                        if download_result.returncode != 0:
-                                            st.error(f"❌ CLI Download: {download_result.stderr}")
-                                            continue
-                                        
-                                        # STEP 3: Dosyayı oku
-                                        if os.path.exists(temp_path) and os.path.getsize(temp_path) > 0:
-                                            with open(temp_path, 'r', encoding='utf-8') as f:
-                                                content = f.read().encode('utf-8')
-                                            result_container[0] = content
-                                            st.info(f"✅ CLI Download başarılı! Boyut: {len(content)} bytes")
-                                            print(f"✅ CLI SUCCESS: {len(content)} bytes")
-                                        else:
-                                            st.error("❌ CLI ile indirilen dosya boş!")
-                                                
-                                    except subprocess.TimeoutExpired:
-                                        st.error("⏱️ CLI timeout!")
-                                    except Exception as e:
-                                        st.error(f"❌ CLI hatası: {e}")
-                                        import traceback
-                                        print("🔍 CLI Error:")
-                                        traceback.print_exc()
-                                    
-                                    finally:
-                                        # Temp file temizle
-                                        if 'temp_path' in locals() and os.path.exists(temp_path):
-                                            os.unlink(temp_path)
-                                    
-                                    # CLI başarısızsa SON ÇARE: Mock data ile sistem çalıştır
-                                    if result_container[0] is None:
-                                        st.error("❌ Tüm download yöntemleri başarısız! Mock data kullanılıyor...")
-                                        
-                                        # Mock user data oluştur
-                                        mock_data = {
-                                            "id": "ogrenci10",
-                                            "name": "Test Öğrencisi", 
-                                            "email": "test@email.com",
-                                            "phone": "555-0123",
-                                            "city": "İstanbul",
-                                            "status": "active"
-                                        }
-                                        import json
-                                        result_container[0] = json.dumps(mock_data).encode('utf-8')
-                                        st.info(f"📋 Mock data oluşturuldu: {mock_data['name']}")
-                                        print(f"📋 MOCK DATA: {mock_data['name']}")
-                                        print(f"📋 MOCK ID: {mock_data['id']}")
-                                        print(f"📋 File name: {file_name}")
-                                    
-                                    # Mock data var mı kontrol et
-                                    if result_container[0] is not None:
-                                        try:
-                                            # Parse JSON
-                                            mock_json = json.loads(result_container[0].decode('utf-8'))
-                                            print(f"🔍 Mock JSON parse: {mock_json}")
-                                            
-                                            # User data listesine ekle - SADECE MOCK DATA İÇİN
-                                            mock_user_key = f"ogrenci10"  # File name'den çıkar
-                                            users_data[mock_user_key] = mock_json
-                                            st.info(f"✅ Mock user eklendi: {mock_user_key}")
-                                            print(f"✅ MOCK USER ADDED: {mock_user_key}")
-                                            
-                                        except Exception as parse_error:
-                                            st.error(f"❌ Mock JSON parse hatası: {parse_error}")
-                                            print(f"❌ MOCK PARSE ERROR: {parse_error}")
-                                    
-                                    # CLI başarısızsa sonraki dosyaya geç
-                                    if result_container[0] is None:
-                                        continue
-                                
-                                # Timeout kontrolü
-                                if download_thread.is_alive():
-                                    st.error("⏱️ Timeout hatası: Download çok uzun sürdü!")
-                                    print(f"⏱️ TIMEOUT: {file_name} - Thread hala çalışıyor!")
-                                    continue
-                                
-                                # Hata kontrolü
-                                if error_container[0]:
-                                    st.error(f"❌ Thread hatası: {error_container[0]}")
-                                    print(f"❌ THREAD ERROR: {error_container[0]}")
-                                    continue
-                                
-                                # Sonuç kontrolü
-                                if result_container[0] is None:
-                                    st.error("❌ Download sonucu boş!")
-                                    print(f"❌ EMPTY RESULT: {file_name}")
-                                    continue
-                                
-                                file_data = result_container[0]
-                                # FileName'i düzelt - "user/" değil "users/" olmalı
-                                if file_name.startswith("user/ogrenci"):
-                                    file_name = file_name.replace("user/", "users/", 1)
-                                st.info(f"✅ Download başarılı! Boyut: {len(file_data) if hasattr(file_data, '__len__') else 'N/A'} bytes")
-                                sys.stdout.flush()
-                                
-                                st.info(f"🔄 JSON parse işlemi...")
-                                if isinstance(file_data, bytes):
-                                    json_data = json.loads(file_data.decode('utf-8'))
-                                else:
-                                    json_data = json.loads(str(file_data))
-                                st.info(f"✅ JSON parse başarılı! Anahtarlar: {list(json_data.keys()) if isinstance(json_data, dict) else type(json_data)}")
-                                
-                                users_data[username] = json_data
-                                st.info(f"✅ users_data['{username}'] kaydedildi")
-                                
-                            except Exception as file_e:
-                                st.error(f"❌ Dosya hatası ({file_name}): {file_e}")
-                                print(f"❌ HATA: {file_e}")
-                                import traceback
-                                print("🔍 Stack trace:")
-                                traceback.print_exc()
-                                st.error("❌ Detaylı hata:")
-                                st.error(str(file_e))
-                                st.error("🔍 Type:")
-                                st.error(str(type(file_e)))
-                                
-                                # Özel mesajlar için
-                                if isinstance(file_e, TimeoutError):
-                                    st.error("⏱️ Timeout hatası: Download çok uzun sürdü!")
-                                elif "download_file_by_name" in str(file_e):
-                                    st.error("🔧 Method hatası: download_file_by_name ile ilgili problem")
-                                
-                                continue
-                    
-                    st.info(f"📊 Toplam users_data: {len(users_data)} kullanıcı")
+            if limit_to_user:
+                # Sadece belirli kullanıcıyı çek (Lazy Loading)
+                users_data = {limit_to_user: db_ref.child(limit_to_user).get()} if firebase_connected else {}
             else:
-                # Yerel fallback
-                users_data = self.local_storage.copy()
+                # Tüm kullanıcıları çek (Admin için)
+                users_data = db_ref.get() if firebase_connected else {}
             
             self.cache[cache_key] = {
                 'data': users_data,
@@ -1096,93 +648,35 @@ class BackblazeCache:
             current_time - self.cache[cache_key]['time'] < self.cache_duration):
             return self.cache[cache_key]['data']
         
-        # Backblaze B2'den çek
+        # Firebase'den çek
         try:
-            if backblaze_connected and b2_bucket:
-                # Hem kök dizinde hem de users/ klasöründe ara
-                file_names = [file.file_name for file in b2_bucket.ls()]
-                file_name1 = f"{username}.json"
-                file_name2 = f"users/{username}.json"
-                file_data = None
-                
-                try:
-                    # Önce kök dizinde ara
-                    if file_name1 in file_names:
-                        file_data = b2_bucket.download_file_by_name(file_name1)
-                    # Sonra users/ klasöründe ara
-                    elif file_name2 in file_names:
-                        file_data = b2_bucket.download_file_by_name(file_name2)
-                    
-                    if file_data:
-                        data = json.loads(file_data.decode('utf-8'))
-                        self.cache[cache_key] = {
-                            'data': data,
-                            'time': current_time
-                        }
-                        return data
-                except Exception:
-                    pass
-                
-                return None
-            else:
-                # Yerel fallback
-                return self.local_storage.get(username)
+            if firebase_connected and db_ref:
+                data = db_ref.child(username).get()
+                if data:
+                    self.cache[cache_key] = {
+                        'data': data,
+                        'time': current_time
+                    }
+                    return data
         except:
-            return None
+            pass
         
         return self.cache.get(cache_key, {}).get('data', {})
     
     def update_user_data(self, username, data):
-        """Kullanıcı verisini B2'ye kaydet + cache'i güncelle"""
+        """Kullanıcı verisini güncelle + cache'i temizle"""
         try:
-            # Önce mevcut veriyi al
-            existing_data = self.get_user_data(username) or {}
-            
-            # Yeni verilerle birleştir
-            updated_data = {**existing_data, **data}
-            
-            if backblaze_connected and b2_bucket:
-                # Kullanıcının dosyasının nerede olduğunu bul (users/ klasöründe mi?)
-                file_names = [file.file_name for file in b2_bucket.ls()]
-                file_name1 = f"{username}.json"
-                file_name2 = f"users/{username}.json"
-                
-                # Mevcut dosyayı nerede bulduysan oraya kaydet
-                if file_name1 in file_names:
-                    file_name = file_name1
-                elif file_name2 in file_names:
-                    file_name = file_name2
-                else:
-                    # Yeni dosya - users/ klasörüne kaydet
-                    file_name = file_name2
-                
-                json_data = json.dumps(updated_data).encode('utf-8')
-                
-                # Dosyayı sil (varsa - her iki konumda da)
-                for fn in [file_name1, file_name2]:
-                    try:
-                        file_versions = b2_bucket.list_file_versions(fn)
-                        for file_version in file_versions:
-                            b2_bucket.delete_file_version(file_version.id_, fn)
-                    except:
-                        pass  # Dosya yoksa sorun yok
-                
-                # Yeni dosyayı yükle
-                b2_bucket.upload_bytes(json_data, file_name)
-            else:
-                # Yerel fallback
-                self.local_storage[username] = updated_data
+            if firebase_connected and db_ref:
+                db_ref.child(username).update(data)
             
             # Cache'i güncelle
             cache_key = f"user_{username}"
-            self.cache[cache_key] = {
-                'data': updated_data,
-                'time': time.time()
-            }
+            if cache_key in self.cache:
+                self.cache[cache_key]['data'].update(data)
+                self.cache[cache_key]['time'] = time.time()
             
             return True
-        except Exception as e:
-            print(f"Backblaze B2 update error: {e}")
+        except:
             return False
     
     def clear_cache(self, pattern=None):
@@ -1195,10 +689,9 @@ class BackblazeCache:
         else:
             # Tüm cache'i temizle
             self.cache.clear()
-            self.cache.clear()
 
 # Global cache objesi
-backblaze_cache = BackblazeCache()
+firebase_cache = FirebaseCache()
 
 # 🚀 OPTİMİZE EDİLMİŞ GRAFİK CACHE SİSTEMİ
 @lru_cache(maxsize=32)
@@ -1211,97 +704,39 @@ def create_cached_chart(chart_type, *args, **kwargs):
     else:
         return {"type": "default_chart", "data": args, "kwargs": kwargs}
 
-# Backblaze B2 başlatma
-backblaze_connected = False
-b2_api = None
-b2_bucket = None
+# Firebase başlatma
+firebase_connected = False
+db_ref = None
 
-# 🔥 BACKWARD COMPATIBILITY - Değişkenler
-firebase_connected = backblaze_connected
-
-if BACKBLAZE_AVAILABLE:
+if FIREBASE_AVAILABLE:
     try:
-        # Backblaze B2 API'sini başlat
-        info = InMemoryAccountInfo()
-        b2_api = B2Api(info)
+        # Firebase'in zaten başlatılıp başlatılmadığını kontrol et
+        if not firebase_admin._apps:
+            # Firebase Admin SDK'yı başlat
+            # GitHub/Streamlit Cloud deployment için environment variable kontrolü
+            if 'FIREBASE_KEY' in os.environ:
+                # Production: Environment variable'dan JSON key'i al
+                firebase_json = os.environ["FIREBASE_KEY"]
+                firebase_config = json.loads(firebase_json)
+                cred = credentials.Certificate(firebase_config)
+            else:
+                # Local development: JSON dosyasından al
+                cred = credentials.Certificate("firebase_key.json")
+            
+            firebase_admin.initialize_app(cred, {
+                'databaseURL':'https://yeniseninalanin-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
+            })
         
-        # API anahtarlarını öncelik sırasına göre al:
-        # 1. Streamlit Cloud secrets
-        # 2. b2_storage.py dosyası
-        # 3. Environment variables
-        application_key_id = ''
-        application_key = ''
-        bucket_name = 'psikodonustr-files'
+        db_ref = db.reference('users')
+        firebase_connected = True
+   
         
-        try:
-            # Streamlit Cloud secrets'ları dene
-            import streamlit as st
-            if hasattr(st, 'secrets'):
-                application_key_id = st.secrets.get('BACKBLAZE_APPLICATION_KEY_ID', '')
-                application_key = st.secrets.get('BACKBLAZE_APPLICATION_KEY', '')
-                bucket_name = st.secrets.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr-files')
-            
-            # API anahtarlarını yükle (b2_storage.py import edilemezse hardcode değerleri kullan)
-            if not application_key_id or not application_key:
-                try:
-                    from b2_storage import (
-                        BACKBLAZE_APPLICATION_KEY_ID as b2_key_id,
-                        BACKBLAZE_APPLICATION_KEY as b2_key,
-                        BACKBLAZE_BUCKET_NAME as b2_bucket,
-                        B2_ENDPOINT as b2_endpoint
-                    )
-                    application_key_id = b2_key_id
-                    application_key = b2_key
-                    bucket_name = b2_bucket
-                except ImportError:
-                    # b2_storage.py bulunamazsa hardcode anahtarları kullan
-                    application_key_id = "003f69accbc63280000000001"
-                    application_key = "K003OMsFWIvniVkyYIhP1yjuQnElwZ4"
-                    bucket_name = "psikodonustr-files"
-            
-            # Son çare: environment variables
-            if not application_key_id or not application_key:
-                application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '003f69accbc63280000000001')
-                application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', 'K003OMsFWIvniVkyYIhP1yjuQnElwZ4')
-                bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr-files')
-                
-        except Exception as e:
-            st.error(f"API anahtarları yüklenirken hata: {e}")
-            # Hata durumunda hardcode anahtarları kullan
-            application_key_id = "003f69accbc63280000000001"
-            application_key = "K003OMsFWIvniVkyYIhP1yjuQnElwZ4"
-            bucket_name = "psikodonustr-files"
-        
-        if application_key_id and application_key:
-            # API ile giriş yap
-            st.info(f"🔑 Key ID: {application_key_id[:10]}... başlangıç kontrolü")
-            st.info(f"🔑 Application Key: {application_key[:10]}... başlangıç kontrolü")
-            b2_api.authorize_account("production", application_key_id, application_key)
-            
-            # Bucket'ı al veya oluştur
-            bucket_name = bucket_name
-            try:
-                b2_bucket = b2_api.get_bucket_by_name(bucket_name)
-            except Exception:
-                # Bucket yoksa oluştur
-                b2_bucket = b2_api.create_bucket(bucket_name, 'allPrivate')
-            
-            backblaze_connected = True
-            firebase_connected = backblaze_connected  # Update backward compatibility
-            st.success("✅ Backblaze B2 bağlantısı kuruldu!")
-        else:
-            st.warning("⚠️ Backblaze B2 API anahtarları bulunamadı!")
-            
     except Exception as e:
-        st.warning(f"⚠️ Backblaze B2 bağlantısı kurulamadı: {e}")
-        backblaze_connected = False
-        firebase_connected = backblaze_connected  # Update backward compatibility
-        b2_api = None
-        b2_bucket = None
+        st.warning(f"⚠️ Firebase bağlantısı kurulamadı: {e}")
+        firebase_connected = False
+        db_ref = None
 else:
-    backblaze_connected = False
-    firebase_connected = backblaze_connected  # Update backward compatibility
-    st.info("📦 Backblaze B2 modülü yüklenmedi - yerel test modu aktif")
+    st.info("📦 Firebase modülü yüklenmedi - yerel test modu aktif")
 
 # FALLBACK: Geçici test kullanıcıları
 if not firebase_connected:
@@ -1348,29 +783,21 @@ if not firebase_connected:
     st.success("✅ Test kullanıcıları hazırlandı!")
 
 # Firebase veritabanı fonksiyonları
-def load_users_from_backblaze(force_refresh=False):
+def load_users_from_firebase(force_refresh=False):
     """🚀 OPTİMİZE EDİLMİŞ: Session state ile agresif cache"""
     # Session state'te varsa ve force refresh yoksa direkt döndür
     if not force_refresh and 'users_db' in st.session_state and st.session_state.users_db:
         return st.session_state.users_db
     
-    # Backblaze cache'den çek
-    users_data = backblaze_cache.get_users()
-    
-    # DEBUG: Hangi kullanıcı verileri bulunduğunu göster
-    st.info(f"🔍 Backblaze'den {len(users_data)} kullanıcı verisi yüklendi")
-    if users_data:
-        st.info(f"📁 Bulunan kullanıcılar: {list(users_data.keys())}")
-        # İlk kullanıcının veri yapısını göster
-        first_user = list(users_data.keys())[0]
-        st.info(f"📄 İlk kullanıcı '{first_user}' verisi örneği: {str(users_data[first_user])[:200]}...")
+    # Firebase cache'den çek
+    users_data = firebase_cache.get_users()
     
     # Session state'e kaydet
     st.session_state.users_db = users_data
     
     return users_data
 
-def update_user_in_backblaze(username, data):
+def update_user_in_firebase(username, data):
     """🚀 OPTİMİZE EDİLMİŞ: Cache'li kullanıcı verisi güncelleme"""
     # Session state'i güncelle
     if 'users_db' in st.session_state:
@@ -1385,16 +812,7 @@ def update_user_in_backblaze(username, data):
         del st.session_state.weekly_plan_cache
     
     # Cache'li güncelleme
-    return backblaze_cache.update_user_data(username, data)
-
-# 🔥 BACKWARD COMPATIBILITY - Eski fonksiyon isimleri hala çalışsın
-load_users_from_firebase = load_users_from_backblaze  # Alias
-update_user_in_firebase = update_user_in_backblaze    # Alias
-# firebase_cache alias removed - using backblaze_cache directly
-
-# 🔥 BACKWARD COMPATIBILITY - db_ref değişkeni (Firebase uyumluluğu için)
-# Firebase uyumlu olmak için basit bir referans
-db_ref = True if backblaze_connected else None
+    return firebase_cache.update_user_data(username, data)
 
 # === HİBRİT POMODORO SİSTEMİ SABİTLERİ ===
 
@@ -8644,14 +8062,11 @@ def show_review_topics_section(review_topics, user_data):
                 
                 if st.button("✅ Tekrar ettim", key=button_key):
                     try:
-                        # Backblaze B2'den kaldır
+                        # Firebase'den kaldır
                         if 'weekly_plan' in user_data and 'review_topics' in user_data['weekly_plan']:
                             if topic_key in user_data['weekly_plan']['review_topics']:
                                 del user_data['weekly_plan']['review_topics'][topic_key]
-                                # Kullanıcı verilerini B2'ye kaydet
-                                update_user_in_backblaze(user_data['username'], {
-                                    'weekly_plan': user_data['weekly_plan']
-                                })
+                                save_user_data(user_data)
                         
                         # Session state'den kaldır
                         if 'all_review_topics' in st.session_state:
@@ -10438,8 +9853,8 @@ def show_interactive_systematic_planner(weekly_plan, survey_data, user_data=None
                             st.error(f"Yenileme hatası: {e}")
                 
                 # Firebase cache'i de temizle
-                if hasattr(st.session_state, 'backblaze_cache'):
-                    st.session_state.backblaze_cache.clear()
+                if hasattr(st.session_state, 'firebase_cache'):
+                    st.session_state.firebase_cache.clear()
                 
                 st.info("📱 Sayfa yenileniyor...")
                 st.rerun()
@@ -15495,8 +14910,8 @@ def get_user_data():
 
 def main():
     # 🚀 OPTİMİZE EDİLMİŞ: Cache sistemi başlat
-    if 'backblaze_cache' not in st.session_state:
-        st.session_state.backblaze_cache = BackblazeCache()
+    if 'firebase_cache' not in st.session_state:
+        st.session_state.firebase_cache = FirebaseCache()
     
     # Veri kalıcılığını garanti altına al
     ensure_data_persistence()
@@ -16120,38 +15535,7 @@ def main():
             progress_data = calculate_subject_progress(user_data)
             
             with st.sidebar:
-                # STUDENT LOGIN BÖLÜMÜ - En üstte!
-                st.markdown("### 🔐 Öğrenci Girişi")
-                
-                # Check if user is logged in
-                if 'current_user' not in st.session_state:
-                    st.session_state.current_user = None
-                
-                if st.session_state.current_user is None:
-                    # Student login form
-                    username = st.text_input("👤 Kullanıcı Adı", placeholder="ogrenci10", key="student_username")
-                    password = st.text_input("🔑 Şifre", type="password", key="student_password")
-                    
-                    if st.button("🔑 Giriş Yap", key="student_login_btn"):
-                        # Mock data authentication - tüm şifreler kabul
-                        if username in users_data:
-                            st.session_state.current_user = username
-                            st.session_state.user_data = users_data[username]
-                            st.success(f"✅ Başarılı giriş! Hoş geldin {username}!")
-                            st.rerun()
-                        else:
-                            st.error("❌ Kullanıcı bulunamadı!")
-                else:
-                    # Logged in user display
-                    st.success(f"✅ Giriş Yapıldı: {st.session_state.current_user}")
-                    if st.button("🚪 Çıkış Yap", key="student_logout_btn"):
-                        st.session_state.current_user = None
-                        st.session_state.user_data = None
-                        st.rerun()
-                
-                st.markdown("---")
-                
-                # Logo - Login'den sonra!
+                # Logo - En üstte!
                 st.markdown("""
                 <div style="
         background-color: white;
@@ -20452,18 +19836,7 @@ def run_psychology_page():
         return
     
     users_data = load_users_from_firebase()
-    # User data - session_state'den al, yoksa users_data'dan getir
-    if st.session_state.get('current_user') and st.session_state.get('user_data'):
-        user_data = st.session_state.user_data
-        username = st.session_state.current_user
-    else:
-        # Fallback: ilk kullanıcıyı al (demo için)
-        if users_data:
-            username = list(users_data.keys())[0]
-            user_data = users_data[username]
-        else:
-            st.error("❌ Kullanıcı bulunamadı! Lütfen giriş yapın.")
-            st.stop()
+    user_data = users_data.get(username, {})
     
     # Ana başlık - Hedef bölüme göre dinamik arka plan
     target_department = user_data.get('target_department', 'Varsayılan')
@@ -23346,9 +22719,9 @@ def apply_coach_changes(original_topics, coach_approved_topics, user_data):
 
             
             # Genel cache de temizle
-            if hasattr(st.session_state, 'backblaze_cache'):
+            if hasattr(st.session_state, 'firebase_cache'):
                 try:
-                    st.session_state.backblaze_cache.clear()
+                    st.session_state.firebase_cache.clear()
 
                 except:
                     pass
@@ -27157,14 +26530,14 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
                         st.session_state.users_db[student_username].update(student_data)
                     
                     # Firebase cache'i güvenli temizle
-                    if hasattr(st.session_state, 'backblaze_cache'):
+                    if hasattr(st.session_state, 'firebase_cache'):
                         try:
-                            # BackblazeCache objesinin clear metodu olup olmadığını kontrol et
-                            if hasattr(st.session_state.backblaze_cache, 'clear'):
-                                st.session_state.backblaze_cache.clear()
+                            # FirebaseCache objesinin clear metodu olup olmadığını kontrol et
+                            if hasattr(st.session_state.firebase_cache, 'clear'):
+                                st.session_state.firebase_cache.clear()
                             else:
                                 # clear metodu yoksa, cache'i yeniden başlat
-                                st.session_state.backblaze_cache = type('obj', (object,), {})()
+                                st.session_state.firebase_cache = type('obj', (object,), {})()
                         except Exception as cache_error:
                             pass                # Cache temizleme hatası olsa bile onay işlemini devam ettir
                             st.warning(f"Cache temizleme hatası: {cache_error}")
