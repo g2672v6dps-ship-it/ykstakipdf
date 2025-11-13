@@ -3,12 +3,11 @@
 
 # Gerçek API anahtarlarınızı buraya yazın:
 # B2 Endpoint
-B2_ENDPOINT = "s3.eu-central-003.backblazeb2.com"
+BACKBLAZE_APPLICATION_KEY_ID = "003f69accbc63280000000001"
+BACKBLAZE_APPLICATION_KEY = "K003OMsFWIvniVkyYIhP1yjuQnElwZ4"
+BACKBLAZE_BUCKET_NAME = "psikodonustr-files"
+BACKBLAZE_ENDPOINT = "https://s3.eu-central-003.backblazeb2.com"
 
-# API Anahtarları (Streamlit Cloud Secrets ile aynı)
-BACKBLAZE_APPLICATION_KEY_ID = "f69accbc6328"  # B2_KEY_ID
-BACKBLAZE_APPLICATION_KEY = "5f7639dabc9c7b2c96a30218"  # B2_APP_KEY
-BACKBLAZE_BUCKET_NAME = "psikodonustr-files"  # B2_BUCKET_NAME
 
 # İzin verilen yetkiler (opsiyonel)
 BUCKET_PERMISSIONS = "allPrivate"
