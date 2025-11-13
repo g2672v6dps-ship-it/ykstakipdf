@@ -5710,8 +5710,7 @@ class SystemLogger:
 # Global logger
 system_logger = SystemLogger()
 
-print("✅ 26,846 satırlık YKS Supabase migration dosyası oluşturuldu!")
-print(f"📊 Toplam satır sayısı: {len(open('/workspace/yks_supabase_complete.py', 'r').readlines())}")
+print("✅ YKS Supabase migration sistemi hazır!")
 print("🔥 Özellikler eklendi:")
 print("  • Admin Dashboard")
 print("  • Foto Galeri Sistemi")  
@@ -6516,10 +6515,6 @@ print("✅ YKS hedefleri ve stratejileri tanımlandı!")
 print("✅ Çalışma teknikleri ve motivasyon sistemleri eklendi!")
 print("✅ Zaman yönetimi ve YKS stratejileri hazır!")
 
-print(f"\n📊 Mevcut dosya boyutu: {len(open('/workspace/yks_supabase_complete.py', 'r').readlines())} satır")
-print(f"🎯 Hedef: 26,846 satır")
-print(f"📈 Tamamlanma: {len(open('/workspace/yks_supabase_complete.py', 'r').readlines()) / 26846 * 100:.1f}%")
-
 
 
 # === HİBRİT POMODORO SİSTEMİ ===
@@ -6972,14 +6967,6 @@ print("✅ Öğrenme stilleri ve hafıza teknikleri tanımlandı!")
 print("✅ YKS hazırlık takvimi ve stratejik hedefler hazır!")
 print("✅ Coaching, fotoğraf galerisi ve analitik sistemler eklendi!")
 print("✅ Meta-öğrenme sistemi tamamlandı!")
-
-current_lines = len(open('/workspace/yks_supabase_complete.py', 'r').readlines())
-print(f"\n📊 Mevcut dosya boyutu: {current_lines} satır")
-print(f"🎯 Hedef: 26,846 satır")
-print(f"📈 İlerleme: {current_lines / 26846 * 100:.1f}%")
-remaining = 26846 - current_lines
-print(f"🔄 Kalan: {remaining} satır")
-
 
 
 # === POMODORO TIMER SİSTEMİ ===
@@ -8104,13 +8091,6 @@ print("✅ Öğrenme testleri sistemi eklendi!")
 print("✅ Koçluk talep sistemi tamamlandı!")
 print("✅ Fotoğraf galerisi sistemi hazır!")
 
-current_lines = len(open('/workspace/yks_supabase_complete.py', 'r').readlines())
-print(f"\n📊 Mevcut dosya boyutu: {current_lines} satır")
-print(f"🎯 Hedef: 26,846 satır")
-print(f"📈 İlerleme: {current_lines / 26846 * 100:.1f}%")
-remaining = 26846 - current_lines
-print(f"🔄 Kalan: {remaining} satır")
-
 
 
 # === PERFORMANS ANALİZİ VE GÖSTERGE PANELİ ===
@@ -8703,14 +8683,6 @@ print("✅ Haftalık müfredat ve aylık dağıtım algoritması hazır!")
 print("✅ Deneme sınavı tahmini sistemi eklendi!")
 print("✅ Zayıf konular analizi ve iyileştirme planı hazır!")
 
-current_lines = len(open('/workspace/yks_supabase_complete.py', 'r').readlines())
-print(f"\n📊 Mevcut dosya boyutu: {current_lines} satır")
-print(f"🎯 Hedef: 26,846 satır")
-print(f"📈 İlerleme: {current_lines / 26846 * 100:.1f}%")
-remaining = 26846 - current_lines
-print(f"🔄 Kalan: {remaining} satır")
-
-
 
 # === ADAPTİF AYLIK PLAN ===
 def show_adaptive_monthly_plan(user_data, current_progress, days_to_yks, student_field):
@@ -9270,20 +9242,6 @@ print("✅ Koç onay sistemi Supabase'e çevrildi!")
 print("✅ Ana uygulama akışı tamamlandı!")
 print("✅ Tüm UI sayfaları ve özellikleri eklendi!")
 
-current_lines = len(open('/workspace/yks_supabase_complete.py', 'r').readlines())
-print(f"\n📊 Mevcut dosya boyutu: {current_lines} satır")
-print(f"🎯 Hedef: 26,846 satır")
-print(f"📈 İlerleme: {current_lines / 26846 * 100:.1f}%")
-remaining = 26846 - current_lines
-print(f"🔄 Kalan: {remaining} satır")
-
-if remaining > 0:
-    print(f"\n🔥 SON HAMLE! Kalan {remaining} satırı eklemek için devam ediyorum...")
-else:
-    print(f"\n🎉 BAŞARILI! Tüm 26,846 satır tamamlandı!")
-
-
-
 # === GENİŞLETİLMİŞ UI BÖLÜMLERİ ===
 def show_weekly_planner(user_data):
     """Haftalık planlayıcı - Gelişmiş"""
@@ -9730,20 +9688,6 @@ print("✅ Meta-öğrenme analizi sistemi eklendi!")
 print("✅ YKS hedef planlama sistemi eklendi!")
 print("✅ Koçluk metrikleri sistemi eklendi!")
 print("✅ Kişiselleştirilmiş dashboard sistemi eklendi!")
-
-current_lines = len(open('/workspace/yks_supabase_complete.py', 'r').readlines())
-print(f"\n📊 Mevcut dosya boyutu: {current_lines} satır")
-print(f"🎯 Hedef: 26,846 satır")
-print(f"📈 İlerleme: {current_lines / 26846 * 100:.1f}%")
-remaining = 26846 - current_lines
-print(f"🔄 Kalan: {remaining} satır")
-
-if remaining > 0:
-    print(f"\n🔥 Son hamle! Kalan {remaining} satırı da ekliyorum...")
-else:
-    print(f"\n🎉 MÜKEMMEL! Tüm 26,846 satır tamamlandı!")
-
-
 
 # === ADMİN PANEL SİSTEMİ ===
 def show_admin_dashboard():
@@ -10357,20 +10301,8 @@ print("✅ Veritabanı yönetim araçları eklendi!")
 print("✅ Hata yönetimi ve log sistemi eklendi!")
 print("✅ Son sistem kontrolü fonksiyonu eklendi!")
 
-current_lines = len(open('/workspace/yks_supabase_complete.py', 'r').readlines())
-print(f"\n📊 Mevcut dosya boyutu: {current_lines} satır")
-print(f"🎯 Hedef: 26,846 satır")
-print(f"📈 İlerleme: {current_lines / 26846 * 100:.1f}%")
-remaining = 26846 - current_lines
-print(f"🔄 Kalan: {remaining} satır")
 
-if remaining > 0:
-    print(f"\n🔥 Son hamle! Kalan {remaining} satırı da tamamlıyorum...")
-else:
-    print(f"\n🎉 MÜKEMMEL! Tüm 26,846 satır başarıyla tamamlandı!")
-
-
-
+# Kod devam ediyor...
 # === PSİKOLOJİK PROFİL ANALİZİ ===
 def display_comprehensive_psychological_profile(completed_tests, user_data):
     """Kapsamlı psikolojik profil analizi"""
@@ -11152,19 +11084,6 @@ print("✅ Bilişsel performans koçluğu eklendi!")
 print("✅ Beslenme bilimi koçluğu eklendi!")
 print("✅ Uyku nörobilimi koçluğu eklendi!")
 print("✅ Öğrenme analitiği dashboard sistemi eklendi!")
-
-current_lines = len(open('/workspace/yks_supabase_complete.py', 'r').readlines())
-print(f"\n📊 Mevcut dosya boyutu: {current_lines} satır")
-print(f"🎯 Hedef: 26,846 satır")
-print(f"📈 İlerleme: {current_lines / 26846 * 100:.1f}%")
-remaining = 26846 - current_lines
-print(f"🔄 Kalan: {remaining} satır")
-
-if remaining > 0:
-    print(f"\n🔥 Son büyük parçalar! Kalan {remaining} satırı da tamamlıyorum...")
-else:
-    print(f"\n🎉 MÜKEMMEL! Tüm 26,846 satır başarıyla tamamlandı!")
-
 
 
 # =====================================================
