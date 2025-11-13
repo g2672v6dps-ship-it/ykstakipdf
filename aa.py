@@ -640,16 +640,29 @@ class BackblazeCache:
                 file_names = [file.file_name for file in b2_bucket.ls()]
                 
                 if limit_to_user:
-                    # Belirli kullanıcının dosyasını al
-                    file_name = f"{limit_to_user}.json"
-                    if file_name in file_names:
-                        file_data = b2_bucket.get_file_by_name(file_name).download()
+                    # Belirli kullanıcının dosyasını al - hem users/ hem kök dizinde ara
+                    file_name1 = f"{limit_to_user}.json"
+                    file_name2 = f"users/{limit_to_user}.json"
+                    file_data = None
+                    
+                    try:
+                        # Önce kök dizinde ara
+                        if file_name1 in file_names:
+                            file_data = b2_bucket.get_file_by_name(file_name1).download()
+                        # Sonra users/ klasöründe ara
+                        elif file_name2 in file_names:
+                            file_data = b2_bucket.get_file_by_name(file_name2).download()
+                    except:
+                        pass
+                    
+                    if file_data:
                         users_data = {limit_to_user: json.loads(file_data.decode('utf-8'))}
                 else:
-                    # Tüm kullanıcı dosyalarını al
+                    # Tüm kullanıcı dosyalarını al - users/ klasörünü de destekle
                     for file_name in file_names:
                         if file_name.endswith('.json'):
-                            username = file_name.replace('.json', '')
+                            # Klasör yapısını temizle - users/ogrenci10.json -> ogrenci10
+                            username = file_name.replace('users/', '').replace('.json', '')
                             file_data = b2_bucket.get_file_by_name(file_name).download()
                             users_data[username] = json.loads(file_data.decode('utf-8'))
             else:
@@ -676,17 +689,31 @@ class BackblazeCache:
         # Backblaze B2'den çek
         try:
             if backblaze_connected and b2_bucket:
-                file_name = f"{username}.json"
+                # Hem kök dizinde hem de users/ klasöründe ara
+                file_names = [file.file_name for file in b2_bucket.ls()]
+                file_name1 = f"{username}.json"
+                file_name2 = f"users/{username}.json"
+                file_data = None
+                
                 try:
-                    file_data = b2_bucket.get_file_by_name(file_name).download()
-                    data = json.loads(file_data.decode('utf-8'))
-                    self.cache[cache_key] = {
-                        'data': data,
-                        'time': current_time
-                    }
-                    return data
+                    # Önce kök dizinde ara
+                    if file_name1 in file_names:
+                        file_data = b2_bucket.get_file_by_name(file_name1).download()
+                    # Sonra users/ klasöründe ara
+                    elif file_name2 in file_names:
+                        file_data = b2_bucket.get_file_by_name(file_name2).download()
+                    
+                    if file_data:
+                        data = json.loads(file_data.decode('utf-8'))
+                        self.cache[cache_key] = {
+                            'data': data,
+                            'time': current_time
+                        }
+                        return data
                 except Exception:
-                    return None
+                    pass
+                
+                return None
             else:
                 # Yerel fallback
                 return self.local_storage.get(username)
@@ -705,17 +732,30 @@ class BackblazeCache:
             updated_data = {**existing_data, **data}
             
             if backblaze_connected and b2_bucket:
-                # B2'ye JSON dosyası olarak kaydet
-                file_name = f"{username}.json"
+                # Kullanıcının dosyasının nerede olduğunu bul (users/ klasöründe mi?)
+                file_names = [file.file_name for file in b2_bucket.ls()]
+                file_name1 = f"{username}.json"
+                file_name2 = f"users/{username}.json"
+                
+                # Mevcut dosyayı nerede bulduysan oraya kaydet
+                if file_name1 in file_names:
+                    file_name = file_name1
+                elif file_name2 in file_names:
+                    file_name = file_name2
+                else:
+                    # Yeni dosya - users/ klasörüne kaydet
+                    file_name = file_name2
+                
                 json_data = json.dumps(updated_data).encode('utf-8')
                 
-                # Dosyayı sil (varsa)
-                try:
-                    file_versions = b2_bucket.list_file_versions(file_name)
-                    for file_version in file_versions:
-                        b2_bucket.delete_file_version(file_version.id_, file_name)
-                except:
-                    pass  # Dosya yoksa sorun yok
+                # Dosyayı sil (varsa - her iki konumda da)
+                for fn in [file_name1, file_name2]:
+                    try:
+                        file_versions = b2_bucket.list_file_versions(fn)
+                        for file_version in file_versions:
+                            b2_bucket.delete_file_version(file_version.id_, fn)
+                    except:
+                        pass  # Dosya yoksa sorun yok
                 
                 # Yeni dosyayı yükle
                 b2_bucket.upload_bytes(json_data, file_name)
