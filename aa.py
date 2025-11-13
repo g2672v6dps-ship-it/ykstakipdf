@@ -636,17 +636,108 @@ class BackblazeCache:
             users_data = {}
             
             if backblaze_connected and b2_bucket:
-                # B2'den dosya listesini al
-                file_names = [file.file_name for file in b2_bucket.ls()]
+                import sys
+                st.info(f"🔍 Bucket'a bağlanıyor: {b2_bucket.name}")
+                print(f"🔍 Backblaze B2 Bucket: {b2_bucket.name}")
+                sys.stdout.flush()
                 
-                # DEBUG: Bulunan tüm dosyaları göster
-                print(f"🔍 DEBUG: Backblaze B2'de bulunan dosyalar: {file_names}")
+                # B2'den dosya listesini al - DEBUG EKLİ
+                try:
+                    st.info("📋 B2Bucket.ls() çağrılıyor...")
+                    b2_files = list(b2_bucket.ls())
+                    st.info(f"✅ B2Bucket.ls() başarılı! {len(b2_files)} dosya bulundu")
+                    print(f"✅ B2Bucket.ls() sonucu: {b2_files}")
+                    
+                    # FORMAT DEBUG: B2 files yapısını analiz et
+                    st.info(f"🔍 B2 files türü: {type(b2_files)}")
+                    if b2_files:
+                        first_item = b2_files[0]
+                        st.info(f"🔍 İlk item türü: {type(first_item)}")
+                        st.info(f"🔍 İlk item: {first_item}")
+                        st.info(f"🔍 İlk item uzunluğu: {len(first_item) if hasattr(first_item, '__len__') else 'N/A'}")
+                    
+                    # File names'i doğru şekilde çıkar
+                    file_names = []
+                    for item in b2_files:
+                        if isinstance(item, tuple):
+                            # Tuple ise, genellikle (file_version, folder_info)
+                            file_version = item[0]
+                            # FileVersion objesinden dosya adını çıkar
+                            if hasattr(file_version, 'file_name'):
+                                file_names.append(file_version.file_name)
+                            elif hasattr(file_version, 'name'):
+                                file_names.append(file_version.name)
+                            elif hasattr(file_version, '_name'):  # Alternative attribute
+                                file_names.append(file_version._name)
+                            elif len(str(file_version).split("'")) > 2:
+                                # String representation'dan dosya adını çıkar
+                                file_str = str(file_version)
+                                parts = file_str.split("'")
+                                if len(parts) >= 4:
+                                    file_names.append(parts[3])  # 0: class, 1: file_id, 2: api, 3: file_name
+                            else:
+                                st.error(f"❌ Bilinmeyen FileVersion yapısı: {type(file_version)}")
+                                st.error(f"🔍 Dir: {dir(file_version)}")
+                        else:
+                            # Doğrudan FileVersion obje ise
+                            if hasattr(item, 'file_name'):
+                                file_names.append(item.file_name)
+                            elif hasattr(item, 'name'):
+                                file_names.append(item.name)
+                            elif hasattr(item, '_name'):
+                                file_names.append(item._name)
+                            elif len(str(item).split("'")) > 2:
+                                # String representation'dan dosya adını çıkar
+                                file_str = str(item)
+                                parts = file_str.split("'")
+                                if len(parts) >= 4:
+                                    file_names.append(parts[3])
+                            else:
+                                st.error(f"❌ Bilinmeyen direct FileVersion yapısı: {type(item)}")
+                                st.error(f"🔍 Dir: {dir(item)}")
+                    
+                    print(f"📁 Çıkarılan file names: {file_names}")
+                    st.info(f"📁 Çıkarılan dosya isimleri: {len(file_names)} adet")
+                    
+                except Exception as e:
+                    st.error(f"❌ B2Bucket.ls() hatası: {e}")
+                    print(f"❌ B2Bucket.ls() hatası: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    file_names = []
+                    sys.stdout.flush()
+                
+                # DEBUG: Bulunan tüm dosyaları göster - GÜÇLENDİRİLMİŞ
+                import sys
+                debug_msg = f"""
+🔍 ===============================
+   BACKBLAZE DEBUG BİLGİLERİ
+============================== 
+📁 Bucket: {b2_bucket.name}
+📊 Toplam Dosya: {len(file_names)} adet
+🔎 Dosya Listesi:
+"""
+                for i, fname in enumerate(file_names, 1):
+                    debug_msg += f"   {i:2d}. {fname}\n"
+                
+                json_files = [f for f in file_names if f.endswith('.json')]
+                debug_msg += f"\n✅ JSON Dosyası Sayısı: {len(json_files)} adet\n"
+                for json_file in json_files:
+                    debug_msg += f"   📄 JSON: {json_file}\n"
+                
+                debug_msg += f"===============================\n"
+                
+                print(debug_msg)
+                sys.stdout.flush()
                 st.info(f"📁 Backblaze'de bulunan dosyalar: {len(file_names)} adet")
-                for fname in file_names:
-                    if fname.endswith('.json'):
-                        st.info(f"   📄 JSON dosyası: {fname}")
-                if not any(f.endswith('.json') for f in file_names):
-                    st.warning("⚠️ Hiç JSON dosyası bulunamadı!")
+                st.info(f"📄 JSON dosya sayısı: {len(json_files)}")
+                st.text(debug_msg)
+                
+                if not json_files:
+                    st.error("⚠️ Hiç JSON dosyası bulunamadı!")
+                    st.error("❌ Bucket içeriği:")
+                    for fname in file_names:
+                        st.error(f"   - {fname}")
                 
                 if limit_to_user:
                     # Belirli kullanıcının dosyasını al - hem users/ hem kök dizinde ara
@@ -657,10 +748,10 @@ class BackblazeCache:
                     try:
                         # Önce kök dizinde ara
                         if file_name1 in file_names:
-                            file_data = b2_bucket.get_file_by_name(file_name1).download()
+                            file_data = b2_bucket.download_file_by_name(file_name1)
                         # Sonra users/ klasöründe ara
                         elif file_name2 in file_names:
-                            file_data = b2_bucket.get_file_by_name(file_name2).download()
+                            file_data = b2_bucket.download_file_by_name(file_name2)
                     except:
                         pass
                     
@@ -668,12 +759,35 @@ class BackblazeCache:
                         users_data = {limit_to_user: json.loads(file_data.decode('utf-8'))}
                 else:
                     # Tüm kullanıcı dosyalarını al - users/ klasörünü de destekle
+                    st.info("📥 Dosya indirme işlemi başlıyor...")
                     for file_name in file_names:
                         if file_name.endswith('.json'):
                             # Klasör yapısını temizle - users/ogrenci10.json -> ogrenci10
                             username = file_name.replace('users/', '').replace('.json', '')
-                            file_data = b2_bucket.get_file_by_name(file_name).download()
-                            users_data[username] = json.loads(file_data.decode('utf-8'))
+                            st.info(f"🔄 İşleniyor: {file_name} -> {username}")
+                            
+                            try:
+                                st.info(f"📥 download_file_by_name('{file_name}') çağrılıyor...")
+                                file_data = b2_bucket.download_file_by_name(file_name)
+                                st.info(f"✅ Download başarılı! Boyut: {len(file_data) if hasattr(file_data, '__len__') else 'N/A'} bytes")
+                                
+                                st.info(f"🔄 JSON parse işlemi...")
+                                if isinstance(file_data, bytes):
+                                    json_data = json.loads(file_data.decode('utf-8'))
+                                else:
+                                    json_data = json.loads(str(file_data))
+                                st.info(f"✅ JSON parse başarılı! Anahtarlar: {list(json_data.keys()) if isinstance(json_data, dict) else type(json_data)}")
+                                
+                                users_data[username] = json_data
+                                st.info(f"✅ users_data['{username}'] kaydedildi")
+                                
+                            except Exception as file_e:
+                                st.error(f"❌ Dosya hatası ({file_name}): {file_e}")
+                                import traceback
+                                traceback.print_exc()
+                                continue
+                    
+                    st.info(f"📊 Toplam users_data: {len(users_data)} kullanıcı")
             else:
                 # Yerel fallback
                 users_data = self.local_storage.copy()
@@ -707,10 +821,10 @@ class BackblazeCache:
                 try:
                     # Önce kök dizinde ara
                     if file_name1 in file_names:
-                        file_data = b2_bucket.get_file_by_name(file_name1).download()
+                        file_data = b2_bucket.download_file_by_name(file_name1)
                     # Sonra users/ klasöründe ara
                     elif file_name2 in file_names:
-                        file_data = b2_bucket.get_file_by_name(file_name2).download()
+                        file_data = b2_bucket.download_file_by_name(file_name2)
                     
                     if file_data:
                         data = json.loads(file_data.decode('utf-8'))
@@ -830,7 +944,7 @@ if BACKBLAZE_AVAILABLE:
         # 3. Environment variables
         application_key_id = ''
         application_key = ''
-        bucket_name = 'psikodonustr dosyaları'
+        bucket_name = 'psikodonustr-files'
         
         try:
             # Streamlit Cloud secrets'ları dene
@@ -838,7 +952,7 @@ if BACKBLAZE_AVAILABLE:
             if hasattr(st, 'secrets'):
                 application_key_id = st.secrets.get('BACKBLAZE_APPLICATION_KEY_ID', '')
                 application_key = st.secrets.get('BACKBLAZE_APPLICATION_KEY', '')
-                bucket_name = st.secrets.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr dosyaları')
+                bucket_name = st.secrets.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr-files')
             
             # API anahtarlarını yükle (b2_storage.py import edilemezse hardcode değerleri kullan)
             if not application_key_id or not application_key:
@@ -856,20 +970,20 @@ if BACKBLAZE_AVAILABLE:
                     # b2_storage.py bulunamazsa hardcode anahtarları kullan
                     application_key_id = "003f69accbc63280000000001"
                     application_key = "K003OMsFWIvniVkyYIhP1yjuQnElwZ4"
-                    bucket_name = "psikodonustr dosyaları"
+                    bucket_name = "psikodonustr-files"
             
             # Son çare: environment variables
             if not application_key_id or not application_key:
                 application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '003f69accbc63280000000001')
                 application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', 'K003OMsFWIvniVkyYIhP1yjuQnElwZ4')
-                bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr dosyaları')
+                bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr-files')
                 
         except Exception as e:
             st.error(f"API anahtarları yüklenirken hata: {e}")
             # Hata durumunda hardcode anahtarları kullan
             application_key_id = "003f69accbc63280000000001"
             application_key = "K003OMsFWIvniVkyYIhP1yjuQnElwZ4"
-            bucket_name = "psikodonustr dosyaları"
+            bucket_name = "psikodonustr-files"
         
         if application_key_id and application_key:
             # API ile giriş yap
