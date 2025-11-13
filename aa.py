@@ -779,17 +779,17 @@ if BACKBLAZE_AVAILABLE:
         # 1. Streamlit Cloud secrets
         # 2. b2_storage.py dosyası
         # 3. Environment variables
-        application_key_id = 'f69accbc6328'
-        application_key = '0036683481420f7d06274bd7b343e5cc6e53e5257a'
-        bucket_name = 'psikodonus-files'
+        application_key_id = ''
+        application_key = ''
+        bucket_name = 'student-data'
         
         try:
             # Streamlit Cloud secrets'ları dene
             import streamlit as st
             if hasattr(st, 'secrets'):
-                application_key_id = st.secrets.get('f69accbc6328', '')
-                application_key = st.secrets.get('0036683481420f7d06274bd7b343e5cc6e53e5257a', '')
-                bucket_name = st.secrets.get('psikodonus-files', 'student-data')
+                application_key_id = st.secrets.get('BACKBLAZE_APPLICATION_KEY_ID', '')
+                application_key = st.secrets.get('BACKBLAZE_APPLICATION_KEY', '')
+                bucket_name = st.secrets.get('BACKBLAZE_BUCKET_NAME', 'student-data')
             
             # Eğer secrets yoksa b2_storage.py'yi import et
             if not application_key_id or not application_key:
@@ -797,11 +797,13 @@ if BACKBLAZE_AVAILABLE:
                     from b2_storage import (
                         BACKBLAZE_APPLICATION_KEY_ID as b2_key_id,
                         BACKBLAZE_APPLICATION_KEY as b2_key,
-                        BACKBLAZE_BUCKET_NAME as b2_bucket
+                        BACKBLAZE_BUCKET_NAME as b2_bucket,
+                        B2_ENDPOINT as b2_endpoint
                     )
                     application_key_id = b2_key_id
                     application_key = b2_key
                     bucket_name = b2_bucket
+                    # Endpoint bilgisi şu anda kullanılmıyor ama gelecekte kullanılabilir
                 except ImportError:
                     pass
             
