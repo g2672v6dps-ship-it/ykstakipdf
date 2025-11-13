@@ -639,6 +639,15 @@ class BackblazeCache:
                 # B2'den dosya listesini al
                 file_names = [file.file_name for file in b2_bucket.ls()]
                 
+                # DEBUG: Bulunan tüm dosyaları göster
+                print(f"🔍 DEBUG: Backblaze B2'de bulunan dosyalar: {file_names}")
+                st.info(f"📁 Backblaze'de bulunan dosyalar: {len(file_names)} adet")
+                for fname in file_names:
+                    if fname.endswith('.json'):
+                        st.info(f"   📄 JSON dosyası: {fname}")
+                if not any(f.endswith('.json') for f in file_names):
+                    st.warning("⚠️ Hiç JSON dosyası bulunamadı!")
+                
                 if limit_to_user:
                     # Belirli kullanıcının dosyasını al - hem users/ hem kök dizinde ara
                     file_name1 = f"{limit_to_user}.json"
@@ -821,7 +830,7 @@ if BACKBLAZE_AVAILABLE:
         # 3. Environment variables
         application_key_id = ''
         application_key = ''
-        bucket_name = 'psikodonus-files'
+        bucket_name = 'psikodonustr-files'
         
         try:
             # Streamlit Cloud secrets'ları dene
@@ -829,7 +838,7 @@ if BACKBLAZE_AVAILABLE:
             if hasattr(st, 'secrets'):
                 application_key_id = st.secrets.get('BACKBLAZE_APPLICATION_KEY_ID', '')
                 application_key = st.secrets.get('BACKBLAZE_APPLICATION_KEY', '')
-                bucket_name = st.secrets.get('BACKBLAZE_BUCKET_NAME', 'psikodonus-files')
+                bucket_name = st.secrets.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr-files')
             
             # Eğer secrets yoksa b2_storage.py'yi import et
             if not application_key_id or not application_key:
@@ -851,13 +860,13 @@ if BACKBLAZE_AVAILABLE:
             if not application_key_id or not application_key:
                 application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '')
                 application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', '')
-                bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'psikodonus-files')
+                bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr-files')
                 
         except Exception as e:
             st.error(f"API anahtarları yüklenirken hata: {e}")
             application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '')
             application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', '')
-            bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'psikodonus-files')
+            bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr-files')
         
         if application_key_id and application_key:
             # API ile giriş yap
@@ -943,6 +952,14 @@ def load_users_from_backblaze(force_refresh=False):
     
     # Backblaze cache'den çek
     users_data = backblaze_cache.get_users()
+    
+    # DEBUG: Hangi kullanıcı verileri bulunduğunu göster
+    st.info(f"🔍 Backblaze'den {len(users_data)} kullanıcı verisi yüklendi")
+    if users_data:
+        st.info(f"📁 Bulunan kullanıcılar: {list(users_data.keys())}")
+        # İlk kullanıcının veri yapısını göster
+        first_user = list(users_data.keys())[0]
+        st.info(f"📄 İlk kullanıcı '{first_user}' verisi örneği: {str(users_data[first_user])[:200]}...")
     
     # Session state'e kaydet
     st.session_state.users_db = users_data
