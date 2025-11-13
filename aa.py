@@ -830,7 +830,7 @@ if BACKBLAZE_AVAILABLE:
         # 3. Environment variables
         application_key_id = ''
         application_key = ''
-        bucket_name = 'psikodonustr-files'
+        bucket_name = 'psikodonustr dosyaları'
         
         try:
             # Streamlit Cloud secrets'ları dene
@@ -838,7 +838,7 @@ if BACKBLAZE_AVAILABLE:
             if hasattr(st, 'secrets'):
                 application_key_id = st.secrets.get('BACKBLAZE_APPLICATION_KEY_ID', '')
                 application_key = st.secrets.get('BACKBLAZE_APPLICATION_KEY', '')
-                bucket_name = st.secrets.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr-files')
+                bucket_name = st.secrets.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr dosyaları')
             
             # API anahtarlarını yükle (b2_storage.py import edilemezse hardcode değerleri kullan)
             if not application_key_id or not application_key:
@@ -856,20 +856,20 @@ if BACKBLAZE_AVAILABLE:
                     # b2_storage.py bulunamazsa hardcode anahtarları kullan
                     application_key_id = "003f69accbc63280000000001"
                     application_key = "K003OMsFWIvniVkyYIhP1yjuQnElwZ4"
-                    bucket_name = "psikodonustr-files"
+                    bucket_name = "psikodonustr dosyaları"
             
             # Son çare: environment variables
             if not application_key_id or not application_key:
                 application_key_id = os.environ.get('BACKBLAZE_APPLICATION_KEY_ID', '003f69accbc63280000000001')
                 application_key = os.environ.get('BACKBLAZE_APPLICATION_KEY', 'K003OMsFWIvniVkyYIhP1yjuQnElwZ4')
-                bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr-files')
+                bucket_name = os.environ.get('BACKBLAZE_BUCKET_NAME', 'psikodonustr dosyaları')
                 
         except Exception as e:
             st.error(f"API anahtarları yüklenirken hata: {e}")
             # Hata durumunda hardcode anahtarları kullan
             application_key_id = "003f69accbc63280000000001"
             application_key = "K003OMsFWIvniVkyYIhP1yjuQnElwZ4"
-            bucket_name = "psikodonustr-files"
+            bucket_name = "psikodonustr dosyaları"
         
         if application_key_id and application_key:
             # API ile giriş yap
