@@ -3212,13 +3212,13 @@ def show_learning_style_assessment():
                     value=3,
                     key=f"{category}_{i}"
                 )
-                total_scores[category] += score
+                total_scores[category] = total_scores.get(category, 0) + score
         
         submitted = st.form_submit_button("🎯 Sonuçları Hesapla", type="primary")
     
     if submitted:
         # Sonuçları hesapla
-        scores = [total_scores['Görsel'], total_scores['İşitsel'], total_scores['Kinestetik']]
+        scores = [total_scores.get('Görsel Öğrenme', 0), total_scores.get('İşitsel Öğrenme', 0), total_scores.get('Kinestetik Öğrenme', 0)]
         learning_style, final_scores = calculate_learning_style(scores)
         
         # Kullanıcı verisini güncelle
