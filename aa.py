@@ -390,8 +390,8 @@ if SUPABASE_AVAILABLE:
         2. Project URL ve anon public key'i kopyalayın
         3. Environment variable olarak ayarlayın:
            
-           SUPABASE_URL=https://blbmapsjtktzgmjefdmc.supabase.co
-           SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYm1hcHNqdGt0emdtamVmZG1jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTkwMDcsImV4cCI6MjA3ODU5NTAwN30.98F4oDx5EBwnobgCvOC6qPK2cIPRzL_ksi3fRfY8SNY
+           SUPABASE_URL=your_project_url
+           SUPABASE_ANON_KEY=your_anon_key
         """)
 else:
     st.info("📦 Supabase modülü yüklenmedi - yerel test modu aktif")
@@ -402,8 +402,8 @@ if not supabase_connected:
     st.warning("🔧 Supabase credentials'unuzu kontrol edin:")
     st.code("""
     # Supabase secrets:
-    SUPABASE_URL=https://blbmapsjtktzgmjefdmc.supabase.co
-    SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYm1hcHNqdGt0emdtamVmZG1jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTkwMDcsImV4cCI6MjA3ODU5NTAwN30.98F4oDx5EBwnobgCvOC6qPK2cIPRzL_ksi3fRfY8SNY
+    SUPABASE_URL=https://your-project.supabase.co
+    SUPABASE_ANON_KEY=your-anon-key-here
     """)
 
 # Supabase veritabanı fonksiyonları
@@ -4410,7 +4410,7 @@ def show_progress_tab(user_data):
     with col2:
         topics_target = 25
         completed_topics = 18
-        st.metric("📚 Konu Hedefi", f"{completed_topics}/{topics_topics}")
+        st.metric("📚 Konu Hedefi", f"{completed_topics}/{topics_target}")
     
     with col3:
         exam_score_target = 450
@@ -9056,8 +9056,8 @@ def main():
                 st.info("🔧 Supabase Credentials gerekli:")
                 st.code("""
                 # Supabase Secrets:
-                SUPABASE_URL=https://blbmapsjtktzgmjefdmc.supabase.co
-                SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYm1hcHNqdGt0emdtamVmZG1jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTkwMDcsImV4cCI6MjA3ODU5NTAwN30.98F4oDx5EBwnobgCvOC6qPK2cIPRzL_ksi3fRfY8SNY
+                SUPABASE_URL=https://your-project.supabase.co
+                SUPABASE_ANON_KEY=your-anon-key-here
                 """)
         else:
             st.info("🛡️ Sadece kayıtlı öğrenciler sisteme erişebilir")
