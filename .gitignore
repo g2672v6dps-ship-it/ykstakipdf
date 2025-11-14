@@ -1,10 +1,29 @@
-# Supabase Configuration for Streamlit Cloud
-# Bu dosyayı GitHub'a YÜKLEMEYİN - Sadece local development için
-# Streamlit Cloud'da bu değerleri secrets'ta tanımlayın
+# Firebase build and deployment files
+/firebase-debug.log
+/firebase-debug.*.log
+.firebaserc
 
-SUPABASE_URL = "https://blbmapsjtktzgmjefdmc.supabase.co"
-SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsYm1hcHNqdGt0emdtamVmZG1jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTkwMDcsImV4cCI6MjA3ODU5NTAwN30.98F4oDx5EBwnobgCvOC6qPK2cIPRzL_ksi3fRfY8SNY"
+# Firebase Hosting
+/firebase.json
+*.cache
+hosting/.cache
 
-# Örnek format:
-# SUPABASE_URL = "https://xyzcompany.supabase.co"
-# SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+# Firebase Functions
+/functions/node_modules/
+/functions/.env
+/functions/package-lock.json
+
+# Firebase Emulators
+/firebase-*.zip
+/.firebase/
+/emulator-ui/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files (local configs)
+/.env.*
+firebase_key.json
