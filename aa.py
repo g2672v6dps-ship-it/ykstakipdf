@@ -4556,10 +4556,10 @@ def show_settings_tab(user_data):
         with col2:
             new_field = st.selectbox("📚 Alan", 
                                    ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"],
-                                   index=["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"].index(user_data.get('field', 'Sayısal')))
+                                   index=["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"].index(user_data.get('field', 'Sayısal')) if user_data.get('field', 'Sayısal') in ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"] else 0)
             new_grade = st.selectbox("🎓 Sınıf",
                                    ["11. Sınıf", "12. Sınıf", "Mezun"],
-                                   index=["11. Sınıf", "12. Sınıf", "Mezun"].index(user_data.get('grade', '12. Sınıf')))
+                                   index=["11. Sınıf", "12. Sınıf", "Mezun"].index(user_data.get('grade', '12. Sınıf')) if user_data.get('grade', '12. Sınıf') in ["11. Sınıf", "12. Sınıf", "Mezun"] else 1)
             new_password = st.text_input("🔒 Yeni Şifre (İsteğe bağlı)", type="password")
         
         if st.form_submit_button("✅ Profili Güncelle"):
@@ -9220,7 +9220,7 @@ def show_settings(user_data):
     st.markdown("#### 👤 Profil Bilgileri")
     name = st.text_input("Ad:", value=user_data.get('name', ''))
     field = st.selectbox("Alan:", ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"], 
-                        index=["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"].index(user_data.get('field', 'Sayısal')))
+                        index=["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"].index(user_data.get('field', 'Sayısal')) if user_data.get('field', 'Sayısal') in ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"] else 0)
     
     if st.button("Bilgileri Güncelle", type="primary"):
         st.success("Bilgileriniz güncellendi!")
