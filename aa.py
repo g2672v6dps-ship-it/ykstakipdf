@@ -41,9 +41,11 @@ SUPABASE_KEY = os.environ.get('SUPABASE_ANON_KEY', '')
 # Client oluştur
 if SUPABASE_AVAILABLE and SUPABASE_URL and SUPABASE_KEY:
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    supabase_client = supabase  # Alias for compatibility
     supabase_connected = True
 else:
     supabase = None
+    supabase_client = None
     supabase_connected = False
 
 try:
