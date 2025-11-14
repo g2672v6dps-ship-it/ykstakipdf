@@ -3366,9 +3366,9 @@ def show_yks_survey_and_goals():
             with col3:
                 st.markdown("#### 🎯 Net Aralıkları")
                 tyt_range = st.selectbox("TYT Seviye", ["0-30", "31-60", "61-90", "91-120"], 
-                                       index=["0-30", "31-60", "61-90", "91-120"].index(user_data.get('tyt_last_range', '31-60')))
+                                       index=["0-30", "31-60", "61-90", "91-120"].index(user_data.get('tyt_last_range', '31-60')) if user_data.get('tyt_last_range', '31-60') in ["0-30", "31-60", "61-90", "91-120"] else 1)
                 ayt_range = st.selectbox("AYT Seviye", ["0-20", "21-40", "41-60", "61-80"],
-                                       index=["0-20", "21-40", "41-60", "61-80"].index(user_data.get('ayt_last_range', '21-40')))
+                                       index=["0-20", "21-40", "41-60", "61-80"].index(user_data.get('ayt_last_range', '21-40')) if user_data.get('ayt_last_range', '21-40') in ["0-20", "21-40", "41-60", "61-80"] else 1)
             
             if st.form_submit_button("✅ Netleri Güncelle", type="primary"):
                 update_data = {
