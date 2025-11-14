@@ -628,8 +628,15 @@ class FirebaseCache:
                 # Sadece belirli kullanıcıyı çek (Lazy Loading)
                 users_data = {limit_to_user: firestore_db.document(limit_to_user).get().to_dict()} if firebase_connected else {}
             else:
-                # Tüm kullanıcıları çek (Admin için)
-                users_data = firestore_db.get().to_dict() if firebase_connected else {}
+                # Tüm kullanıcıları çek (Admin için) - Firestore Collection okuma
+                users_data = {}
+                if firebase_connected and firestore_db:
+                    docs = firestore_db.get()
+                    for doc in docs:
+                        username = doc.id
+                        user_data = doc.to_dict()
+                        if user_data:  # Sadece boş olmayan belgeleri ekle
+                            users_data[username] = user_data
             
             self.cache[cache_key] = {
                 'data': users_data,
