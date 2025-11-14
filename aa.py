@@ -25,7 +25,7 @@ except ImportError:
 
 try:
     import firebase_admin
-from firebase_admin import credentials, firestore
+    from firebase_admin import credentials, firestore
     FIREBASE_AVAILABLE = True
 except ImportError:
     FIREBASE_AVAILABLE = False
@@ -11696,7 +11696,7 @@ def setup_topic_reminder_system(user_data, topic_key, current_net):
                     'completed': False
                 },
                 'stage_2': {
-                    'next_date': (current_date + timedelta(days=3, merge=True, merge=True)).strftime("%Y-%m-%d"),
+                    'next_date': (current_date + timedelta(days=3)).strftime("%Y-%m-%d"),
                     'action': 'question_practice',
                     'reminder_text': 'Soru çözme hatırlatması',
                     'completed': False
@@ -13768,7 +13768,7 @@ def update_topic_repetition_history(user_data, topic_key, selected_level):
             'action': action,
             'next_review_date': next_review_date,
             'updated_at': current_date_str
-        }, merge=True, merge=True)
+        }, merge=True)
         
         # Firebase'e gönder
         if 'username' in user_data:
@@ -26496,7 +26496,7 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
                 'status': status,
                 'coach_notes': coach_notes,
                 'approved_topics': approved_topics,
-                'approved_date': datetime.now(, merge=True, merge=True).strftime("%Y-%m-%d %H:%M:%S")
+                'approved_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             })
             
             # 🔧 FİX: Student_username kontrolü ile öğrenci verilerini güncelle
@@ -26525,7 +26525,7 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
                     # 🔥 GÜÇLÜ CACHE TEMİZLE: Öğrencinin tüm cache'lerini temizle
                     if 'users_db' in st.session_state and student_username in st.session_state.users_db:
                         # Cache'deki user_data'yı güncelle
-                        st.session_state.users_db[student_username].set(student_data, merge=True, merge=True)
+                        st.session_state.users_db[student_username] = student_data
                     
                     # Firebase cache'i güvenli temizle
                     if hasattr(st.session_state, 'firebase_cache'):
@@ -26542,7 +26542,7 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
                     
                     # 🔄 SESSION STATE GÜNCELLEME: Tüm related cache'leri temizle
                     if 'user_data' in st.session_state and st.session_state.user_data.get('username') == student_username:
-                        st.session_state.user_data.set(student_data, merge=True, merge=True)
+                        st.session_state.user_data = student_data
                     
                     # Debug: Cache temizlendi mesajı
                     st.success(f"🔄 {student_username} için cache temizlendi, onay durumu güncellenmeli!")
@@ -26553,7 +26553,7 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
                     'status': status,
                     'coach_notes': coach_notes,
                     'approved_topics': approved_topics,
-                    'approved_date': datetime.now(, merge=True, merge=True).strftime("%Y-%m-%d %H:%M:%S")
+                    'approved_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 })
         
         return True
