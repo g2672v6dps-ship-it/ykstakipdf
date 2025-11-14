@@ -608,87 +608,74 @@ def play_break_start_sound():
 
 # 🚀 FIREBASE CACHE SİSTEMİ (Download Optimizasyonu)
 class FirebaseCache:
-    """Firebase işlemleri için cache sistemi"""
     def __init__(self):
         self.cache = {}
-        self.cache_duration = 3600  # 🚀 OPTİMİZE: 1 saat cache (önceden 5 dakika)
-    
+        self.cache_duration = 3600  # 1 saat (önceki ile aynı)
+
     def get_users(self, limit_to_user=None):
-        """🚀 OPTİMİZE: Cache'li ve lazy loading destekli kullanıcı verisi"""
         cache_key = "all_users" if not limit_to_user else f"user_{limit_to_user}"
         current_time = time.time()
-        
-        if (cache_key in self.cache and 
-            current_time - self.cache[cache_key]['time'] < self.cache_duration):
-            return self.cache[cache_key]['data']
-            
-        # Firebase'den çek
-        try:
-            if limit_to_user:
-                # Sadece belirli kullanıcıyı çek (Lazy Loading)
-                users_data = {limit_to_user: db_ref.child(limit_to_user).get()} if firebase_connected else {}
-            else:
-                # Tüm kullanıcıları çek (Admin için)
-                users_data = db_ref.get() if firebase_connected else {}
-            
-            self.cache[cache_key] = {
-                'data': users_data,
-                'time': current_time
-            }
-            return users_data
-        except:
-            return {}
-    
+
+        # Cache varsa ve süresi dolmadıysa -> kullan
+        if cache_key in self.cache and current_time - self.cache[cache_key]["time"] < self.cache_duration:
+            return self.cache[cache_key]["data"]
+
+        users = {}
+
+        if limit_to_user:
+            doc = users_collection.document(limit_to_user).get()
+            if doc.exists:
+                users[limit_to_user] = doc.to_dict()
+
+        else:
+            docs = users_collection.stream()
+            for d in docs:
+                users[d.id] = d.to_dict()
+
+        # Cache'e kaydet
+        self.cache[cache_key] = {
+            "data": users,
+            "time": current_time
+        }
+
+        return users
+
     def get_user_data(self, username):
-        """Cache'li tek kullanıcı verisi"""
         cache_key = f"user_{username}"
         current_time = time.time()
-        
-        if (cache_key in self.cache and 
-            current_time - self.cache[cache_key]['time'] < self.cache_duration):
-            return self.cache[cache_key]['data']
-        
-        # Firebase'den çek
-        try:
-            if firebase_connected and db_ref:
-                data = db_ref.child(username).get()
-                if data:
-                    self.cache[cache_key] = {
-                        'data': data,
-                        'time': current_time
-                    }
-                    return data
-        except:
-            pass
-        
-        return self.cache.get(cache_key, {}).get('data', {})
-    
+
+        # Cache varsa dön
+        if cache_key in self.cache and current_time - self.cache[cache_key]["time"] < self.cache_duration:
+            return self.cache[cache_key]["data"]
+
+        # Firestore'dan çek
+        doc = users_collection.document(username).get()
+        data = doc.to_dict() if doc.exists else {}
+
+        # Cache'e yaz
+        self.cache[cache_key] = {"data": data, "time": current_time}
+        return data
+
     def update_user_data(self, username, data):
-        """Kullanıcı verisini güncelle + cache'i temizle"""
-        try:
-            if firebase_connected and db_ref:
-                db_ref.child(username).update(data)
-            
-            # Cache'i güncelle
-            cache_key = f"user_{username}"
-            if cache_key in self.cache:
-                self.cache[cache_key]['data'].update(data)
-                self.cache[cache_key]['time'] = time.time()
-            
-            return True
-        except:
-            return False
-    
+        # Firestore'a yaz
+        users_collection.document(username).set(data, merge=True)
+
+        # Cache'i güncelle
+        self.cache[f"user_{username}"] = {
+            "data": data,
+            "time": time.time()
+        }
+
+        return True
+
     def clear_cache(self, pattern=None):
-        """Cache'i temizle"""
         if pattern:
-            # Belirli pattern'a uyan cache'i temizle
-            keys_to_remove = [k for k in self.cache.keys() if pattern in k]
-            for key in keys_to_remove:
+            keys = [k for k in self.cache.keys() if pattern in k]
+            for key in keys:
                 del self.cache[key]
         else:
-            # Tüm cache'i temizle
             self.cache.clear()
+
 
 # Global cache objesi
 firebase_cache = FirebaseCache()
@@ -723,12 +710,18 @@ if FIREBASE_AVAILABLE:
                 # Local development: JSON dosyasından al
                 cred = credentials.Certificate("firebase_key.json")
             
-            firebase_admin.initialize_app(cred, {
-                'databaseURL':'https://yeniseninalanin-default-rtdb.firebaseio.com/'  # ✅ DOĞRU/'
-            })
-        
-        db_ref = db.reference('users')
+            from firebase_admin import firestore
+
+            firebase_admin.initialize_app(cred)
+
+            # Firestore istemcisini başlat
+            firestore_db = firestore.client()
+
+                # Users koleksiyonu
+            users_collection = firestore_db.collection("users")
+
         firebase_connected = True
+
    
         
     except Exception as e:
@@ -784,35 +777,29 @@ if not firebase_connected:
 
 # Firebase veritabanı fonksiyonları
 def load_users_from_firebase(force_refresh=False):
-    """🚀 OPTİMİZE EDİLMİŞ: Session state ile agresif cache"""
-    # Session state'te varsa ve force refresh yoksa direkt döndür
-    if not force_refresh and 'users_db' in st.session_state and st.session_state.users_db:
+    # Eğer daha önce yüklenmişse ve zorla yenileme istenmiyorsa önbellekten çek
+    if not force_refresh and 'users_db' in st.session_state:
         return st.session_state.users_db
-    
-    # Firebase cache'den çek
+
+    # Firestore üzerinden kullanıcıları çek (FirebaseCache kullanıyor)
     users_data = firebase_cache.get_users()
-    
+
     # Session state'e kaydet
     st.session_state.users_db = users_data
-    
+
     return users_data
 
+
 def update_user_in_firebase(username, data):
-    """🚀 OPTİMİZE EDİLMİŞ: Cache'li kullanıcı verisi güncelleme"""
-    # Session state'i güncelle
-    if 'users_db' in st.session_state:
-        if username in st.session_state.users_db:
-            st.session_state.users_db[username].update(data)
-        else:
-            # Yeni kullanıcı - ekle
-            st.session_state.users_db[username] = data
-    
-    # Haftalık plan cache'ini temizle
-    if 'weekly_plan_cache' in st.session_state:
-        del st.session_state.weekly_plan_cache
-    
-    # Cache'li güncelleme
-    return firebase_cache.update_user_data(username, data)
+    # Local session state güncelleniyor
+    if "users_db" in st.session_state:
+        st.session_state.users_db[username] = data
+
+    # Firestore'a yaz (cache üzerinden)
+    firebase_cache.update_user_data(username, data)
+
+    return True
+
 
 # === HİBRİT POMODORO SİSTEMİ SABİTLERİ ===
 
@@ -9867,7 +9854,10 @@ def show_interactive_systematic_planner(weekly_plan, survey_data, user_data=None
                     if firebase_connected and db_ref:
                         try:
                             # Kullanıcının tüm onaylı konularını çek
-                            approvals_data = db_ref.child('coach_approvals').get()
+                            approvals_ref = firestore_db.collection("coach_approvals")
+                            approvals_docs = approvals_ref.stream()
+                            approvals = {doc.id: doc.to_dict() for doc in approvals_docs}
+
                             user_approved_topics = []
                             
                             if approvals_data:
@@ -22743,7 +22733,10 @@ def get_approved_coached_topics(user_data):
             approved_topics = []
         
         # Coach approvals'dan bu kullanıcı için olanları çek
-            approvals_data = db_ref.child('coach_approvals').get()
+            approvals_ref = firestore_db.collection("coach_approvals")
+            approvals_docs = approvals_ref.stream()
+            approvals = {doc.id: doc.to_dict() for doc in approvals_docs}
+
             
             if approvals_data:
                 username = user_data['username']
@@ -26336,7 +26329,8 @@ def send_to_coach_approval(user_data, weekly_plan):
         if firebase_connected and db_ref:
             # Firebase'e kaydet
             approval_key = f"{current_username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            db_ref.child('coach_approvals').child(approval_key).set(approval_request)
+            firestore_db.collection("coach_approvals").document(approval_key).set(approval_request, merge=True)
+
         else:
             # Session state'e kaydet (fallback)
             if 'coach_approval_requests' not in st.session_state:
@@ -26494,7 +26488,8 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
     try:
         if firebase_connected and db_ref:
             # Firebase'de güncelle
-            db_ref.child('coach_approvals').child(approval_key).update({
+            firestore_db.collection("coach_approvals").document(approval_key).set(update_data, merge=True)
+            ({
                 'status': status,
                 'coach_notes': coach_notes,
                 'approved_topics': approved_topics,
@@ -26502,7 +26497,10 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
             })
             
             # 🔧 FİX: Student_username kontrolü ile öğrenci verilerini güncelle
-            approval_data = db_ref.child('coach_approvals').child(approval_key).get()
+            approvals_ref = firestore_db.collection("coach_approvals")
+            approvals_docs = approvals_ref.stream()
+            approvals = {doc.id: doc.to_dict() for doc in approvals_docs}
+
             if approval_data:
                 # Student_username'i güvenli bir şekilde al
                 student_username = approval_data.get('student_username', '')
