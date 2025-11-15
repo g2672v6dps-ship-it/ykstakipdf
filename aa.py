@@ -8070,11 +8070,21 @@ def show_detailed_review_topic(topic, index, user_data):
             # Veri kaynaklarını kontrol et
             topic_tracking = user_data.get('topic_tracking', {})
             progress_tracking = user_data.get('progress_tracking', {})
+            topic_tracking_data_raw = user_data.get('topic_tracking_data', '{}')
             
-            st.write(f"**🗂️ Topic Tracking Keys:** `{list(topic_tracking.keys())[:3]}...`")
+            st.write(f"**🗂️ Topic Tracking Keys:** `{list(topic_tracking.keys())[:3] if topic_tracking else '[]'}...`")
             
             if isinstance(progress_tracking, dict):
-                st.write(f"**📈 Progress Subjects:** `{list(progress_tracking.keys())[:3]}...`")
+                st.write(f"**📈 Progress Subjects:** `{list(progress_tracking.keys())[:3] if progress_tracking else '[]'}...`")
+            
+            try:
+                topic_tracking_data = json.loads(topic_tracking_data_raw) if isinstance(topic_tracking_data_raw, str) else topic_tracking_data_raw
+                if topic_tracking_data:
+                    st.write(f"**🎯 Topic Tracking Data Keys:** `{list(topic_tracking_data.keys())[:3]}...`")
+                else:
+                    st.write(f"**🎯 Topic Tracking Data Keys:** `[]` (BOŞ)")
+            except Exception as e:
+                st.write(f"**🎯 Topic Tracking Data:** `ERROR: {e}`")
             
             if current_net == 0:
                 st.warning("⚠️ **Net değeri bulunamadı!** Bu konu için veri kaynaklarında net bilgisi yok.")
@@ -8190,7 +8200,30 @@ def get_actual_net_value(subject, topic_name, user_data):
             print(f"Topic tracking'den net çekme hatası: {e}")
             print(f"Topic tracking veri tipi: {type(user_data.get('topic_tracking', {}))}")
         
-        # 🔥 3. QUIZ_RESULTS'DAN ÇEK
+        # 🔥 3. TOPIC_TRACKING_DATA'DAN ÇEK - ASIL VERİ KAYNAĞI
+        try:
+            topic_tracking_data_raw = user_data.get('topic_tracking_data', '{}')
+            print(f"🔍 Topic tracking data raw tipi: {type(topic_tracking_data_raw)}")
+            
+            topic_tracking_data = json.loads(topic_tracking_data_raw) if isinstance(topic_tracking_data_raw, str) else topic_tracking_data_raw
+            print(f"📊 Topic tracking data keys: {list(topic_tracking_data.keys())[:3]}")
+            
+            if topic_tracking_data:
+                for topic_key, topic_data in topic_tracking_data.items():
+                    if isinstance(topic_data, dict):
+                        # Farklı key formatlarını kontrol et
+                        if any(pk.lower() == topic_key.lower() or pk.lower() in topic_key.lower() or topic_key.lower() in pk.lower() 
+                               for pk in possible_keys):
+                            net_score = topic_data.get('net_score', 0)
+                            print(f"✅ Topic tracking data'ddan bulundu ({topic_key}): {net_score}")
+                            try:
+                                return int(float(net_score))
+                            except:
+                                return 0
+        except Exception as e:
+            print(f"Topic tracking data'dan net çekme hatası: {e}")
+        
+        # 🔥 4. QUIZ_RESULTS'DAN ÇEK
         try:
             quiz_results = user_data.get('quiz_results', [])
             if isinstance(quiz_results, list):
