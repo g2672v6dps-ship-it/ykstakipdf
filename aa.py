@@ -7949,6 +7949,19 @@ def show_review_topics_tab(user_data):
         # 🔥 ÇALIŞAN SİSTEM KOPYASI - Her konuyu detaylı göster
         for i, topic in enumerate(all_topics):
             show_detailed_review_topic(topic, i, user_data)
+        
+        # 🔥 SESSION STATE COUNTER - Yenilenme takibi
+        st.markdown("---")
+        if 'topic_refresh_counter' not in st.session_state:
+            st.session_state.topic_refresh_counter = 0
+        
+        if st.session_state.topic_refresh_counter > 0:
+            st.success(f"🔄 **Sayfa {st.session_state.topic_refresh_counter} kez yenilendi** - Son işlem başarılı!")
+        
+        # Manuel yenileme butonu
+        if st.button("🔄 Sayfayı Manuel Yenile", key="manual_refresh"):
+            st.session_state.topic_refresh_counter += 1
+            st.rerun()
     
     except Exception as e:
         st.error(f"❌ Hata: {e}")
@@ -7990,22 +8003,77 @@ def show_detailed_review_topic(topic, index, user_data):
     col1, col2, col3 = st.columns([4, 1, 0.3])
     
     with col1:
-        # 🎨 RENKLİ KART - NET DURUMUNA GÖRE
-        text_color = "white" if current_net >= 10 else "black"  # Koyu renkler için beyaz, açık renkler için siyah
+        # 🎨 MODERN RENKLİ KART - NET DURUMUNA GÖRE
+        text_color = "white" if current_net >= 10 else "black"
+        
+        # Duruma göre emoji ve başlık
+        if current_net >= 15:
+            status_emoji = "🔥"
+            status_text = "MÜKEMMEL"
+        elif current_net >= 10:
+            status_emoji = "💪"
+            status_text = "İYİ"
+        elif current_net >= 5:
+            status_emoji = "⚡"
+            status_text = "ORTA"
+        else:
+            status_emoji = "📚"
+            status_text = "ZAYIF"
         
         st.markdown(f"""
-        <div style='background: {status_color}; border: 2px solid {status_color}; 
-                    padding: 20px; border-radius: 10px; margin-bottom: 15px; color: {text_color};'>
-            <div style='font-size: 18px; font-weight: bold; margin-bottom: 8px;'>
+        <div style='
+            background: linear-gradient(135deg, {status_color}20, {status_color}40), {status_color}; 
+            border: 2px solid {status_color}; 
+            padding: 25px; 
+            border-radius: 15px; 
+            margin-bottom: 20px; 
+            color: {text_color};
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        '>
+            <div style='
+                position: absolute;
+                top: 15px;
+                right: 20px;
+                background: {status_color};
+                padding: 8px 15px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: bold;
+                border: 1px solid rgba(255,255,255,0.3);
+            '>
+                {status_emoji} {status_text}
+            </div>
+            
+            <div style='font-size: 20px; font-weight: bold; margin-bottom: 10px; margin-right: 80px;'>
                 {index+1}. {subject} - {topic_name}
             </div>
-            <div style='font-size: 14px; margin-bottom: 5px;'>
+            
+            <div style='font-size: 15px; margin-bottom: 12px; opacity: 0.9;'>
                 📝 {detail}
             </div>
-            <div style='font-size: 14px; margin-bottom: 5px; font-weight: bold;'>
-                📊 Net: {current_net} | ⚡ Zorluk: {difficulty}
+            
+            <div style='
+                display: flex; 
+                gap: 15px; 
+                margin-bottom: 10px; 
+                font-size: 15px; 
+                font-weight: bold;
+                background: rgba(255,255,255,0.1);
+                padding: 10px;
+                border-radius: 8px;
+            '>
+                <div style='flex: 1;'>📊 Net: <span style='font-size: 18px;'>{current_net}</span></div>
+                <div style='flex: 1;'>⚡ Zorluk: {difficulty}</div>
             </div>
-            <div style='font-size: 14px; color: rgba(255,255,255,0.8);'>
+            
+            <div style='
+                font-size: 14px; 
+                opacity: 0.8;
+                border-top: 1px solid rgba(255,255,255,0.2);
+                padding-top: 8px;
+            '>
                 📂 Kaynak: {source}
             </div>
         </div>
@@ -8073,18 +8141,49 @@ def get_actual_net_value(subject, topic_name, user_data):
         except Exception as e:
             print(f"Progress tracking'den net çekme hatası: {e}")
         
-        # 🔥 2. TOPIC_TRACKING'DEN ÇEK (varsa)
+        # 🔥 2. TOPIC_TRACKING'DEN ÇEK (varsa) - GÜÇLENDİRİLMİŞ
         try:
             topic_tracking = user_data.get('topic_tracking', {})
+            print(f"📊 Topic tracking verisi: {list(topic_tracking.keys())[:5]}...")  # Debug
+            
+            # Farklı key formatlarını dene
             for possible_key in possible_keys:
+                # 1. Direkt key eşleşmesi
                 if possible_key in topic_tracking:
-                    net_value = topic_tracking[possible_key].get('net', 0)
-                    try:
-                        return int(float(net_value))
-                    except:
-                        return 0
+                    data = topic_tracking[possible_key]
+                    if isinstance(data, dict):
+                        net_value = data.get('net', 0)
+                        print(f"✅ Topic tracking'den bulundu ({possible_key}): {net_value}")
+                        try:
+                            return int(float(net_value))
+                        except:
+                            return 0
+                
+                # 2. Case insensitive key eşleşmesi
+                for key in topic_tracking.keys():
+                    if key.lower() == possible_key.lower():
+                        data = topic_tracking[key]
+                        if isinstance(data, dict):
+                            net_value = data.get('net', 0)
+                            print(f"✅ Topic tracking'den bulundu (case-insensitive {key}): {net_value}")
+                            try:
+                                return int(float(net_value))
+                            except:
+                                return 0
+                    
+                    # 3. Kısmi eşleşme (contains)
+                    if possible_key.lower() in key.lower() or key.lower() in possible_key.lower():
+                        data = topic_tracking[key]
+                        if isinstance(data, dict):
+                            net_value = data.get('net', 0)
+                            print(f"✅ Topic tracking'den bulundu (partial {key}): {net_value}")
+                            try:
+                                return int(float(net_value))
+                            except:
+                                return 0
         except Exception as e:
             print(f"Topic tracking'den net çekme hatası: {e}")
+            print(f"Topic tracking veri tipi: {type(user_data.get('topic_tracking', {}))}")
         
         # 🔥 3. QUIZ_RESULTS'DAN ÇEK
         try:
@@ -8314,21 +8413,130 @@ def process_topic_completion(topic, user_data):
         except Exception as e:
             print(f"Kalıcı öğrenme güncelleme hatası: {e}")
         
-        # 3. Firestore ve Cache güncelle
+        # 3. 🔥 TOPIC_TRACKING'DEN TAMAMEN KALDIR (ANA SORUN BU!)
+        try:
+            topic_tracking = user_data.get('topic_tracking', {}).copy()
+            if isinstance(topic_tracking, dict):
+                keys_to_remove = []
+                possible_keys = [
+                    f"{subject}_{topic_name}",
+                    f"{subject}-{topic_name}",
+                    f"{subject} {topic_name}",
+                    topic_name
+                ]
+                
+                # Eşleşen tüm keyleri bul ve kaldır
+                for key in topic_tracking.keys():
+                    for possible_key in possible_keys:
+                        if key.lower() == possible_key.lower() or possible_key.lower() in key.lower():
+                            keys_to_remove.append(key)
+                            break
+                
+                # Bulunan keyleri sil
+                for key in keys_to_remove:
+                    del topic_tracking[key]
+                    updated = True
+                    print(f"✅ Topic tracking'den silindi: {key}")
+                
+                if keys_to_remove:
+                    user_data['topic_tracking'] = topic_tracking
+        except Exception as e:
+            print(f"Topic tracking güncelleme hatası: {e}")
+        
+        # 4. 🔥 PROGRESS_TRACKING'DEN KALDIR (ek koruma)
+        try:
+            progress_tracking = user_data.get('progress_tracking', {})
+            if isinstance(progress_tracking, dict):
+                subject_key = None
+                # Doğru subject keyini bul
+                for key in progress_tracking.keys():
+                    if key.lower() == subject.lower():
+                        subject_key = key
+                        break
+                
+                if subject_key and subject_key in progress_tracking:
+                    subject_data = progress_tracking[subject_key].copy()
+                    possible_keys = [
+                        f"{subject}_{topic_name}",
+                        f"{subject}-{topic_name}",
+                        f"{subject} {topic_name}",
+                        topic_name
+                    ]
+                    
+                    # Eşleşen topic keylerini bul ve kaldır
+                    keys_to_remove = []
+                    for topic_key in subject_data.keys():
+                        for possible_key in possible_keys:
+                            if topic_key.lower() == possible_key.lower() or possible_key.lower() in topic_key.lower():
+                                keys_to_remove.append(topic_key)
+                                break
+                    
+                    # Bulunan keyleri sil
+                    for key in keys_to_remove:
+                        del subject_data[key]
+                        updated = True
+                        print(f"✅ Progress tracking'den silindi: {subject_key}.{key}")
+                    
+                    if keys_to_remove:
+                        progress_tracking[subject_key] = subject_data
+                        user_data['progress_tracking'] = progress_tracking
+        except Exception as e:
+            print(f"Progress tracking güncelleme hatası: {e}")
+        
+        # 5. 🔥 YKS_NET_TRACKING'DEN KALDIR (ek koruma)
+        try:
+            yks_net_tracking = user_data.get('yks_net_tracking', {}).copy()
+            if isinstance(yks_net_tracking, dict):
+                keys_to_remove = []
+                possible_keys = [
+                    f"{subject}_{topic_name}",
+                    f"{subject}-{topic_name}",
+                    f"{subject} {topic_name}",
+                    topic_name
+                ]
+                
+                # Eşleşen tüm keyleri bul ve kaldır
+                for key in yks_net_tracking.keys():
+                    for possible_key in possible_keys:
+                        if key.lower() == possible_key.lower() or possible_key.lower() in key.lower():
+                            keys_to_remove.append(key)
+                            break
+                
+                # Bulunan keyleri sil
+                for key in keys_to_remove:
+                    del yks_net_tracking[key]
+                    updated = True
+                    print(f"✅ YKS net tracking'den silindi: {key}")
+                
+                if keys_to_remove:
+                    user_data['yks_net_tracking'] = yks_net_tracking
+        except Exception as e:
+            print(f"YKS net tracking güncelleme hatası: {e}")
+        
+        # 6. Firestore ve Cache güncelle
         if updated and 'username' in user_data:
             username = user_data['username']
             
-            # Firestore'u güncelle
+            # 🔥 TÜM VERİ KAYNAKLARINI GÜNCELLE
             update_data = {}
             if 'weekly_plan' in user_data:
                 update_data['weekly_plan'] = user_data['weekly_plan']
             if 'topic_repetition_history' in user_data:
                 update_data['topic_repetition_history'] = user_data['topic_repetition_history']
+            if 'topic_tracking' in user_data:
+                update_data['topic_tracking'] = user_data['topic_tracking']
+            if 'progress_tracking' in user_data:
+                update_data['progress_tracking'] = user_data['progress_tracking']
+            if 'yks_net_tracking' in user_data:
+                update_data['yks_net_tracking'] = user_data['yks_net_tracking']
             
             if update_data:
                 update_user_in_firebase(username, update_data)
                 clear_user_cache(username)
-                print(f"✅ Firestore güncellendi: {subject} - {topic_name}")
+                print(f"✅ Firestore kapsamlı güncellendi: {subject} - {topic_name}")
+                print(f"🔄 Güncellenen veriler: {list(update_data.keys())}")
+        else:
+            print(f"⚠️ Güncelleme yapılmadı veya kullanıcı bulunamadı")
         
         # 🔥 SAYFANIN YENİLENMESİ - MULTIPLE METHODS
         if updated:
@@ -8419,21 +8627,130 @@ def process_topic_deletion(topic, user_data):
             except Exception as mastery_error:
                 print(f"Kalıcı öğrenme güncelleme hatası: {mastery_error}")
         
-        # 3. Firestore ve Cache güncelle
+        # 3. 🔥 TOPIC_TRACKING'DEN TAMAMEN KALDIR (process_topic_completion ile aynı)
+        try:
+            topic_tracking = user_data.get('topic_tracking', {}).copy()
+            if isinstance(topic_tracking, dict):
+                keys_to_remove = []
+                possible_keys = [
+                    f"{subject}_{topic_name}",
+                    f"{subject}-{topic_name}",
+                    f"{subject} {topic_name}",
+                    topic_name
+                ]
+                
+                # Eşleşen tüm keyleri bul ve kaldır
+                for key in topic_tracking.keys():
+                    for possible_key in possible_keys:
+                        if key.lower() == possible_key.lower() or possible_key.lower() in key.lower():
+                            keys_to_remove.append(key)
+                            break
+                
+                # Bulunan keyleri sil
+                for key in keys_to_remove:
+                    del topic_tracking[key]
+                    updated = True
+                    print(f"✅ Topic tracking'den silindi: {key}")
+                
+                if keys_to_remove:
+                    user_data['topic_tracking'] = topic_tracking
+        except Exception as e:
+            print(f"Topic tracking güncelleme hatası: {e}")
+        
+        # 4. 🔥 PROGRESS_TRACKING'DEN KALDIR (ek koruma)
+        try:
+            progress_tracking = user_data.get('progress_tracking', {})
+            if isinstance(progress_tracking, dict):
+                subject_key = None
+                # Doğru subject keyini bul
+                for key in progress_tracking.keys():
+                    if key.lower() == subject.lower():
+                        subject_key = key
+                        break
+                
+                if subject_key and subject_key in progress_tracking:
+                    subject_data = progress_tracking[subject_key].copy()
+                    possible_keys = [
+                        f"{subject}_{topic_name}",
+                        f"{subject}-{topic_name}",
+                        f"{subject} {topic_name}",
+                        topic_name
+                    ]
+                    
+                    # Eşleşen topic keylerini bul ve kaldır
+                    keys_to_remove = []
+                    for topic_key in subject_data.keys():
+                        for possible_key in possible_keys:
+                            if topic_key.lower() == possible_key.lower() or possible_key.lower() in topic_key.lower():
+                                keys_to_remove.append(topic_key)
+                                break
+                    
+                    # Bulunan keyleri sil
+                    for key in keys_to_remove:
+                        del subject_data[key]
+                        updated = True
+                        print(f"✅ Progress tracking'den silindi: {subject_key}.{key}")
+                    
+                    if keys_to_remove:
+                        progress_tracking[subject_key] = subject_data
+                        user_data['progress_tracking'] = progress_tracking
+        except Exception as e:
+            print(f"Progress tracking güncelleme hatası: {e}")
+        
+        # 5. 🔥 YKS_NET_TRACKING'DEN KALDIR (ek koruma)
+        try:
+            yks_net_tracking = user_data.get('yks_net_tracking', {}).copy()
+            if isinstance(yks_net_tracking, dict):
+                keys_to_remove = []
+                possible_keys = [
+                    f"{subject}_{topic_name}",
+                    f"{subject}-{topic_name}",
+                    f"{subject} {topic_name}",
+                    topic_name
+                ]
+                
+                # Eşleşen tüm keyleri bul ve kaldır
+                for key in yks_net_tracking.keys():
+                    for possible_key in possible_keys:
+                        if key.lower() == possible_key.lower() or possible_key.lower() in key.lower():
+                            keys_to_remove.append(key)
+                            break
+                
+                # Bulunan keyleri sil
+                for key in keys_to_remove:
+                    del yks_net_tracking[key]
+                    updated = True
+                    print(f"✅ YKS net tracking'den silindi: {key}")
+                
+                if keys_to_remove:
+                    user_data['yks_net_tracking'] = yks_net_tracking
+        except Exception as e:
+            print(f"YKS net tracking güncelleme hatası: {e}")
+        
+        # 6. Firestore ve Cache güncelle
         if updated and 'username' in user_data:
             username = user_data['username']
             
-            # Firestore'u güncelle
+            # 🔥 TÜM VERİ KAYNAKLARINI GÜNCELLE
             update_data = {}
             if 'weekly_plan' in user_data:
                 update_data['weekly_plan'] = user_data['weekly_plan']
             if 'topic_mastery_status' in user_data:
                 update_data['topic_mastery_status'] = user_data['topic_mastery_status']
+            if 'topic_tracking' in user_data:
+                update_data['topic_tracking'] = user_data['topic_tracking']
+            if 'progress_tracking' in user_data:
+                update_data['progress_tracking'] = user_data['progress_tracking']
+            if 'yks_net_tracking' in user_data:
+                update_data['yks_net_tracking'] = user_data['yks_net_tracking']
             
             if update_data:
                 update_user_in_firebase(username, update_data)
                 clear_user_cache(username)
-                print(f"✅ Firestore güncellendi: {subject} - {topic_name}")
+                print(f"✅ Firestore kapsamlı güncellendi: {subject} - {topic_name}")
+                print(f"🔄 Güncellenen veriler: {list(update_data.keys())}")
+        else:
+            print(f"⚠️ Güncelleme yapılmadı veya kullanıcı bulunamadı")
         
         # 🔥 SAYFANIN YENİLENMESİ - MULTIPLE METHODS
         if updated:
