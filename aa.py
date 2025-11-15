@@ -7975,7 +7975,7 @@ def show_review_topics_section(review_topics, user_data):
         
         st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
         
-        # 🔥 NATIVE STREAMLIT KARTLARI - %100 ÇALIŞACAK!
+        # 🔥 ESKİ GÜZEL HTML KARTLAR + DOĞRU ÇALIŞAN BUTON!
         for i, topic in enumerate(all_review_topics):
             # Her topic'e unique key ekle
             topic['unique_key'] = f"{topic['subject']}_{topic['topic']}_{i}"
@@ -8031,202 +8031,146 @@ def show_review_topics_section(review_topics, user_data):
                 except:
                     current_net = 0
             
+            # Konu bilgilerini hazırla
+            review_type_icon = "🎯" if topic['review_type'] == 'KALİCİ' else "🔄"
+            
+            # Detaylı konu bilgisini çek - konu takip sisteminden
+            detail_info = topic.get('detail', '')
+            if not detail_info:
+                # Konu takip sisteminde detay bilgisini ara
+                for key, value in topic_progress.items():
+                    if topic['subject'] in key and topic['topic'] in key:
+                        if isinstance(value, dict):
+                            detail_info = value.get('detail', '')
+                            if detail_info:
+                                break
+            
+            # Eğer hala detay yoksa, genel açıklama ekle
+            if not detail_info:
+                # Türkçe sözcükte anlam gibi genel konular için özel açıklamalar
+                if "sözcükte anlam" in topic['topic'].lower():
+                    if "terim" in topic['topic'].lower():
+                        detail_info = "Terim Anlam - Sözlükte tanımlanmış özel anlamlar"
+                    elif "yan" in topic['topic'].lower():
+                        detail_info = "Yan Anlam - Kelimenin ikincil anlamları"
+                    elif "mecaz" in topic['topic'].lower():
+                        detail_info = "Mecaz Anlam - Gerçek dışı kullanımlar"
+                    else:
+                        detail_info = "Sözcükte Anlam - Temel kavramlar"
+                elif "paragraf" in topic['topic'].lower():
+                    if "anlam" in topic['topic'].lower():
+                        detail_info = "Paragraf Anlama - Metin yorumlama"
+                    elif "çıkarım" in topic['topic'].lower():
+                        detail_info = "Çıkarım - Gizli anlam bulma"
+                    else:
+                        detail_info = "Paragraf - Ana düşünce ve yapı"
+                elif "üslü" in topic['topic'].lower():
+                    detail_info = "Üslü İfadeler - Kuvvet ve kök işlemleri"
+                elif "denklem" in topic['topic'].lower():
+                    if "birinci" in topic['topic'].lower():
+                        detail_info = "Birinci Dereceden Denklemler"
+                    elif "ikinci" in topic['topic'].lower():
+                        detail_info = "İkinci Dereceden Denklemler"
+                    else:
+                        detail_info = "Denklem Çözme"
+                else:
+                    detail_info = "Ana Konu"
+            
             # Seviye durumuna göre renk belirle
             if current_net >= 15:
-                status_color = "#228B22"  # Yeşil
-                status_text = f"✅ {current_net} net (İyi)"
+                status_color = "#228B22"  # Yeşil - İyi seviye
+                status_text = f"✅ {current_net} net (İyi seviye)"
             elif current_net >= 10:
-                status_color = "#FF8C00"  # Turuncu  
-                status_text = f"🟡 {current_net} net (Orta)"
+                status_color = "#FF8C00"  # Turuncu - Orta seviye
+                status_text = f"🟡 {current_net} net (Orta seviye)"
             else:
-                status_color = "#DC143C"  # Kırmızı
-                status_text = f"🔴 {current_net} net (Zayıf)"
+                status_color = "#DC143C"  # Kırmızı - Zayıf seviye
+                status_text = f"🔴 {current_net} net (Zayıf seviye)"
             
-            # 🔥 NATIVE STREAMLIT CONTAINER KART
-            with st.container():
-                # Kart stilleri
+            # 🔥 ESKİ GÜZEL HTML KARTI - ÖNCE GÖSTER
+            col1, col2 = st.columns([3, 1])
+            
+            with col1:
+                # ESKİ GÜZEL KART TASARIMI
                 st.markdown(f"""
-                <style>
-                .topic-card {{
-                    background: linear-gradient(135deg, {status_color} 0%, {status_color}88 50%, {status_color}66 100%);
-                    border: 2px solid {status_color};
-                    border-radius: 12px;
-                    padding: 16px 20px;
-                    margin-bottom: 12px;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-                    color: white;
-                }}
-                .card-title {{
-                    font-weight: bold;
-                    font-size: 16px;
-                    color: white;
-                    margin-bottom: 8px;
-                }}
-                .card-topic {{
-                    font-size: 18px;
-                    color: white;
-                    margin: 6px 0 4px 0;
-                    font-weight: bold;
-                }}
-                .card-detail {{
-                    font-size: 13px;
-                    color: rgba(255,255,255,0.9);
-                    margin: 4px 0 8px 0;
-                    font-style: italic;
-                }}
-                .card-status {{
-                    font-size: 14px;
-                    color: white;
-                    font-weight: bold;
-                    background: rgba(0,0,0,0.2);
-                    padding: 6px 10px;
-                    border-radius: 8px;
-                    display: inline-block;
-                }}
-                .button-container {{
-                    position: absolute;
-                    bottom: 12px;
-                    right: 20px;
-                }}
-                </style>
+                <div style='background: linear-gradient(135deg, {status_color} 0%, {status_color}88 50%, {status_color}66 100%); 
+                            border: 2px solid {status_color}; padding: 16px 20px; border-radius: 12px; 
+                            margin-bottom: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); color: white; position: relative;'>
+                    <div style='font-weight: bold; font-size: 16px; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); margin-bottom: 8px;'>
+                        {i+1}. {topic['subject']} {review_type_icon}
+                    </div>
+                    <div style='font-size: 18px; color: white; margin: 6px 0 4px 0; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);'>
+                        📖 {topic['topic']}
+                    </div>
+                    <div style='font-size: 13px; color: rgba(255,255,255,0.9); margin: 4px 0 8px 0; font-style: italic; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);'>
+                        └ {detail_info}
+                    </div>
+                    <div style='display: flex; justify-content: space-between; align-items: center; margin-top: 12px;'>
+                        <div style='font-size: 14px; color: white; font-weight: bold; background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 8px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);'>
+                            {status_text}
+                        </div>
+                    </div>
+                </div>
                 """, unsafe_allow_html=True)
-                
-                # İçerik ve buton için kolonlar
-                content_col, button_col = st.columns([4, 1])
-                
-                with content_col:
-                    # Kart başlığı
-                    review_type_icon = "🎯" if topic['review_type'] == 'KALİCİ' else "🔄"
-                    st.markdown(f"""
-                    <div class="topic-card">
-                        <div class="card-title">{i+1}. {topic['subject']} {review_type_icon}</div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Konu adı
-                    st.markdown(f'<div class="card-topic">📖 {topic["topic"]}</div>', unsafe_allow_html=True)
-                    
-                    # Detay bilgisi
-                    detail_info = "Ana Konu"
-                    if "üslü" in topic['topic'].lower():
-                        detail_info = "Üslü İfadeler - Kuvvet ve kök işlemleri"
-                    elif "denklem" in topic['topic'].lower():
-                        if "birinci" in topic['topic'].lower():
-                            detail_info = "Birinci Dereceden Denklemler"
-                        elif "ikinci" in topic['topic'].lower():
-                            detail_info = "İkinci Dereceden Denklemler"
-                        else:
-                            detail_info = "Denklem Çözme"
-                    
-                    st.markdown(f'<div class="card-detail">└ {detail_info}</div>', unsafe_allow_html=True)
-                    
-                    # Status
-                    st.markdown(f'<div class="card-status">{status_text}</div>', unsafe_allow_html=True)
-                
-                with button_col:
-                    # 🔥 NATIVE STREAMLIT BUTON - KARTIN İÇİNDE!
-                    if st.button("✅ Tekrar ettim", key=button_key):
-                        try:
-                            # 1. Session state'den hemen kaldır
-                            if 'all_review_topics' in st.session_state:
-                                original_length = len(st.session_state.all_review_topics)
-                                st.session_state.all_review_topics = [
-                                    t for t in st.session_state.all_review_topics 
-                                    if t.get('unique_key', '') != topic_key
-                                ]
-                                new_length = len(st.session_state.all_review_topics)
-                                removed_count = original_length - new_length
-                                print(f"🔍 Kart silindi: {removed_count} konu kaldırıldı")
+            
+            with col2:
+                # 🔥 SAĞ KOLONDA NATIVE STREAMLIT BUTON
+                st.markdown("<div style='height: 80px;'></div>", unsafe_allow_html=True)  # Kartın üstüne boşluk
+                if st.button("✅ Tekrar ettim", key=button_key):
+                    try:
+                        # 1. Session state'den hemen kaldır
+                        if 'all_review_topics' in st.session_state:
+                            original_length = len(st.session_state.all_review_topics)
+                            st.session_state.all_review_topics = [
+                                t for t in st.session_state.all_review_topics 
+                                if t.get('unique_key', '') != topic_key
+                            ]
+                            new_length = len(st.session_state.all_review_topics)
+                            removed_count = original_length - new_length
+                            print(f"🔍 Kart silindi: {removed_count} konu kaldırıldı")
+                        
+                        # 2. Firestore işlemleri (pending)
+                        if 'username' in user_data:
+                            username = user_data['username']
                             
-                            # 2. Firestore işlemleri (pending)
-                            if 'username' in user_data:
-                                username = user_data['username']
-                                
-                                # Pending deletion'a ekle
-                                if 'pending_deletions' not in st.session_state:
-                                    st.session_state.pending_deletions = []
-                                
-                                deletion_info = {
-                                    'topic_key': topic_key,
-                                    'subject': topic['subject'],
-                                    'topic': topic['topic'],
-                                    'original_topic_key': f"{topic['subject']}_{topic['topic']}",
-                                    'timestamp': time.time()
-                                }
-                                st.session_state.pending_deletions.append(deletion_info)
-                                
-                                st.success(f"✅ {topic['subject']} - {topic['topic']} kaldırıldı!")
+                            # Pending deletion'a ekle
+                            if 'pending_deletions' not in st.session_state:
+                                st.session_state.pending_deletions = []
                             
-                            # 3. Hemen UI'ı yenile
-                            st.rerun()
+                            deletion_info = {
+                                'topic_key': topic_key,
+                                'subject': topic['subject'],
+                                'topic': topic['topic'],
+                                'original_topic_key': f"{topic['subject']}_{topic['topic']}",
+                                'timestamp': time.time()
+                            }
+                            st.session_state.pending_deletions.append(deletion_info)
                             
-                        except Exception as e:
-                            st.error(f"Hata: {e}")
+                            st.success(f"✅ {topic['subject']} - {topic['topic']} kaldırıldı!")
+                        
+                        # 3. Hemen UI'ı yenile
+                        st.rerun()
+                        
+                    except Exception as e:
+                        st.error(f"Hata: {e}")
                 
-                # Kartı kapat
-                st.markdown("</div>", unsafe_allow_html=True)
-                
-                # Konu bilgilerini hazırla
-                review_type_icon = "🎯" if topic['review_type'] == 'KALİCİ' else "🔄"
-                
-                # Detaylı konu bilgisini çek - konu takip sisteminden
-                detail_info = topic.get('detail', '')
-                if not detail_info:
-                    # Konu takip sisteminde detay bilgisini ara
-                    for key, value in topic_progress.items():
-                        if topic['subject'] in key and topic['topic'] in key:
-                            if isinstance(value, dict):
-                                detail_info = value.get('detail', '')
-                                if detail_info:
-                                    break
-                
-                # Eğer hala detay yoksa, genel açıklama ekle
-                if not detail_info:
-                    # Türkçe sözcükte anlam gibi genel konular için özel açıklamalar
-                    if "sözcükte anlam" in topic['topic'].lower():
-                        if "terim" in topic['topic'].lower():
-                            detail_info = "Terim Anlam - Sözlükte tanımlanmış özel anlamlar"
-                        elif "yan" in topic['topic'].lower():
-                            detail_info = "Yan Anlam - Kelimenin ikincil anlamları"
-                        elif "mecaz" in topic['topic'].lower():
-                            detail_info = "Mecaz Anlam - Gerçek dışı kullanımlar"
-                        else:
-                            detail_info = "Sözcükte Anlam - Temel kavramlar"
-                    elif "paragraf" in topic['topic'].lower():
-                        if "anlam" in topic['topic'].lower():
-                            detail_info = "Paragraf Anlama - Metin yorumlama"
-                        elif "çıkarım" in topic['topic'].lower():
-                            detail_info = "Çıkarım - Gizli anlam bulma"
-                        else:
-                            detail_info = "Paragraf - Okuduğunu anlama"
-                    elif "sayılar" in topic['topic'].lower():
-                        if "rasyonel" in topic['topic'].lower():
-                            detail_info = "Rasyonel Sayılar - Kesirli sayılar"
-                        elif "irrational" in topic['topic'].lower():
-                            detail_info = "İrrasyonel Sayılar - Köklü sayılar"
-                        else:
-                            detail_info = "Sayılar - Temel aritmetik"
-                    elif "üslü" in topic['topic'].lower():
-                        detail_info = "Üslü İfadeler - Kuvvet ve kök işlemleri"
-                    elif "denklem" in topic['topic'].lower():
-                        if "birinci" in topic['topic'].lower():
-                            detail_info = "Birinci Dereceden Denklemler"
-                        elif "ikinci" in topic['topic'].lower():
-                            detail_info = "İkinci Dereceden Denklemler"
-                        else:
-                            detail_info = "Denklem Çözme"
-                    else:
-                        detail_info = "Ana Konu"
-                
-                # Seviye durumuna göre renk belirle
+                # Net bilgisi ve güncelleme durumu (sağ kolon alt kısım)
+                st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)  # Boşluk
                 if current_net >= 15:
-                    status_color = "#228B22"  # Yeşil - İyi seviye
-                    status_text = f"✅ {current_net} net (İyi seviye)"
-                elif current_net >= 10:
-                    status_color = "#FF8C00"  # Turuncu - Orta seviye
-                    status_text = f"🟡 {current_net} net (Orta seviye)"
+                    st.markdown(f"""
+                    <div style='text-align: center; padding: 20px 0;'>
+                        <div style='font-size: 18px; color: #228B22;'>✅</div>
+                        <div style='font-size: 11px; color: #228B22; font-weight: bold;'>İyi Seviye</div>
+                    </div>
+                    """, unsafe_allow_html=True)
                 else:
-                    status_color = "#DC143C"  # Kırmızı - Zayıf seviye
-                    status_text = f"🔴 {current_net} net (Zayıf seviye)"
+                    st.markdown(f"""
+                    <div style='text-align: center; padding: 20px 0;'>
+                        <div style='font-size: 18px; color: #FF8C00;'>⚠️</div>
+                        <div style='font-size: 11px; color: #FF8C00; font-weight: bold;'>Güncelleme Gerekli</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
 
 
         st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
