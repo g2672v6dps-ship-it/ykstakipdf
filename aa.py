@@ -8123,18 +8123,18 @@ def show_review_topics_section(review_topics, user_data):
                 
                 if st.button("✅ Tekrar ettim", key=button_key):
                     try:
-                        # Firebase'den kaldır
-                        if 'weekly_plan' in user_data and 'review_topics' in user_data['weekly_plan']:
-                            if topic_key in user_data['weekly_plan']['review_topics']:
-                                del user_data['weekly_plan']['review_topics'][topic_key]
-                                save_user_data(user_data)
+                        # Doğru remove_topic_from_review_list fonksiyonunu çağır
+                        remove_topic_from_review_list(user_data, topic_key)
                         
-                        # Session state'den kaldır
+                        # Session state'den de kaldır (anında güncelleme için)
                         if 'all_review_topics' in st.session_state:
                             st.session_state.all_review_topics = [
                                 t for t in st.session_state.all_review_topics 
                                 if f"{t['subject']}_{t['topic']}" != topic_key
                             ]
+                        
+                        # Veriyi kaydet
+                        save_user_data(user_data)
                         
                         st.success(f"🎉 {topic['subject']} - {topic['topic']} kaldırıldı!")
                         st.rerun()
