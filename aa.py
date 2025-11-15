@@ -7889,7 +7889,39 @@ def show_new_topics_section(new_topics, user_data):
             show_topic_card(topic, "MINIMAL")
 
 def show_review_topics_section(review_topics, user_data):
-    """Tekrar konuları bölümü - BASİTLİK ve NET GÜNCELLEMESİ"""
+    """Tekrar konuları bölümü - UI FIRST + PENDING DELETION SİSTEMİ"""
+    
+    # 🔥 ÖNCELİK: Pending deletion'ları işle (sayfa her yüklendiğinde)
+    if 'pending_deletions' in st.session_state and st.session_state.pending_deletions:
+        print(f"🔄 {len(st.session_state.pending_deletions)} pending deletion işlenecek...")
+        
+        # Pending deletion'ları Firestore'a uygula
+        for deletion in st.session_state.pending_deletions[:]:  # Copy list to avoid modification during iteration
+            try:
+                # Firestore'dan gerçek silme işlemi
+                remove_topic_from_review_list(user_data, deletion['original_topic_key'])
+                
+                # Firestore'a kaydet
+                if 'username' in user_data:
+                    username = user_data['username']
+                    update_user_in_firebase(username, user_data)
+                    clear_user_cache(username)
+                    print(f"✅ Pending deletion tamamlandı: {deletion['subject']} - {deletion['topic']}")
+                else:
+                    # Fallback için session state
+                    current_user = st.session_state.get('current_user')
+                    if current_user:
+                        st.session_state.users_db[current_user] = user_data
+                
+            except Exception as e:
+                print(f"❌ Pending deletion hatası: {e}")
+                # Hata durumunda, bu deletion'ı listeden çıkar (işlenmiş kabul et)
+        
+        # İşlenen pending deletion'ları temizle
+        st.session_state.pending_deletions = []
+        st.cache_data.clear()
+        print("🧹 Pending deletion listesi temizlendi")
+    
     # Önce konu takip hatırlatmalarını göster
     show_topic_reminder_alerts(user_data)
     
@@ -8127,57 +8159,36 @@ def show_review_topics_section(review_topics, user_data):
                 
                 if st.button("✅ Tekrar ettim", key=button_key):
                     try:
-                        # 🔥 %100 ÇÖZÜM: Firestore işlemleri + Session State tam temizleme
+                        # 🔥 PENDING DELETION SİSTEMİ: UI First → Firestore Later
                         
-                        # 1. Firestore'dan sil
-                        original_topic_key = f"{topic['subject']}_{topic['topic']}"
-                        remove_topic_from_review_list(user_data, original_topic_key)
+                        # 🔥 AŞAMA 1: ÖNCELIKLE UI'ı GÜNCELLE
+                        if 'all_review_topics' in st.session_state:
+                            original_length = len(st.session_state.all_review_topics)
+                            st.session_state.all_review_topics = [
+                                t for t in st.session_state.all_review_topics 
+                                if t.get('unique_key', '') != topic_key
+                            ]
+                            new_length = len(st.session_state.all_review_topics)
+                            removed_count = original_length - new_length
+                            print(f"🔍 UI güncellendi: {removed_count} konu kaldırıldı")
                         
-                        # 2. Kullanıcı verilerini Firestore'a kaydet
-                        if 'username' in user_data:
-                            username = user_data['username']
-                            update_user_in_firebase(username, user_data)
-                            
-                            # 3. 🔥 KRİTİK: Firestore cache temizle
-                            clear_user_cache(username)
-                            
-                            # 4. 🔥 EN ÖNEMLİ: Session State'i TAMAMEN TEMİZLE ki fresh data çekilsin
-                            if 'all_review_topics' in st.session_state:
-                                del st.session_state.all_review_topics
-                                print(f"🔍 Session state tamamen temizlendi - fresh data çekilecek")
-                            
-                            # 5. Tüm Streamlit cache'i temizle
-                            st.cache_data.clear()
-                            
-                            # 6. Firestore'dan güncel veriyi session state'e zorla çek
-                            # Bu satır olmadan fresh data çekilmeyebilir
-                            updated_user_data = st.session_state.users_db.get(username, user_data)
-                            st.session_state.users_db[username] = updated_user_data
-                            
-                            # 7. Kısa bekle
-                            time.sleep(0.1)
-                            
-                            st.success(f"🎉 {topic['subject']} - {topic['topic']} kaldırıldı!")
-                            st.rerun()  # 🔥 TAM YENİLEME fresh data ile
-                            
-                        else:
-                            # Fallback: Session state'e kaydet
-                            current_user = st.session_state.get('current_user')
-                            if current_user:
-                                st.session_state.users_db[current_user] = user_data
-                                
-                                # 🔥 Session cache + review topics temizle
-                                if f"cache_{current_user}" in st.session_state:
-                                    del st.session_state[f"cache_{current_user}"]
-                                    del st.session_state[f"cache_{current_user}_time"]
-                                
-                                # 🔥 EN ÖNEMLİ: Fallback'te de session state'i tamamen temizle
-                                if 'all_review_topics' in st.session_state:
-                                    del st.session_state.all_review_topics
-                                
-                                st.cache_data.clear()  # Tam cache temizle
-                                st.success(f"🎉 {topic['subject']} - {topic['topic']} kaldırıldı!")
-                                st.rerun()
+                        # 🔥 AŞAMA 2: PENDING DELETION İŞARETİ KOY
+                        if 'pending_deletions' not in st.session_state:
+                            st.session_state.pending_deletions = []
+                        
+                        # Bu konuyu pending deletion listesine ekle
+                        deletion_info = {
+                            'topic_key': topic_key,
+                            'subject': topic['subject'],
+                            'topic': topic['topic'],
+                            'original_topic_key': f"{topic['subject']}_{topic['topic']}",
+                            'timestamp': time.time()
+                        }
+                        st.session_state.pending_deletions.append(deletion_info)
+                        
+                        # 🔥 AŞAMA 3: HEMEN UI'ı YENİLE (User feedback)
+                        st.success(f"✅ {topic['subject']} - {topic['topic']} kaldırıldı! (DB senkronize ediliyor...)")
+                        st.rerun()  # 🔥 İMMEDIATE UI UPDATE!
                         
                     except Exception as e:
                         st.error(f"Hata: {e}")
