@@ -742,7 +742,7 @@ if FIREBASE_AVAILABLE:
                 cred = credentials.Certificate(firebase_config)
             else:
                 # Local development: JSON dosyasından al
-                cred = credentials.Certificate(json.loads(st.secrets["firebase_key"]))
+                cred = credentials.Certificate(json.loads(st.secrets["firebase_key"])
             
             firebase_admin.initialize_app(cred)
         
