@@ -122,6 +122,32 @@ def clear_user_cache(username):
         del st.session_state[cache_key]
         del st.session_state[timestamp_key]
 
+def clear_all_user_caches(username):
+    """Tüm cache türlerini temizler - Kalıcı düzeltme için"""
+    try:
+        # 1. Session state cache temizle
+        clear_user_cache(username)
+        
+        # 2. Firebase cache temizle
+        if 'firebase_cache' in st.session_state:
+            if hasattr(st.session_state.firebase_cache, 'clear'):
+                # Kullanıcıya özgü cache'i temizle
+                pattern = f"user_{username}"
+                st.session_state.firebase_cache.clear(pattern=pattern)
+            else:
+                # Fallback: Tüm cache'i temizle
+                st.session_state.firebase_cache.clear()
+        
+        # 3. Weekly plan cache'ini temizle
+        if 'weekly_plan_cache' in st.session_state:
+            if username in st.session_state.weekly_plan_cache:
+                del st.session_state.weekly_plan_cache[username]
+        
+        print(f"✅ {username} kullanıcısı için tüm cache'ler temizlendi")
+        
+    except Exception as e:
+        print(f"Cache temizleme hatası: {e}")
+
 # Güvenli plotly_chart fonksiyonu - CACHE'Lİ
 def safe_plotly_chart(fig, cache_key=None, **kwargs):
     """Cache'li güvenli plotly chart"""
@@ -720,7 +746,7 @@ class FirebaseCache:
         return self.cache.get(cache_key, {}).get('data', {})
     
     def update_user_data(self, username, data):
-        """Kullanıcı verisini güncelle + cache'i temizle"""
+        """Kullanıcı verisini güncelle + tüm cache'leri temizle"""
         try:
             if firebase_connected and firestore_db:
                 firestore_db.document(username).set(data, merge=True)
@@ -731,11 +757,12 @@ class FirebaseCache:
                 self.cache[cache_key]['data'].update(data)
                 self.cache[cache_key]['time'] = time.time()
             
-            # Firestore cache'ini temizle - yeni cache sistemi için
-            clear_user_cache(username)
+            # 🔥 DÜZELTİLMİŞ: Tüm cache'leri temizle
+            clear_all_user_caches(username)
             
             return True
-        except:
+        except Exception as e:
+            print(f"Firebase güncelleme hatası: {e}")
             return False
     
     def clear_cache(self, pattern=None):
@@ -9298,6 +9325,7 @@ def remove_topic_from_review_list(user_data, topic_key):
                 user_data['pending_review_topics'] = new_pending_topics
                 
                 print(f"✅ Pending review'den {removed_count} konu kaldırıldı")
+                print(f"🔍 Pending review yeni uzunluk: {len(new_pending_topics)}")
         
         # 🔥 DEBUG: Kaldırma işleminden sonra veri durumunu kontrol et
         print(f"🔍 user_data['weekly_plan']['review_topics'] uzunluğu: {len(user_data.get('weekly_plan', {}).get('review_topics', []))}")
