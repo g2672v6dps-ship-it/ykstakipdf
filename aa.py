@@ -7468,7 +7468,7 @@ def yks_takip_page(user_data):
     learning_style = user_data.get('learning_style', '')
     
     # YKS Takip sistemi sekmeleri
-    tab1, tab2, tab3, tab4 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi", "💪 Zorlandığım Konular"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Hedef Bölüm Haritası", "📋 Haftalık Planlama", "📊 Gidişat Analizi", "💪 Zorlandığım Konular", "🔄 Tekrar Edilecek Konular"])
     
     with tab1:
         show_target_department_roadmap(user_data)
@@ -7496,6 +7496,10 @@ def yks_takip_page(user_data):
     
     with tab4:
         show_struggling_subjects_section(user_data)
+    
+    # 🔥 YENİ: TEKRAR EDİLECEK KONULAR AYRI TAB'A TAŞINDI
+    with tab5:
+        show_review_topics_tab(user_data)
     
 
 
@@ -7676,8 +7680,8 @@ def show_weekly_planner(user_data):
     st.markdown(f"### 📅 Bu Haftanın Sistematik Planı")
     st.info(f"📅 **{week_info['week_range']}** | ⏰ **YKS'ye {days_to_yks} gün kaldı!**")
     
-    # Sadece tekrar konuları göster - YENİ KONULAR kısmı kaldırıldı
-    show_review_topics_section(weekly_plan.get('review_topics', []), user_data)
+    # 🔥 TEKRAR KONULARI AYRI TAB'A TAŞINDI
+    # show_review_topics_section() → Review Topics sekmesi
     
     # YENİ: Haftalık tamamlanma kontrolü ve bonus konular
     st.markdown("---")
@@ -7888,8 +7892,177 @@ def show_new_topics_section(new_topics, user_data):
         for topic in minimal_priority:
             show_topic_card(topic, "MINIMAL")
 
+def show_review_topics_tab(user_data):
+    """🔄 TEKRAR EDİLECEK KONULAR TAB - TAMAMEN AYRI SEKME!"""
+    
+    # 🔥 FRESH BAŞLANGIÇ - Başka yerden veri çekme
+    st.markdown("#### 🔄 TEKRAR EDİLECEK KONULAR")
+    st.markdown("*Bu sekme haftalık tekrar planınızdan konuları gösterir.*")
+    st.markdown("---")
+    
+    # 🔥 FRESH VERİ ÇEKME
+    try:
+        weekly_plan = user_data.get('weekly_plan', {})
+        review_topics = weekly_plan.get('review_topics', [])
+        
+        # Pending mastery topics de al
+        pending_mastery_topics = get_pending_review_topics(user_data)
+        
+        # Tüm konuları birleştir
+        all_topics = []
+        
+        # Kalıcı öğrenme tekrarları (öncelik)
+        if pending_mastery_topics:
+            for topic in pending_mastery_topics:
+                topic_copy = topic.copy()
+                topic_copy['review_type'] = 'KALİCİ'
+                all_topics.append(topic_copy)
+        
+        # Normal tekrarlar
+        if review_topics:
+            for topic in review_topics:
+                topic_copy = topic.copy()
+                topic_copy['review_type'] = 'GENEL'
+                all_topics.append(topic_copy)
+        
+        # Eğer hiç konu yoksa
+        if not all_topics:
+            st.info("🎉 Bu hafta tekrar edilecek konu bulunmuyor!")
+            return
+        
+        st.info(f"📊 **Toplam {len(all_topics)} konu tekrar edilecek**")
+        st.markdown("---")
+        
+        # 🔥 YENİ SEKMEDE KARTLAR
+        for i, topic in enumerate(all_topics):
+            show_review_topic_card(topic, i, user_data, all_topics)
+    
+    except Exception as e:
+        st.error(f"❌ Hata: {e}")
+        print(f"Review topics tab hatası: {e}")
+
+def show_review_topic_card(topic, index, user_data, all_topics):
+    """Tekrar konu kartı - YENİ TAB İÇİN"""
+    
+    # Unique key oluştur
+    topic_key = f"{topic['subject']}_{topic['topic']}_{index}"
+    button_key = f"review_tab_{topic_key}"
+    
+    # Konu bilgileri
+    review_type_icon = "🎯" if topic.get('review_type') == 'KALİCİ' else "🔄"
+    
+    # Net bilgisi çek (basit)
+    current_net = 0
+    try:
+        current_net = int(float(topic.get('net', 0)))
+    except:
+        current_net = 0
+    
+    # Renk belirle
+    if current_net >= 15:
+        status_color = "#228B22"
+        status_text = f"✅ {current_net} net"
+    elif current_net >= 10:
+        status_color = "#FF8C00" 
+        status_text = f"🟡 {current_net} net"
+    else:
+        status_color = "#DC143C"
+        status_text = f"🔴 {current_net} net"
+    
+    # Kart layout
+    col1, col2 = st.columns([4, 1])
+    
+    with col1:
+        # Kart
+        st.markdown(f"""
+        <div style='background: linear-gradient(135deg, {status_color} 0%, {status_color}88 50%, {status_color}66 100%); 
+                    border: 2px solid {status_color}; padding: 20px; border-radius: 12px; 
+                    margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); color: white;'>
+            <div style='font-weight: bold; font-size: 18px; color: white; margin-bottom: 10px;'>
+                {index+1}. {topic['subject']} {review_type_icon}
+            </div>
+            <div style='font-size: 20px; color: white; margin: 8px 0; font-weight: bold;'>
+                📖 {topic['topic']}
+            </div>
+            <div style='font-size: 14px; color: rgba(255,255,255,0.9); margin: 6px 0 10px 0; font-style: italic;'>
+                └ Ana Konu
+            </div>
+            <div style='font-size: 15px; color: white; font-weight: bold; background: rgba(0,0,0,0.2); 
+                        padding: 8px 12px; border-radius: 8px; display: inline-block;'>
+                {status_text} ({topic.get('review_type', 'GENEL')})
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        # Buton ve seviye
+        st.markdown("<div style='height: 60px;'></div>", unsafe_allow_html=True)
+        
+        # 🔥 KESIN ÇALIŞACAK BUTON
+        if st.button("✅ Tekrar Ettim", key=button_key, help="Konuyu tamamladım"):
+            try:
+                # 1. Session state güncelle
+                # FRESH: Her buton tıklamasında fresh data çek
+                remaining_topics = [t for j, t in enumerate(all_topics) if j != index]
+                
+                # Kullanıcıya bilgi ver
+                st.success(f"✅ {topic['subject']} - {topic['topic']} tamamlandı!")
+                
+                # 2. Firestore güncelle (basit)
+                if 'username' in user_data:
+                    try:
+                        # Konuyu weekly_plan'dan kaldır
+                        updated_weekly_plan = user_data.get('weekly_plan', {}).copy()
+                        if 'review_topics' in updated_weekly_plan:
+                            # Bu konuyu kaldır
+                            new_review_topics = []
+                            topic_to_remove = f"{topic['subject']}_{topic['topic']}"
+                            
+                            for rt in updated_weekly_plan['review_topics']:
+                                rt_key = f"{rt.get('subject', '')}_{rt.get('topic', '')}"
+                                if rt_key != topic_to_remove:
+                                    new_review_topics.append(rt)
+                            
+                            updated_weekly_plan['review_topics'] = new_review_topics
+                            user_data['weekly_plan'] = updated_weekly_plan
+                            
+                            # Firestore'a gönder
+                            update_user_in_firebase(user_data['username'], {
+                                'weekly_plan': updated_weekly_plan
+                            })
+                            clear_user_cache(user_data['username'])
+                            
+                            print(f"✅ Firestore güncellendi: {topic['subject']} - {topic['topic']}")
+                            
+                    except Exception as firebase_error:
+                        print(f"Firebase hatası: {firebase_error}")
+                
+                # 3. Sayfayı yenile
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"❌ Hata: {e}")
+                print(f"Buton hatası: {e}")
+        
+        # Seviye gösterge
+        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+        if current_net >= 15:
+            st.markdown("""
+            <div style='text-align: center; padding: 15px; background: rgba(34,139,34,0.1); border-radius: 8px;'>
+                <div style='font-size: 24px; color: #228B22;'>✅</div>
+                <div style='font-size: 12px; color: #228B22; font-weight: bold;'>İyi Seviye</div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div style='text-align: center; padding: 15px; background: rgba(255,140,0,0.1); border-radius: 8px;'>
+                <div style='font-size: 24px; color: #FF8C00;'>⚠️</div>
+                <div style='font-size: 12px; color: #FF8C00; font-weight: bold;'>Gelişim Gerekli</div>
+            </div>
+            """, unsafe_allow_html=True)
+
 def show_review_topics_section(review_topics, user_data):
-    """Tekrar konuları bölümü - UI FIRST + PENDING DELETION SİSTEMİ"""
+    """ESKİ FONKSİYON - Artık kullanılmıyor, show_review_topics_tab() kullanılıyor"""
     
     # 🔥 ÖNCELİK: Pending deletion'ları işle (sayfa her yüklendiğinde)
     if 'pending_deletions' in st.session_state and st.session_state.pending_deletions:
