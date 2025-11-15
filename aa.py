@@ -15628,16 +15628,23 @@ def main():
                 
                 st.markdown("---")
                 st.markdown("**🧠 Öğrenme Stili Dağılımı**")
-                style_scores_str = user_data.get('learning_style_scores', None)
-                if style_scores_str:
+                style_scores = user_data.get('learning_style_scores', None)
+                if style_scores:
                     try:
-                        style_scores = json.loads(style_scores_str.replace("'", "\""))
-                        sorted_styles = sorted(style_scores.items(), key=lambda item: item[1], reverse=True)
-                        for style, score in sorted_styles:
-                            if score > 0:
-                                st.write(f"- {style}: %{score:.1f}")
-                    except json.JSONDecodeError:
-                        st.write("Veri Hatası")
+                        # Eğer string ise JSON parse et, değilse doğrudan kullan
+                        if isinstance(style_scores, str):
+                            style_scores = json.loads(style_scores.replace("'", "\""))
+                        
+                        # Dictionary olduğundan emin ol
+                        if isinstance(style_scores, dict):
+                            sorted_styles = sorted(style_scores.items(), key=lambda item: item[1], reverse=True)
+                            for style, score in sorted_styles:
+                                if score > 0:
+                                    st.write(f"- {style}: %{score:.1f}")
+                        else:
+                            st.write("Veri formatı hatalı")
+                    except (json.JSONDecodeError, TypeError, KeyError) as e:
+                        st.write(f"Veri Hatası: {str(e)}")
                 else:
                     st.write("Henüz belirlenmedi.")
                 
@@ -20000,11 +20007,15 @@ def display_comprehensive_psychological_profile(completed_tests, user_data):
     
     # VAK Test sonuçları
     if 'vak' in completed_tests:
-        vak_scores = user_data.get('learning_style_scores', '')
+        vak_scores = user_data.get('learning_style_scores', {})
         vak_style = user_data.get('learning_style', '')
         if vak_scores and vak_style:
             try:
-                vak_data = json.loads(vak_scores.replace("'", '"'))
+                # Eğer string ise JSON parse et, değilse doğrudan kullan
+                if isinstance(vak_scores, str):
+                    vak_data = json.loads(vak_scores.replace("'", '"'))
+                else:
+                    vak_data = vak_scores
                 vak_data['dominant_style'] = vak_style
                 profile_data['vak'] = vak_data
             except:
@@ -20614,7 +20625,11 @@ def display_vak_analysis(user_data):
             
             # Verileri parse et
             if style_scores_str:
-                style_scores = json.loads(style_scores_str.replace("'", "\""))
+                # Eğer string ise JSON parse et, değilse doğrudan kullan
+                if isinstance(style_scores_str, str):
+                    style_scores = json.loads(style_scores_str.replace("'", "\""))
+                else:
+                    style_scores = style_scores_str
             else:
                 # Default değerler - test tamamlanmışsa
                 style_scores = {'visual': 35, 'auditory': 30, 'kinesthetic': 35}
