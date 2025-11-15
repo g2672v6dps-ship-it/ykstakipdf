@@ -7897,6 +7897,13 @@ def show_review_topics_tab(user_data):
     
     st.markdown("#### 🔄 TEKRAR EDİLECEK KONULAR")
     st.markdown("*Bu sekme sizin çalıştığınız tüm konuları gösterir ve detaylı bilgiler sunar.*")
+    
+    # 🔥 SESSION STATE COUNTER KONTROLÜ
+    refresh_counter = st.session_state.get('topic_refresh_counter', 0)
+    if refresh_counter > 0:
+        st.success(f"🔄 {refresh_counter} konu işlendi - Sayfa yenilendi")
+        st.session_state.topic_refresh_counter = 0  # Counter'ı sıfırla
+    
     st.markdown("---")
     
     try:
@@ -7948,7 +7955,7 @@ def show_review_topics_tab(user_data):
         print(f"Review topics tab hatası: {e}")
 
 def show_detailed_review_topic(topic, index, user_data):
-    """Renkli dikdörtgen tekrar konu kartı - NET DURUMUNA GÖRE RENKLENDİRME!"""
+    """Renkli dikdörtgen tekrar konu kartı - SESSION STATE SENKRONIZASYONU!"""
     
     # 🔥 ÇALIŞAN SİSTEMDEN GELEN VERİ
     subject = topic.get('subject', 'Bilinmiyor')
@@ -7958,8 +7965,8 @@ def show_detailed_review_topic(topic, index, user_data):
     net = topic.get('net', 0)
     difficulty = topic.get('difficulty', 'Orta')
     
-    # Unique key oluştur
-    topic_key = f"{subject}_{topic_name}_{index}"
+    # Unique key oluştur - daha spesifik
+    topic_key = f"topic_{subject}_{topic_name}_{index}_{hash(str(topic))}"
     
     # 🔥 NET DEĞERİNİ DÜZELT - ESKİ SİSTEMDEN ÇEK
     current_net = get_actual_net_value(subject, topic_name, user_data)
@@ -8004,67 +8011,166 @@ def show_detailed_review_topic(topic, index, user_data):
         </div>
         """, unsafe_allow_html=True)
         
-        # Tekrar Ettim butonu
+        # 🔥 GÜÇLENDİRİLMİŞ BUTONLAR
         col_buttons = st.columns([1, 1, 2])
         with col_buttons[0]:
-            if st.button("✅ Tekrar Ettim", key=f"repeat_{topic_key}"):
-                process_topic_completion(topic, user_data)
+            if st.button("✅ Tekrar Ettim", key=f"repeat_btn_{topic_key}", use_container_width=True):
+                # Buton tıklandığında hemen sil
+                with st.spinner("İşleniyor..."):
+                    process_topic_completion(topic, user_data)
+                # Başarı mesajı ve yenileme
+                st.success("✅ Konu tamamlandı ve kaldırıldı!")
+                
         with col_buttons[1]:
-            if st.button("🗑️ Sil", key=f"delete_simple_{topic_key}"):
-                process_topic_deletion(topic, user_data)
+            if st.button("🗑️ Sil", key=f"delete_btn_{topic_key}", use_container_width=True):
+                # Buton tıklandığında hemen sil
+                with st.spinner("İşleniyor..."):
+                    process_topic_deletion(topic, user_data)
+                # Başarı mesajı ve yenileme
+                st.success("🗑️ Konu silindi!")
     
     with col2:
         st.write("")  # Boş kolon
     
     with col3:
         st.write("")  # Boş kolon
+    
+    # 🔥 DEBUG BİLGİSİ (Geliştirme için)
+    if st.checkbox(f"Debug: {subject} - {topic_name}", key=f"debug_{topic_key}"):
+        st.write(f"**Net Değeri:** {current_net}")
+        st.write(f"**Topic Key:** {topic_key}")
+        st.write(f"**Renk:** {status_color}")
+        st.write(f"**Kaynak:** {source}")
 
 def get_actual_net_value(subject, topic_name, user_data):
-    """Konunun gerçek net değerini tüm kaynaklardan çeker"""
+    """Konunun gerçek net değerini tüm kaynaklardan çeker - GÜÇLENDİRİLMİŞ VERSİYON"""
     try:
-        topic_key = f"{subject}_{topic_name}"
+        # Farklı key formatlarını deneyelim
+        possible_keys = [
+            f"{subject}_{topic_name}",
+            f"{subject}-{topic_name}",
+            f"{subject} {topic_name}",
+            topic_name,  # Sadece konu adı
+        ]
         
-        # 1. topic_tracking'den çek
-        topic_tracking = user_data.get('topic_tracking', {})
-        if topic_key in topic_tracking:
-            net_value = topic_tracking[topic_key].get('net', 0)
-            try:
-                return int(float(net_value))
-            except:
-                return 0
+        subject_possible = [subject.lower(), subject.title(), subject]
         
-        # 2. yks_net_tracking'den çek
-        yks_tracking = user_data.get('yks_net_tracking', {})
-        if topic_key in yks_tracking:
-            net_value = yks_tracking[topic_key].get('net', 0)
-            try:
-                return int(float(net_value))
-            except:
-                return 0
+        # 🔥 1. PROGRESS_TRACKING'DEN ÇEK
+        try:
+            progress_data = user_data.get('progress_tracking', {})
+            if isinstance(progress_data, dict):
+                for subject_key, subject_data in progress_data.items():
+                    if isinstance(subject_data, dict) and subject_key.lower() in [s.lower() for s in subject_possible]:
+                        for topic_key, topic_data in subject_data.items():
+                            if isinstance(topic_data, dict):
+                                # Topic key match kontrolü
+                                if any(pk.lower() == topic_key.lower() or pk.lower() in topic_key.lower() for pk in possible_keys):
+                                    net_value = topic_data.get('net', 0)
+                                    try:
+                                        return int(float(net_value))
+                                    except:
+                                        return 0
+        except Exception as e:
+            print(f"Progress tracking'den net çekme hatası: {e}")
         
-        # 3. quiz_results'dan çek
-        quiz_results = user_data.get('quiz_results', [])
-        for result in quiz_results:
-            if result.get('subject') == subject and result.get('topic_name') == topic_name:
-                return result.get('net', 0)
+        # 🔥 2. TOPIC_TRACKING'DEN ÇEK (varsa)
+        try:
+            topic_tracking = user_data.get('topic_tracking', {})
+            for possible_key in possible_keys:
+                if possible_key in topic_tracking:
+                    net_value = topic_tracking[possible_key].get('net', 0)
+                    try:
+                        return int(float(net_value))
+                    except:
+                        return 0
+        except Exception as e:
+            print(f"Topic tracking'den net çekme hatası: {e}")
         
-        # 4. pomodoro_history'den çek
-        pomodoro_history = user_data.get('pomodoro_history', [])
-        for session in pomodoro_history:
-            if session.get('subject') == subject and session.get('topic') == topic_name:
-                return session.get('net_earned', 0)
+        # 🔥 3. QUIZ_RESULTS'DAN ÇEK
+        try:
+            quiz_results = user_data.get('quiz_results', [])
+            if isinstance(quiz_results, list):
+                for result in quiz_results:
+                    if isinstance(result, dict):
+                        result_subject = result.get('subject', '').lower()
+                        result_topic = result.get('topic_name', '').lower()
+                        
+                        # Subject ve topic match kontrolü
+                        if any(result_subject == s.lower() for s in subject_possible):
+                            if any(pt.lower() == result_topic for pt in possible_keys if pt.lower() in result_topic):
+                                net_value = result.get('net', 0)
+                                try:
+                                    return int(float(net_value))
+                                except:
+                                    return 0
+        except Exception as e:
+            print(f"Quiz results'dan net çekme hatası: {e}")
         
-        # 5. topic_evaluations'dan çek
-        topic_evaluations = user_data.get('topic_evaluations', [])
-        for eval_data in topic_evaluations:
-            if eval_data.get('subject') == subject and eval_data.get('topic') == topic_name:
-                return eval_data.get('net', 0)
+        # 🔥 4. POMODORO_HISTORY'DAN ÇEK
+        try:
+            pomodoro_history = user_data.get('pomodoro_history', [])
+            if isinstance(pomodoro_history, list):
+                for session in pomodoro_history:
+                    if isinstance(session, dict):
+                        session_subject = session.get('subject', '').lower()
+                        session_topic = session.get('topic', '').lower()
+                        
+                        if any(session_subject == s.lower() for s in subject_possible):
+                            if any(pt.lower() == session_topic for pt in possible_keys if pt.lower() in session_topic):
+                                net_value = session.get('net_earned', session.get('net', 0))
+                                try:
+                                    return int(float(net_value))
+                                except:
+                                    return 0
+        except Exception as e:
+            print(f"Pomodoro history'den net çekme hatası: {e}")
+        
+        # 🔥 5. TOPIC_EVALUATIONS'DAN ÇEK
+        try:
+            topic_evaluations = user_data.get('topic_evaluations', [])
+            if isinstance(topic_evaluations, list):
+                for eval_data in topic_evaluations:
+                    if isinstance(eval_data, dict):
+                        eval_subject = eval_data.get('subject', '').lower()
+                        eval_topic = eval_data.get('topic', '').lower()
+                        
+                        if any(eval_subject == s.lower() for s in subject_possible):
+                            if any(pt.lower() == eval_topic for pt in possible_keys if pt.lower() in eval_topic):
+                                net_value = eval_data.get('net', 0)
+                                try:
+                                    return int(float(net_value))
+                                except:
+                                    return 0
+        except Exception as e:
+            print(f"Topic evaluations'dan net çekme hatası: {e}")
+        
+        # 🔥 6. WEEKLY_PLAN'DAN ÇEK (fallback)
+        try:
+            weekly_plan = user_data.get('weekly_plan', {})
+            if isinstance(weekly_plan, dict):
+                review_topics = weekly_plan.get('review_topics', [])
+                if isinstance(review_topics, list):
+                    for topic in review_topics:
+                        if isinstance(topic, dict):
+                            topic_subject = topic.get('subject', '').lower()
+                            topic_name_in_plan = topic.get('topic', '').lower()
+                            
+                            if any(topic_subject == s.lower() for s in subject_possible):
+                                if any(pt.lower() == topic_name_in_plan for pt in possible_keys if pt.lower() in topic_name_in_plan):
+                                    net_value = topic.get('net', 0)
+                                    try:
+                                        return int(float(net_value))
+                                    except:
+                                        return 0
+        except Exception as e:
+            print(f"Weekly plan'dan net çekme hatası: {e}")
         
         # Hiçbirinden bulunamazsa 0 döndür
+        print(f"⚠️ Net değer bulunamadı: {subject} - {topic_name}")
         return 0
         
     except Exception as e:
-        print(f"Net değer çekme hatası: {e}")
+        print(f"Net değer çekme genel hatası: {e}")
         return 0
 
 def process_topic_deletion(topic, user_data):
@@ -8151,45 +8257,210 @@ def process_topic_deletion(topic, user_data):
         print(f"Konu silme hatası: {e}")
 
 def process_topic_completion(topic, user_data):
-    """Konu tamamlama işlemi - Çalışan sistem"""
+    """Konu tamamlama işlemi - GÜÇLENDİRİLMİŞ SİSTEM"""
     try:
         subject = topic.get('subject', 'Bilinmiyor')
         topic_name = topic.get('topic', 'Bilinmiyor')
+        topic_key = f"{subject}_{topic_name}"
         
         # Başarı mesajı
         st.success(f"✅ {subject} - {topic_name} konusu tamamlandı!")
         
         # 🔥 GERÇEK SİLME İŞLEMİ
+        updated = False
+        
         # 1. Haftalık plandan kaldır
         weekly_plan = user_data.get('weekly_plan', {}).copy()
         if 'review_topics' in weekly_plan:
-            original_review_topics = weekly_plan['review_topics']
-            # Bu konuyu kaldır
-            topic_to_remove = f"{subject}_{topic_name}"
+            original_review_topics = weekly_plan['review_topics'].copy()
             new_review_topics = []
             
             for rt in original_review_topics:
                 rt_subject = rt.get('subject', '')
                 rt_topic = rt.get('topic', '')
                 rt_key = f"{rt_subject}_{rt_topic}"
-                if rt_key != topic_to_remove:
+                
+                # Sadece eşleşen konuyu kaldır
+                if rt_key != topic_key:
                     new_review_topics.append(rt)
             
-            weekly_plan['review_topics'] = new_review_topics
-            user_data['weekly_plan'] = weekly_plan
+            if len(new_review_topics) != len(original_review_topics):
+                weekly_plan['review_topics'] = new_review_topics
+                user_data['weekly_plan'] = weekly_plan
+                updated = True
+                print(f"✅ Haftalık plandan kaldırıldı: {topic_key}")
         
-        # 2. Session state güncelle
-        if 'username' in user_data:
+        # 2. Kalıcı öğrenme sisteminden kaldır (varsa)
+        try:
+            repetition_history_data = user_data.get('topic_repetition_history', '{}')
+            if isinstance(repetition_history_data, str):
+                repetition_history = json.loads(repetition_history_data)
+            else:
+                repetition_history = repetition_history_data
+            
+            # Bu konu ile ilgili tüm kayıtları kaldır
+            keys_to_remove = []
+            for key in repetition_history.keys():
+                if subject in key and topic_name in key:
+                    keys_to_remove.append(key)
+            
+            for key in keys_to_remove:
+                del repetition_history[key]
+                updated = True
+                print(f"✅ Kalıcı öğrenmeden kaldırıldı: {key}")
+            
+            if updated:
+                user_data['topic_repetition_history'] = repetition_history
+        except Exception as e:
+            print(f"Kalıcı öğrenme güncelleme hatası: {e}")
+        
+        # 3. Firestore ve Cache güncelle
+        if updated and 'username' in user_data:
             username = user_data['username']
-            # Firestore'a gönder
-            update_user_in_firebase(username, {
-                'weekly_plan': weekly_plan
-            })
-            clear_user_cache(username)
-            print(f"✅ Konu silindi: {subject} - {topic_name}")
+            
+            # Firestore'u güncelle
+            update_data = {}
+            if 'weekly_plan' in user_data:
+                update_data['weekly_plan'] = user_data['weekly_plan']
+            if 'topic_repetition_history' in user_data:
+                update_data['topic_repetition_history'] = user_data['topic_repetition_history']
+            
+            if update_data:
+                update_user_in_firebase(username, update_data)
+                clear_user_cache(username)
+                print(f"✅ Firestore güncellendi: {subject} - {topic_name}")
         
-        # 3. Sayfayı yenile
-        st.rerun()
+        # 🔥 SAYFANIN YENİLENMESİ - MULTIPLE METHODS
+        if updated:
+            # Method 1: Streamlit rerun
+            try:
+                st.rerun()
+                return  # Eğer rerun çalışırsa buradan devam etmez
+            except:
+                pass
+            
+            # Method 2: Session state trigger
+            if 'topic_refresh_counter' not in st.session_state:
+                st.session_state.topic_refresh_counter = 0
+            st.session_state.topic_refresh_counter += 1
+            
+            # Method 3: Alternative delay method
+            st.markdown("""
+            <script>
+                setTimeout(function(){
+                    window.location.reload();
+                }, 1000);
+            </script>
+            """, unsafe_allow_html=True)
+            
+            print(f"✅ Sayfa yenilenmesi tetiklendi: {subject} - {topic_name}")
+        else:
+            print(f"⚠️ Konu bulunamadı veya zaten silinmiş: {topic_key}")
+        
+    except Exception as e:
+        st.error(f"❌ Silme hatası: {e}")
+        print(f"Konu silme hatası: {e}")
+
+def process_topic_deletion(topic, user_data):
+    """Konu silme işlemi - GÜÇLENDİRİLMİŞ SİSTEM"""
+    try:
+        subject = topic.get('subject', 'Bilinmiyor')
+        topic_name = topic.get('topic', 'Bilinmiyor')
+        source = topic.get('source', 'GENEL')
+        topic_key = f"{subject}_{topic_name}"
+        
+        # Başarı mesajı
+        st.success(f"🗑️ {subject} - {topic_name} konusu silindi!")
+        
+        # 🔥 KAPSAMLI SİLME İŞLEMİ
+        updated = False
+        
+        # 1. Haftalık plandan kaldır
+        weekly_plan = user_data.get('weekly_plan', {}).copy()
+        if 'review_topics' in weekly_plan:
+            original_review_topics = weekly_plan['review_topics'].copy()
+            new_review_topics = []
+            
+            for rt in original_review_topics:
+                rt_subject = rt.get('subject', '')
+                rt_topic = rt.get('topic', '')
+                rt_key = f"{rt_subject}_{rt_topic}"
+                
+                # Sadece eşleşen konuyu kaldır
+                if rt_key != topic_key:
+                    new_review_topics.append(rt)
+            
+            if len(new_review_topics) != len(original_review_topics):
+                weekly_plan['review_topics'] = new_review_topics
+                user_data['weekly_plan'] = weekly_plan
+                updated = True
+                print(f"✅ Haftalık plandan silindi: {topic_key}")
+        
+        # 2. Kalıcı öğrenme sisteminden kaldır
+        if source == 'KALİCİ ÖĞRENME':
+            try:
+                mastery_status_data = user_data.get('topic_mastery_status', '{}')
+                if isinstance(mastery_status_data, str):
+                    mastery_status = json.loads(mastery_status_data)
+                else:
+                    mastery_status = mastery_status_data or {}
+                
+                # Bu konuyu tamamlanmış olarak işaretle
+                if topic_key in mastery_status:
+                    mastery_status[topic_key] = {
+                        'status': 'MASTERED',
+                        'last_reviewed': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        'review_count': mastery_status.get(topic_key, {}).get('review_count', 0) + 1,
+                        'source': 'TEKRAR_EDİLECEK_KONULAR_SİLME'
+                    }
+                    user_data['topic_mastery_status'] = mastery_status
+                    updated = True
+                    print(f"✅ Kalıcı öğrenme güncellendi: {topic_key}")
+            except Exception as mastery_error:
+                print(f"Kalıcı öğrenme güncelleme hatası: {mastery_error}")
+        
+        # 3. Firestore ve Cache güncelle
+        if updated and 'username' in user_data:
+            username = user_data['username']
+            
+            # Firestore'u güncelle
+            update_data = {}
+            if 'weekly_plan' in user_data:
+                update_data['weekly_plan'] = user_data['weekly_plan']
+            if 'topic_mastery_status' in user_data:
+                update_data['topic_mastery_status'] = user_data['topic_mastery_status']
+            
+            if update_data:
+                update_user_in_firebase(username, update_data)
+                clear_user_cache(username)
+                print(f"✅ Firestore güncellendi: {subject} - {topic_name}")
+        
+        # 🔥 SAYFANIN YENİLENMESİ - MULTIPLE METHODS
+        if updated:
+            # Method 1: Streamlit rerun
+            try:
+                st.rerun()
+                return  # Eğer rerun çalışırsa buradan devam etmez
+            except:
+                pass
+            
+            # Method 2: Session state trigger
+            if 'topic_refresh_counter' not in st.session_state:
+                st.session_state.topic_refresh_counter = 0
+            st.session_state.topic_refresh_counter += 1
+            
+            # Method 3: Alternative delay method
+            st.markdown("""
+            <script>
+                setTimeout(function(){
+                    window.location.reload();
+                }, 1000);
+            </script>
+            """, unsafe_allow_html=True)
+            
+            print(f"✅ Sayfa yenilenmesi tetiklendi: {subject} - {topic_name}")
+        else:
+            print(f"⚠️ Konu bulunamadı veya zaten silinmiş: {topic_key}")
         
     except Exception as e:
         st.error(f"❌ Silme hatası: {e}")
