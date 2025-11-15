@@ -8056,41 +8056,6 @@ def show_detailed_review_topic(topic, index, user_data):
         </div>
         """, unsafe_allow_html=True)
         
-        # 🚨 BASİT DEBUG - Net değer sorunu için
-        if st.checkbox(f"🔍 Debug Bilgisi", key=f"debug_{topic_key}"):
-            st.info(f"""
-            **🔢 Konu Bilgileri:**
-            - **Konu:** {subject} - {topic_name}  
-            - **Görünen Net:** {net}
-            - **Gerçek Net:** {current_net}
-            - **Kaynak:** {source}
-            - **Zorluk:** {difficulty}
-            """)
-            
-            # Veri kaynaklarını kontrol et
-            topic_tracking = user_data.get('topic_tracking', {})
-            progress_tracking = user_data.get('progress_tracking', {})
-            topic_progress_data_raw = user_data.get('topic_progress', '{}')
-            
-            st.write(f"**🗂️ Topic Tracking Keys:** `{list(topic_tracking.keys())[:3] if topic_tracking else '[]'}...`")
-            
-            if isinstance(progress_tracking, dict):
-                st.write(f"**📈 Progress Subjects:** `{list(progress_tracking.keys())[:3] if progress_tracking else '[]'}...`")
-            
-            try:
-                topic_progress = json.loads(topic_progress_data_raw) if isinstance(topic_progress_data_raw, str) else topic_progress_data_raw
-                if topic_progress:
-                    st.write(f"**🎯 KONU TAKİP Veri Kaynağı Keys:** `{list(topic_progress.keys())[:3]}...`")
-                else:
-                    st.write(f"**🎯 KONU TAKİP Veri Kaynağı Keys:** `[]` (BOŞ)")
-            except Exception as e:
-                st.write(f"**🎯 KONU TAKİP Veri Kaynağı:** `ERROR: {e}`")
-            
-            if current_net == 0:
-                st.warning("⚠️ **Net değeri bulunamadı!** Bu konu için veri kaynaklarında net bilgisi yok.")
-            else:
-                st.success(f"✅ **Net değeri bulundu:** {current_net}")
-        
         # 🔥 GÜÇLENDİRİLMİŞ BUTONLAR
         col_buttons = st.columns([1, 1, 2])
         with col_buttons[0]:
