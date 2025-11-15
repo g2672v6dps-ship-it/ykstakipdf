@@ -7614,7 +7614,8 @@ def show_weekly_planner(user_data):
     clear_outdated_session_data()
     
     # Anket verilerini yükle
-    survey_data = json.loads(user_data.get('yks_survey_data', '{}'))
+    survey_data_raw = user_data.get('yks_survey_data', '{}')
+    survey_data = json.loads(survey_data_raw) if isinstance(survey_data_raw, str) else survey_data_raw
     student_field = user_data.get('field', '')
     
     # 🔁 YENİ: DİNAMİK HAFTALIK PLAN AL - Kayıt tarihinden itibaren esnek döngü
@@ -8463,7 +8464,8 @@ def show_mastery_progress_dashboard(user_data):
     """Kalıcı öğrenme ilerleme dashboard'u"""
     import json
     
-    mastery_status = json.loads(user_data.get('topic_mastery_status', '{}'))
+    mastery_status_data = user_data.get('topic_mastery_status', '{}')
+    mastery_status = json.loads(mastery_status_data) if isinstance(mastery_status_data, str) else mastery_status_data
     
     if not mastery_status:
         st.info("📚 Henüz kalıcı öğrenme sisteminde konu bulunmuyor.")
@@ -9341,7 +9343,8 @@ def show_time_based_progress_analysis(user_data, week_info):
     # Temel veriler
     topic_progress_data = user_data.get('topic_progress', '{}')
     topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
-    completion_dates = json.loads(user_data.get('topic_completion_dates', '{}') or '{}')
+    completion_dates_data = user_data.get('topic_completion_dates', '{}')
+    completion_dates = json.loads(completion_dates_data) if isinstance(completion_dates_data, str) else completion_dates_data
     current_date = datetime.now()
     
     # Günlük analiz (son 24 saat)
@@ -9508,7 +9511,8 @@ def show_exam_based_trend_analysis(user_data):
     st.caption("Deneme sonuçlarınıza göre güçlenen/zayıflayan konularınız")
     
     # Deneme verileri
-    exam_history = json.loads(user_data.get('detailed_exam_history', '[]') or '[]')
+    exam_history_raw = user_data.get('detailed_exam_history', '[]')
+    exam_history = json.loads(exam_history_raw) if isinstance(exam_history_raw, str) else exam_history_raw
     
     if not exam_history:
         st.info("📊 Henüz deneme analizi verisi yok. 'Detaylı Deneme Analiz' sekmesinden deneme sonuçlarınızı girin.")
@@ -9641,7 +9645,8 @@ def show_yks_target_speed_analysis(user_data, projections, week_info):
 
 def calculate_current_completion_speed(user_data):
     """Mevcut konu tamamlama hızını hesaplar (konu/hafta)"""
-    completion_dates = json.loads(user_data.get('topic_completion_dates', '{}') or '{}')
+    completion_dates_data = user_data.get('topic_completion_dates', '{}')
+    completion_dates = json.loads(completion_dates_data) if isinstance(completion_dates_data, str) else completion_dates_data
     current_date = datetime.now()
     
     # Son 4 hafta
@@ -10150,12 +10155,16 @@ def show_yks_journey_cinema(user_data, progress_data):
         journey_days = []
         
         try:
-            daily_motivation = json.loads(user_data.get('daily_motivation', '{}'))
-            pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
+            daily_motivation_raw = user_data.get('daily_motivation', '{}')
+            daily_motivation = json.loads(daily_motivation_raw) if isinstance(daily_motivation_raw, str) else daily_motivation_raw
+            pomodoro_history_raw = user_data.get('pomodoro_history', '[]')
+            pomodoro_history = json.loads(pomodoro_history_raw) if isinstance(pomodoro_history_raw, str) else pomodoro_history_raw
             topic_progress_data = user_data.get('topic_progress', '{}')
             topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
-            exam_data = json.loads(user_data.get('exam_data', '{}'))
-            weekly_plan = json.loads(user_data.get('weekly_plan', '{}'))
+            exam_data_raw = user_data.get('exam_data', '{}')
+            exam_data = json.loads(exam_data_raw) if isinstance(exam_data_raw, str) else exam_data_raw
+            weekly_plan_raw = user_data.get('weekly_plan', '{}')
+            weekly_plan = json.loads(weekly_plan_raw) if isinstance(weekly_plan_raw, str) else weekly_plan_raw
         except:
             daily_motivation = {}
             pomodoro_history = []
@@ -11500,7 +11509,8 @@ def update_topic_completion_date(username, topic_key):
     try:
         user_data = get_user_data()
         if user_data:
-            completion_dates = json.loads(user_data.get('topic_completion_dates', '{}') or '{}')
+            completion_dates_data = user_data.get('topic_completion_dates', '{}')
+            completion_dates = json.loads(completion_dates_data) if isinstance(completion_dates_data, str) else completion_dates_data
             completion_dates[topic_key] = datetime.now().isoformat()
             
             # YENİ: Kalıcı öğrenme sistemine ekle
@@ -11720,7 +11730,8 @@ def track_topic_completion_for_review():
     
     topic_progress_data = user_data.get('topic_progress', '{}')
     topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
-    completion_dates = json.loads(user_data.get('topic_completion_dates', '{}') or '{}')
+    completion_dates_data = user_data.get('topic_completion_dates', '{}')
+    completion_dates = json.loads(completion_dates_data) if isinstance(completion_dates_data, str) else completion_dates_data
     
     # Yeni tamamlanan konuları bul
     for topic_key, net_str in topic_progress.items():
@@ -12140,7 +12151,8 @@ def show_pomodoro_interface(user_data):
         else:
             # YKS Canlı Takip'ten haftalık hedef konuları ve tüm konuları al
             student_field = user_data.get('field', '')
-            survey_data = json.loads(user_data.get('yks_survey_data', '{}')) if user_data.get('yks_survey_data') else {}
+            survey_data_raw = user_data.get('yks_survey_data', '{}')
+            survey_data = json.loads(survey_data_raw) if isinstance(survey_data_raw, str) else survey_data_raw if user_data.get('yks_survey_data') else {}
             weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
             
             # Haftalık hedef konuları
@@ -12385,7 +12397,8 @@ def show_pomodoro_interface(user_data):
     
     # Kullanıcı verilerini al
     student_field = user_data.get('field', '')
-    survey_data = json.loads(user_data.get('survey_data', '{}')) if user_data.get('survey_data') else {}
+    survey_data_raw = user_data.get('survey_data', '{}')
+    survey_data = json.loads(survey_data_raw) if isinstance(survey_data_raw, str) else survey_data_raw if user_data.get('survey_data') else {}
     
     # Haftalık hedef konuları çek - KOÇ ONAYLARIYLA BİRLİKTE
     weekly_plan = create_dynamic_weekly_plan(user_data, student_field, survey_data)
@@ -12855,7 +12868,8 @@ def show_daily_pomodoro_stats(user_data):
             # Haftalık hedef konular bazında ilerleme hesapla
             try:
                 student_field = user_data.get('field', '')
-                survey_data = json.loads(user_data.get('survey_data', '{}')) if user_data.get('survey_data') else {}
+                survey_data_raw = user_data.get('survey_data', '{}')
+                survey_data = json.loads(survey_data_raw) if isinstance(survey_data_raw, str) else survey_data_raw
                 weekly_plan = get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
                 weekly_target_topics = weekly_plan.get('new_topics', []) + weekly_plan.get('review_topics', [])
                 
@@ -13685,7 +13699,8 @@ def calculate_spaced_repetition_topics(user_data):
     """Tekrar edilmesi gereken konuları bilimsel aralıklarla hesaplar"""
     topic_progress_data = user_data.get('topic_progress', '{}')
     topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
-    completion_dates = json.loads(user_data.get('topic_completion_dates', '{}') or '{}')
+    completion_dates_data = user_data.get('topic_completion_dates', '{}')
+    completion_dates = json.loads(completion_dates_data) if isinstance(completion_dates_data, str) else completion_dates_data
     
     current_date = datetime.now()
     review_topics = []
@@ -13758,8 +13773,10 @@ def add_topic_to_mastery_system(user_data, topic_key, initial_level="iyi"):
     from datetime import datetime, timedelta
     
     # Mevcut verileri yükle
-    repetition_history = json.loads(user_data.get('topic_repetition_history', '{}'))
-    mastery_status = json.loads(user_data.get('topic_mastery_status', '{}'))
+    repetition_history_data = user_data.get('topic_repetition_history', '{}')
+    repetition_history = json.loads(repetition_history_data) if isinstance(repetition_history_data, str) else repetition_history_data
+    mastery_status_data = user_data.get('topic_mastery_status', '{}')
+    mastery_status = json.loads(mastery_status_data) if isinstance(mastery_status_data, str) else mastery_status_data
     
     current_date = datetime.now()
     
@@ -13859,7 +13876,8 @@ def get_pending_review_topics(user_data):
     import json
     from datetime import datetime
     
-    repetition_history = json.loads(user_data.get('topic_repetition_history', '{}'))
+    repetition_history_data = user_data.get('topic_repetition_history', '{}')
+    repetition_history = json.loads(repetition_history_data) if isinstance(repetition_history_data, str) else repetition_history_data
     pending_topics = []
     current_date = datetime.now()
     
@@ -13915,8 +13933,10 @@ def process_review_evaluation(user_data, topic_key, evaluation_level):
     import json
     from datetime import datetime, timedelta
     
-    repetition_history = json.loads(user_data.get('topic_repetition_history', '{}'))
-    mastery_status = json.loads(user_data.get('topic_mastery_status', '{}'))
+    repetition_history_data = user_data.get('topic_repetition_history', '{}')
+    repetition_history = json.loads(repetition_history_data) if isinstance(repetition_history_data, str) else repetition_history_data
+    mastery_status_data = user_data.get('topic_mastery_status', '{}')
+    mastery_status = json.loads(mastery_status_data) if isinstance(mastery_status_data, str) else mastery_status_data
     
     current_date = datetime.now()
     
@@ -15761,7 +15781,8 @@ def main():
                 today_str = week_info["today"].strftime("%Y-%m-%d")
                 
                 # Günlük motivasyon verilerini çek
-                daily_motivation = json.loads(user_data.get('daily_motivation', '{}'))
+                daily_motivation_raw = user_data.get('daily_motivation', '{}')
+                daily_motivation = json.loads(daily_motivation_raw) if isinstance(daily_motivation_raw, str) else daily_motivation_raw
                 today_motivation = daily_motivation.get(today_str, {
                     'score': 5, 
                     'note': '',
@@ -24680,7 +24701,8 @@ def show_weak_subjects_analysis(user_data, field, score_diff):
 def get_user_weekly_progress(user_data):
     """Kullanıcının haftalık ilerlemesini hesaplar"""
     # Konu takip verilerinden ilerleme hesapla
-    topic_tracking = json.loads(user_data.get('topic_tracking_data', '{}'))
+    topic_tracking_data_raw = user_data.get('topic_tracking_data', '{}')
+    topic_tracking = json.loads(topic_tracking_data_raw) if isinstance(topic_tracking_data_raw, str) else topic_tracking_data_raw
     if not topic_tracking:
         return 60  # Varsayılan
     
@@ -24689,7 +24711,8 @@ def get_user_weekly_progress(user_data):
                           if topic_data.get('net_score', 0) >= 5)
     
     # Pomodoro verisini de dahil et
-    pomodoro_data = json.loads(user_data.get('pomodoro_data', '{}'))
+    pomodoro_data_raw = user_data.get('pomodoro_data', '{}')
+    pomodoro_data = json.loads(pomodoro_data_raw) if isinstance(pomodoro_data_raw, str) else pomodoro_data_raw
     weekly_sessions = sum(1 for session in pomodoro_data.values() 
                          if session.get('completed', False))
     
@@ -24700,7 +24723,8 @@ def get_user_weekly_progress(user_data):
 def generate_adaptive_schedule(user_data):
     """Otomatik saat ayarlama sistemi - öğrenci tempositemiine göre"""
     # Anket verilerini al
-    survey_data = json.loads(user_data.get('yks_survey_data', '{}'))
+    survey_data_raw = user_data.get('yks_survey_data', '{}')
+    survey_data = json.loads(survey_data_raw) if isinstance(survey_data_raw, str) else survey_data_raw
     sleep_time = survey_data.get('sleep_time', '23:00 - 06:00 (7 saat) - Önerilen')
     
     # Kullanıcının tempositemiini hesapla
