@@ -7608,7 +7608,11 @@ def show_yks_survey(user_data):
                               {'yks_survey_data': json.dumps(survey_data)})
             # 🚀 OPTİMİZE: update_user_in_firebase() zaten session state'i günceller
             
-            # Anket verileri kaydedildi - gereksiz kitap önerisi gösterilmiyor
+            # 💪 YENİ ÖZELLİK: Zorlandığınız konuları sisteme otomatik ekle
+            add_struggling_subjects_from_survey(user_data, difficult_subjects)
+            
+            st.success("🎉 Anketiniz tamamlandı! Zorlandığınız konular otomatik olarak sisteme eklendi.")
+            st.markdown("💡 **Bir sonraki adım:** Konu Takip sekmesinden netlerinizi girerek ilerlemenizi takip edin!")
             
             st.rerun()
 
@@ -9121,6 +9125,89 @@ def show_review_topics_section(review_topics, user_data):
         
     else:
         st.info("🔄 Bu hafta için tekrar edilecek konu bulunmuyor.")
+
+def add_struggling_subjects_from_survey(user_data, difficult_subjects):
+    """YKS anketinden zorlandığı dersleri sisteme ekle"""
+    try:
+        # Mevcut struggling_subjects'i temizle (yeni anket = yeni başlangıç)
+        struggling_subjects = {}
+        
+        # Her zorlanılan ders için tüm konuları sisteme ekle
+        for subject in difficult_subjects:
+            if subject in YKS_TOPICS:
+                subject_data = YKS_TOPICS[subject]
+                
+                # Ana konular ve alt konuları al
+                for main_topic, sub_topics in subject_data.items():
+                    if isinstance(sub_topics, dict):
+                        # Alt konular varsa onları da ekle
+                        for sub_topic, details in sub_topics.items():
+                            if isinstance(details, list):
+                                for detail in details:
+                                    topic_key = f"{subject}_{main_topic}_{sub_topic}_{detail}"
+                                    struggling_subjects[topic_key] = {
+                                        'subject': subject,
+                                        'topic': f"{main_topic} - {sub_topic}",
+                                        'detail': detail,
+                                        'current_net': 0,  # Başlangıçta 0 net
+                                        'added_date': datetime.now().strftime("%Y-%m-%d"),
+                                        'status': 'needs_improvement',
+                                        'source': 'yks_survey'
+                                    }
+                            else:
+                                # Alt konu detayı yoksa sadece ana konu
+                                topic_key = f"{subject}_{main_topic}_{sub_topic}"
+                                struggling_subjects[topic_key] = {
+                                    'subject': subject,
+                                    'topic': main_topic,
+                                    'detail': sub_topic,
+                                    'current_net': 0,
+                                    'added_date': datetime.now().strftime("%Y-%m-%d"),
+                                    'status': 'needs_improvement',
+                                    'source': 'yks_survey'
+                                }
+                    elif isinstance(sub_topics, list):
+                        # Liste halinde konular
+                        for topic in sub_topics:
+                            topic_key = f"{subject}_{main_topic}_{topic}"
+                            struggling_subjects[topic_key] = {
+                                'subject': subject,
+                                'topic': main_topic,
+                                'detail': topic,
+                                'current_net': 0,
+                                'added_date': datetime.now().strftime("%Y-%m-%d"),
+                                'status': 'needs_improvement',
+                                'source': 'yks_survey'
+                            }
+                    else:
+                        # Tek konu
+                        topic_key = f"{subject}_{main_topic}_{sub_topics}"
+                        struggling_subjects[topic_key] = {
+                            'subject': subject,
+                            'topic': main_topic,
+                            'detail': str(sub_topics),
+                            'current_net': 0,
+                            'added_date': datetime.now().strftime("%Y-%m-%d"),
+                            'status': 'needs_improvement',
+                            'source': 'yks_survey'
+                        }
+        
+        # Kullanıcı verisini güncelle
+        user_data['struggling_subjects'] = struggling_subjects
+        
+        # Firebase'e gönder
+        if 'username' in user_data:
+            try:
+                update_user_in_firebase(user_data['username'], {
+                    'struggling_subjects': struggling_subjects
+                })
+            except:
+                pass
+                
+        print(f"✅ {len(struggling_subjects)} konu sisteme eklendi")
+        
+    except Exception as e:
+        print(f"Zorlanılan konu ekleme hatası: {e}")
 
 def add_to_struggling_subjects(user_data, topic, current_net):
     """Konuyu zorlandığınız konular listesine ekle"""
