@@ -87,6 +87,41 @@ class PlotlyCache:
 # Global plotly cache instance
 plotly_cache = PlotlyCache()
 
+# 🔥 Firestore okuma cache sistemi
+def cached_firestore_get(path, expire_seconds=300):
+    """Firestore okumasını cache'e alır ve okuma sayılarını düşürür."""
+    cache_key = f"cache_{path}"
+    timestamp_key = f"{cache_key}_time"
+
+    # Cache varsa ve süresi dolmadıysa buradan al
+    if cache_key in st.session_state:
+        elapsed = time.time() - st.session_state[timestamp_key]
+        if elapsed < expire_seconds:
+            return st.session_state[cache_key]
+
+    # Firestore'dan oku
+    try:
+        doc_ref = firestore_db.document(path).get()
+        data = doc_ref.to_dict() if doc_ref.exists else None
+    except Exception as e:
+        print(f"Firestore okuma hatası: {e}")
+        data = None
+
+    # Cache'e kaydet
+    st.session_state[cache_key] = data
+    st.session_state[timestamp_key] = time.time()
+
+    return data
+
+def clear_user_cache(username):
+    """Kullanıcı cache'ini temizler"""
+    cache_key = f"cache_{username}"
+    timestamp_key = f"{cache_key}_time"
+    
+    if cache_key in st.session_state:
+        del st.session_state[cache_key]
+        del st.session_state[timestamp_key]
+
 # Güvenli plotly_chart fonksiyonu - CACHE'Lİ
 def safe_plotly_chart(fig, cache_key=None, **kwargs):
     """Cache'li güvenli plotly chart"""
@@ -640,7 +675,7 @@ class FirebaseCache:
         try:
             if limit_to_user:
                 # Sadece belirli kullanıcıyı çek (Lazy Loading)
-                users_data = {limit_to_user: firestore_db.document(limit_to_user).get().to_dict()} if firebase_connected else {}
+                users_data = {limit_to_user: cached_firestore_get(limit_to_user)} if firebase_connected else {}
             else:
                 # Tüm kullanıcıları çek (Admin için) - Firestore Collection okuma
                 users_data = {}
@@ -672,7 +707,7 @@ class FirebaseCache:
         # Firebase'den çek
         try:
             if firebase_connected and firestore_db:
-                data = firestore_db.document(username).get().to_dict()
+                data = cached_firestore_get(username)
                 if data:
                     self.cache[cache_key] = {
                         'data': data,
@@ -695,6 +730,9 @@ class FirebaseCache:
             if cache_key in self.cache:
                 self.cache[cache_key]['data'].update(data)
                 self.cache[cache_key]['time'] = time.time()
+            
+            # Firestore cache'ini temizle - yeni cache sistemi için
+            clear_user_cache(username)
             
             return True
         except:
@@ -9866,7 +9904,7 @@ def show_interactive_systematic_planner(weekly_plan, survey_data, user_data=None
                     # Kullanıcının verilerini Firebase'den yeniden çek
                     if firebase_connected and firestore_db:
                         try:
-                            fresh_user_data = firestore_db.collection('users').document(current_user).get().to_dict()
+                            fresh_user_data = cached_firestore_get(current_user)
                             if fresh_user_data:
                                 st.session_state.users_db[current_user].update(fresh_user_data)
                                 st.success("✅ Onay durumu güncellendi!")
@@ -9888,7 +9926,7 @@ def show_interactive_systematic_planner(weekly_plan, survey_data, user_data=None
                     if firebase_connected and firestore_db:
                         try:
                             # Kullanıcının tüm onaylı konularını çek
-                            approvals_data = firestore_db.document("coach_approvals").get().to_dict()
+                            approvals_data = cached_firestore_get("coach_approvals")
                             user_approved_topics = []
                             
                             if approvals_data:
@@ -22779,7 +22817,7 @@ def get_approved_coached_topics(user_data):
             approved_topics = []
         
         # Coach approvals'dan bu kullanıcı için olanları çek
-            approvals_data = firestore_db.document("coach_approvals").get().to_dict()
+            approvals_data = cached_firestore_get("coach_approvals")
             
             if approvals_data:
                 username = user_data['username']
@@ -26373,6 +26411,9 @@ def send_to_coach_approval(user_data, weekly_plan):
             # Firebase'e kaydet
             approval_key = f"{current_username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             firestore_db.collection('coach_approvals').document(approval_key).set(approval_request, merge=True)
+            
+            # Cache temizle
+            clear_user_cache("coach_approvals")
         else:
             # Session state'e kaydet (fallback)
             if 'coach_approval_requests' not in st.session_state:
@@ -26441,7 +26482,7 @@ def get_student_approval_requests():
     try:
         if firebase_connected and firestore_db:
             # Firebase'den çek
-            approvals_data = firestore_db.document("coach_approvals").get().to_dict()
+            approvals_data = cached_firestore_get("coach_approvals")
             if approvals_data:
                 processed_requests = []
                 for request in approvals_data.values():
@@ -26451,7 +26492,7 @@ def get_student_approval_requests():
                         if 'student_username' in request:
                             student_username = request['student_username']
                             try:
-                                user_data = firestore_db.collection('users').document(student_username).get().to_dict()
+                                user_data = cached_firestore_get(student_username)
                                 if user_data:
                                     request['student_name'] = user_data.get('name', student_username)
                                 else:
@@ -26538,7 +26579,7 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
             })
             
             # 🔧 FİX: Student_username kontrolü ile öğrenci verilerini güncelle
-            approval_data = firestore_db.collection('coach_approvals').document(approval_key).get().to_dict()
+            approval_data = cached_firestore_get(f"coach_approvals/{approval_key}")
             if approval_data:
                 # Student_username'i güvenli bir şekilde al
                 student_username = approval_data.get('student_username', '')
@@ -26559,6 +26600,9 @@ def approve_student_topics(approval_key, approved_topics, coach_notes, status):
                         'approved_topics': approved_topics
                     }
                     firestore_db.collection('users').document(student_username).set(student_data, merge=True)
+                    
+                    # Cache temizle
+                    clear_user_cache(student_username)
                     
                     # 🔥 GÜÇLÜ CACHE TEMİZLE: Öğrencinin tüm cache'lerini temizle
                     if 'users_db' in st.session_state and student_username in st.session_state.users_db:
