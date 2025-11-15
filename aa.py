@@ -374,6 +374,13 @@ def generate_mock_student_data():
 
 def show_admin_dashboard():
     """Admin dashboard ana sayfa"""
+    # 🔄 Firestore import modülü - sadece admin paneli için
+    try:
+        import import_firestore
+        IMPORT_FIRESTORE_AVAILABLE = True
+    except ImportError:
+        IMPORT_FIRESTORE_AVAILABLE = False
+    
     # Çıkış butonu
     col1, col2, col3 = st.columns([6, 1, 1])
     with col3:
@@ -390,13 +397,20 @@ def show_admin_dashboard():
     """, unsafe_allow_html=True)
     
     # Tab sistemi oluştur
-    tab1, tab2 = st.tabs(["📊 Öğrenci Takip", "👨‍🏫 Koç Onay Sistemi"])
+    tab1, tab2, tab3 = st.tabs(["📊 Öğrenci Takip", "👨‍🏫 Koç Onay Sistemi", "🔄 Firestore Veri Yükle"])
     
     with tab1:
         show_student_tracking_panel()
     
     with tab2:
         admin_coach_approval_panel()
+        
+    with tab3:
+        if IMPORT_FIRESTORE_AVAILABLE:
+            import_firestore.import_page()
+        else:
+            st.error("❌ Firestore import modülü bulunamadı!")
+            st.info("💡 import_firestore.py dosyası mevcut dizinde olmalıdır.")
 
 def show_student_tracking_panel():
     """Öğrenci takip paneli (eski admin dashboard içeriği)"""
