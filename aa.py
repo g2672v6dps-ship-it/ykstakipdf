@@ -7922,8 +7922,55 @@ def show_review_topics_section(review_topics, user_data):
     if all_review_topics:
         st.markdown("#### 🔄 TEKRAR EDİLECEK KONULAR")
         
+        # Açıklama metni
+        st.markdown("""
+        <div style='background: #f0f2f6; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; color: #555;'>
+            💡 <strong>Nasıl Çalışır:</strong> "Tekrar ettim" butonuna bastığınızda konular <strong>tekrar geçmişine</strong> kaydedilir. 
+            Bu listede görmek istemiyorsanız <strong>"🔄 Listeyi Yenile"</strong> butonunu kullanın.
+        </div>
+        """, unsafe_allow_html=True)
+        
         # 🔥 Session state'e kaydet (button sırasında kullanmak için)
         st.session_state.all_review_topics = all_review_topics
+        
+        # 🔥 YENİLE BUTONU EKLE
+        col1, col2 = st.columns([4, 1])
+        
+        with col2:
+            if st.button("🔄 Listeyi Yenile", key="refresh_review_list", help="Tekrar ettim butonuna basılan konuları listeden temizle"):
+                try:
+                    # Tekrar geçmişinden "Tekrar Ettim" konuları bul
+                    completed_topics = set()
+                    if 'topic_repetition_history' in user_data:
+                        repetition_history = user_data['topic_repetition_history']
+                        for topic_key, history_data in repetition_history.items():
+                            if isinstance(history_data, dict) and history_data.get('level') == 'Tekrar Ettim':
+                                completed_topics.add(topic_key)
+                    
+                    # Session state'den "Tekrar ettim" konuları temizle
+                    if 'all_review_topics' in st.session_state:
+                        original_length = len(st.session_state.all_review_topics)
+                        st.session_state.all_review_topics = [
+                            topic for topic in st.session_state.all_review_topics 
+                            if f"{topic['subject']}_{topic['topic']}" not in completed_topics
+                        ]
+                        filtered_length = len(st.session_state.all_review_topics)
+                        removed_count = original_length - filtered_length
+                        
+                        if removed_count > 0:
+                            st.success(f"✅ {removed_count} konu temizlendi!")
+                        else:
+                            st.info("🔄 Temizlenecek konu bulunmuyor.")
+                    
+                    # Sayfa yenileme
+                    st.rerun()
+                    
+                except Exception as e:
+                    st.error(f"Yenileme hatası: {e}")
+        
+        # 🔥 YENİLEME SONRASI bilgi
+        if 'all_review_topics' in st.session_state and len(st.session_state.all_review_topics) != len(all_review_topics):
+            st.info("💡 Listeniz güncellenmiş olabilir. '🔄 Listeyi Yenile' butonunu kullanın.")
         
         # Konu takip sisteminden güncel bilgileri al
         topic_progress = user_data.get('topic_progress', {})
