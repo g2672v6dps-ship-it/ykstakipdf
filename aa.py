@@ -8056,8 +8056,8 @@ def show_detailed_review_topic(topic, index, user_data):
         </div>
         """, unsafe_allow_html=True)
         
-        # 🔥 GÜÇLENDİRİLMİŞ BUTONLAR
-        col_buttons = st.columns([1, 1, 2])
+        # 🔥 TEK BUTON - SADE CEKRA R ETTİM
+        col_buttons = st.columns([1, 3])
         with col_buttons[0]:
             if st.button("✅ Tekrar Ettim", key=f"repeat_btn_{topic_key}", use_container_width=True):
                 # Buton tıklandığında hemen sil
@@ -8065,14 +8065,6 @@ def show_detailed_review_topic(topic, index, user_data):
                     process_topic_completion(topic, user_data)
                 # Başarı mesajı ve yenileme
                 st.success("✅ Konu tamamlandı ve kaldırıldı!")
-                
-        with col_buttons[1]:
-            if st.button("🗑️ Sil", key=f"delete_btn_{topic_key}", use_container_width=True):
-                # Buton tıklandığında hemen sil
-                with st.spinner("İşleniyor..."):
-                    process_topic_deletion(topic, user_data)
-                # Başarı mesajı ve yenileme
-                st.success("🗑️ Konu silindi!")
     
     with col2:
         st.write("")  # Boş kolon
