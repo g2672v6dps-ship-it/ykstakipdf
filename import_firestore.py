@@ -8,10 +8,7 @@ import json
 import pandas as pd
 from datetime import datetime
 
-# -----------------------------------------------------------
-# 🔥 FIREBASE + FIRESTORE BAŞLATMA  
-# -----------------------------------------------------------
-
+# ---------- FIRESTORE BAĞLANTI ----------
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -19,54 +16,44 @@ FIREBASE_READY = False
 firestore_db = None
 
 try:
-    # Streamlit secrets içinden firebase_key'i al
-    firebase_key = st.secrets.get("firebase_key", None)
+    # Streamlit secrets'ten firebase_key'i al
+    config = dict(st.secrets["firebase_key"])  # AttrDict --> dict
 
-    if firebase_key is None:
-        st.error("❌ Firebase anahtarı Streamlit Secrets içinde bulunamadı!")
-    else:
-        # JSON STRING → Python dict
-        firebase_key_dict = json.loads(firebase_key)
+    # Firebase daha önce başlatılmadıysa başlat
+    if not firebase_admin._apps:
+        cred = credentials.Certificate(config)
+        firebase_admin.initialize_app(cred)
 
-        # Firebase initialize
-        if not firebase_admin._apps:
-            cred = credentials.Certificate(firebase_key_dict)
-            firebase_admin.initialize_app(cred)
-
-        firestore_db = firestore.client()
-        FIREBASE_READY = True
+    firestore_db = firestore.client()
+    FIREBASE_READY = True
 
 except Exception as e:
-    st.error(f"❌ Firebase Bağlantı Hatası: {str(e)}")
     FIREBASE_READY = False
     firestore_db = None
+    st.error(f"❌ Firebase Bağlantı Hatası: {e}")
 
 
-# -----------------------------------------------------------
-# 🔄 ANA SAYFA
-# -----------------------------------------------------------
-
+# ---------- ANA SAYFA ----------
 def import_page():
     """🔄 Firestore Veri Yükleme Sayfası"""
 
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); 
+    <div style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
                 padding: 25px; border-radius: 20px; margin: 20px 0; color: white; text-align: center;">
         <h1 style="margin: 0; color: white;">🔄 Firestore Veri Yükle</h1>
-        <p style="margin: 10px 0 0 0; opacity: 0.9;">Firebase Realtime DB'den Firestore'a Veri Aktarımı</p>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">Firebase Realtime DB → Firestore aktarım ekranı</p>
     </div>
     """, unsafe_allow_html=True)
 
+    # Firestore bağlantısını kontrol et
     if not FIREBASE_READY:
-        st.error("❌ Firebase bağlantısı kurulamadı!")
-        st.stop()
+        st.error("❌ Firebase bağlantısı bulunamadı! Lütfen secrets yapılandırmasını kontrol edin.")
+        return
 
-    # Kullanıcı seçenekleri
     col1, col2 = st.columns([2, 1])
 
     with col1:
-        st.markdown("### 📋 Yükleme Seçenekleri")
-
+        st.markdown("### 📋 Yükleme Türü")
         import_type = st.radio(
             "Hangi veriyi yüklemek istiyorsunuz?",
             [
@@ -79,8 +66,9 @@ def import_page():
             index=0
         )
 
+        st.markdown("### 📥 Veri Kaynağı")
         data_source = st.radio(
-            "Veri kaynağını seçin:",
+            "Kaynak seçin:",
             [
                 "📄 JSON Dosyası Yükle",
                 "📋 Manuel Veri Girişi",
@@ -92,10 +80,10 @@ def import_page():
         st.markdown("### 📊 Firestore Durumu")
         try:
             docs = firestore_db.stream()
-            doc_count = len(list(docs))
-            st.metric("📁 Mevcut Belgeler", doc_count)
+            count = sum(1 for _ in docs)
+            st.metric("📁 Kayıtlı Belge", count)
         except:
-            st.metric("📁 Mevcut Belgeler", "0")
+            st.metric("📁 Kayıtlı Belge", "0")
 
     st.markdown("---")
 
@@ -105,55 +93,54 @@ def import_page():
         manual_input_section()
 
 
-# -----------------------------------------------------------
-# 📄 JSON İÇE AKTARMA
-# -----------------------------------------------------------
-
+# ---------- JSON YÜKLEME ----------
 def json_upload_section():
     st.markdown("### 📄 JSON Dosyası Yükle")
 
-    uploaded_file = st.file_uploader("JSON dosyasını yükleyin:", type=["json"])
+    uploaded_file = st.file_uploader(
+        "JSON formatında veri dosyası yükleyin:",
+        type=['json']
+    )
 
-    if uploaded_file:
+    if uploaded_file is not None:
         try:
-            json_data = json.loads(uploaded_file.read())
-            st.success("✅ JSON başarıyla yüklendi!")
+            data = json.loads(uploaded_file.read())
+            st.success("✅ JSON başarıyla yüklendi.")
 
-            if st.checkbox("🔍 Veri Önizlemesi"):
-                st.json(json_data)
+            if st.checkbox("🔍 JSON İçeriğini Göster"):
+                st.json(data)
 
-            if st.button("🔄 Firestore'a Yükle"):
-                upload_to_firestore(json_data)
+            if st.button("🔄 Firestore'a Yükle", type="primary"):
+                upload_to_firestore(data)
 
         except Exception as e:
-            st.error(f"❌ JSON okuma hatası: {str(e)}")
+            st.error(f"❌ JSON okuma hatası: {e}")
 
 
-# -----------------------------------------------------------
-# 📋 MANUEL GİRİŞ
-# -----------------------------------------------------------
-
+# ---------- MANUEL ÖĞRENCİ EKLEME ----------
 def manual_input_section():
-    st.markdown("### 📋 Manuel Veri Girişi")
+    st.markdown("### 📋 Manuel Öğrenci Ekle")
 
-    with st.form("manual_form"):
+    with st.form("manual_add"):
         col1, col2 = st.columns(2)
 
         with col1:
             username = st.text_input("👤 Kullanıcı Adı")
             password = st.text_input("🔒 Şifre", type="password")
             name = st.text_input("📝 Ad Soyad")
+            field = st.selectbox("📚 Alan", ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"])
 
         with col2:
-            field = st.selectbox("📚 Alan", ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"])
             grade = st.selectbox("🏫 Sınıf", ["9", "10", "11", "12", "Mezun"])
             target = st.text_input("🎯 Hedef Bölüm")
+            weekly_hours = st.number_input("⏰ Haftalık Çalışma Saati", 0, 200)
+            total_hours = st.number_input("📊 Toplam Çalışma Saati", 0, 5000)
 
-        submitted = st.form_submit_button("📥 Kaydet")
+        submitted = st.form_submit_button("✅ Firestore'a Kaydet")
 
         if submitted:
-            if not username:
-                st.error("❌ Kullanıcı adı zorunlu!")
+            if not username or not password:
+                st.error("❌ Kullanıcı adı ve şifre zorunludur!")
                 return
 
             data = {
@@ -163,7 +150,9 @@ def manual_input_section():
                 "field": field,
                 "grade": grade,
                 "target": target,
-                "created_date": datetime.now().isoformat(),
+                "weekly_hours": weekly_hours,
+                "total_hours": total_hours,
+                "created_at": datetime.now().isoformat(),
                 "last_login": datetime.now().isoformat(),
                 "status": "Aktif"
             }
@@ -171,40 +160,32 @@ def manual_input_section():
             upload_single_student(data)
 
 
-# -----------------------------------------------------------
-# 🔄 FIRESTORE’A AKTARMA
-# -----------------------------------------------------------
-
+# ---------- FIRESTORE'A KAYDETME ----------
 def upload_to_firestore(data):
     try:
         success = 0
-        fail = 0
+        error = 0
 
-        for username, udata in data.items():
-            udata["username"] = username
-            if upload_single_student(udata):
+        for username, user_data in data.items():
+            user_data["username"] = username
+            if upload_single_student(user_data):
                 success += 1
             else:
-                fail += 1
+                error += 1
 
-        st.success(f"✅ Başarılı: {success}")
-        if fail > 0:
-            st.error(f"❌ Hatalı: {fail}")
+        st.success(f"✅ {success} kayıt yüklendi")
+        if error:
+            st.error(f"❌ {error} kayıt yüklenemedi")
 
     except Exception as e:
-        st.error(f"❌ Yükleme hatası: {str(e)}")
+        st.error(f"❌ Yükleme hatası: {e}")
 
 
-# -----------------------------------------------------------
-# 👤 TEK ÖĞRENCİ KAYDETME
-# -----------------------------------------------------------
-
-def upload_single_student(student_data):
+def upload_single_student(data):
     try:
-        username = student_data["username"]
-        firestore_db.collection("users").document(username).set(student_data, merge=True)
+        username = data["username"]
+        firestore_db.collection("users").document(username).set(data, merge=True)
         return True
-
     except Exception as e:
-        st.error(f"❌ {username} kaydedilemedi: {str(e)}")
+        st.error(f"❌ {username} eklenemedi → {e}")
         return False
