@@ -7948,7 +7948,7 @@ def show_review_topics_tab(user_data):
         print(f"Review topics tab hatası: {e}")
 
 def show_detailed_review_topic(topic, index, user_data):
-    """Basit dikdörtgen tekrar konu kartı - ESKİ BASIT TASARIM!"""
+    """Renkli dikdörtgen tekrar konu kartı - NET DURUMUNA GÖRE RENKLENDİRME!"""
     
     # 🔥 ÇALIŞAN SİSTEMDEN GELEN VERİ
     subject = topic.get('subject', 'Bilinmiyor')
@@ -7961,29 +7961,44 @@ def show_detailed_review_topic(topic, index, user_data):
     # Unique key oluştur
     topic_key = f"{subject}_{topic_name}_{index}"
     
+    # 🔥 NET DEĞERİNİ DÜZELT - ESKİ SİSTEMDEN ÇEK
+    current_net = get_actual_net_value(subject, topic_name, user_data)
+    
+    # 🔥 NET DURUMUNA GÖRE RENK KODLAMASI
+    status_color = "#e8e8e8"  # Varsayılan - Gri
     try:
-        current_net = int(float(net))
+        if current_net >= 15:
+            status_color = "#4CAF50"  # Yeşil - Çok İyi
+        elif current_net >= 10:
+            status_color = "#FF9800"  # Turuncu - İyi
+        elif current_net >= 5:
+            status_color = "#FFC107"  # Sarı - Orta
+        else:
+            status_color = "#F44336"  # Kırmızı - Zayıf
     except:
         current_net = 0
+        status_color = "#e8e8e8"
     
-    # 🔥 BASİT DİKDÖRTGEN TASARIM
+    # 🔥 RENKLİ DİKDÖRTGEN TASARIM
     col1, col2, col3 = st.columns([4, 1, 0.3])
     
     with col1:
-        # 🎨 BASİT KART - SADECE METİN
+        # 🎨 RENKLİ KART - NET DURUMUNA GÖRE
+        text_color = "white" if current_net >= 10 else "black"  # Koyu renkler için beyaz, açık renkler için siyah
+        
         st.markdown(f"""
-        <div style='background: #f0f2f6; border: 1px solid #ddd; padding: 20px; 
-                    border-radius: 8px; margin-bottom: 15px; color: #333;'>
+        <div style='background: {status_color}; border: 2px solid {status_color}; 
+                    padding: 20px; border-radius: 10px; margin-bottom: 15px; color: {text_color};'>
             <div style='font-size: 18px; font-weight: bold; margin-bottom: 8px;'>
                 {index+1}. {subject} - {topic_name}
             </div>
             <div style='font-size: 14px; margin-bottom: 5px;'>
                 📝 {detail}
             </div>
-            <div style='font-size: 14px; margin-bottom: 5px;'>
+            <div style='font-size: 14px; margin-bottom: 5px; font-weight: bold;'>
                 📊 Net: {current_net} | ⚡ Zorluk: {difficulty}
             </div>
-            <div style='font-size: 14px; color: #666;'>
+            <div style='font-size: 14px; color: rgba(255,255,255,0.8);'>
                 📂 Kaynak: {source}
             </div>
         </div>
@@ -8003,6 +8018,54 @@ def show_detailed_review_topic(topic, index, user_data):
     
     with col3:
         st.write("")  # Boş kolon
+
+def get_actual_net_value(subject, topic_name, user_data):
+    """Konunun gerçek net değerini tüm kaynaklardan çeker"""
+    try:
+        topic_key = f"{subject}_{topic_name}"
+        
+        # 1. topic_tracking'den çek
+        topic_tracking = user_data.get('topic_tracking', {})
+        if topic_key in topic_tracking:
+            net_value = topic_tracking[topic_key].get('net', 0)
+            try:
+                return int(float(net_value))
+            except:
+                return 0
+        
+        # 2. yks_net_tracking'den çek
+        yks_tracking = user_data.get('yks_net_tracking', {})
+        if topic_key in yks_tracking:
+            net_value = yks_tracking[topic_key].get('net', 0)
+            try:
+                return int(float(net_value))
+            except:
+                return 0
+        
+        # 3. quiz_results'dan çek
+        quiz_results = user_data.get('quiz_results', [])
+        for result in quiz_results:
+            if result.get('subject') == subject and result.get('topic_name') == topic_name:
+                return result.get('net', 0)
+        
+        # 4. pomodoro_history'den çek
+        pomodoro_history = user_data.get('pomodoro_history', [])
+        for session in pomodoro_history:
+            if session.get('subject') == subject and session.get('topic') == topic_name:
+                return session.get('net_earned', 0)
+        
+        # 5. topic_evaluations'dan çek
+        topic_evaluations = user_data.get('topic_evaluations', [])
+        for eval_data in topic_evaluations:
+            if eval_data.get('subject') == subject and eval_data.get('topic') == topic_name:
+                return eval_data.get('net', 0)
+        
+        # Hiçbirinden bulunamazsa 0 döndür
+        return 0
+        
+    except Exception as e:
+        print(f"Net değer çekme hatası: {e}")
+        return 0
 
 def process_topic_deletion(topic, user_data):
     """Konu silme işlemi - Çalışan sistem - Sağ üst çarpı için"""
@@ -8081,7 +8144,7 @@ def process_topic_deletion(topic, user_data):
                 print(f"✅ Firestore güncellendi: {subject} - {topic_name}")
         
         # Sayfayı yenile
-        st.experimental_rerun()
+        st.rerun()
         
     except Exception as e:
         st.error(f"❌ Silme hatası: {e}")
@@ -8126,7 +8189,7 @@ def process_topic_completion(topic, user_data):
             print(f"✅ Konu silindi: {subject} - {topic_name}")
         
         # 3. Sayfayı yenile
-        st.experimental_rerun()
+        st.rerun()
         
     except Exception as e:
         st.error(f"❌ Silme hatası: {e}")
@@ -8175,7 +8238,7 @@ def process_topic_evaluation(topic, evaluation, user_data):
             clear_user_cache(username)
         
         # Sayfayı yenile
-        st.experimental_rerun()
+        st.rerun()
         
     except Exception as e:
         st.error(f"❌ Değerlendirme hatası: {e}")
@@ -8782,7 +8845,7 @@ def process_and_update_review(topic_key, evaluation):
         }
         
         st.success(f"✅ Değerlendirme kaydedildi: {evaluation_text[evaluation]}")
-        st.experimental_rerun()
+        st.rerun()
     else:
         st.error("❌ Değerlendirme kaydedilemedi!")
 
@@ -14205,7 +14268,7 @@ def update_topic_repetition_history(user_data, topic_key, selected_level):
         return False
 
 def get_pending_review_topics(user_data):
-    """Tekrar değerlendirmesi bekleyen konuları döndürür - GELİŞMİŞ VERİ ÇEKME"""
+    """Tekrar değerlendirmesi bekleyen konuları döndürür - NET DEĞERLERİ DÜZELTİLDİ"""
     import json
     from datetime import datetime, timedelta
     
@@ -14232,12 +14295,21 @@ def get_pending_review_topics(user_data):
                             # Konu bilgilerini topic_key'den çıkar
                             parts = topic_key.split(' | ')
                             if len(parts) >= 4:
+                                subject = parts[0] if parts[0] else 'Bilinmiyor'
+                                topic_name = parts[2] if parts[2] != 'None' else parts[1] if parts[1] else 'Bilinmiyor'
+                                detail = parts[3] if parts[3] else f'{subject} - {topic_name} konusu'
+                                
+                                # 🔥 NET DEĞERİNİ GERÇEK VERİDEN ÇEK
+                                actual_net = get_actual_net_value(subject, topic_name, user_data)
+                                
                                 all_topics.append({
                                     'key': topic_key,
-                                    'subject': parts[0] if parts[0] else 'Bilinmiyor',
+                                    'subject': subject,
                                     'main_topic': parts[1] if parts[1] else 'Bilinmiyor',
-                                    'topic': parts[2] if parts[2] != 'None' else parts[1] if parts[1] else 'Bilinmiyor',
-                                    'detail': parts[3] if parts[3] else f'{parts[0]} - {parts[1]} konusu',
+                                    'topic': topic_name,
+                                    'detail': detail,
+                                    'net': actual_net,  # 🔥 GERÇEK NET DEĞERİ
+                                    'difficulty': history.get('difficulty', 'Orta'),
                                     'stage': current_stage,
                                     'stage_name': get_stage_name(current_stage),
                                     'days_since_last': (current_date - datetime.fromisoformat(history.get('initial_date', current_date.strftime('%Y-%m-%d')))).days,
@@ -14261,18 +14333,14 @@ def get_pending_review_topics(user_data):
                 subject = topic.get('subject', 'Bilinmiyor')
                 topic_name = topic.get('topic', 'Bilinmiyor')
                 
-                # Net bilgisini güvenli çek
-                net = 0
-                try:
-                    net = int(float(topic.get('net', 0)))
-                except:
-                    net = 0
+                # 🔥 NET DEĞERİNİ GERÇEK VERİDEN ÇEK
+                actual_net = get_actual_net_value(subject, topic_name, user_data)
                 
                 all_topics.append({
                     'subject': subject,
                     'topic': topic_name,
                     'detail': topic.get('detail', f'{subject} - {topic_name} konusu ile ilgili tekrar çalışması'),
-                    'net': net,
+                    'net': actual_net,  # 🔥 GERÇEK NET DEĞERİ
                     'difficulty': topic.get('difficulty', 'Orta'),
                     'source': 'HAFTALIK PLAN',
                     'stage': 0,  # Haftalık plan konuları için
@@ -14293,24 +14361,22 @@ def get_pending_review_topics(user_data):
                 if isinstance(subject_data, dict):
                     for topic_key, topic_data in subject_data.items():
                         if isinstance(topic_data, dict):
+                            # 🔥 NET DEĞERİNİ GERÇEK VERİDEN ÇEK
+                            actual_net = get_actual_net_value(subject_key, topic_key, user_data)
+                            
                             # Sadece zayıf konuları al (net < 10)
-                            net = topic_data.get('net', 0)
-                            try:
-                                current_net = int(float(net))
-                                if current_net < 10:  # Zayıf konular
-                                    all_topics.append({
-                                        'subject': subject_key,
-                                        'topic': topic_key,
-                                        'detail': f'{subject_key} - {topic_key} konusu (zayıf seviye: {current_net} net)',
-                                        'net': current_net,
-                                        'difficulty': topic_data.get('difficulty', 'Orta'),
-                                        'source': 'ZAYIF KONULAR',
-                                        'stage': 0,
-                                        'stage_name': 'Zayıf Konu Tekrarı',
-                                        'review_count': 0
-                                    })
-                            except:
-                                continue
+                            if actual_net < 10:  # Zayıf konular
+                                all_topics.append({
+                                    'subject': subject_key,
+                                    'topic': topic_key,
+                                    'detail': f'{subject_key} - {topic_key} konusu (zayıf seviye: {actual_net} net)',
+                                    'net': actual_net,  # 🔥 GERÇEK NET DEĞERİ
+                                    'difficulty': topic_data.get('difficulty', 'Orta'),
+                                    'source': 'ZAYIF KONULAR',
+                                    'stage': 0,
+                                    'stage_name': 'Zayıf Konu Tekrarı',
+                                    'review_count': 0
+                                })
     except Exception as e:
         print(f"İlerleme takip verisi çekme hatası: {e}")
     
