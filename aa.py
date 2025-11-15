@@ -7922,55 +7922,11 @@ def show_review_topics_section(review_topics, user_data):
     if all_review_topics:
         st.markdown("#### 🔄 TEKRAR EDİLECEK KONULAR")
         
-        # Açıklama metni
-        st.markdown("""
-        <div style='background: #f0f2f6; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; color: #555;'>
-            💡 <strong>Nasıl Çalışır:</strong> "Tekrar ettim" butonuna bastığınızda konular <strong>tekrar geçmişine</strong> kaydedilir. 
-            Bu listede görmek istemiyorsanız <strong>"🔄 Listeyi Yenile"</strong> butonunu kullanın.
-        </div>
-        """, unsafe_allow_html=True)
+        # 🔥 CHATGPT ÖNERİSİ: Her seferinde güncel veri çek
+        # all_review_topics'i güncelle (cached_firestore_get kullanımı için hazır)
         
-        # 🔥 Session state'e kaydet (button sırasında kullanmak için)
+        # Session state'e kaydet (buton sonrası için)
         st.session_state.all_review_topics = all_review_topics
-        
-        # 🔥 YENİLE BUTONU EKLE
-        col1, col2 = st.columns([4, 1])
-        
-        with col2:
-            if st.button("🔄 Listeyi Yenile", key="refresh_review_list", help="Tekrar ettim butonuna basılan konuları listeden temizle"):
-                try:
-                    # Tekrar geçmişinden "Tekrar Ettim" konuları bul
-                    completed_topics = set()
-                    if 'topic_repetition_history' in user_data:
-                        repetition_history = user_data['topic_repetition_history']
-                        for topic_key, history_data in repetition_history.items():
-                            if isinstance(history_data, dict) and history_data.get('level') == 'Tekrar Ettim':
-                                completed_topics.add(topic_key)
-                    
-                    # Session state'den "Tekrar ettim" konuları temizle
-                    if 'all_review_topics' in st.session_state:
-                        original_length = len(st.session_state.all_review_topics)
-                        st.session_state.all_review_topics = [
-                            topic for topic in st.session_state.all_review_topics 
-                            if f"{topic['subject']}_{topic['topic']}" not in completed_topics
-                        ]
-                        filtered_length = len(st.session_state.all_review_topics)
-                        removed_count = original_length - filtered_length
-                        
-                        if removed_count > 0:
-                            st.success(f"✅ {removed_count} konu temizlendi!")
-                        else:
-                            st.info("🔄 Temizlenecek konu bulunmuyor.")
-                    
-                    # Sayfa yenileme
-                    st.rerun()
-                    
-                except Exception as e:
-                    st.error(f"Yenileme hatası: {e}")
-        
-        # 🔥 YENİLEME SONRASI bilgi
-        if 'all_review_topics' in st.session_state and len(st.session_state.all_review_topics) != len(all_review_topics):
-            st.info("💡 Listeniz güncellenmiş olabilir. '🔄 Listeyi Yenile' butonunu kullanın.")
         
         # Konu takip sisteminden güncel bilgileri al
         topic_progress = user_data.get('topic_progress', {})
@@ -8170,27 +8126,36 @@ def show_review_topics_section(review_topics, user_data):
                 
                 if st.button("✅ Tekrar ettim", key=button_key):
                     try:
-                        # Doğru remove_topic_from_review_list fonksiyonunu çağır
+                        # ChatGPT'nin önerdiği DOĞRU çözüm:
+                        
+                        # 1. Firestore'dan sil
                         remove_topic_from_review_list(user_data, topic_key)
                         
-                        # Session state'den de kaldır (anında güncelleme için)
-                        if 'all_review_topics' in st.session_state:
-                            st.session_state.all_review_topics = [
-                                t for t in st.session_state.all_review_topics 
-                                if f"{t['subject']}_{t['topic']}" != topic_key
-                            ]
-                        
-                        # Kullanıcı verilerini Firestore'a kaydet
+                        # 2. Kullanıcı verilerini Firestore'a kaydet
                         if 'username' in user_data:
-                            update_user_in_firebase(user_data['username'], user_data)
+                            username = user_data['username']
+                            update_user_in_firebase(username, user_data)
+                            
+                            # 🔥 KRİTİK: Cache temizle (ChatGPT önerisi)
+                            clear_user_cache(username)
+                            
+                            # 🔥 KRİTİK: Kısa bekle + Sayfa yenileme
+                            time.sleep(0.1)  # Çok kısa bekleme
+                            
+                            st.success(f"🎉 {topic['subject']} - {topic['topic']} kaldırıldı!")
+                            st.rerun()  # 🔥 TAM YENİLEME
+                            
                         else:
                             # Fallback: Session state'e kaydet
                             current_user = st.session_state.get('current_user')
                             if current_user:
                                 st.session_state.users_db[current_user] = user_data
-                        
-                        st.success(f"🎉 {topic['subject']} - {topic['topic']} kaldırıldı!")
-                        st.rerun()
+                                # Session cache temizle
+                                if f"cache_{current_user}" in st.session_state:
+                                    del st.session_state[f"cache_{current_user}"]
+                                    del st.session_state[f"cache_{current_user}_time"]
+                                st.success(f"🎉 {topic['subject']} - {topic['topic']} kaldırıldı!")
+                                st.rerun()
                         
                     except Exception as e:
                         st.error(f"Hata: {e}")
