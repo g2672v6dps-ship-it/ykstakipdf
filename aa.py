@@ -7893,173 +7893,253 @@ def show_new_topics_section(new_topics, user_data):
             show_topic_card(topic, "MINIMAL")
 
 def show_review_topics_tab(user_data):
-    """🔄 TEKRAR EDİLECEK KONULAR TAB - TAMAMEN AYRI SEKME!"""
+    """🔄 TEKRAR EDİLECEK KONULAR TAB - ÇALIŞAN SİSTEM KOPYASI!"""
     
-    # 🔥 FRESH BAŞLANGIÇ - Başka yerden veri çekme
     st.markdown("#### 🔄 TEKRAR EDİLECEK KONULAR")
-    st.markdown("*Bu sekme haftalık tekrar planınızdan konuları gösterir.*")
+    st.markdown("*Bu sekme sizin çalıştığınız tüm konuları gösterir ve detaylı bilgiler sunar.*")
     st.markdown("---")
     
-    # 🔥 FRESH VERİ ÇEKME
     try:
+        # 🔥 ANASAYFADAN ÇALIŞAN VERİ KAYNAĞINI KULLAN
+        # Pending mastery topics al (çalışan sistem)
+        pending_mastery_topics = get_pending_review_topics(user_data)
+        
+        # Haftalık plan konuları
         weekly_plan = user_data.get('weekly_plan', {})
         review_topics = weekly_plan.get('review_topics', [])
-        
-        # Pending mastery topics de al
-        pending_mastery_topics = get_pending_review_topics(user_data)
         
         # Tüm konuları birleştir
         all_topics = []
         
-        # Kalıcı öğrenme tekrarları (öncelik)
+        # Kalıcı öğrenme konuları (öncelik)
         if pending_mastery_topics:
             for topic in pending_mastery_topics:
                 topic_copy = topic.copy()
-                topic_copy['review_type'] = 'KALİCİ'
+                topic_copy['source'] = 'KALİCİ ÖĞRENME'
                 all_topics.append(topic_copy)
         
-        # Normal tekrarlar
+        # Haftalık plan konuları
         if review_topics:
             for topic in review_topics:
                 topic_copy = topic.copy()
-                topic_copy['review_type'] = 'GENEL'
+                topic_copy['source'] = 'HAFTALIK PLAN'
+                # Detay bilgiler ekle
+                if 'net' not in topic_copy:
+                    topic_copy['net'] = 0
+                if 'difficulty' not in topic_copy:
+                    topic_copy['difficulty'] = 'Orta'
+                if 'detail' not in topic_copy:
+                    topic_copy['detail'] = f"{topic.get('topic', '')} konusu ile ilgili tekrar çalışması"
                 all_topics.append(topic_copy)
         
-        # Eğer hiç konu yoksa
         if not all_topics:
-            st.info("🎉 Bu hafta tekrar edilecek konu bulunmuyor!")
+            st.info("🎉 Henüz tekrar edilecek konu bulunmuyor!")
             return
         
-        st.info(f"📊 **Toplam {len(all_topics)} konu tekrar edilecek**")
+        st.info(f"📊 **Toplam {len(all_topics)} konu tekrar edilecek** - Kaynak: {len(pending_mastery_topics)} kalıcı öğrenme, {len(review_topics)} haftalık plan")
         st.markdown("---")
         
-        # 🔥 YENİ SEKMEDE KARTLAR
+        # 🔥 ÇALIŞAN SİSTEM KOPYASI - Her konuyu detaylı göster
         for i, topic in enumerate(all_topics):
-            show_review_topic_card(topic, i, user_data, all_topics)
+            show_detailed_review_topic(topic, i, user_data)
     
     except Exception as e:
         st.error(f"❌ Hata: {e}")
         print(f"Review topics tab hatası: {e}")
 
-def show_review_topic_card(topic, index, user_data, all_topics):
-    """Tekrar konu kartı - YENİ TAB İÇİN"""
+def show_detailed_review_topic(topic, index, user_data):
+    """Detaylı tekrar konu kartı - Çalışan sistem ile"""
+    
+    # 🔥 ÇALIŞAN SİSTEMDEN GELEN VERİ
+    subject = topic.get('subject', 'Bilinmiyor')
+    topic_name = topic.get('topic', 'Bilinmiyor')
+    detail = topic.get('detail', f'{subject} - {topic_name} konusu ile ilgili tekrar çalışması')
+    source = topic.get('source', 'GENEL')
+    net = topic.get('net', 0)
+    difficulty = topic.get('difficulty', 'Orta')
     
     # Unique key oluştur
-    topic_key = f"{topic['subject']}_{topic['topic']}_{index}"
-    button_key = f"review_tab_{topic_key}"
+    topic_key = f"{subject}_{topic_name}_{index}"
     
-    # Konu bilgileri
-    review_type_icon = "🎯" if topic.get('review_type') == 'KALİCİ' else "🔄"
-    
-    # Net bilgisi çek (basit)
-    current_net = 0
-    try:
-        current_net = int(float(topic.get('net', 0)))
-    except:
-        current_net = 0
-    
-    # Renk belirle
-    if current_net >= 15:
-        status_color = "#228B22"
-        status_text = f"✅ {current_net} net"
-    elif current_net >= 10:
-        status_color = "#FF8C00" 
-        status_text = f"🟡 {current_net} net"
-    else:
-        status_color = "#DC143C"
-        status_text = f"🔴 {current_net} net"
-    
-    # Kart layout
-    col1, col2 = st.columns([4, 1])
-    
-    with col1:
-        # Kart
-        st.markdown(f"""
-        <div style='background: linear-gradient(135deg, {status_color} 0%, {status_color}88 50%, {status_color}66 100%); 
-                    border: 2px solid {status_color}; padding: 20px; border-radius: 12px; 
-                    margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); color: white;'>
-            <div style='font-weight: bold; font-size: 18px; color: white; margin-bottom: 10px;'>
-                {index+1}. {topic['subject']} {review_type_icon}
-            </div>
-            <div style='font-size: 20px; color: white; margin: 8px 0; font-weight: bold;'>
-                📖 {topic['topic']}
-            </div>
-            <div style='font-size: 14px; color: rgba(255,255,255,0.9); margin: 6px 0 10px 0; font-style: italic;'>
-                └ Ana Konu
-            </div>
-            <div style='font-size: 15px; color: white; font-weight: bold; background: rgba(0,0,0,0.2); 
-                        padding: 8px 12px; border-radius: 8px; display: inline-block;'>
-                {status_text} ({topic.get('review_type', 'GENEL')})
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        # Buton ve seviye
-        st.markdown("<div style='height: 60px;'></div>", unsafe_allow_html=True)
+    # 🔥 EXPANDER İLE DETAYLI GÖSTERİM
+    with st.expander(f"🔄 {subject} - {topic_name} | {source}", expanded=True):
         
-        # 🔥 KESIN ÇALIŞACAK BUTON
-        if st.button("✅ Tekrar Ettim", key=button_key, help="Konuyu tamamladım"):
+        # Konu bilgileri - Detaylı
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            st.markdown(f"""
+            **📚 Konu:** {topic_name}  
+            **📝 Detay:** {detail}  
+            **📊 Net:** {net}  
+            **⚡ Zorluk:** {difficulty}  
+            **📂 Kaynak:** {source}  
+            **📅 Durum:** Tekrar bekleniyor
+            """)
+            
+            # Konu hakkında ek bilgi
+            st.markdown("**🎯 Tekrar Hedefi:**")
+            st.markdown(f"- {subject} dersinde {topic_name} konusunu tekrar çalışarak net seviyenizi artırın")
+            st.markdown(f"- Zorluk seviyesi: {difficulty}")
+            st.markdown(f"- Mevcut net: {net} (hedef: {net + 3}+)")
+        
+        with col2:
+            # 🔥 SEVİYE GÖSTERGESİ (Çalışan sistemden)
             try:
-                # 1. Session state güncelle
-                # FRESH: Her buton tıklamasında fresh data çek
-                remaining_topics = [t for j, t in enumerate(all_topics) if j != index]
+                current_net = int(float(net))
+                if current_net >= 15:
+                    status_color = "#228B22"
+                    status_icon = "✅"
+                    status_text = "İyi Seviye"
+                elif current_net >= 10:
+                    status_color = "#FF8C00" 
+                    status_icon = "🟡"
+                    status_text = "Gelişim Gerekli"
+                else:
+                    status_color = "#DC143C"
+                    status_icon = "🔴"
+                    status_text = "Çok Zayıf"
                 
-                # Kullanıcıya bilgi ver
-                st.success(f"✅ {topic['subject']} - {topic['topic']} tamamlandı!")
-                
-                # 2. Firestore güncelle (basit)
-                if 'username' in user_data:
-                    try:
-                        # Konuyu weekly_plan'dan kaldır
-                        updated_weekly_plan = user_data.get('weekly_plan', {}).copy()
-                        if 'review_topics' in updated_weekly_plan:
-                            # Bu konuyu kaldır
-                            new_review_topics = []
-                            topic_to_remove = f"{topic['subject']}_{topic['topic']}"
-                            
-                            for rt in updated_weekly_plan['review_topics']:
-                                rt_key = f"{rt.get('subject', '')}_{rt.get('topic', '')}"
-                                if rt_key != topic_to_remove:
-                                    new_review_topics.append(rt)
-                            
-                            updated_weekly_plan['review_topics'] = new_review_topics
-                            user_data['weekly_plan'] = updated_weekly_plan
-                            
-                            # Firestore'a gönder
-                            update_user_in_firebase(user_data['username'], {
-                                'weekly_plan': updated_weekly_plan
-                            })
-                            clear_user_cache(user_data['username'])
-                            
-                            print(f"✅ Firestore güncellendi: {topic['subject']} - {topic['topic']}")
-                            
-                    except Exception as firebase_error:
-                        print(f"Firebase hatası: {firebase_error}")
-                
-                # 3. Sayfayı yenile
-                st.rerun()
-                
-            except Exception as e:
-                st.error(f"❌ Hata: {e}")
-                print(f"Buton hatası: {e}")
+                st.markdown(f"""
+                <div style='text-align: center; padding: 15px; background: {status_color}22; border-radius: 8px;'>
+                    <div style='font-size: 24px;'>{status_icon}</div>
+                    <div style='font-weight: bold; color: {status_color};'>{status_text}</div>
+                    <div style='font-size: 14px; color: {status_color};'>{current_net} net</div>
+                </div>
+                """, unsafe_allow_html=True)
+            except:
+                st.info("⚠️ Seviye bilgisi yüklenemedi")
         
-        # Seviye gösterge
-        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-        if current_net >= 15:
-            st.markdown("""
-            <div style='text-align: center; padding: 15px; background: rgba(34,139,34,0.1); border-radius: 8px;'>
-                <div style='font-size: 24px; color: #228B22;'>✅</div>
-                <div style='font-size: 12px; color: #228B22; font-weight: bold;'>İyi Seviye</div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div style='text-align: center; padding: 15px; background: rgba(255,140,0,0.1); border-radius: 8px;'>
-                <div style='font-size: 24px; color: #FF8C00;'>⚠️</div>
-                <div style='font-size: 12px; color: #FF8C00; font-weight: bold;'>Gelişim Gerekli</div>
-            </div>
-            """, unsafe_allow_html=True)
+        st.markdown("---")
+        
+        # 🔥 ÇALIŞAN SİSTEM BUTONU
+        col1, col2, col3, col4, col5 = st.columns(5)
+        
+        with col1:
+            if st.button("✅ Tekrar Ettim", key=f"completed_{topic_key}", 
+                       help="Konuyu başarıyla tekrar ettim",
+                       use_container_width=True):
+                process_topic_completion(topic, user_data)
+        
+        with col2:
+            if st.button("📚 Çok Zayıf", key=f"weak_{topic_key}", 
+                       help="Konuyu tekrar öğrenmem gerekiyor",
+                       use_container_width=True):
+                process_topic_evaluation(topic, 'zayif', user_data)
+        
+        with col3:
+            if st.button("📜 Temel", key=f"basic_{topic_key}", 
+                       help="Temel seviyede biliyorum",
+                       use_container_width=True):
+                process_topic_evaluation(topic, 'temel', user_data)
+        
+        with col4:
+            if st.button("🎯 Orta", key=f"medium_{topic_key}", 
+                       help="Orta seviyede biliyorum",
+                       use_container_width=True):
+                process_topic_evaluation(topic, 'orta', user_data)
+        
+        with col5:
+            if st.button("⭐ İyi", key=f"good_{topic_key}", 
+                       help="İyi seviyede biliyorum",
+                       use_container_width=True):
+                process_topic_evaluation(topic, 'iyi', user_data)
+
+def process_topic_completion(topic, user_data):
+    """Konu tamamlama işlemi - Çalışan sistem"""
+    try:
+        subject = topic.get('subject', 'Bilinmiyor')
+        topic_name = topic.get('topic', 'Bilinmiyor')
+        
+        # Başarı mesajı
+        st.success(f"✅ {subject} - {topic_name} konusu tamamlandı!")
+        
+        # 🔥 GERÇEK SİLME İŞLEMİ
+        # 1. Haftalık plandan kaldır
+        weekly_plan = user_data.get('weekly_plan', {}).copy()
+        if 'review_topics' in weekly_plan:
+            original_review_topics = weekly_plan['review_topics']
+            # Bu konuyu kaldır
+            topic_to_remove = f"{subject}_{topic_name}"
+            new_review_topics = []
+            
+            for rt in original_review_topics:
+                rt_subject = rt.get('subject', '')
+                rt_topic = rt.get('topic', '')
+                rt_key = f"{rt_subject}_{rt_topic}"
+                if rt_key != topic_to_remove:
+                    new_review_topics.append(rt)
+            
+            weekly_plan['review_topics'] = new_review_topics
+            user_data['weekly_plan'] = weekly_plan
+        
+        # 2. Session state güncelle
+        if 'username' in user_data:
+            username = user_data['username']
+            # Firestore'a gönder
+            update_user_in_firebase(username, {
+                'weekly_plan': weekly_plan
+            })
+            clear_user_cache(username)
+            print(f"✅ Konu silindi: {subject} - {topic_name}")
+        
+        # 3. Sayfayı yenile
+        st.experimental_rerun()
+        
+    except Exception as e:
+        st.error(f"❌ Silme hatası: {e}")
+        print(f"Konu silme hatası: {e}")
+
+def process_topic_evaluation(topic, evaluation, user_data):
+    """Konu değerlendirme işlemi - Çalışan sistem"""
+    try:
+        subject = topic.get('subject', 'Bilinmiyor')
+        topic_name = topic.get('topic', 'Bilinmiyor')
+        
+        # Değerlendirme mesajları
+        eval_text = {
+            'zayif': 'Çok Zayıf - Konu başa alındı',
+            'temel': 'Temel Seviye - Geliştirme gerekli',
+            'orta': 'Orta Seviye - İlerleme kaydediliyor',
+            'iyi': 'İyi Seviye - Başarılı ilerleme'
+        }
+        
+        st.success(f"✅ {subject} - {topic_name}: {eval_text[evaluation]}")
+        
+        # Konu değerlendirmesini kaydet (isteğe bağlı)
+        if 'username' in user_data:
+            username = user_data['username']
+            
+            # Mevcut değerlendirmeleri al
+            topic_evaluations = user_data.get('topic_evaluations', {})
+            topic_key = f"{subject}_{topic_name}"
+            
+            if topic_key not in topic_evaluations:
+                topic_evaluations[topic_key] = []
+            
+            # Yeni değerlendirme ekle
+            topic_evaluations[topic_key].append({
+                'evaluation': evaluation,
+                'timestamp': str(datetime.now()),
+                'source': 'TEKRAR_EDİLECEK_KONULAR'
+            })
+            
+            user_data['topic_evaluations'] = topic_evaluations
+            
+            # Firestore'a gönder
+            update_user_in_firebase(username, {
+                'topic_evaluations': topic_evaluations
+            })
+            clear_user_cache(username)
+        
+        # Sayfayı yenile
+        st.experimental_rerun()
+        
+    except Exception as e:
+        st.error(f"❌ Değerlendirme hatası: {e}")
+        print(f"Konu değerlendirme hatası: {e}")
+
+
 
 def show_review_topics_section(review_topics, user_data):
     """ESKİ FONKSİYON - Artık kullanılmıyor, show_review_topics_tab() kullanılıyor"""
