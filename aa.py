@@ -8133,8 +8133,14 @@ def show_review_topics_section(review_topics, user_data):
                                 if f"{t['subject']}_{t['topic']}" != topic_key
                             ]
                         
-                        # Veriyi kaydet
-                        save_user_data(user_data)
+                        # Kullanıcı verilerini Firestore'a kaydet
+                        if 'username' in user_data:
+                            update_user_in_firebase(user_data['username'], user_data)
+                        else:
+                            # Fallback: Session state'e kaydet
+                            current_user = st.session_state.get('current_user')
+                            if current_user:
+                                st.session_state.users_db[current_user] = user_data
                         
                         st.success(f"🎉 {topic['subject']} - {topic['topic']} kaldırıldı!")
                         st.rerun()
