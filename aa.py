@@ -8126,7 +8126,7 @@ def show_review_topics_section(review_topics, user_data):
                 
                 if st.button("✅ Tekrar ettim", key=button_key):
                     try:
-                        # ChatGPT'nin önerdiği DOĞRU çözüm:
+                        # 🔥 ÇİFT TEMİZLEME ÇÖZÜMÜ: Firestore + Session State
                         
                         # 1. Firestore'dan sil
                         remove_topic_from_review_list(user_data, topic_key)
@@ -8136,11 +8136,26 @@ def show_review_topics_section(review_topics, user_data):
                             username = user_data['username']
                             update_user_in_firebase(username, user_data)
                             
-                            # 🔥 KRİTİK: Cache temizle (ChatGPT önerisi)
+                            # 3. 🔥 KRİTİK: Firestore Cache temizle
                             clear_user_cache(username)
                             
-                            # 🔥 KRİTİK: Kısa bekle + Sayfa yenileme
-                            time.sleep(0.1)  # Çok kısa bekleme
+                            # 4. 🔥 KRİTİK: Session State temizle (YENİ!)
+                            if 'all_review_topics' in st.session_state:
+                                # Bu konuyu session state'den de sil
+                                original_length = len(st.session_state.all_review_topics)
+                                st.session_state.all_review_topics = [
+                                    t for t in st.session_state.all_review_topics 
+                                    if f"{t['subject']}_{t['topic']}" != topic_key
+                                ]
+                                filtered_length = len(st.session_state.all_review_topics)
+                                removed_count = original_length - filtered_length
+                                print(f"🔍 Session state'den {removed_count} konu silindi")
+                            
+                            # 5. 🔥 DENEY: Tam sayfa yenileme (YENİ!)
+                            st.cache_data.clear()  # Tüm cache'i temizle
+                            
+                            # 6. Kısa bekle
+                            time.sleep(0.1)
                             
                             st.success(f"🎉 {topic['subject']} - {topic['topic']} kaldırıldı!")
                             st.rerun()  # 🔥 TAM YENİLEME
@@ -8150,10 +8165,20 @@ def show_review_topics_section(review_topics, user_data):
                             current_user = st.session_state.get('current_user')
                             if current_user:
                                 st.session_state.users_db[current_user] = user_data
-                                # Session cache temizle
+                                
+                                # 🔥 Session cache + review topics temizle
                                 if f"cache_{current_user}" in st.session_state:
                                     del st.session_state[f"cache_{current_user}"]
                                     del st.session_state[f"cache_{current_user}_time"]
+                                
+                                # Session state'den konuyu sil
+                                if 'all_review_topics' in st.session_state:
+                                    st.session_state.all_review_topics = [
+                                        t for t in st.session_state.all_review_topics 
+                                        if f"{t['subject']}_{t['topic']}" != topic_key
+                                    ]
+                                
+                                st.cache_data.clear()  # Tam cache temizle
                                 st.success(f"🎉 {topic['subject']} - {topic['topic']} kaldırıldı!")
                                 st.rerun()
                         
