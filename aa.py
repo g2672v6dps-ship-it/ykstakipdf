@@ -7948,7 +7948,9 @@ def show_review_topics_section(review_topics, user_data):
         
         # Her konu için basit dikdörtgen göster
         for i, topic in enumerate(all_review_topics):
-            topic_key = f"{topic['subject']}_{topic['topic']}"
+            # 🔥 CHATGPT ÖNERİSİ: Her topic'e unique key ekle
+            topic['unique_key'] = f"{topic['subject']}_{topic['topic']}_{i}"
+            topic_key = topic['unique_key']
             
             # Konu takip sisteminden güncel net bilgisini al
             current_net = 0
@@ -8120,41 +8122,47 @@ def show_review_topics_section(review_topics, user_data):
                     """, unsafe_allow_html=True)
             
             with col3:
-                # BASİT VE KESİN ÇALIŞAN BUTON
-                topic_key = f"{topic['subject']}_{topic['topic']}"
-                button_key = f"repeat_{topic_key}_{i}"
+                # 🔥 CHATGPT ÖNERİSİ: Unique key ile çalışan buton
+                topic_key = topic['unique_key']
+                button_key = f"repeat_{topic_key}"
                 
                 if st.button("✅ Tekrar ettim", key=button_key):
                     try:
-                        # 🔥 ÇİFT TEMİZLEME ÇÖZÜMÜ: Firestore + Session State
+                        # 🔥 CHATGPT ÇÖZÜMÜ: Basit ve kesin filtreleme
                         
-                        # 1. Firestore'dan sil
-                        remove_topic_from_review_list(user_data, topic_key)
+                        # 1. Firestore'dan sil (eski fonksiyonu çağır ama yeni filtreleme ile)
+                        original_topic_key = f"{topic['subject']}_{topic['topic']}"
+                        remove_topic_from_review_list(user_data, original_topic_key)
                         
                         # 2. Kullanıcı verilerini Firestore'a kaydet
                         if 'username' in user_data:
                             username = user_data['username']
                             update_user_in_firebase(username, user_data)
                             
-                            # 3. 🔥 KRİTİK: Firestore Cache temizle
-                            clear_user_cache(username)
-                            
-                            # 4. 🔥 KRİTİK: Session State temizle (YENİ!)
+                            # 3. 🔥 KRİTİK: Session State'den doğru filtreleme ile çıkar
                             if 'all_review_topics' in st.session_state:
-                                # Bu konuyu session state'den de sil
+                                # CHATGPT'ye göre: unique key üzerinden karşılaştır
                                 original_length = len(st.session_state.all_review_topics)
                                 st.session_state.all_review_topics = [
                                     t for t in st.session_state.all_review_topics 
-                                    if f"{t['subject']}_{t['topic']}" != topic_key
+                                    if t.get('unique_key', '') != topic_key  # 🔥 YENİ: unique_key üzerinden karşılaştır
                                 ]
                                 filtered_length = len(st.session_state.all_review_topics)
                                 removed_count = original_length - filtered_length
-                                print(f"🔍 Session state'den {removed_count} konu silindi")
+                                print(f"🔍 Session state'den {removed_count} konu silindi (unique_key: {topic_key})")
                             
-                            # 5. 🔥 DENEY: Tam sayfa yenileme (YENİ!)
-                            st.cache_data.clear()  # Tüm cache'i temizle
+                            # 4. 🔥 CHATGPT ÖNERİSİ: Firestore cache temizle
+                            clear_user_cache(username)
                             
-                            # 6. Kısa bekle
+                            # 5. 🔥 YENİ: Firestore verisini session state'de de güncelle
+                            # Firestore'dan güncel listeyi çek
+                            updated_user_data = st.session_state.users_db.get(username, user_data)
+                            st.session_state.users_db[username] = updated_user_data
+                            
+                            # 6. Tüm cache'i temizle
+                            st.cache_data.clear()
+                            
+                            # 7. Kısa bekle
                             time.sleep(0.1)
                             
                             st.success(f"🎉 {topic['subject']} - {topic['topic']} kaldırıldı!")
@@ -8171,11 +8179,11 @@ def show_review_topics_section(review_topics, user_data):
                                     del st.session_state[f"cache_{current_user}"]
                                     del st.session_state[f"cache_{current_user}_time"]
                                 
-                                # Session state'den konuyu sil
+                                # 🔥 CHATGPT ÖNERİSİ: Session state'den unique_key ile sil
                                 if 'all_review_topics' in st.session_state:
                                     st.session_state.all_review_topics = [
                                         t for t in st.session_state.all_review_topics 
-                                        if f"{t['subject']}_{t['topic']}" != topic_key
+                                        if t.get('unique_key', '') != topic_key  # 🔥 YENİ: unique_key kullan
                                     ]
                                 
                                 st.cache_data.clear()  # Tam cache temizle
