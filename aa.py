@@ -3689,7 +3689,7 @@ def analyze_student_subject_performance(user_data):
     """Öğrencinin ders bazlı performansını analiz eder"""
     import json
     topic_progress_str = user_data.get('topic_progress', '{}')
-    topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
+    topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str if topic_progress_str else {}
     
     # Ders bazlı net ortalamaları
     subject_stats = {}
@@ -3832,7 +3832,7 @@ def get_equal_weight_weekly_topics(week_number, completed_topics, pending_topics
     if user_data:
         import json
         topic_progress_str = user_data.get('topic_progress', '{}')
-        topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
+        topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str if topic_progress_str else {}
     
     # 🎯 ADIM 1: O HAFTANIN STRATEJİSİNDEKİ DERSLERİ TESPIT ET
     current_week_plan = EQUAL_WEIGHT_WEEKLY_PLAN.get(week_number, {})
@@ -3922,7 +3922,7 @@ def get_numerical_weekly_topics(week_number, completed_topics, pending_topics, u
     if user_data:
         import json
         topic_progress_str = user_data.get('topic_progress', '{}')
-        topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
+        topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str if topic_progress_str else {}
     
     # 🎯 ADIM 1: O HAFTANIN STRATEJİSİNDEKİ DERSLERİ TESPIT ET
     current_week_plan = NUMERICAL_WEEKLY_PLAN.get(week_number, {})
@@ -4015,7 +4015,7 @@ def get_tyt_msu_weekly_topics(week_number, completed_topics, pending_topics, use
     if user_data:
         import json
         topic_progress_str = user_data.get('topic_progress', '{}')
-        topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
+        topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str if topic_progress_str else {}
     
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
@@ -4143,7 +4143,7 @@ def get_verbal_weekly_topics(week_number, completed_topics, pending_topics, user
     if user_data:
         import json
         topic_progress_str = user_data.get('topic_progress', '{}')
-        topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
+        topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str if topic_progress_str else {}
     
     # Bu haftanın planlanmış konularını al
     planned_topics = week_plan.get('topics', {})
@@ -5065,7 +5065,8 @@ def get_user_pending_topics(user_data):
     current_week = get_current_week_number()
     
     # Kullanıcı verilerinden tamamlanmamış konuları al
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     
     for topic_key, topic_data in topic_progress.items():
         # topic_data'nın dictionary olduğundan emin ol
@@ -5119,7 +5120,7 @@ def get_completed_topics_from_user_data(user_data):
         if not topic_progress_str:
             topic_progress_str = '{}'
         
-        topic_progress = json.loads(topic_progress_str)
+        topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str
     except Exception as e:
         return completed_topics, completed_topic_names
     
@@ -6354,7 +6355,7 @@ def calculate_subject_progress(user_data):
     topic_progress_str = user_data.get('topic_progress', '{}')
     try:
         if isinstance(topic_progress_str, str):
-            topic_progress = json.loads(topic_progress_str)
+            topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str
         else:
             topic_progress = topic_progress_str if isinstance(topic_progress_str, dict) else {}
     except (json.JSONDecodeError, TypeError):
@@ -7927,7 +7928,7 @@ def show_review_topics_section(review_topics, user_data):
         topic_progress = user_data.get('topic_progress', {})
         if isinstance(topic_progress, str):
             try:
-                topic_progress = json.loads(topic_progress)
+                topic_progress = json.loads(topic_progress) if isinstance(topic_progress, str) else topic_progress
             except:
                 topic_progress = {}
         
@@ -8512,7 +8513,7 @@ def show_struggling_subjects_section(user_data):
     topic_progress = user_data.get('topic_progress', {})
     if isinstance(topic_progress, str):
         try:
-            topic_progress = json.loads(topic_progress)
+            topic_progress = json.loads(topic_progress) if isinstance(topic_progress, str) else topic_progress
         except:
             topic_progress = {}
     
@@ -8899,7 +8900,8 @@ def calculate_user_subject_performance(subject, user_data):
             return min(100, total_score / count)
     
     # Deneme verisi yoksa konu ilerlemesinden hesapla
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     
     # Bu derse ait konuları bul
     subject_topics = []
@@ -9337,7 +9339,8 @@ def show_time_based_progress_analysis(user_data, week_info):
     st.caption("Son günlerdeki çalışma hızınız ve konu tamamlama performansınız")
     
     # Temel veriler
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     completion_dates = json.loads(user_data.get('topic_completion_dates', '{}') or '{}')
     current_date = datetime.now()
     
@@ -10149,7 +10152,8 @@ def show_yks_journey_cinema(user_data, progress_data):
         try:
             daily_motivation = json.loads(user_data.get('daily_motivation', '{}'))
             pomodoro_history = json.loads(user_data.get('pomodoro_history', '[]'))
-            topic_progress = json.loads(user_data.get('topic_progress', '{}'))
+            topic_progress_data = user_data.get('topic_progress', '{}')
+            topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
             exam_data = json.loads(user_data.get('exam_data', '{}'))
             weekly_plan = json.loads(user_data.get('weekly_plan', '{}'))
         except:
@@ -11500,7 +11504,8 @@ def update_topic_completion_date(username, topic_key):
             completion_dates[topic_key] = datetime.now().isoformat()
             
             # YENİ: Kalıcı öğrenme sistemine ekle
-            topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+            topic_progress_data = user_data.get('topic_progress', '{}')
+            topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
             net_value = topic_progress.get(topic_key, '0')
             
             try:
@@ -11713,7 +11718,8 @@ def track_topic_completion_for_review():
     if not user_data:
         return
     
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     completion_dates = json.loads(user_data.get('topic_completion_dates', '{}') or '{}')
     
     # Yeni tamamlanan konuları bul
@@ -13352,7 +13358,8 @@ def get_subjects_by_field_yks(field):
 def determine_topic_priority_by_performance(topic, user_data):
     """Konunun öğrenci performansına göre öncelik seviyesini belirler"""
     # Konu takip verisinden mevcut net değerini al
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     
     # MULTİPLE FORMAT SUPPORT: Alternatif key formatlarını dene
     possible_keys = []
@@ -13464,7 +13471,8 @@ def check_topic_weakness_in_exams(topic, user_data):
 def calculate_subject_priority_new(subject, user_data, survey_data):
     """YENİ SİSTEM: Ders önceliğini konu takip seviyelerine göre hesaplar"""
     # Dersin genel performansını hesapla
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     subject_avg_net = calculate_subject_average_net(subject, topic_progress)
     
     # Net seviyesine göre temel öncelik
@@ -13675,7 +13683,8 @@ def get_sequential_topics(subject, topic_progress, limit=5):
 
 def calculate_spaced_repetition_topics(user_data):
     """Tekrar edilmesi gereken konuları bilimsel aralıklarla hesaplar"""
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     completion_dates = json.loads(user_data.get('topic_completion_dates', '{}') or '{}')
     
     current_date = datetime.now()
@@ -13976,7 +13985,8 @@ def complete_topic_with_mastery_system(user_data, topic_key, net_value):
     from datetime import datetime
     
     # Mevcut sistemi güncelle (topic_progress ve completion_dates)
-    topic_progress = json.loads(user_data.get('topic_progress', '{}'))
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     completion_dates = json.loads(user_data.get('topic_completion_dates', '{}'))
     
     topic_progress[topic_key] = str(net_value)
@@ -14380,7 +14390,8 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
     all_available_topics = []
     
     # Konu takipten tüm konuları al
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     
     for subject in filtered_subjects[:10]:  # Max 10 ders
         try:
@@ -14437,7 +14448,8 @@ def get_weekly_topics_from_topic_tracking(user_data, student_field, survey_data)
 
 def calculate_tyt_progress(user_data):
     """TYT ilerlemesini yüzde olarak hesaplar"""
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     
     tyt_total = 0
     tyt_completed = 0
@@ -14494,7 +14506,8 @@ def calculate_tyt_progress(user_data):
 
 def count_tyt_math_completed_topics(user_data):
     """TYT Matematik'te tamamlanan konu sayısını hesaplar"""
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     
     if "TYT Matematik" not in YKS_TOPICS:
         return 0
@@ -14593,7 +14606,8 @@ def should_include_specific_ayt_subject(ayt_subject, user_data):
 
 def count_completed_topics_in_categories(user_data, subject, categories):
     """Belirli kategorilerdeki tamamlanan konu sayısını hesaplar"""
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     
     if subject not in YKS_TOPICS:
         return 0
@@ -14633,7 +14647,8 @@ def count_completed_topics_in_categories(user_data, subject, categories):
 
 def calculate_completion_projections(user_data, student_field, days_to_yks):
     """Uzun vadeli tamamlanma tahminleri - DİNAMİK YKS TARİHİ İLE"""
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     available_subjects = get_subjects_by_field_yks(student_field)
     
     projections = {
@@ -14735,7 +14750,8 @@ def calculate_completion_projections(user_data, student_field, days_to_yks):
 
 def get_topic_level_from_tracking(topic, user_data):
     """Bir konunun mevcut seviyesini Konu Takip'ten alır"""
-    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+    topic_progress_data = user_data.get('topic_progress', '{}')
+    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
     current_net = topic_progress.get(topic['key'], '0')
     
     try:
@@ -16430,7 +16446,7 @@ def main():
                     # Son çalışma tarihlerini al
                     topic_progress_str = user_data.get('topic_progress', '{}')
                     try:
-                        topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str
+                        topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str if isinstance(topic_progress_str, str) else topic_progress_str
                     except:
                         topic_progress = {}
                     
@@ -16548,7 +16564,7 @@ def main():
                 # Kullanıcının gerçek verilerinden son aktiviteleri al
                 topic_progress_str = user_data.get('topic_progress', '{}')
                 try:
-                    topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str
+                    topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str if isinstance(topic_progress_str, str) else topic_progress_str
                 except:
                     topic_progress = {}
                 
@@ -16631,7 +16647,8 @@ def main():
                 if selected_subject and selected_subject in YKS_TOPICS:
                     st.subheader(f"{selected_subject} Konuları")
                     
-                    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+                    topic_progress_data = user_data.get('topic_progress', '{}')
+                    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
                     subject_content = YKS_TOPICS[selected_subject]
                     
                     # DOM hata önleyici - update tracker
@@ -19048,7 +19065,8 @@ Klorofil'in büyülü yeşil gücü sayesinde, bitkinin her hücresi enerji dolu
                     st.metric("🎯 Tamamlanma Oranı", f"%{completion_rate:.1f}")
                 with col3:
                     avg_net = 0; net_count = 0
-                    topic_progress = json.loads(user_data.get('topic_progress', '{}') or '{}')
+                    topic_progress_data = user_data.get('topic_progress', '{}')
+                    topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
                     for topic_data in topic_progress.values():
                         try:
                             avg_net += float(topic_data)
@@ -22513,7 +22531,8 @@ def run_time_management_test():
 def get_weak_topics_for_subject(user_data, subject):
     """Belirli bir ders için zayıf konuları getirir"""
     try:
-        topic_progress = json.loads(user_data.get('topic_progress', '{}'))
+        topic_progress_data = user_data.get('topic_progress', '{}')
+        topic_progress = json.loads(topic_progress_data) if isinstance(topic_progress_data, str) else topic_progress_data
         
         # Basit zayıf konu listesi (genişletilebilir)
         weak_topics_map = {
@@ -23040,7 +23059,7 @@ def calculate_weekly_completion_percentage(user_data, weekly_plan):
         
         # Kullanıcının topic_progress verisini al
         topic_progress_str = user_data.get('topic_progress', '{}')
-        topic_progress = json.loads(topic_progress_str) if topic_progress_str else {}
+        topic_progress = json.loads(topic_progress_str) if isinstance(topic_progress_str, str) else topic_progress_str if topic_progress_str else {}
         
         # Tamamlanan konuları say
         total_topics = len(all_topics)
