@@ -8003,7 +8003,7 @@ def show_detailed_review_topic(topic, index, user_data):
     col1, col2, col3 = st.columns([4, 1, 0.3])
     
     with col1:
-        # 🎨 MODERN RENKLİ KART - NET DURUMUNA GÖRE
+        # 🎨 MODERN RENKLİ KART - BASİT VE ÇALIŞAN VERSİYON
         text_color = "white" if current_net >= 10 else "black"
         
         # Duruma göre emoji ve başlık
@@ -8020,41 +8020,41 @@ def show_detailed_review_topic(topic, index, user_data):
             status_emoji = "📚"
             status_text = "ZAYIF"
         
-        st.markdown(f"""
-        <div style='
-            background: linear-gradient(135deg, {status_color}20, {status_color}40), {status_color}; 
-            border: 2px solid {status_color}; 
-            padding: 25px; 
-            border-radius: 15px; 
-            margin-bottom: 20px; 
+        # Kart HTML'i oluştur
+        card_html = f'''
+        <div style="
+            background: {status_color};
+            border: 3px solid {status_color};
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
             color: {text_color};
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
             position: relative;
-            overflow: hidden;
-        '>
-            <div style='
+        ">
+            <div style="
                 position: absolute;
                 top: 15px;
                 right: 20px;
-                background: {status_color};
+                background: rgba(255,255,255,0.2);
                 padding: 8px 15px;
                 border-radius: 20px;
                 font-size: 12px;
                 font-weight: bold;
-                border: 1px solid rgba(255,255,255,0.3);
-            '>
+                color: {text_color};
+            ">
                 {status_emoji} {status_text}
             </div>
             
-            <div style='font-size: 20px; font-weight: bold; margin-bottom: 10px; margin-right: 80px;'>
+            <div style="font-size: 20px; font-weight: bold; margin-bottom: 10px; margin-right: 80px;">
                 {index+1}. {subject} - {topic_name}
             </div>
             
-            <div style='font-size: 15px; margin-bottom: 12px; opacity: 0.9;'>
+            <div style="font-size: 15px; margin-bottom: 12px; opacity: 0.9;">
                 📝 {detail}
             </div>
             
-            <div style='
+            <div style="
                 display: flex; 
                 gap: 15px; 
                 margin-bottom: 10px; 
@@ -8063,21 +8063,54 @@ def show_detailed_review_topic(topic, index, user_data):
                 background: rgba(255,255,255,0.1);
                 padding: 10px;
                 border-radius: 8px;
-            '>
-                <div style='flex: 1;'>📊 Net: <span style='font-size: 18px;'>{current_net}</span></div>
-                <div style='flex: 1;'>⚡ Zorluk: {difficulty}</div>
+            ">
+                <div style="flex: 1;">📊 Net: <span style="font-size: 18px;">{current_net}</span></div>
+                <div style="flex: 1;">⚡ Zorluk: {difficulty}</div>
             </div>
             
-            <div style='
+            <div style="
                 font-size: 14px; 
                 opacity: 0.8;
-                border-top: 1px solid rgba(255,255,255,0.2);
+                border-top: 1px solid rgba(255,255,255,0.3);
                 padding-top: 8px;
-            '>
+            ">
                 📂 Kaynak: {source}
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        '''
+        
+        st.markdown(card_html, unsafe_allow_html=True)
+        
+        # 🔥 DEBUG BİLGİSİ - Net değer çekme sorunu için
+        with st.expander(f"🔍 Debug: {subject} - {topic_name}", expanded=False):
+            st.write(f"**🔢 Net Değeri:** {current_net}")
+            st.write(f"**📊 Görünen Net:** {net}")
+            st.write(f"**🎨 Renk:** {status_color}")
+            st.write(f"**📝 Kaynak:** {source}")
+            
+            # Veri kaynaklarını kontrol et
+            topic_tracking = user_data.get('topic_tracking', {})
+            st.write(f"**🗂️ Topic Tracking Keys:** {list(topic_tracking.keys())[:5]}")
+            
+            progress_tracking = user_data.get('progress_tracking', {})
+            if isinstance(progress_tracking, dict):
+                subject_keys = list(progress_tracking.keys())
+                st.write(f"**📈 Progress Subject Keys:** {subject_keys[:5]}")
+            
+            # Key matching deneme
+            possible_keys = [
+                f"{subject}_{topic_name}",
+                f"{subject}-{topic_name}",
+                f"{subject} {topic_name}",
+                topic_name
+            ]
+            st.write(f"**🔑 Denenen Keys:** {possible_keys}")
+            
+            # Net değer hesaplaması hakkında bilgi
+            if current_net == 0:
+                st.error("⚠️ **Net değeri bulunamadı!** - Bu konu için veri kaynaklarında net bilgisi yok.")
+            else:
+                st.success(f"✅ **Net değeri bulundu:** {current_net}")
         
         # 🔥 GÜÇLENDİRİLMİŞ BUTONLAR
         col_buttons = st.columns([1, 1, 2])
