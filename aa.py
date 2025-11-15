@@ -8104,13 +8104,6 @@ def show_detailed_review_topic(topic, index, user_data):
     
     with col3:
         st.write("")  # Boş kolon
-    
-    # 🔥 DEBUG BİLGİSİ (Geliştirme için)
-    if st.checkbox(f"Debug: {subject} - {topic_name}", key=f"debug_{topic_key}"):
-        st.write(f"**Net Değeri:** {current_net}")
-        st.write(f"**Topic Key:** {topic_key}")
-        st.write(f"**Renk:** {status_color}")
-        st.write(f"**Kaynak:** {source}")
 
 def get_actual_net_value(subject, topic_name, user_data):
     """Konunun gerçek net değerini tüm kaynaklardan çeker - GÜÇLENDİRİLMİŞ VERSİYON"""
