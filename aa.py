@@ -8049,11 +8049,15 @@ def show_review_topics_section(review_topics, user_data):
                 except:
                     current_net = 0
             
-            # Dikdörtgen kart göster
-            col1, col2, col3 = st.columns([3, 1, 1])
+            # 🔥 YENİ YAKLAŞIM: Butonu kartın İÇİNE koy!
+            col1, col2 = st.columns([4, 1])
             
             with col1:
-                # Konu bilgilerini göster
+                # 🔥 BUTONU KARtın İÇİNE YERLEŞTİR!
+                topic_key = topic['unique_key']
+                button_key = f"repeat_{topic_key}"
+                
+                # Konu bilgilerini hazırla
                 review_type_icon = "🎯" if topic['review_type'] == 'KALİCİ' else "🔄"
                 
                 # Detaylı konu bilgisini çek - konu takip sisteminden
@@ -8116,6 +8120,7 @@ def show_review_topics_section(review_topics, user_data):
                     status_color = "#DC143C"  # Kırmızı - Zayıf seviye
                     status_text = f"🔴 {current_net} net (Zayıf seviye)"
                 
+                # KART HTML'İ + BUTON
                 st.markdown(f"""
                 <div style='background: linear-gradient(135deg, {status_color} 0%, {status_color}88 50%, {status_color}66 100%); 
                             border: 2px solid {status_color}; padding: 16px 20px; border-radius: 12px; 
@@ -8129,14 +8134,66 @@ def show_review_topics_section(review_topics, user_data):
                     <div style='font-size: 13px; color: rgba(255,255,255,0.9); margin: 4px 0 8px 0; font-style: italic; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);'>
                         └ {detail_info}
                     </div>
-                    <div style='font-size: 14px; color: white; font-weight: bold; background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 8px; margin-top: 8px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);'>
-                        {status_text}
+                    <div style='display: flex; justify-content: space-between; align-items: center; margin-top: 12px;'>
+                        <div style='font-size: 14px; color: white; font-weight: bold; background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 8px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);'>
+                            {status_text}
+                        </div>
+                """, unsafe_allow_html=True)
+                
+                # 🔥 KART İÇİNDEKİ BUTON
+                if st.button("✅ Tekrar ettim", key=button_key):
+                    try:
+                        # 🔥 BASİT ÇÖZÜM: Önce UI'ı güncelle, sonra DB
+                        
+                        # 1. Session state'den hemen kaldır
+                        if 'all_review_topics' in st.session_state:
+                            original_length = len(st.session_state.all_review_topics)
+                            st.session_state.all_review_topics = [
+                                t for t in st.session_state.all_review_topics 
+                                if t.get('unique_key', '') != topic_key
+                            ]
+                            new_length = len(st.session_state.all_review_topics)
+                            removed_count = original_length - new_length
+                            print(f"🔍 Kart silindi: {removed_count} konu kaldırıldı")
+                        
+                        # 2. Firestore işlemleri (pending)
+                        if 'username' in user_data:
+                            username = user_data['username']
+                            
+                            # Pending deletion'a ekle
+                            if 'pending_deletions' not in st.session_state:
+                                st.session_state.pending_deletions = []
+                            
+                            deletion_info = {
+                                'topic_key': topic_key,
+                                'subject': topic['subject'],
+                                'topic': topic['topic'],
+                                'original_topic_key': f"{topic['subject']}_{topic['topic']}",
+                                'timestamp': time.time()
+                            }
+                            st.session_state.pending_deletions.append(deletion_info)
+                            
+                            st.success(f"✅ {topic['subject']} - {topic['topic']} kaldırıldı!")
+                        else:
+                            # Fallback
+                            current_user = st.session_state.get('current_user')
+                            if current_user:
+                                st.session_state.users_db[current_user] = user_data
+                        
+                        # 3. Hemen UI'ı yenile (kullanıcı kartın kaybolduğunu görsün)
+                        st.rerun()
+                        
+                    except Exception as e:
+                        st.error(f"Hata: {e}")
+                
+                # Kart HTML'ini kapat
+                st.markdown("""
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
             
             with col2:
-                # Net bilgisi ve güncelleme durumu
+                # Net bilgisi ve güncelleme durumu (sağ kolon)
                 if current_net >= 15:
                     st.markdown(f"""
                     <div style='text-align: center; padding: 20px 0;'>
@@ -8152,47 +8209,7 @@ def show_review_topics_section(review_topics, user_data):
                     </div>
                     """, unsafe_allow_html=True)
             
-            with col3:
-                # 🔥 CHATGPT ÖNERİSİ: Unique key ile çalışan buton
-                topic_key = topic['unique_key']
-                button_key = f"repeat_{topic_key}"
-                
-                if st.button("✅ Tekrar ettim", key=button_key):
-                    try:
-                        # 🔥 PENDING DELETION SİSTEMİ: UI First → Firestore Later
-                        
-                        # 🔥 AŞAMA 1: ÖNCELIKLE UI'ı GÜNCELLE
-                        if 'all_review_topics' in st.session_state:
-                            original_length = len(st.session_state.all_review_topics)
-                            st.session_state.all_review_topics = [
-                                t for t in st.session_state.all_review_topics 
-                                if t.get('unique_key', '') != topic_key
-                            ]
-                            new_length = len(st.session_state.all_review_topics)
-                            removed_count = original_length - new_length
-                            print(f"🔍 UI güncellendi: {removed_count} konu kaldırıldı")
-                        
-                        # 🔥 AŞAMA 2: PENDING DELETION İŞARETİ KOY
-                        if 'pending_deletions' not in st.session_state:
-                            st.session_state.pending_deletions = []
-                        
-                        # Bu konuyu pending deletion listesine ekle
-                        deletion_info = {
-                            'topic_key': topic_key,
-                            'subject': topic['subject'],
-                            'topic': topic['topic'],
-                            'original_topic_key': f"{topic['subject']}_{topic['topic']}",
-                            'timestamp': time.time()
-                        }
-                        st.session_state.pending_deletions.append(deletion_info)
-                        
-                        # 🔥 AŞAMA 3: HEMEN UI'ı YENİLE (User feedback)
-                        st.success(f"✅ {topic['subject']} - {topic['topic']} kaldırıldı! (DB senkronize ediliyor...)")
-                        st.rerun()  # 🔥 İMMEDIATE UI UPDATE!
-                        
-                    except Exception as e:
-                        st.error(f"Hata: {e}")
-                        
+
         st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
         
     else:
