@@ -8003,112 +8003,81 @@ def show_detailed_review_topic(topic, index, user_data):
     col1, col2, col3 = st.columns([4, 1, 0.3])
     
     with col1:
-        # 🎨 MODERN RENKLİ KART - BASİT VE ÇALIŞAN VERSİYON
-        text_color = "white" if current_net >= 10 else "black"
+        # 🎨 TEMİZ RENKLİ KART - ÇALIŞAN VERSİYON
         
-        # Duruma göre emoji ve başlık
-        if current_net >= 15:
-            status_emoji = "🔥"
-            status_text = "MÜKEMMEL"
-        elif current_net >= 10:
-            status_emoji = "💪"
-            status_text = "İYİ"
-        elif current_net >= 5:
-            status_emoji = "⚡"
-            status_text = "ORTA"
-        else:
-            status_emoji = "📚"
-            status_text = "ZAYIF"
+        # Basit stil fonksiyonu
+        def get_card_style(net_value):
+            if net_value >= 15:
+                return {"bg": "#4CAF50", "text": "white", "status": "🔥 MÜKEMMEL"}
+            elif net_value >= 10:
+                return {"bg": "#FF9800", "text": "white", "status": "💪 İYİ"}
+            elif net_value >= 5:
+                return {"bg": "#FFC107", "text": "black", "status": "⚡ ORTA"}
+            else:
+                return {"bg": "#F44336", "text": "white", "status": "📚 ZAYIF"}
         
-        # Kart HTML'i oluştur
-        card_html = f'''
+        style = get_card_style(current_net)
+        
+        # Kart bilgilerini hazırla
+        st.markdown(f"""
         <div style="
-            background: {status_color};
-            border: 3px solid {status_color};
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            color: {text_color};
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-            position: relative;
+            background-color: {style['bg']};
+            color: {style['text']};
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 2px solid {style['bg']};
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         ">
-            <div style="
-                position: absolute;
-                top: 15px;
-                right: 20px;
-                background: rgba(255,255,255,0.2);
-                padding: 8px 15px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: bold;
-                color: {text_color};
-            ">
-                {status_emoji} {status_text}
-            </div>
-            
-            <div style="font-size: 20px; font-weight: bold; margin-bottom: 10px; margin-right: 80px;">
+            <h3 style="margin: 0 0 10px 0; font-size: 18px;">
                 {index+1}. {subject} - {topic_name}
-            </div>
-            
-            <div style="font-size: 15px; margin-bottom: 12px; opacity: 0.9;">
+            </h3>
+            <p style="margin: 5px 0; font-size: 14px;">
                 📝 {detail}
-            </div>
-            
+            </p>
             <div style="
-                display: flex; 
-                gap: 15px; 
-                margin-bottom: 10px; 
-                font-size: 15px; 
-                font-weight: bold;
-                background: rgba(255,255,255,0.1);
-                padding: 10px;
-                border-radius: 8px;
+                background: rgba(255,255,255,0.2);
+                padding: 8px;
+                border-radius: 5px;
+                margin: 10px 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
             ">
-                <div style="flex: 1;">📊 Net: <span style="font-size: 18px;">{current_net}</span></div>
-                <div style="flex: 1;">⚡ Zorluk: {difficulty}</div>
+                <span>📊 Net: <strong>{current_net}</strong></span>
+                <span>⚡ Zorluk: {difficulty}</span>
+                <span style="background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 10px; font-size: 12px;">
+                    {style['status']}
+                </span>
             </div>
-            
-            <div style="
-                font-size: 14px; 
-                opacity: 0.8;
-                border-top: 1px solid rgba(255,255,255,0.3);
-                padding-top: 8px;
-            ">
+            <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.9;">
                 📂 Kaynak: {source}
-            </div>
+            </p>
         </div>
-        '''
+        """, unsafe_allow_html=True)
         
-        st.markdown(card_html, unsafe_allow_html=True)
-        
-        # 🔥 DEBUG BİLGİSİ - Net değer çekme sorunu için
-        with st.expander(f"🔍 Debug: {subject} - {topic_name}", expanded=False):
-            st.write(f"**🔢 Net Değeri:** {current_net}")
-            st.write(f"**📊 Görünen Net:** {net}")
-            st.write(f"**🎨 Renk:** {status_color}")
-            st.write(f"**📝 Kaynak:** {source}")
+        # 🚨 BASİT DEBUG - Net değer sorunu için
+        if st.checkbox(f"🔍 Debug Bilgisi", key=f"debug_{topic_key}"):
+            st.info(f"""
+            **🔢 Konu Bilgileri:**
+            - **Konu:** {subject} - {topic_name}  
+            - **Görünen Net:** {net}
+            - **Gerçek Net:** {current_net}
+            - **Kaynak:** {source}
+            - **Zorluk:** {difficulty}
+            """)
             
             # Veri kaynaklarını kontrol et
             topic_tracking = user_data.get('topic_tracking', {})
-            st.write(f"**🗂️ Topic Tracking Keys:** {list(topic_tracking.keys())[:5]}")
-            
             progress_tracking = user_data.get('progress_tracking', {})
+            
+            st.write(f"**🗂️ Topic Tracking Keys:** `{list(topic_tracking.keys())[:3]}...`")
+            
             if isinstance(progress_tracking, dict):
-                subject_keys = list(progress_tracking.keys())
-                st.write(f"**📈 Progress Subject Keys:** {subject_keys[:5]}")
+                st.write(f"**📈 Progress Subjects:** `{list(progress_tracking.keys())[:3]}...`")
             
-            # Key matching deneme
-            possible_keys = [
-                f"{subject}_{topic_name}",
-                f"{subject}-{topic_name}",
-                f"{subject} {topic_name}",
-                topic_name
-            ]
-            st.write(f"**🔑 Denenen Keys:** {possible_keys}")
-            
-            # Net değer hesaplaması hakkında bilgi
             if current_net == 0:
-                st.error("⚠️ **Net değeri bulunamadı!** - Bu konu için veri kaynaklarında net bilgisi yok.")
+                st.warning("⚠️ **Net değeri bulunamadı!** Bu konu için veri kaynaklarında net bilgisi yok.")
             else:
                 st.success(f"✅ **Net değeri bulundu:** {current_net}")
         
@@ -8146,6 +8115,8 @@ def show_detailed_review_topic(topic, index, user_data):
 def get_actual_net_value(subject, topic_name, user_data):
     """Konunun gerçek net değerini tüm kaynaklardan çeker - GÜÇLENDİRİLMİŞ VERSİYON"""
     try:
+        print(f"\n🔍 NET ÇEKME BAŞLADI: {subject} - {topic_name}")
+        
         # Farklı key formatlarını deneyelim
         possible_keys = [
             f"{subject}_{topic_name}",
@@ -8156,17 +8127,25 @@ def get_actual_net_value(subject, topic_name, user_data):
         
         subject_possible = [subject.lower(), subject.title(), subject]
         
+        print(f"🔑 Denenen keys: {possible_keys}")
+        print(f"📚 Denenen subjects: {subject_possible}")
+        
         # 🔥 1. PROGRESS_TRACKING'DEN ÇEK
         try:
             progress_data = user_data.get('progress_tracking', {})
+            print(f"📊 Progress tracking data keys: {list(progress_data.keys())[:3]}")
+            
             if isinstance(progress_data, dict):
                 for subject_key, subject_data in progress_data.items():
                     if isinstance(subject_data, dict) and subject_key.lower() in [s.lower() for s in subject_possible]:
+                        print(f"✅ Subject match bulundu: {subject_key}")
                         for topic_key, topic_data in subject_data.items():
                             if isinstance(topic_data, dict):
                                 # Topic key match kontrolü
                                 if any(pk.lower() == topic_key.lower() or pk.lower() in topic_key.lower() for pk in possible_keys):
+                                    print(f"✅ Topic match bulundu: {topic_key}")
                                     net_value = topic_data.get('net', 0)
+                                    print(f"✅ Net değeri bulundu (progress): {net_value}")
                                     try:
                                         return int(float(net_value))
                                     except:
@@ -8299,6 +8278,9 @@ def get_actual_net_value(subject, topic_name, user_data):
         
         # Hiçbirinden bulunamazsa 0 döndür
         print(f"⚠️ Net değer bulunamadı: {subject} - {topic_name}")
+        print(f"❌ Denenen keys: {possible_keys}")
+        print(f"❌ Mevcut topic_tracking keys: {list(user_data.get('topic_tracking', {}).keys())[:5]}")
+        print(f"❌ Mevcut progress_tracking subjects: {list(user_data.get('progress_tracking', {}).keys())[:5]}")
         return 0
         
     except Exception as e:
