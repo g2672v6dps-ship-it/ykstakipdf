@@ -7948,7 +7948,7 @@ def show_review_topics_tab(user_data):
         print(f"Review topics tab hatası: {e}")
 
 def show_detailed_review_topic(topic, index, user_data):
-    """Detaylı tekrar konu kartı - ESKİ GÜZEL DİKDÖRTGEN TASARIM!"""
+    """Basit dikdörtgen tekrar konu kartı - ESKİ BASIT TASARIM!"""
     
     # 🔥 ÇALIŞAN SİSTEMDEN GELEN VERİ
     subject = topic.get('subject', 'Bilinmiyor')
@@ -7961,106 +7961,48 @@ def show_detailed_review_topic(topic, index, user_data):
     # Unique key oluştur
     topic_key = f"{subject}_{topic_name}_{index}"
     
-    # 🔥 ESKİ GÜZEL DİKDÖRTGEN KART TASARIMI - GERİ GETİR
+    try:
+        current_net = int(float(net))
+    except:
+        current_net = 0
+    
+    # 🔥 BASİT DİKDÖRTGEN TASARIM
     col1, col2, col3 = st.columns([4, 1, 0.3])
     
     with col1:
-        # 🎨 ESKİ GÜZEL KART - DETAYLI BİLGİLERLE
-        status_color = "#FF8C00"  # Varsayılan
-        try:
-            current_net = int(float(net))
-            if current_net >= 15:
-                status_color = "#228B22"  # Yeşil
-            elif current_net >= 10:
-                status_color = "#FF8C00"  # Turuncu
-            else:
-                status_color = "#DC143C"  # Kırmızı
-        except:
-            current_net = 0
-            status_color = "#FF8C00"
-        
-        source_icon = "🎯" if source == 'KALİCİ ÖĞRENME' else "📚"
-        
+        # 🎨 BASİT KART - SADECE METİN
         st.markdown(f"""
-        <div style='background: linear-gradient(135deg, {status_color} 0%, {status_color}88 50%, {status_color}66 100%); 
-                    border: 2px solid {status_color}; padding: 25px; border-radius: 15px; 
-                    margin-bottom: 20px; box-shadow: 0 6px 12px rgba(0,0,0,0.3); color: white; min-height: 180px;'>
-            
-            <!-- Header -->
-            <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;'>
-                <div style='font-weight: bold; font-size: 20px; color: white;'>
-                    {index+1}. {subject} {source_icon}
-                </div>
+        <div style='background: #f0f2f6; border: 1px solid #ddd; padding: 20px; 
+                    border-radius: 8px; margin-bottom: 15px; color: #333;'>
+            <div style='font-size: 18px; font-weight: bold; margin-bottom: 8px;'>
+                {index+1}. {subject} - {topic_name}
             </div>
-            
-            <!-- Konu Başlığı -->
-            <div style='font-size: 22px; color: white; margin: 10px 0; font-weight: bold;'>
-                📖 {topic_name}
+            <div style='font-size: 14px; margin-bottom: 5px;'>
+                📝 {detail}
             </div>
-            
-            <!-- Detay Bilgiler -->
-            <div style='background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin: 15px 0;'>
-                <div style='font-size: 16px; color: rgba(255,255,255,0.9); margin: 5px 0;'>
-                    <strong>📝 Detay:</strong> {detail}
-                </div>
-                <div style='font-size: 16px; color: rgba(255,255,255,0.9); margin: 5px 0;'>
-                    <strong>📊 Net:</strong> {current_net} | <strong>⚡ Zorluk:</strong> {difficulty}
-                </div>
-                <div style='font-size: 16px; color: rgba(255,255,255,0.9); margin: 5px 0;'>
-                    <strong>📂 Kaynak:</strong> {source}
-                </div>
+            <div style='font-size: 14px; margin-bottom: 5px;'>
+                📊 Net: {current_net} | ⚡ Zorluk: {difficulty}
             </div>
-            
-            <!-- Hedef Gösterge -->
-            <div style='font-size: 16px; color: white; font-weight: bold; background: rgba(0,0,0,0.3); 
-                        padding: 10px 15px; border-radius: 8px; display: inline-block;'>
-                🎯 Hedef: Net +3 (Şu an: {current_net} → Hedef: {current_net + 3}+)
+            <div style='font-size: 14px; color: #666;'>
+                📂 Kaynak: {source}
             </div>
         </div>
         """, unsafe_allow_html=True)
+        
+        # Tekrar Ettim butonu
+        col_buttons = st.columns([1, 1, 2])
+        with col_buttons[0]:
+            if st.button("✅ Tekrar Ettim", key=f"repeat_{topic_key}"):
+                process_topic_completion(topic, user_data)
+        with col_buttons[1]:
+            if st.button("🗑️ Sil", key=f"delete_simple_{topic_key}"):
+                process_topic_deletion(topic, user_data)
     
     with col2:
-        # Seviye Gösterge
-        try:
-            if current_net >= 15:
-                st.markdown(f"""
-                <div style='text-align: center; padding: 20px; background: rgba(34,139,34,0.2); border-radius: 12px; margin-top: 10px;'>
-                    <div style='font-size: 28px; color: #228B22;'>✅</div>
-                    <div style='font-size: 14px; color: #228B22; font-weight: bold;'>İyi Seviye</div>
-                    <div style='font-size: 16px; color: #228B22;'>{current_net} net</div>
-                </div>
-                """, unsafe_allow_html=True)
-            elif current_net >= 10:
-                st.markdown(f"""
-                <div style='text-align: center; padding: 20px; background: rgba(255,140,0,0.2); border-radius: 12px; margin-top: 10px;'>
-                    <div style='font-size: 28px; color: #FF8C00;'>🟡</div>
-                    <div style='font-size: 14px; color: #FF8C00; font-weight: bold;'>Gelişim Gerekli</div>
-                    <div style='font-size: 16px; color: #FF8C00;'>{current_net} net</div>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown(f"""
-                <div style='text-align: center; padding: 20px; background: rgba(220,20,60,0.2); border-radius: 12px; margin-top: 10px;'>
-                    <div style='font-size: 28px; color: #DC143C;'>🔴</div>
-                    <div style='font-size: 14px; color: #DC143C; font-weight: bold;'>Çok Zayıf</div>
-                    <div style='font-size: 16px; color: #DC143C;'>{current_net} net</div>
-                </div>
-                """, unsafe_allow_html=True)
-        except:
-            st.info("⚠️ Seviye hesaplanamadı")
+        st.write("")  # Boş kolon
     
     with col3:
-        # 🔥 SAĞ ÜST KÖŞEDE ÇARPı (X) BUTONU
-        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-        
-        if st.button("❌", key=f"delete_{topic_key}", help="Konuyu silmek için tıklayın"):
-            process_topic_deletion(topic, user_data)
-        
-        st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
-        
-        # Hızlı değerlendirme butonları
-        if st.button("✅", key=f"quick_done_{topic_key}", help="Hızlı tamamlandı"):
-            process_topic_evaluation(topic, 'iyi', user_data)
+        st.write("")  # Boş kolon
 
 def process_topic_deletion(topic, user_data):
     """Konu silme işlemi - Çalışan sistem - Sağ üst çarpı için"""
